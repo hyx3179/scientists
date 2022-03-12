@@ -251,7 +251,7 @@ var run = function() {
             'option.crypto': '黑币交易',
             'option.embassies': '建造大使馆',
             'option.style': '占满屏幕',
-            'option.steamworks': '启动蒸汽工房',
+            //'option.steamworks': '启动蒸汽工房',
             'option.useWorkers': '珂学家webWorker',
 
             'filter.build': '建筑',
@@ -280,10 +280,6 @@ var run = function() {
             'upgrade.space.mission': '小猫执行了 {0} 的任务',
             'upgrade.space': '小猫执行了 {0}',
             'upgrade.race': '小猫遇到了 {0}',
-            'upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
-            'upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
-            'upgrade.building.library': '卖出图书馆 并升级为 数据中心!',
-            'upgrade.building.amphitheatre': '卖出剧场 并升级为 广播塔!',
             'upgrade.upgrade': '小猫发明了 {0}',
             'upgrade.limited': '优化 {0}',
             'upgrade.unlimited': '全部 {0}',
@@ -352,7 +348,7 @@ var run = function() {
             'act.adore': '赞美群星! 转化 {0} 虔诚为 {1} 顿悟',
             'summary.adore': '通过赞美群星积累了 {0} 顿悟',
             'filter.adore': '赞美群星',
-            'adore.trigger.set': '为自动赞美群星设定一个新触发值，取值范围为 0 到 1 的纯小数。\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 赞美群星再赞美太阳后，需太阳革命加成 ≥ 触发值 * 1000%\n2. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n3.探索月球已完成\n4. 次元超越等级低于 11，需赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n5. 次元超越等级低于 12，需当前虔诚＞上次赞美群星时候的虔诚',
+            'adore.trigger.set': '为赞美群星设定一个新触发值，取值范围为 0 到 1 的小数。（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 赞美群星再赞美太阳后，需太阳革命加成 ≥ 触发值 * 1000%\n2. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n3.探索月球已完成\n4. 次元超越等级低于 11，需赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n5. 次元超越等级低于 12，需当前虔诚＞上次赞美群星时候的虔诚',
 
             'resources.add': '添加资源',
             'resources.clear.unused': '清除未使用',
@@ -381,9 +377,9 @@ var run = function() {
             'filter.enable': '过滤 {0}',
             'filter.disable': '取消过滤 {0}',
 
-            'craft.limited': '每2秒制作 {0} 数量自动根据工艺制作效率、资源数量',
+            'craft.limited': '限制下：额外每2秒制作 {0}，数量AI自动（根据工艺制作效率、资源数量）',
             'craft.limitedTitle': '根据原材料和目标材料的数量',
-            'craft.unlimited': '仅到达触发条件制作 {0}',
+            'craft.unlimited': '触发资源：{1}，满足触发资源的触发条件才会制作 {0}',
             'craft.winterCatnip': '因寒冬猫薄荷产量低于0，故取消使用猫薄荷',
 
             'distribute.limited': '分配 {0} 受限于最大值',
@@ -451,6 +447,11 @@ var run = function() {
             'option.fix.cry': '修复冷冻仓',
             'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
             'summary.fix.cry': '修复了 {0} 个冷冻仓',
+
+            'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
+            'summary.upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
+            'summary.upgrade.building.library': '卖出图书馆 并升级为 数据中心!',
+            'summary.upgrade.building.amphitheatre': '卖出剧场 并升级为 广播塔!',
 
             'summary.resource': '小猫自动调整资源: {0} 的消耗率',
             'summary.moon': '小猫停在红月周期散热 {0} 次',
@@ -554,9 +555,9 @@ var run = function() {
                 // At what percentage of the storage capacity should KS build faith buildings?
                 trigger: 0,
                 // 超越猫薄荷日志
-                transcendCatnip: true,
+                transcendCatnip: 0,
                 // 赞美群星猫薄荷日志
-                adoreCatnip: true,
+                adoreCatnip: 0,
                 // Additional options
                 addition: {
                     bestUnicornBuilding:    {enabled: true,  misc: true, label: i18n('option.faith.best.unicorn')},
@@ -870,7 +871,7 @@ var run = function() {
                     fixCry:             {enabled: false,                   misc: true, label: i18n('option.fix.cry')},
                     buildEmbassies:     {enabled: true, subTrigger: 0.94, require: 'culture', misc: true, label: i18n('option.embassies')},
                     style:              {enabled: true,                    misc: true, label: i18n('option.style')},
-                    _steamworks:        {enabled: true,                   misc: true, label: i18n('option.steamworks')},
+                    //_steamworks:        {enabled: true,                   misc: true, label: i18n('option.steamworks')},
                     saves:              {enabled: false,                   misc: true, label: '导出配置文件'},
                     donate:             {enabled: true,                   misc: true, label: '显示捐赠原作者图标'},
                     useWorkers:         {enabled: false,                  misc: true, label: i18n('option.useWorkers')}
@@ -1584,9 +1585,12 @@ var run = function() {
                         }
                         buildManager.build(btn.opts.building, undefined, 1);
                     } else {
-                        for (var i = 0; i < btn.prices.length; i++) {
-                            if (btn.prices[i].name == 'tears') {
-                                var tearNeed = btn.prices[i].val * Math.pow(1.15, btn.on);
+                        var buttonPrices = btn.prices;
+                        let tearNeed;
+                        for (var i = 0; i < buttonPrices.length; i++) {
+                            buttonPrices[i].val = buttonPrices[i].val * Math.pow(1.15, btn.on);
+                            if (buttonPrices[i].name == 'tears') {
+                                tearNeed = buttonPrices[i].val;
                             }
                         }
                         var tearHave = craftManager.getValue('tears') - craftManager.getStock('tears');
@@ -1598,16 +1602,14 @@ var run = function() {
                                 if (!game.religionTab.sacrificeBtn) {game.religionTab.render();}
                                 game.religionTab.sacrificeBtn.controller._transform(game.religionTab.sacrificeBtn.model, needSacrifice);
                             }
-                            // iactivity?
                         }
                         var btnButton = religionManager.getBuildButton(btn.name, 'z');
                         if (!btnButton) {
                             this.religionManager.manager.render();
                         } else {
-                            if (!btnButton.model.enabled) {
-                                btnButton.controller.updateEnabled(btnButton.model);
+                            if (game.resPool.hasRes(buttonPrices)) {
+                                religionManager.build(btn.name, 'z', 1);
                             }
-                            religionManager.build(btn.name, 'z', 1);
                         }
                     }
                 }
@@ -1622,8 +1624,8 @@ var run = function() {
             // religion build
             if (this._worship(builds)) {refreshRequired = 1;}
 
-            var faith = craftManager.getResource('faith');
-            var rate = faith.value / faith.maxValue;
+            var resourceFaith = craftManager.getResource('faith');
+            var rate = resourceFaith.value / resourceFaith.maxValue;
             var transcendenceReached = game.religion.getRU("transcendence").on;
             var tt = transcendenceReached ? game.religion.transcendenceTier : 0;
 
@@ -1635,7 +1637,7 @@ var run = function() {
             var triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
             var epiphanyInc = worship / 1000000 * (tt + 1) * (tt + 1) * 1.01;
             var epiphanyAfterAdore = epiphany + epiphanyInc;
-            var worshipAfterAdore = 0.01 + faith.value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
+            var worshipAfterAdore = 0.01 + resourceFaith.value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
             var solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, maxSolarRevolution);
 
             // boolean
@@ -1650,7 +1652,6 @@ var run = function() {
             // enough faith, and then TAP
             if (Math.min(0.999 , Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
                 var worship = game.religion.faith;
-                var epiphany = game.religion.faithRatio;
                 var moonBoolean = game.space.meta[0].meta[1].on;
 
                 // Transcend
@@ -1666,8 +1667,8 @@ var run = function() {
                     }
 
                     while (TranscendTimes) {
-                        var epiphany = game.religion.faithRatio;
-                        var tt = game.religion.transcendenceTier;
+                        epiphany = game.religion.faithRatio;
+                        tt = game.religion.transcendenceTier;
 
                         // Epiphany Recommend
                         var adoreIncreaceRatio = Math.pow((tt + 2) / (tt + 1), 2);
@@ -1739,16 +1740,24 @@ var run = function() {
                 }
             }
             // Praise
-            var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && faith.value && !game.challenges.isActive("atheism"));
+            var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
+            var solarRevolutionRatio = game.religion.getSolarRevolutionRatio();
+            var expectSolarRevolutionRatio = Math.min(0.0005 * Math.pow(Math.E, 0.66 * transformTier), 0.5) * 10;
+            // 太阳革命加速恢复到期望值
+            if (game.religion.meta[1].meta[5].on) {
+                PraiseSubTrigger = (PraiseSubTrigger == 0.98 && solarRevolutionRatio < expectSolarRevolutionRatio) ? 0 : PraiseSubTrigger;
+            }
+
+            var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value && !game.challenges.isActive("atheism"));
             if (booleanForPraise || forceStep) {
                 if (!game.religion.getFaithBonus) {
                     var apocryphaBonus = game.religion.getApocryphaBonus();
                 } else {
                     var apocryphaBonus = game.religion.getFaithBonus();
                 }
-                var worshipInc = faith.value * (1 + apocryphaBonus);
+                var worshipInc = resourceFaith.value * (1 + apocryphaBonus);
                 storeForSummary('praise', worshipInc);
-                iactivity('act.praise', [game.getDisplayValueExt(faith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
+                iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
                 game.religion.praise();
             }
             return refreshRequired;
@@ -1764,7 +1773,8 @@ var run = function() {
             //buildManager.manager.render();
 
             var solarMeta = game.religion.meta[1].meta[5];
-            if (!solarMeta.on && game.resPool.resourceMap['faith'].value > solarMeta.faith && game.resPool.hasRes(solarMeta.prices)) {
+            var unlocked = game.resPool.resourceMap['faith'].value > solarMeta.faith;
+            if (!solarMeta.on && unlocked && game.resPool.hasRes(solarMeta.prices) && options.auto.faith.items.solarRevolution.enabled) {
                 buildManager.build("solarRevolution", "s", 1);
             }
 
@@ -2073,7 +2083,8 @@ var run = function() {
                                 game.resPool.payPrices(prices);
                                 pastureMeta.on = 1;
                                 pastureMeta.val = 1;
-                                iactivity('upgrade.building.pasture', [], 'ks-upgrade');
+                                iactivity('summary.upgrade.building.pasture', [], 'ks-upgrade');
+                                storeForSummary('upgrade.building.pasture');
                                 return 1;
                             }
                         }
@@ -2092,7 +2103,8 @@ var run = function() {
                                 game.resPool.payPrices(prices);
                                 aqueductMeta.on = 1;
                                 aqueductMeta.val = 1;
-                                iactivity('upgrade.building.aqueduct', [], 'ks-upgrade');
+                                iactivity('summary.upgrade.building.aqueduct', [], 'ks-upgrade');
+                                storeForSummary('upgrade.building.aqueduct');
                                 return 1;
                             }
                         }
@@ -2121,7 +2133,8 @@ var run = function() {
                                     game.resPool.payPrices(prices);
                                     libraryMeta.on = 1;
                                     libraryMeta.val = 1;
-                                    iactivity('upgrade.building.library', [], 'ks-upgrade');
+                                    iactivity('summary.upgrade.building.library', [], 'ks-upgrade');
+                                    storeForSummary('upgrade.building.library');
                                     return 1;
                                 }
                             }
@@ -2140,7 +2153,8 @@ var run = function() {
                                 game.resPool.payPrices(prices);
                                 amphitheatreMeta.on = 1;
                                 amphitheatreMeta.val = 1;
-                                iactivity('upgrade.building.amphitheatre', [], 'ks-upgrade');
+                                iactivity('summary.upgrade.building.amphitheatre', [], 'ks-upgrade');
+                                storeForSummary('upgrade.building.amphitheatre');
                                 return 1;
                             }
                         }
@@ -2164,22 +2178,27 @@ var run = function() {
             if (builds['hut']) {
                 // 解锁磁电机才会造蒸汽工房
                 var steamworksMeta = game.bld.getBuildingExt('steamworks').meta;
+                var steamW = builds['steamworks'];
                 if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.unlocked) {
-                    if (builds['steamworks'].enabled) {
-                        builds['steamworks'].enabled = false;
-                        builds['steamworks'].auto = true;
+                    if (!steamW.max) {
+                        steamW.auto = steamW.max;
+                        steamW.max = 0;
                     }
-                } else if (builds['steamworks'].auto) {
-                    builds['steamworks'].enabled = true;
+                } else if (steamW.auto) {
+                    steamW.max = steamW.auto;
+                    steamW.auto = null;
                 }
 
-                if (game.calendar.festivalDays > 0) {
-                    if (builds['brewery'].enabled) {
-                        builds['brewery'].enabled = false;
-                        builds['brewery'].auto = true;
+                // 无节日不造酿酒厂
+                var Brewery = builds['brewery'];
+                if (!game.calendar.festivalDays) {
+                    if (!Brewery.auto) {
+                        Brewery.auto = Brewery.max;
+                        Brewery.max = 0;
                     }
-                } else if (builds['brewery'].auto) {
-                    builds['brewery'].enabled = true;
+                } else if (Brewery.auto) {
+                    Brewery.max = Brewery.auto;
+                    Brewery.auto = null;
                 }
 
                 var important = {
@@ -2577,15 +2596,17 @@ var run = function() {
             }
             
             // auto turn on steamworks
-            if (optionVals._steamworks.enabled) {
+            if (game.village.maxKittens > 130 || game.stats.getStat("totalResets").val > 0) {
+                // 自动打开蒸汽工房
                 var st = game.bld.getBuildingExt('steamworks').meta;
                 var ma = game.bld.getBuildingExt('magneto').meta;
-                if (st.val && st.on == 0 && ma.val > 5 && ma.on > 0) {
+                if (st.val && st.on == 0 && ma.val > 5 && ma.on > 5) {
                     var stButton = buildManager.getBuildButton('steamworks');
                     stButton.controller.onAll(stButton.model);
                     iactivity('summary.steamworks');
                     storeForSummary('steamworks');
                 }
+                // 自动打开反应堆
                 var re = game.bld.getBuildingExt('reactor').meta;
                 var ur = game.getResourcePerTick("uranium",true);
                 if (re.val && re.on == 0 && ur > 0) {
@@ -2594,6 +2615,7 @@ var run = function() {
                     iactivity('summary.reactor');
                     storeForSummary('reactor');
                 }
+                // 自动打开时空加速器自动化
                 var timeA = game.time.getCFU("temporalAccelerator");
                 if (timeA.on && game.time.testShatter === 0){
                     timeA.isAutomationEnabled = true;
@@ -2601,6 +2623,7 @@ var run = function() {
                     iactivity('summary.temporalAccelerator');
                     storeForSummary('temporalAccelerator');
                 }
+                // 缺电
                 if (game.resPool.energyWinterProd < game.resPool.energyCons) {
                     if (game.workshop.get('biofuel').researched && game.bld.getBuildingExt('biolab').meta.on) {
                         let number = game.bld.getBuildingExt('biolab').meta.on;
@@ -2660,14 +2683,14 @@ var run = function() {
             }
             if (catnipTick < 0) {
                 // 次元超越猫薄荷
-                if (value && options.auto.faith.transcendCatnip) {
+                if (value && options.auto.faith.transcendCatnip < 10) {
                     iactivity('transcend.catnip');
-                    options.auto.faith.transcendCatnip = false;
+                    options.auto.faith.transcendCatnip += 1;
                 }
                 // 赞美群星猫薄荷
-                if (!value && options.auto.faith.adoreCatnip) {
+                if (!value && options.auto.faith.adoreCatnip < 10) {
                     iactivity('adore.catnip');
-                    options.auto.faith.adoreCatnip = false;
+                    options.auto.faith.adoreCatnip += 1;
                 }
             }
             
@@ -3024,7 +3047,7 @@ var run = function() {
             var amountTemp = amount;
             var label = build.meta.label ? build.meta.label : build.meta.stages[stage].label;
             amount = this.bulkManager.construct(button.model, button, amount);
-            if (amount !== amountTemp) {warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);}
+            if (amount !== amountTemp) {/*warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);*/}
             storeForSummary(label, amount, 'build');
 
             if (amount == 0) {
@@ -3475,7 +3498,7 @@ var run = function() {
 
                     countList[counter].priceRatio = priceRatio;
                     countList[counter].source = source;
-                    countList[counter].limit = build.max || 0;
+                    countList[counter].limit = (isNaN(build.max)) ? -1 : build.max;
                     countList[counter].val = data.val;
                     counter++;
                 }
@@ -3533,7 +3556,7 @@ var run = function() {
                                     tempPool[prices[p2].name] += (prices[p2].name === 'void') ? Math.ceil(refundVal) : refundVal;
                                 }
                             }
-                            if (build.limit && build.limit != -1) {
+                            if (build.limit != -1) {
                                 build.count = Math.max(0, Math.min(build.count, (build.limit - build.val)));
                             }
                             bList[countList[j].spot].count = countList[j].count;
@@ -5225,7 +5248,8 @@ var run = function() {
                 imessage('craft.limited', [iname]);
             } else if ((!input.is(':checked')) && option.limited == true) {
                 option.limited = false;
-                imessage('craft.unlimited', [iname]);
+                let require = (option.require) ? game.resPool.resourceMap[option.require].title : '无(资源足够就会制作)';
+                imessage('craft.unlimited', [iname, require]);
             }
             kittenStorage.items[input.attr('id')] = option.limited;
             saveToKittenStorage();
