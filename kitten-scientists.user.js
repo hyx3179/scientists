@@ -1585,7 +1585,7 @@ var run = function() {
                         }
                         buildManager.build(btn.opts.building, undefined, 1);
                     } else {
-                        var buttonPrices = btn.prices;
+                        let buttonPrices = dojo.clone(btn.prices);
                         let tearNeed;
                         for (var i = 0; i < buttonPrices.length; i++) {
                             buttonPrices[i].val = buttonPrices[i].val * Math.pow(1.15, btn.on);
@@ -1609,6 +1609,7 @@ var run = function() {
                         } else {
                             if (game.resPool.hasRes(buttonPrices)) {
                                 religionManager.build(btn.name, 'z', 1);
+                                refreshRequired = 1;
                             }
                         }
                     }
@@ -2600,7 +2601,7 @@ var run = function() {
                 // 自动打开蒸汽工房
                 var st = game.bld.getBuildingExt('steamworks').meta;
                 var ma = game.bld.getBuildingExt('magneto').meta;
-                if (st.val && st.on == 0 && ma.val > 5 && ma.on > 5) {
+                if (st.val && st.on == 0 && ma.val > 6 && ma.on > 6) {
                     var stButton = buildManager.getBuildButton('steamworks');
                     stButton.controller.onAll(stButton.model);
                     iactivity('summary.steamworks');
