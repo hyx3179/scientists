@@ -293,6 +293,7 @@ var run = function() {
             'build.embassies': '在 {1} 设立了 {0} 个大使馆',
 
             'act.praise': '赞美太阳! 转化 {0} 信仰为 {1} 虔诚',
+            'act.praise.msg': '小猫加速赞美太阳，只到太阳革命加成大于 {0}',
             'act.sun.discover': '小猫宗教 {0} 方面获得演化',
             'act.sun.discovers': '小猫宗教 {0} 方面获得演化 {1} 次',
 
@@ -561,7 +562,8 @@ var run = function() {
                 // Additional options
                 addition: {
                     bestUnicornBuilding:    {enabled: true,  misc: true, label: i18n('option.faith.best.unicorn')},
-                    autoPraise:             {enabled: true,  misc: true, label: i18n('option.praise'), subTrigger: 0.98},
+                    autoPraise:             {enabled: true,  misc: true, label: i18n('option.praise'), subTrigger: 0.98,
+                        msg: 0, time: 0,},
                     // Former [Faith Reset]
                     adore:                  {enabled: true, misc: true, label: i18n('option.faith.adore'), subTrigger: 0.001, lastFaith: false},
                     transcend:              {enabled: true, misc: true, label: i18n('option.faith.transcend')},
@@ -590,7 +592,7 @@ var run = function() {
                     sunAltar:           {require: 'faith',       enabled: true, max:-1,  variant: 's', checkForReset: true, triggerForReset: -1},
                     stainedGlass:       {require: 'faith',        enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
                     solarRevolution:    {require: 'faith',        enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
-                    basilica:           {require: 'faith',       enabled: true, max:-1,  variant: 's', checkForReset: true, triggerForReset: -1},
+                    basilica:           {require: 'faith',       enabled: true, max:5,  variant: 's', checkForReset: true, triggerForReset: -1},
                     templars:           {require: 'faith',       enabled: true, max:5,  variant: 's', checkForReset: true, triggerForReset: -1},
                     apocripha:          {require: 'faith',       enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
                     transcendence:      {require: 'faith',        enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
@@ -1742,15 +1744,21 @@ var run = function() {
             }
             // Praise
             var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
-            var solarRevolutionRatio = game.religion.getSolarRevolutionRatio();
             var expectSolarRevolutionRatio = Math.min(0.0005 * Math.pow(Math.E, 0.66 * transformTier), 0.5) * 10;
             // 太阳革命加速恢复到期望值
-            if (game.religion.meta[1].meta[5].on) {
-                PraiseSubTrigger = (PraiseSubTrigger == 0.98 && solarRevolutionRatio < expectSolarRevolutionRatio) ? 0 : PraiseSubTrigger;
+            if (game.religion.meta[1].meta[5].on && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
+                PraiseSubTrigger = 0;
             }
 
             var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value && !game.challenges.isActive("atheism"));
             if (booleanForPraise || forceStep) {
+                // 60秒一次 最多10次消息
+                if (option.autoPraise.subTrigger == 0.98 && option.autoPraise.msg < 10 && rate < 0.98 && Date.now() > option.autoPraise.time + 6e4) {
+                    option.autoPraise.msg += 1;
+                    option.autoPraise.time = Date.now();
+                    let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio * 100) + "%";
+                    iactivity('act.praise.msg', [expectSolar]);
+                }
                 if (!game.religion.getFaithBonus) {
                     var apocryphaBonus = game.religion.getApocryphaBonus();
                 } else {
