@@ -2321,12 +2321,9 @@ var run = function() {
         holdFestival: function () {
             if (!(game.science.get('drama').researched && game.calendar.festivalDays < 400)) {return;}
             if (!game.prestige.getPerk('carnivals').researched && game.calendar.festivalDays > 0) {return;}
+            if (game.village.getKittens() < 5 && game.resPool.get("zebras").value == 0) {return;}
 
             var craftManager = this.craftManager;
-            var carftBoolean = (craftManager.getValueAvailable('manpower', true) < 1500 || craftManager.getValueAvailable('culture', true) < 5000 || craftManager.getValueAvailable('parchment', true) < 2500);
-            var managementBoolean = (game.village.getKittens() < 5 && game.resPool.get("zebras").value == 0);
-            if (carftBoolean || managementBoolean) {return;}
-
             var catpowProf = 4000 * craftManager.getTickVal(craftManager.getResource('manpower'), true) > 1500;
             var cultureProf = 4000 * craftManager.getTickVal(craftManager.getResource('culture'), true) > 5000;
             var parchProf = 4000 * craftManager.getTickVal(craftManager.getResource('parchment'), true) > 2500;
@@ -2334,10 +2331,8 @@ var run = function() {
             if (!(catpowProf && cultureProf && (game.resPool.get('parchment').value >= 5000 || parchProf))) {return;}
 
             if (game.science.getPolicy('carnivale').researched) {
-                var luxury = !game.resPool.get("furs").value || !game.resPool.get("ivory").value || !game.resPool.get("spice").value;
-                if (luxury) {
-                    return;
-                }
+                var luxury = (!game.resPool.get("furs").value || !game.resPool.get("ivory").value || !game.resPool.get("spice").value);
+                if (luxury) {return;}
             }
 
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
