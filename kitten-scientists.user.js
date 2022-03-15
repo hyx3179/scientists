@@ -5611,18 +5611,16 @@ var run = function() {
 
             loadKS.on('click', function () {
                 engine.stop(false);
-                var b = window.prompt('窗口内填入后你需要导入的珂学家配置，注意确认后会保存刷新页面', '');
+                var b = window.prompt('窗口内填入后你需要导入的珂学家配置，确认后会导入配置', '');
                 if (options.auto.engine.enabled) {
                     engine.start(false);
                 }
                 if (b && b.length >=10) {
                     if (b.charAt(0) !== "{") {
-                        b = JSON.parse(LZString.decompressFromBase64(b));
+                        var ksSave = JSON.parse(LZString.decompressFromBase64(b));
                     }
-                    var cbcLC = window.localStorage['cbc.kitten-scientists'];
-                    cbcLC = b;
-                    game.save();
-                    window.location.reload();
+                    window.localStorage['cbc.kitten-scientists'] = ksSave;
+                    loadFromKittenStorage();
                 }
             });
             
