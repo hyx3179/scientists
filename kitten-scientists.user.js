@@ -407,6 +407,7 @@ var run = function() {
             'filter.accelerate': '光阴似箭',
             'summary.accelerate': '小猫加速时间 {0} 次',
             'option.time.skip': '时间跳转',
+            'act.time.skip.moon': '由于未收平衡小猫决定呆在红月!',
             'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
             'ui.cycles': '周期',
             'ui.maximum': '上限',
@@ -762,7 +763,7 @@ var run = function() {
                 items: {
                     accelerateTime:     {enabled: true,  subTrigger: 1,     misc: true, label: i18n('option.accelerate')},
                     timeSkip:           {enabled: true, subTrigger: 500,     misc: true, label: i18n('option.time.skip'), maximum: 1,
-                        0: true, 1: true, 2: true, 3: true, 4: true, 5: false, 6: true, 7: true, 8: true, 9: true,
+                        0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true,
                         spring: true, summer: false, autumn: false, winter: false, 
                         wait: false, adore: false, craft: false},
                     reset:              {enabled: false, subTrigger: 99999, misc: true, label: i18n('option.time.reset')}
@@ -1337,6 +1338,26 @@ var run = function() {
                 var subTrigger = optionVals.timeSkip.subTrigger;
                 if (timeCrystal.value < Math.max(subTrigger, timeSkipMaximum) || currentDay < 0 || !optionVals.timeSkip[currentCycle] || heatNow >= heatMax) {break TimeSkip;}
 
+                // 红月判断收支平衡
+                var prestige = (game.prestige.getPerk("numeromancy").researched && game.prestige.getPerk("numerology").researched);
+                if (currentCycle === 5 && optionVals.timeSkip[currentCycle] && prestige && game.nummon){
+                    // 概览 算好的当前周期收入
+                    var unobtainiumTick = game.nummon['getTradeTC']();
+                    var cycleFestival = game.calendar.cycleEffectsFestival({
+                        unobtainium: 1
+                    })['unobtainium'];
+                    var cycleEffects = game.calendar.cycleEffectsBasics({
+                        unobtainiumPerTickSpace: 1
+                    }, "moonOutpost")['unobtainiumPerTickSpace'];
+                    // 平衡周期 
+                    var calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50 ;
+                    var tradeVal = unobtainiumTick * calendar / (cycleFestival * cycleEffects);
+                    if (!optionVals.timeSkip.moonMsg) {
+                        optionVals.timeSkip.moonMsg = true;
+                        iactivity('act.time.skip.moon');
+                    }
+                }
+
                 var shatter = game.timeTab.cfPanel.children[0].children[0]; // check?
                 if (!shatter.model.enabled) {
                     return shatter.controller.updateEnabled(shatter.model);
@@ -1359,7 +1380,6 @@ var run = function() {
                 var heatMin =  4 * timeSkipMaximum * factor;
                 var booleanForHeat = (game.time.heat > game.getEffect('heatMax') - Math.min(heatMin, 20 * game.time.getCFU("blastFurnace").on + 20));
                 var moonBoolean = optionVals.timeSkip[5];
-                let prestige = (game.prestige.getPerk("numeromancy").researched && game.prestige.getPerk("numerology").researched);
                 if (moonBoolean && prestige && optionVals.timeSkip.wait === false && booleanForHeat) {
                     optionVals.timeSkip.wait = 1;
                     iactivity('summary.moon', [1]);
