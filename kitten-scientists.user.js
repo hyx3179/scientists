@@ -267,9 +267,9 @@ var run = function() {
             'filter.misc': '杂项',
 
             'dispose.necrocorn': '小猫帮你处理掉了影响效率的多余死灵兽',
-            'blackcoin.buy': '小猫出售遗物并买入 {0} 黑币',
-            'blackcoin.sell': '小猫出售黑币并买入了 {0} 遗物',
             'act.feed': '小猫向上古神献上祭品。上古神很高兴',
+            'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
+            'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
             'act.observe': '小猫珂学家观测到一次天文现象',
             'act.hunt': '派出 {0} 波小猫去打猎',
             'act.build': '小猫建造了一个 {0}',
@@ -457,8 +457,10 @@ var run = function() {
 
             'summary.resource': '小猫自动调整资源: {0} 的消耗率',
             'summary.moon': '小猫停在红月周期散热 {0} 次',
+
             'summary.blackcoin.buy': '小猫出售遗物并买入 {0} 次黑币',
             'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
+
             'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
             'summary.pumpjack': '小猫担心电不够并关闭了 {0} 次油井自动化',
             'summary.biolab': '小猫担心电不够并关闭了 {0} 个生物实验室',
@@ -1535,7 +1537,7 @@ var run = function() {
             var coinPrice = game.calendar.cryptoPrice;
             var previousRelic = game.resPool.get('relic').value;
             var previousCoin = game.resPool.get('blackcoin').value;
-            if((!game.science.get("blackchain").researched && !previousCoin > 0) || !game.diplomacy.get("leviathans").unlocked) {return;}
+            if ((!game.science.get("blackchain").researched && !previousCoin > 0) || !game.diplomacy.get("leviathans").unlocked) {return;}
             var crypto = options.auto.options.items.crypto;
             var subTrigger = (crypto.subTrigger != null) ? options.auto.options.items.crypto.subTrigger.toString().split('-') : "10000-860-1060";
             //var isNumber = /^\d+(\.\d+)?$/;
@@ -1545,13 +1547,10 @@ var run = function() {
             var maxCoinPrice = parseFloat(subTrigger[2]);
 
             if (subTrigger.length != 3 || !relicTrigger || !minCoinPrice || !maxCoinPrice) {
-                var relic = (parseFloat(subTrigger[0]));
-                if (relic) {
-                    relic = parseFloat(subTrigger[0]);
-                } else {
-                    relic = 10000;
+                if (!relicTrigger) {
+                    relicTrigger = 10000;
                 }
-                options.auto.options.items.crypto.subTrigger = relic + "-881-1060";
+                options.auto.options.items.crypto.subTrigger = relicTrigger + "-881-1060";
                 //kittenStorage.items['set-crypto-subTrigger'] = JSON.stringify(relic + "-881-1060");
                 //$("#set-crypto-subTrigger")[0].title = relic;
                 return saveToKittenStorage();
@@ -1559,29 +1558,19 @@ var run = function() {
 
             // Exchanges up to a certain threshold, in order to keep a good exchange rate, then waits for a higher treshold before exchanging for relics.
             if (coinPrice < minCoinPrice && previousRelic > relicTrigger) {
-                // function name changed in v1.4.8.0
-                if (typeof game.diplomacy.buyEcoin === 'function') {
-                    game.diplomacy.buyEcoin();
-                } else {
-                    game.diplomacy.buyBcoin();
-                }
+                game.diplomacy.buyBcoin();
 
                 var currentCoin = game.resPool.get('blackcoin').value;
-                var exchangedCoin = Math.round(currentCoin - previousCoin);
-                iactivity('blackcoin.buy', [exchangedCoin]);
+                var exchangedCoin = game.getDisplayValueExt(currentCoin - previousCoin);
+                iactivity('blackcoin.buy', [exchangedCoin, game.getDisplayValueExt(previousRelic)]);
                 storeForSummary('blackcoin.buy', 1);
             } else if (coinPrice > maxCoinPrice && game.resPool.get('blackcoin').value > 0) {
-                // function name changed in v1.4.8.0
-                if (typeof game.diplomacy.sellEcoin === 'function') {
-                    game.diplomacy.sellEcoin();
-                } else {
-                    game.diplomacy.sellBcoin();
-                }
+                game.diplomacy.sellBcoin();
 
                 var currentRelic = game.resPool.get('relic').value;
-                var exchangedRelic = Math.round(currentRelic - previousRelic);
+                var exchangedRelic = game.getDisplayValueExt(currentRelic - previousRelic);
 
-                iactivity('blackcoin.sell', [exchangedRelic]);
+                iactivity('blackcoin.sell', [exchangedRelic, game.getDisplayValueExt(previousCoin)]);
                 storeForSummary('blackcoin.sell', 1);
             }
         },
