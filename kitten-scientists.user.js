@@ -1061,7 +1061,7 @@ var run = function() {
             if (subOptions.enabled && subOptions.items.festival.enabled)                    {this.holdFestival();}
             if (options.auto.build.enabled)                                                 {refresh += this.build();}
             if (options.auto.space.enabled)                                                 {refresh += this.space();}
-            if (options.auto.timeCtrl.enabled)                                              {this.timeCtrl();}
+            if (options.auto.timeCtrl.enabled)                                              {refresh += this.timeCtrl();}
             if (options.auto.craft.enabled)                                                 {this.craft();}
             if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.setHunt();}
             if (options.auto.trade.enabled)                                                 {this.trade();}
@@ -1072,7 +1072,7 @@ var run = function() {
             if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
             if (options.auto.distribute.enabled)                                            {this.distribute();}
             if (subOptions.enabled)                                                         {refresh += this.miscOptions();}
-            if (refresh)                                                                    {game.ui.render();game.update();}
+            if (refresh > 0)                                                                {game.ui.render();game.resPool.update();}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
         },
         halfInterval: async function () {
@@ -1420,6 +1420,7 @@ var run = function() {
                     if (!willSkip) {return;}
                     iactivity('act.time.skip', [willSkip], 'ks-timeSkip');
                     storeForSummary('time.skip', willSkip);
+                    return -100;
                 }
             }
         },
@@ -1777,6 +1778,7 @@ var run = function() {
                 storeForSummary('praise', worshipInc);
                 iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
                 game.religion.praise();
+                refreshRequired += 1;
             }
             return refreshRequired;
         },
