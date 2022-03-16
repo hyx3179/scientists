@@ -467,6 +467,9 @@ var run = function() {
             'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
             'summary.reactor': '小猫向反应堆投入了铀开始发光呐',
             'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐',
+            'summary.breweryOn': '节日开始了，小猫开启了 {0} 个酿酒厂庆祝节日',
+            'summary.breweryOff': '节日结束了，小猫担心浪费资源关闭了 {0} 个酿酒厂',
+            'summary.brewery': '小猫根据节日调整了 {0} 次酿酒厂',
             'summary.festival': '举办了 {0} 次节日',
             'summary.stars': '观测了 {0} 颗流星',
             'summary.praise': '通过赞美太阳积累了 {0} 虔诚',
@@ -2651,6 +2654,23 @@ var run = function() {
                         oilWell.isAutomationEnabled = false;
                         iactivity('summary.pumpjack', [1]);
                         storeForSummary('pumpjack', 1);
+                    }
+                }
+                // 自动开关酿酒厂
+                var brewery = game.bld.get('brewery');
+                var breweryButton = buildManager.getBuildButton('brewery');
+                if (breweryButton) {
+                    if (game.calendar.festivalDays) {
+                        let off = brewery.val - brewery.on;
+                        if (off) {
+                            breweryButton.controller.onAll(breweryButton.model);
+                            iactivity('summary.breweryOn', [off]);
+                            storeForSummary('brewery');
+                        }
+                    } else if (brewery.on) {
+                        breweryButton.controller.offAll(breweryButton.model);
+                        iactivity('summary.breweryOff', [brewery.on]);
+                        storeForSummary('brewery');
                     }
                 }
             }
