@@ -2615,7 +2615,7 @@ var run = function() {
                 // 自动打开蒸汽工房
                 var st = game.bld.getBuildingExt('steamworks').meta;
                 var ma = game.bld.getBuildingExt('magneto').meta;
-                if (st.val && st.on == 0 && ma.val > 6 && ma.on > 6) {
+                if (st.val && st.on !== st.val && ma.on > 7) {
                     var stButton = buildManager.getBuildButton('steamworks');
                     stButton.controller.onAll(stButton.model);
                     iactivity('summary.steamworks');
@@ -2624,7 +2624,7 @@ var run = function() {
                 // 自动打开反应堆
                 var re = game.bld.getBuildingExt('reactor').meta;
                 var ur = game.getResourcePerTick("uranium",true);
-                if (re.val && re.on == 0 && ur > 0) {
+                if (re.val && re.on !== re.val && ur > 0) {
                     var reButton = buildManager.getBuildButton('reactor');
                     reButton.controller.onAll(reButton.model);
                     iactivity('summary.reactor');
