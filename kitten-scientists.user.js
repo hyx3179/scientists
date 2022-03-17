@@ -882,7 +882,8 @@ var run = function() {
                     //_steamworks:        {enabled: true,                   misc: true, label: i18n('option.steamworks')},
                     saves:              {enabled: false,                   misc: true, label: '导出配置文件'},
                     donate:             {enabled: true,                   misc: true, label: '显示捐赠原作者图标'},
-                    useWorkers:         {enabled: false,                  misc: true, label: i18n('option.useWorkers')}
+                    useWorkers:         {enabled: false,                  misc: true, label: i18n('option.useWorkers')},
+                    autoScientists:     {enabled: false,                  misc: true, label: '自动开启珂学家'}
                 }
             },
             distribute: {
@@ -1313,9 +1314,9 @@ var run = function() {
                 var tf = game.resPool.get('temporalFlux');
                 if (tf.value >= Math.max(tf.maxValue * optionVals.accelerateTime.subTrigger, 1)) {
                     game.time.isAccelerated = true;
-                    engine.stop();
+                    engine.stop(false);
                     if (options.auto.engine.enabled) {
-                        engine.start();
+                        engine.start(false);
                     }
                     iactivity('act.accelerate', [], 'ks-accelerate');
                     storeForSummary('accelerate', 1);
@@ -2349,6 +2350,11 @@ var run = function() {
                 if (luxury) {return;}
             }
 
+            if (game.resPool.get('parchment').value < 2500 && parchProf) {
+                let insufficientParchment = Math.ceil((2500 - game.resPool.get('parchment').value) / (1 + game.getResCraftRatio('parchment')));
+                craftManager.craft('parchment', insufficientParchment);
+            }
+
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
             if (!game.villageTab.festivalBtn && !game.villageTab.festivalBtn.model) {return game.villageTab.render();}
             
@@ -2668,8 +2674,8 @@ var run = function() {
                             storeForSummary('brewery');
                         }
                     } else if (brewery.on) {
-                        breweryButton.controller.offAll(breweryButton.model);
                         iactivity('summary.breweryOff', [brewery.on]);
+                        breweryButton.controller.offAll(breweryButton.model);
                         storeForSummary('brewery');
                     }
                 }
@@ -6229,6 +6235,10 @@ var run = function() {
         };
     }
     saveToKittenStorage();
+
+    if (options.auto.options.items.autoScientists.enabled) {
+        if (!options.auto.engine.enabled) { toggleEngine.click(); }
+    }
 
 };
 
