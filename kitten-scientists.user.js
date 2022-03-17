@@ -883,7 +883,7 @@ var run = function() {
                     saves:              {enabled: false,                   misc: true, label: '导出配置文件'},
                     donate:             {enabled: true,                   misc: true, label: '显示捐赠原作者图标'},
                     useWorkers:         {enabled: false,                  misc: true, label: i18n('option.useWorkers')},
-                    autoScientists:     {enabled: false,                  misc: true, label: '自动开启珂学家'}
+                    //autoScientists:     {enabled: false,                  misc: true, label: '自动开启珂学家'}
                 }
             },
             distribute: {
@@ -6231,9 +6231,17 @@ var run = function() {
     }
     saveToKittenStorage();
 
+    /*var autoOpen = function() {
     if (options.auto.options.items.autoScientists.enabled) {
-        if (!options.auto.engine.enabled) { toggleEngine.click(); }
-    }
+        if (!options.auto.engine.enabled) { 
+            if (options.auto.engine.countdown == 15) {
+                toggleEngine.click(); 
+            } else {
+                options.auto.engine.countdown = (options.auto.engine.countdown); 
+                autoOpen();
+            }
+        }
+    }*/
 
 };
 
