@@ -2350,11 +2350,6 @@ var run = function() {
                 if (luxury) {return;}
             }
 
-            if (game.resPool.get('parchment').value < 2500 && parchProf) {
-                let insufficientParchment = Math.ceil((2500 - game.resPool.get('parchment').value) / (1 + game.getResCraftRatio('parchment')));
-                craftManager.craft('parchment', insufficientParchment);
-            }
-
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
             if (!game.villageTab.festivalBtn && !game.villageTab.festivalBtn.model) {return game.villageTab.render();}
             
@@ -2362,13 +2357,13 @@ var run = function() {
             if (game.resPool.hasRes(price)) {
                 game.resPool.payPrices(price);
                 game.village.holdFestival(1);
-            }
 
-            storeForSummary('festival', 1);
-            if (game.calendar.festivalDays > 400) {
-                iactivity('festival.extend', [], 'ks-festival');
-            } else {
-                iactivity('festival.hold', [], 'ks-festival');
+                storeForSummary('festival', 1);
+                if (game.calendar.festivalDays > 400) {
+                    iactivity('festival.extend', [], 'ks-festival');
+                } else {
+                    iactivity('festival.hold', [], 'ks-festival');
+                }
             }
         },
         observeStars: function () {
