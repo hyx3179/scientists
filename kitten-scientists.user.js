@@ -1758,7 +1758,7 @@ var run = function() {
             }
             // Praise
             var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
-            var expectSolarRevolutionRatio = Math.min(0.0005 * Math.pow(Math.E, 0.66 * transformTier), 0.5) * 10;
+            var expectSolarRevolutionRatio = Math.min(0.0005 * Math.pow(Math.E, 0.66 * transformTier), 0.75) * 10;
             // 太阳革命加速恢复到期望值
             if (game.religion.meta[1].meta[5].on && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
                 PraiseSubTrigger = 0;
