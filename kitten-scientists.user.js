@@ -21,8 +21,7 @@ var address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
 
 // Game will be referenced in loadTest function
 var game = null;
-var i18ng = null;
-var lang = 'en';
+var lang = (localStorage["com.nuclearunicorn.kittengame.language"] == 'zh') ? 'zh' : 'en';
 
 var run = function() {
 
@@ -293,7 +292,7 @@ var run = function() {
             'build.embassies': '在 {1} 设立了 {0} 个大使馆',
 
             'act.praise': '赞美太阳! 转化 {0} 信仰为 {1} 虔诚',
-            'act.praise.msg': '小猫加速赞美太阳，只到太阳革命加成大于 {0}',
+            'act.praise.msg': '小猫加速赞美太阳，直到太阳革命加成大于 {0}',
             'act.sun.discover': '小猫宗教 {0} 方面获得演化',
             'act.sun.discovers': '小猫宗教 {0} 方面获得演化 {1} 次',
 
@@ -380,7 +379,7 @@ var run = function() {
 
             'craft.limited': '限制下：额外每2秒制作 {0}，数量AI自动（根据工艺制作效率、资源数量）',
             'craft.limitedTitle': '根据原材料和目标材料的数量',
-            'craft.unlimited': '触发资源：{1}，满足触发资源的触发条件才会制作 {0}',
+            'craft.unlimited': '触发资源：{1}{0}',
             'craft.winterCatnip': '因寒冬猫薄荷产量低于0，故取消使用猫薄荷',
 
             'distribute.limited': '分配 {0} 受限于最大值',
@@ -499,7 +498,7 @@ var run = function() {
     var i18n = function(key, args) {
         // i18n('$xx') mean load string from game
         // i18n('xx') mean load string from ks
-        if (key[0] == "$") {return i18ng(key.slice(1));}
+        if (key[0] == "$") {return $I(key.slice(1));}
         var value = i18nData[lang][key];
         if (typeof value === 'undefined') {
             value = i18nData['en'][key];
@@ -1459,10 +1458,10 @@ var run = function() {
                 if (optionsTheocracy || game.science.getPolicy('theocracy').researched) {leaderJobName = "priest";}
                 var distributeJob = game.village.getJob(leaderJobName);
                 if (game.village.leader == null || !(game.village.leader.job == leaderJobName && game.village.leader.trait.name == traitName)) {
-                    var traitKittens = game.village.sim.kittens.filter(kitten => kitten.trait.name == traitName);
+                    let traitKittens = game.village.sim.kittens.filter(kitten => kitten.trait.name == traitName);
                     if (traitKittens.length != 0) {
                         if (distributeJob.unlocked && distributeJob.value < game.village.getJobLimit(leaderJobName)) {
-                            var correctLeaderKitten = traitKittens.sort(function(a, b) {return b.rank - a.rank != 0 ? b.rank - a.rank : b.exp - a.exp;})[0];
+                            let correctLeaderKitten = traitKittens.sort(function(a, b) {return b.rank - a.rank != 0 ? b.rank - a.rank : b.exp - a.exp;})[0];
                             if (distributeJob.value >= distributeItem[leaderJobName].max && distributeItem[leaderJobName].limited && distributeJob.value) {
                                 game.village.sim.removeJob(leaderJobName, 1);
                             }
@@ -2603,7 +2602,7 @@ var run = function() {
             // fix Cryochamber
             if (optionVals.fixCry.enabled && game.time.getVSU("usedCryochambers").val > 0) {
                 var fixed = 0;
-                var btn = this.timeManager.manager.tab.vsPanel.children[0].children[0]; //check?
+                var btn = this.game.timeTab.vsPanel.children[0].children[0]; //check?
                 // buyItem will check resources
                 while (btn.controller.buyItem(btn.model, {}, function() {})) {
                     fixed += 1;
@@ -2838,7 +2837,9 @@ var run = function() {
     TabManager.prototype = {
         tab: undefined,
         render: function () {
-            if (this.tab && game.ui.activeTabId !== this.tab.tabId) {this.tab.render();}
+            if (this.tab && game.ui.activeTabId !== this.tab.tabId) {
+				this.tab.render();
+			}
 
             return this;
         },
@@ -3894,7 +3895,7 @@ var run = function() {
 
             for (var i = 0; i < cache.length; i++) {
                 var oldData = cache[i];
-                if (cache.length > 10000) {
+                if (cache.length > 999) {
                     var oldMaterials = oldData['materials'];
                     for (var mat in oldMaterials) {
                         if (!cacheSum[mat]) {cacheSum[mat] = 0;}
@@ -5284,7 +5285,7 @@ var run = function() {
                 imessage('craft.limited', [iname]);
             } else if ((!input.is(':checked')) && option.limited == true) {
                 option.limited = false;
-                let require = (option.require) ? game.resPool.resourceMap[option.require].title : '无(资源足够就会制作)';
+                let require = (option.require) ? game.resPool.resourceMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
                 imessage('craft.unlimited', [iname, require]);
             }
             kittenStorage.items[input.attr('id')] = option.limited;
@@ -6235,9 +6236,11 @@ var run = function() {
     if (options.auto.options.items.autoScientists.enabled) {
         if (!options.auto.engine.enabled) { 
             if (options.auto.engine.countdown == 15) {
-                toggleEngine.click(); 
+				iactivity( , countdown);
+                toggleEngine.click();
             } else {
-                options.auto.engine.countdown = (options.auto.engine.countdown); 
+                let countdown = (options.auto.engine.countdown); 
+				iactivity( , countdown);
                 autoOpen();
             }
         }
@@ -6246,7 +6249,7 @@ var run = function() {
 };
 
 var loadTest = function() {
-    if (typeof gamePage === 'undefined') {
+    if (typeof gamePage === 'undefined' || typeof i18nLang === 'undefined') {
         // Test if kittens game is already loaded or wait 2s and try again
         setTimeout(function(){
             loadTest();
@@ -6254,9 +6257,8 @@ var loadTest = function() {
     } else {
         // Kittens loaded, run Kitten Scientist's Automation Engine
         game = gamePage;
-        i18ng = $I;
-        lang = localStorage['com.nuclearunicorn.kittengame.language'] ? localStorage['com.nuclearunicorn.kittengame.language'] : lang;
         run();
+		loadTest = run = null;
     }
 };
 
