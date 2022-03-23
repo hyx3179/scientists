@@ -333,7 +333,7 @@ var run = function() {
             'ui.upgrade.policies.load': '读取',
             'ui.upgrade.policies.show': '列表',
 
-            'ui.faith.addtion': '附加项目',
+            'ui.faith.addtion': '附加选项',
             'option.faith.best.unicorn': '自动最效率独角兽建筑',
             'option.faith.best.unicorn.desc': '自动献祭独角兽，并会建造最佳独角兽建筑',
 
@@ -945,6 +945,10 @@ var run = function() {
     game.console.maxMessages = 1000;
 
     var printoutput = function (args) {
+        if (game.console.messages.length >= 999) {
+            game.clearLog();
+        }
+        
         if (options.auto.filter.enabled) {
             for (var filt in options.auto.filter.items) {
                 var filter = options.auto.filter.items[filt];
@@ -4756,46 +4760,6 @@ var run = function() {
 
                 element.append(resources);
             }
-
-            // Add additional controls for faith, sort of a hack again
-            if (toggleName === 'faith') {
-                var addition = $('<div/>', {
-                    id: 'toggle-addition-controls',
-                    text: i18n('ui.faith.addtion'),
-                    title: "太阳教团的自动化项目",
-                    css: {cursor: 'pointer',
-                        display: 'inline-block',
-                        float: 'right',
-                        paddingRight: '5px',
-                        textShadow: '3px 3px 4px gray'},
-                });
-
-                var additionList = getAdditionOptions();
-
-                button.on('click', function () {
-                    additionList.toggle(false);
-                });
-
-                addition.on('click', function () {
-                    list.toggle(false);
-                    additionList.toggle();
-                });
-
-                element.append(addition);
-
-                // disable auto best unicorn building when unicorn building was disable
-                for (var unicornName in options.auto.unicorn.items) {
-                    var ub = list.children().children('#toggle-' + unicornName);
-                    ub.on('change', function() {
-                        if (!$(event.target).is(':checked')) {
-                            var b = $('#toggle-bestUnicornBuilding');
-                            b.prop('checked', false);
-                            b.trigger('change');
-                        }
-                    });
-                }
-            }
-
         }
 
         if (auto.trigger !== undefined) {
@@ -4832,6 +4796,45 @@ var run = function() {
             });
 
             element.append(triggerButton);
+			// Add additional controls for faith, sort of a hack again
+			if (toggleName === 'faith') {
+			    var addition = $('<div/>', {
+			        id: 'toggle-addition-controls',
+			        text: i18n('ui.faith.addtion'),
+			        title: "太阳教团的自动化项目",
+			        css: {cursor: 'pointer',
+			            display: 'inline-block',
+			            float: 'right',
+			            paddingRight: '5px',
+			            textShadow: '2px 2px 5px black'
+						},
+			    });
+			
+			    var additionList = getAdditionOptions();
+			
+			    button.on('click', function () {
+			        additionList.toggle(false);
+			    });
+			
+			    addition.on('click', function () {
+			        list.toggle(false);
+			        additionList.toggle();
+			    });
+			
+			    element.append(addition);
+			
+			    // disable auto best unicorn building when unicorn building was disable
+			    for (var unicornName in options.auto.unicorn.items) {
+			        var ub = list.children().children('#toggle-' + unicornName);
+			        ub.on('change', function() {
+			            if (!$(event.target).is(':checked')) {
+			                var b = $('#toggle-bestUnicornBuilding');
+			                b.prop('checked', false);
+			                b.trigger('change');
+			            }
+			        });
+			    }
+			}
         }
 
         if (toggleName === 'craft') {element.append(resourcesList);} else if (toggleName === 'faith') {element.append(additionList);}
