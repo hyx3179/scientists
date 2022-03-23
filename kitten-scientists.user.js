@@ -1025,6 +1025,7 @@ var run = function() {
         villageManager: undefined,
         cacheManager: undefined,
         loop: undefined,
+        huntId: undefined,
         start: function (msg = true) {
             options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
             if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
@@ -1080,8 +1081,8 @@ var run = function() {
         },
         halfInterval: async function () {
             return new Promise(() => {
-                setTimeout(() => {
-                    this.hunt();
+                this.huntId = setTimeout(() => {
+                    engine.hunt();
                 }, Math.floor(options.interval / 2));
             });
         },
@@ -2315,7 +2316,6 @@ var run = function() {
                 var craft = crafts[name];
                 var current = !craft.max ? false : manager.getResource(name);
                 var require = !craft.require ? false : manager.getResource(craft.require);
-                var season = game.calendar.season;
                 var amount = 0;
                 if (!game.bld.getBuildingExt('workshop').meta.on && name !== "wood") {continue;}
                 // Ensure that we have reached our cap
@@ -2373,6 +2373,7 @@ var run = function() {
             }
         },
         hunt: function () {
+            clearTimeout(this.huntId);
             var manpower = this.craftManager.getResource('manpower');
             if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
@@ -2403,8 +2404,9 @@ var run = function() {
             var gold = craftManager.getResource('gold');
             var trades = [];
             var requireTrigger = options.auto.trade.trigger;
+            let tradeRender = options.auto.trade.render;
 
-            if (options.auto.trade.render) {
+            if (tradeRender) {
                 tradeManager.manager.render();
             }
 
@@ -2424,7 +2426,7 @@ var run = function() {
                 var button = tradeManager.getTradeButton(race.name);
 
                 if (!button) {
-                    options.auto.trade.render = true;
+                    tradeRender = true;
                     continue;
                 }
 
@@ -2677,21 +2679,23 @@ var run = function() {
             return refreshRequired;
         },
         skipCtrlRes: function () {
-            if (options.auto.timeCtrl.items.timeSkip.craft) {return;}
+            let addCraft = options.auto.timeCtrl.items.timeSkip.craft;
+            if (addCraft) {return;}
             var resList = ['catnip', 'wood', 'minerals', 'coal', 'iron', 'oil', 'uranium', 'science'];
             var name = '';
             for (var i = 0; i < resList.length; i++) {
                 var res = game.resPool.resourceMap[resList[i]];
-                if (!options.auto.resources[res.name]) {
-                    options.auto.resources[res.name] = {};
-                    options.auto.resources[res.name].enabled = true;
-                    options.auto.resources[res.name].stock = 0;
+                let resource = options.auto.resources[res.name];
+                if (!resource) {
+                    resource = {};
+                    resource.enabled = true;
+                    resource.stock = 0;
                     $('#toggle-list-resources').append(addNewResourceOption(res.name, res.title, false));
                 }
-                options.auto.resources[res.name].consume = 1;
+                resource.consume = 1;
                 name += res.title + '，';
             }
-            options.auto.timeCtrl.items.timeSkip.craft = true;
+            addCraft = true;
             iactivity('summary.resource', [name]);
             storeForSummary('resource');
         },
@@ -2717,15 +2721,16 @@ var run = function() {
                 catnipTick = ((game.resPool.get('catnip').perTickCached - catnipTick) * (1 + solarRevolutionAdterAdore) / solarRevolutionRatio) + catnipTick+game.globalEffectsCached.catnipPerTickCon;
             }
             if (catnipTick < 0) {
+                let optionFaith = options.auto.faith;
                 // 次元超越猫薄荷
-                if (value && options.auto.faith.transcendCatnip < 10) {
+                if (value && optionFaith.transcendCatnip < 10) {
                     iactivity('transcend.catnip');
-                    options.auto.faith.transcendCatnip += 1;
+                    optionFaith.transcendCatnip += 1;
                 }
                 // 赞美群星猫薄荷
                 if (!value && options.auto.faith.adoreCatnip < 10) {
                     iactivity('adore.catnip');
-                    options.auto.faith.adoreCatnip += 1;
+                    optionFaith.adoreCatnip += 1;
                 }
             }
             
@@ -2838,8 +2843,8 @@ var run = function() {
         tab: undefined,
         render: function () {
             if (this.tab && game.ui.activeTabId !== this.tab.tabId) {
-				this.tab.render();
-			}
+                this.tab.render();
+            }
 
             return this;
         },
@@ -3288,7 +3293,7 @@ var run = function() {
             // good with a maximum value.
             if (res.maxValue > 0 && amount > (res.maxValue - res.value)) {amount = res.maxValue - res.value;}
 
-            return Math.floor(amount);
+            return amount;
         },
         getMaterials: function (name) {
             var materials = {};
@@ -3543,7 +3548,7 @@ var run = function() {
 
             if (countList.length === 0) {return;}
 
-            var tempPool = new Object();
+            let tempPool = new Object();
             for (var res in game.resPool.resources) {
                 tempPool[game.resPool.resources[res].name] = game.resPool.resources[res].value;
             }
@@ -6236,11 +6241,11 @@ var run = function() {
     if (options.auto.options.items.autoScientists.enabled) {
         if (!options.auto.engine.enabled) { 
             if (options.auto.engine.countdown == 15) {
-				iactivity( , countdown);
+                iactivity( , countdown);
                 toggleEngine.click();
             } else {
                 let countdown = (options.auto.engine.countdown); 
-				iactivity( , countdown);
+                iactivity( , countdown);
                 autoOpen();
             }
         }
@@ -6258,7 +6263,7 @@ var loadTest = function() {
         // Kittens loaded, run Kitten Scientist's Automation Engine
         game = gamePage;
         run();
-		loadTest = run = null;
+        loadTest = run = null;
     }
 };
 
