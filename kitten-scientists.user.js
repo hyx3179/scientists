@@ -399,7 +399,7 @@ var run = function() {
             'filter.promote': '提拔领袖',
             'summary.promote': '提拔领袖 {0} 次',
 
-            'ui.trigger.useWorkers.alert': '珂学家将会在后台满速运行，注意这会消耗更多性能。\n电脑不好、内存≤ 8G的建议禁用\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
+            'ui.trigger.useWorkers.alert': '比如天文事件没观测全是因为后台慢速运行\n勾选将会在后台满速运行，注意会导致使用内存增多。\n电脑不好、内存≤ 8G的建议禁用\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
             'ui.timeCtrl': '时间操纵',
             'option.accelerate': '光阴似箭',
             'act.accelerate': '固有时制御，二倍速!',
@@ -1782,7 +1782,7 @@ var run = function() {
                 storeForSummary('praise', worshipInc);
                 iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
                 game.religion.praise();
-                refreshRequired += 1;
+                //refreshRequired += 1;
             }
             return refreshRequired;
         },
