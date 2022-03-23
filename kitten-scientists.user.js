@@ -927,7 +927,7 @@ var run = function() {
                 }
             },
             resources: {
-                furs:        {enabled: true,  stock: 750, checkForReset: false, stockForReset: Infinity},
+                furs:        {enabled: true,  stock: 100, checkForReset: false, stockForReset: Infinity},
                 timeCrystal: {enabled: false, stock: 0,    checkForReset: true,  stockForReset: 500000}
             },
             policies: [],
@@ -1076,7 +1076,7 @@ var run = function() {
             if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
             if (options.auto.distribute.enabled)                                            {this.distribute();}
             if (subOptions.enabled)                                                         {refresh += this.miscOptions();}
-            if (refresh > 0)                                                                {game.ui.render();game.resPool.update();}
+            if (refresh > 0)                                                                {game.ui.render();/*game.resPool.update();*/}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
         },
         halfInterval: async function () {
@@ -2326,8 +2326,10 @@ var run = function() {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, true);
                 } else if (craft.limited) {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
+                    let ratio = game.getResCraftRatio();
+                    amount *= Math.max(Math.min(Math.log(ratio), 1), 0.25);
                 }
-                if (amount > 0) {
+                if (amount >= 1) {
                     manager.craft(name, amount);
                 }
             }
