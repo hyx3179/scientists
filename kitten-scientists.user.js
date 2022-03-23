@@ -368,7 +368,7 @@ var run = function() {
 
             'trade.limited': '贸易获得数量大于产量时才与 {0} 贸易，次数自动限制',
             'trade.limitedTitle': '根据产量和贸易获得数量',
-            'trade.unlimited': '仅到达触发条件与 {0} 的 贸易',
+            'trade.unlimited': '{1}与 {0} 的 贸易',
             'trade.seasons': '季节',
             'trade.season.enable': '启用在 {1} 与 {0} 的贸易',
             'trade.season.disable': '停止在 {1} 与 {0} 的贸易',
@@ -4872,7 +4872,8 @@ var run = function() {
                 imessage('trade.limited', [iname]);
             } else if ((!input.is(':checked')) && option.limited == true) {
                 option.limited = false;
-                imessage('trade.unlimited', [iname]);
+				let require = (option.require === false) ? '资源满足单次贸易条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
+                imessage('trade.unlimited', [iname, require]);
             }
             kittenStorage.items[input.attr('id')] = option.limited;
             saveToKittenStorage();
