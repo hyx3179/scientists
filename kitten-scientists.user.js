@@ -660,7 +660,7 @@ var run = function() {
                     calciner:       {require: 'titanium',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
                     reactor:        {require: 'titanium',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     accelerator:    {require: 'titanium',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
-                    steamworks:     {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+                    steamworks:     {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false},
                     magneto:        {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
                     // science
@@ -680,7 +680,7 @@ var run = function() {
                     ziggurat:       {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     chronosphere:   {require: 'unobtainium', enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     aiCore:         {require: false,         enabled: false,max:-1,  checkForReset: true, triggerForReset: -1},
-                    brewery:        {require: false,         enabled: false,max:-1,  checkForReset: true, triggerForReset: -1},
+                    brewery:        {require: false,         enabled: false,max:-1,  checkForReset: true, triggerForReset: -1, auto: false},
 
                     // storage
                     barn:           {require: 'wood',        enabled: true, max:15, checkForReset: true, triggerForReset: -1},
@@ -900,7 +900,7 @@ var run = function() {
                     woodcutter: {enabled: true, max: 30, limited: true},
                     farmer:     {enabled: true, max: 10, limited: true},
                     scholar:    {enabled: true, max: 10, limited: true},
-                    hunter:     {enabled: true, max: 10, limited: false},
+                    hunter:     {enabled: true, max: 15, limited: true},
                     miner:      {enabled: true, max: 30, limited: true},
                     priest:     {enabled: true, max: 3, limited: false},
                     geologist:  {enabled: true, max: 50, limited: true},
@@ -2213,7 +2213,7 @@ var run = function() {
                 // 解锁磁电机才会造蒸汽工房
                 var steamworksMeta = game.bld.getBuildingExt('steamworks').meta;
                 var steamW = builds['steamworks'];
-                if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.unlocked) {
+                if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.val) {
                     if (!steamW.max) {
                         steamW.auto = steamW.max;
                         steamW.max = 0;
