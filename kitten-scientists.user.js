@@ -20,7 +20,7 @@ var kg_version = "小猫珂学家版本1.5.0";
 var address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
 
 // Game will be referenced in loadTest function
-var game = null;
+//var game = null;
 var lang = (localStorage["com.nuclearunicorn.kittengame.language"] == 'zh') ? 'zh' : 'en';
 
 var run = function() {
@@ -3991,6 +3991,7 @@ var run = function() {
         + 'height: 92%;'
         + 'width: 19%;'
         + 'font-size: 12px;'
+		+ 'font-family: monospace,Microsoft YaHei,Microsoft SanSerf,微软雅黑;'
         + '}');
 
     addRule('body #gamePageContainer #game #rightColumn {'
@@ -6285,7 +6286,6 @@ var loadTest = function() {
         }, 2000);
     } else {
         // Kittens loaded, run Kitten Scientist's Automation Engine
-        game = gamePage;
         run();
         loadTest = run = null;
     }
