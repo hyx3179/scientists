@@ -3779,7 +3779,8 @@ var run = function() {
                 var shipCount = game.resPool.get("ship").value;
                 var zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
                 var titanProb = Math.min(0.15 + shipCount * 0.0035, 1);
-                output["titanium"] = (1.5 + shipCount * 0.03) * (1 + zebraRelationModifierTitanium) * titanProb * successRat;
+                let modifier = (shipCount < 230) ? Math.log(shipCount) * shipCount * 0.00084 - 0.01: 1;
+                output["titanium"] = (1.5 + shipCount * 0.03) * (1 + zebraRelationModifierTitanium) * titanProb * successRat * modifier;
             }
 
             var spiceChance = (race.embassyPrices) ? 0.35 * (1 + 0.01 * race.embassyLevel) : 0.35;
