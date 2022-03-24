@@ -445,6 +445,9 @@ var run = function() {
             'summary.time.reset.content': '获得 {0} 业.<br>获得 {1} 领导力.',
             'ui.close': '关闭',
 
+            'auto.countdown': '{0} 秒后将会自动启用珂学家',
+            'auto.tip': '你可以通过取消 "首次自启珂学家" 以取消此次自动开启',
+
             'option.fix.cry': '修复冷冻仓',
             'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
             'summary.fix.cry': '修复了 {0} 个冷冻仓',
@@ -532,6 +535,9 @@ var run = function() {
 
         //猫薄荷日志
         catnipMsg: true,
+
+        //倒计时
+        countdown: 120,
 
         // The default consume rate.
         consume: 0.6,
@@ -882,7 +888,7 @@ var run = function() {
                     saves:              {enabled: false,                   misc: true, label: '导出配置文件'},
                     donate:             {enabled: true,                   misc: true, label: '显示捐赠原作者图标'},
                     useWorkers:         {enabled: false,                  misc: true, label: i18n('option.useWorkers')},
-                    //autoScientists:     {enabled: false,                  misc: true, label: '自动开启珂学家'}
+                    autoScientists:     {enabled: false,                  misc: true, label: '首次自启珂学家'}
                 }
             },
             distribute: {
@@ -6243,19 +6249,31 @@ var run = function() {
     }
     saveToKittenStorage();
 
-    /*var autoOpen = function() {
-    if (options.auto.options.items.autoScientists.enabled) {
-        if (!options.auto.engine.enabled) { 
-            if (options.auto.engine.countdown == 15) {
-                iactivity( , countdown);
-                toggleEngine.click();
-            } else {
-                let countdown = (options.auto.engine.countdown); 
-                iactivity( , countdown);
-                autoOpen();
-            }
+
+    var autoOpen = function() {
+        if (!options.auto.engine.enabled && options.auto.options.items.autoScientists.enabled) {
+                let countdown = (options.countdown); 
+                if (countdown == 0) {
+                    toggleEngine.click();
+                    clearInterval(autoOpenTime);
+                    imessage('reset.after');
+                } else if (countdown > 10) {
+                    if (countdown % 60 == 0) {
+                        imessage('auto.tip');
+                    }
+                    if (countdown % 10 == 0) {
+                        iactivity('auto.countdown', [countdown]);
+                    }
+                    options.countdown -= 1;
+                } else if (countdown < 11) {
+                    imessage('reset.countdown.' + countdown);
+                    options.countdown -= 1;
+                }
+        } else {
+            clearInterval(autoOpenTime);
         }
-    }*/
+    };
+    var autoOpenTime = setInterval(autoOpen, 1000);
 
 };
 
