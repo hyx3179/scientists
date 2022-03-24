@@ -308,7 +308,7 @@ var run = function() {
             'ui.upgradesLimit': '过滤',
             'ui.trigger.shipOverride.set': '输入一个新的 强制贸易船 触发值，\n贸易船数量低于触发条件时会无视工艺的贸易船限制启用。',
             'ui.trigger.missions.set': '输入一个新的 探索星球 触发值,取值范围为 0 到 13 的整数。\n分别对应13颗星球。',
-            'ui.trigger.crypto.set': '输入一个新的 {0} 触发值，\n支持3个参数：-符号隔开数字参数\n第一个数字：当遗物数量大于触发值才会进行黑币交易\n第二个数字：买入的最高价\n第三个数字：卖出最低的价格。\n默认10000-881-1060',
+            'ui.trigger.crypto.set': '输入一个新的 {0} 触发值，\n支持3个参数：-符号隔开数字参数\n第一个数字：当遗物数量大于触发值才会进行黑币交易\n第二个数字：买入的最高价（超过这价格就不会买了）\n第三个数字：卖出最低的价格。（低于这价格就不会卖出）\n默认10000-881-1060',
             'ui.engine': '启用小猫珂学家',
             'ui.build': '营火',
             'ui.space': '太空',
@@ -2685,8 +2685,8 @@ var run = function() {
             return refreshRequired;
         },
         skipCtrlRes: function () {
-            let addCraft = options.auto.timeCtrl.items.timeSkip.craft;
-            if (addCraft) {return;}
+            let addCraft = options.auto.timeCtrl.items.timeSkip;
+            if (addCraft.craft) {return;}
             var resList = ['catnip', 'wood', 'minerals', 'coal', 'iron', 'oil', 'uranium', 'science'];
             var name = '';
             for (var i = 0; i < resList.length; i++) {
@@ -2701,7 +2701,7 @@ var run = function() {
                 resource.consume = 1;
                 name += res.title + '，';
             }
-            addCraft = true;
+            addCraft.craft = true;
             iactivity('summary.resource', [name]);
             storeForSummary('resource');
         },
@@ -4733,33 +4733,6 @@ var run = function() {
             button.on('click', function () {
                 list.toggle();
             });
-
-            // Add resource controls for crafting, sort of a hack
-            if (toggleName === 'craft') {
-                var resources = $('<div/>', {
-                    id: 'toggle-resource-controls',
-                    text: i18n('ui.craft.resources'),
-                    css: {cursor: 'pointer',
-                        display: 'inline-block',
-                        float: 'right',
-                        paddingRight: '5px',
-                        textShadow: '3px 3px 4px gray'},
-                });
-
-                var resourcesList = getResourceOptions();
-
-                // When we click the items button, make sure we clear resources
-                button.on('click', function () {
-                    resourcesList.toggle(false);
-                });
-
-                resources.on('click', function () {
-                    list.toggle(false);
-                    resourcesList.toggle();
-                });
-
-                element.append(resources);
-            }
         }
 
         if (auto.trigger !== undefined) {
@@ -4796,48 +4769,75 @@ var run = function() {
             });
 
             element.append(triggerButton);
-			// Add additional controls for faith, sort of a hack again
-			if (toggleName === 'faith') {
-			    var addition = $('<div/>', {
-			        id: 'toggle-addition-controls',
-			        text: i18n('ui.faith.addtion'),
-			        title: "太阳教团的自动化项目",
-			        css: {cursor: 'pointer',
-			            display: 'inline-block',
-			            float: 'right',
-			            paddingRight: '5px',
-			            textShadow: '2px 2px 5px black'
-						},
-			    });
-			
-			    var additionList = getAdditionOptions();
-			
-			    button.on('click', function () {
-			        additionList.toggle(false);
-			    });
-			
-			    addition.on('click', function () {
-			        list.toggle(false);
-			        additionList.toggle();
-			    });
-			
-			    element.append(addition);
-			
-			    // disable auto best unicorn building when unicorn building was disable
-			    for (var unicornName in options.auto.unicorn.items) {
-			        var ub = list.children().children('#toggle-' + unicornName);
-			        ub.on('change', function() {
-			            if (!$(event.target).is(':checked')) {
-			                var b = $('#toggle-bestUnicornBuilding');
-			                b.prop('checked', false);
-			                b.trigger('change');
-			            }
-			        });
-			    }
-			}
         }
 
-        if (toggleName === 'craft') {element.append(resourcesList);} else if (toggleName === 'faith') {element.append(additionList);}
+        if (toggleName === 'craft') {
+            // Add resource controls for crafting, sort of a hack
+            var resources = $('<div/>', {
+                id: 'toggle-resource-controls',
+                text: i18n('ui.craft.resources'),
+                css: {cursor: 'pointer',
+                    display: 'inline-block',
+                    float: 'right',
+                    paddingRight: '5px',
+                    textShadow: '3px 3px 4px gray'},
+            });
+                        
+            var resourcesList = getResourceOptions();
+                        
+            // When we click the items button, make sure we clear resources
+            button.on('click', function () {
+                resourcesList.toggle(false);
+            });
+                        
+            resources.on('click', function () {
+                list.toggle(false);
+                resourcesList.toggle();
+            });
+                        
+            element.append(resources);
+            element.append(resourcesList);
+        } else if (toggleName === 'faith') {
+            // Add additional controls for faith, sort of a hack again
+            var addition = $('<div/>', {
+                id: 'toggle-addition-controls',
+                text: i18n('ui.faith.addtion'),
+                title: "太阳教团的自动化项目",
+                css: {cursor: 'pointer',
+                    display: 'inline-block',
+                    float: 'right',
+                    paddingRight: '5px',
+                    textShadow: '2px 2px 5px gray'
+                    },
+            });
+        
+            var additionList = getAdditionOptions();
+        
+            button.on('click', function () {
+                additionList.toggle(false);
+            });
+        
+            addition.on('click', function () {
+                list.toggle(false);
+                additionList.toggle();
+            });
+        
+            element.append(addition);
+        
+            // disable auto best unicorn building when unicorn building was disable
+            for (var unicornName in options.auto.unicorn.items) {
+                var ub = list.children().children('#toggle-' + unicornName);
+                ub.on('change', function() {
+                    if (!$(event.target).is(':checked')) {
+                        var b = $('#toggle-bestUnicornBuilding');
+                        b.prop('checked', false);
+                        b.trigger('change');
+                    }
+                });
+            }
+
+            element.append(additionList);
+        }
 
         if (auto.items) {element.append(toggle, list);}
 
@@ -4872,7 +4872,7 @@ var run = function() {
                 imessage('trade.limited', [iname]);
             } else if ((!input.is(':checked')) && option.limited == true) {
                 option.limited = false;
-				let require = (option.require === false) ? '资源满足单次贸易条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
+                let require = (option.require === false) ? '资源满足单次贸易条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
                 imessage('trade.unlimited', [iname, require]);
             }
             kittenStorage.items[input.attr('id')] = option.limited;
