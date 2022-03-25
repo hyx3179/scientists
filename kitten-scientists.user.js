@@ -3992,7 +3992,7 @@ var run = function() {
         + 'height: 92%;'
         + 'width: 19%;'
         + 'font-size: 12px;'
-		+ 'font-family: monospace,Microsoft YaHei,Microsoft SanSerf,微软雅黑;'
+		+ 'font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif;'
         + '}');
 
     addRule('body #gamePageContainer #game #rightColumn {'
