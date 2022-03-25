@@ -1653,7 +1653,9 @@ var run = function() {
 
             var resourceFaith = craftManager.getResource('faith');
             var rate = resourceFaith.value / resourceFaith.maxValue;
-            var transcendenceReached = game.religion.getRU("transcendence").on;
+
+            let transcendenceMeta = game.religion.getRU("transcendence")
+            var transcendenceReached = transcendenceMeta.on;
             var tt = transcendenceReached ? game.religion.transcendenceTier : 0;
 
             // After Adore epiphany
@@ -1745,10 +1747,19 @@ var run = function() {
                         }
                     }
                 }
+
+                // 打开超越按钮
+                let transcendStorage = (game.resPool.isStorageLimited(transcendenceMeta.prices));
+                let transcendenceOption = options.auto.faith.items.transcendence;
+                if (!transcendenceOption.enabled && game.religion.fiath > transcendenceMeta.faith && autoAdoreEnabled && transcendStorage) {
+                    transcendenceOption.enabled = true;
+                    printoutput(['小猫贴心得无视超越按钮禁用','ks-default', options.activitycolor]);
+                }
+
                 // Adore
                 var lastFaith = option.adore.lastFaith;
                 var BooleanForLastFaith = (!lastFaith || worship > lastFaith * 0.75 || tt > 11);
-                var tier = (!game.religion.transcendenceTier || tt);
+                var tier = (!game.religion.faithRatio || transcendenceReached);
                 var moonBoolean = game.space.meta[0].meta[1].on;
                 var booleanForAdore = (solarRevolutionAdterAdore >= triggerSolarRevolution && worship >= 1e5 && BooleanForLastFaith && moonBoolean);
                 if ((autoAdoreEnabled && apocripha && booleanForAdore && tier && this.catnipForReligion() > 0) || forceStep) {
@@ -1766,6 +1777,7 @@ var run = function() {
                     storeForSummary('adore', epiphanyInc);
                 }
             }
+
             // Praise
             var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
             var expectSolarRevolutionRatio = Math.min(0.0005 * Math.pow(Math.E, 0.66 * transformTier), 0.75) * 10;
@@ -3992,7 +4004,7 @@ var run = function() {
         + 'height: 92%;'
         + 'width: 19%;'
         + 'font-size: 12px;'
-		+ 'font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif;'
+        + 'font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif;'
         + '}');
 
     addRule('body #gamePageContainer #game #rightColumn {'
