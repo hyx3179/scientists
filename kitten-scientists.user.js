@@ -271,6 +271,7 @@ var run = function() {
             'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
             'act.observe': '小猫珂学家观测到一次天文现象',
             'act.hunt': '派出 {0} 波小猫去打猎',
+            'act.hunt.unicorn': '小猫急着给独角兽配种',
             'act.build': '小猫建造了一个 {0}',
             'act.builds': '小猫建造了 {1} 个新的 {0}',
             'act.craft': '小猫制作了 {0} {1}',
@@ -2399,6 +2400,19 @@ var run = function() {
             var manpower = this.craftManager.getResource('manpower');
             if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
+            // 无独角兽牧场 强制打猎
+            let unicornValue = game.resPool.resourceMap['unicorns'].value;
+            let unicorn = game.achievements.get('unicornConspiracy').unlocked || unicornValue;
+            let unicornPasture = game.bld.getBuildingExt('unicornPasture').meta.val;
+            if (!unicornPasture && unicorn && manpower.value > 700 && unicornValue < 3) {
+                let count = 7;
+                game.resPool.addResEvent("manpower", -count * 100);
+                game.village.gainHuntRes(count);
+                storeForSummary('hunt', count);
+                iactivity('act.hunt.unicorn');
+                iactivity('act.hunt', [count], 'ks-hunt');
+            }
+
             if (options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue) {
                 // No way to send only some hunters. Thus, we hunt with everything
                 var huntCount = Math.floor(manpower.value / 100);
@@ -3457,8 +3471,8 @@ var run = function() {
             }
             var vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
             var baseProd = fieldProd + vilProd;
-            
-            if (baseProd) {
+
+            if (aqueducts) {
                 var hydroponics = game.space.getBuilding('hydroponics');
                 var hydroponicsEffect = hydroponics.effects['catnipRatio'];
                 baseProd *= 1 + game.bld.getBuildingExt('aqueduct').meta.stages[0].effects['catnipRatio'] * aqueducts + hydroponicsEffect * hydroponics.val;
@@ -6072,6 +6086,9 @@ var run = function() {
     };
 
     var displayActivitySummary = function () {
+        if (game.console.messages.length > 900) {
+            game.clearLog();
+        }
 
         for (var i in activitySummary.other) {
             if (activitySummary.other[i]) {isummary('summary.' + i , [game.getDisplayValueExt(activitySummary.other[i])]);}
