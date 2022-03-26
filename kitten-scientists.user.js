@@ -831,7 +831,6 @@ var run = function() {
                 // Trades can be limited to only happen during specific seasons. This is because trades with certain races
                 // are more effective during specific seasons.
                 // The *allowcapped* property allows us to trade even if the sold resources are at their cap.
-                render: false,
                 items: {
                     dragons:    {enabled: false,  require: 'titanium',    allowcapped: false,    limited: true,
                         summer:  true,  autumn:  true,  winter:  true,          spring:      true},
@@ -1654,7 +1653,7 @@ var run = function() {
             var resourceFaith = craftManager.getResource('faith');
             var rate = resourceFaith.value / resourceFaith.maxValue;
 
-            let transcendenceMeta = game.religion.getRU("transcendence")
+            let transcendenceMeta = game.religion.getRU("transcendence");
             var transcendenceReached = transcendenceMeta.on;
             var tt = transcendenceReached ? game.religion.transcendenceTier : 0;
 
@@ -1760,7 +1759,6 @@ var run = function() {
                 var lastFaith = option.adore.lastFaith;
                 var BooleanForLastFaith = (!lastFaith || worship > lastFaith * 0.75 || tt > 11);
                 var tier = (!game.religion.faithRatio || transcendenceReached);
-                var moonBoolean = game.space.meta[0].meta[1].on;
                 var booleanForAdore = (solarRevolutionAdterAdore >= triggerSolarRevolution && worship >= 1e5 && BooleanForLastFaith && moonBoolean);
                 if ((autoAdoreEnabled && apocripha && booleanForAdore && tier && this.catnipForReligion() > 0) || forceStep) {
                     if (tt < 12) {
@@ -2428,11 +2426,6 @@ var run = function() {
             var gold = craftManager.getResource('gold');
             var trades = [];
             var requireTrigger = options.auto.trade.trigger;
-            let tradeRender = options.auto.trade.render;
-
-            if (tradeRender) {
-                tradeManager.manager.render();
-            }
 
             if (!tradeManager.singleTradePossible(undefined)) {return;}
 
@@ -2450,7 +2443,7 @@ var run = function() {
                 var button = tradeManager.getTradeButton(race.name);
 
                 if (!button) {
-                    tradeRender = true;
+                    tradeManager.manager.render();
                     continue;
                 }
 
@@ -2465,8 +2458,15 @@ var run = function() {
 
                 // If we have enough to trigger the check, then attempt to trade
                 var prof = tradeManager.getProfitability(name);
-                var sloar = game.religion.meta[1].meta[5].on || game.challenges.isActive("atheism") || gold.value >= 450;
-                if (trade.limited && prof && sloar) {
+
+                // 优先太阳革命
+                let sloar = game.religion.meta[1].meta[5].on || game.challenges.isActive("atheism") || gold.value > 500;
+
+                // 有采矿钻和登红月后优先点出超越和赞美群星
+                let transcendence = (game.religion.getRU("transcendence").on || !options.auto.faith.items.transcendence.enabled);
+                let apocripha = (game.religion.getRU('apocripha').on || !options.auto.faith.items.apocripha.enabled);
+                let miningDrillMoon = (transcendence && apocripha) || !game.space.meta[0].meta[1].on || !game.workshop.meta[0].meta[58].researched;
+                if (trade.limited && prof && sloar && miningDrillMoon) {
                     trades.push(name);
                 } else if ((!require || requireTrigger <= require.value / require.maxValue) && requireTrigger <= gold.value / gold.maxValue) {
                     trades.push(name);
