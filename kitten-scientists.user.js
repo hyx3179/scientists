@@ -675,7 +675,7 @@ var run = function() {
                     broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1},
                     tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     chapel:         {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-                    temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+                    temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false,
                     mint:           {require: 'gold',         enabled: true,max:100,  checkForReset: true, triggerForReset: -1},
                     // unicornPasture: {require: false,         enabled: true},
                     ziggurat:       {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
@@ -2249,6 +2249,21 @@ var run = function() {
                 } else if (Brewery.auto) {
                     Brewery.max = Brewery.auto;
                     Brewery.auto = null;
+                }
+
+                // 神学前最多只造 1个神殿
+                let theology = game.science.meta[0].meta[16].researched;
+                let temple = builds['temple'];
+                if (!theology) {
+                    if (!temple.auto) {
+                        temple.auto = temple.max;
+                        temple.max = (game.prestige.getPerk('renaissance').researched) ? 0 : 1;
+					}
+                } else {
+                    if (temple.auto) {
+                        temple.max = temple.auto;
+                        temple.auto = null;
+                    }
                 }
 
                 var important = {
