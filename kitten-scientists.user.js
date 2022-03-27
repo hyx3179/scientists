@@ -675,7 +675,7 @@ var run = function() {
                     broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1},
                     tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     chapel:         {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-                    temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false,
+                    temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false},
                     mint:           {require: 'gold',         enabled: true,max:100,  checkForReset: true, triggerForReset: -1},
                     // unicornPasture: {require: false,         enabled: true},
                     ziggurat:       {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
@@ -876,7 +876,7 @@ var run = function() {
                 items: {
                     observe:            {enabled: true,                    misc: true, label: i18n('option.observe')},
                     festival:           {enabled: true,                    misc: true, label: i18n('option.festival')},
-                    shipOverride:       {enabled: true,  subTrigger: 160,  misc: true, label: i18n('option.shipOverride')},
+                    shipOverride:       {enabled: true,  subTrigger: 170,  misc: true, label: i18n('option.shipOverride')},
                     autofeed:           {enabled: true,                    misc: true, label: i18n('option.autofeed')},
                     hunt:               {enabled: true, subTrigger: 0.98, require: 'manpower', misc: true, label: i18n('option.hunt')},
                     promote:            {enabled: true,                    misc: true, label: i18n('option.promote')},
@@ -898,7 +898,7 @@ var run = function() {
                     // dynamic priority. distribute to the job which have lowest (job.val / job.max) value.
                     // if all jobs reach the max, then distribute kittens to unlimited job.
                     woodcutter: {enabled: true, max: 30, limited: true},
-                    farmer:     {enabled: false, max: 10, limited: true},
+                    farmer:     {enabled: true, max: 1, limited: true},
                     scholar:    {enabled: true, max: 10, limited: true},
                     hunter:     {enabled: true, max: 15, limited: true},
                     miner:      {enabled: true, max: 30, limited: true},
@@ -2258,7 +2258,7 @@ var run = function() {
                     if (!temple.auto) {
                         temple.auto = temple.max;
                         temple.max = (game.prestige.getPerk('renaissance').researched) ? 0 : 1;
-					}
+                    }
                 } else {
                     if (temple.auto) {
                         temple.max = temple.auto;
@@ -2358,6 +2358,7 @@ var run = function() {
                 var current = !craft.max ? false : manager.getResource(name);
                 var require = !craft.require ? false : manager.getResource(craft.require);
                 var amount = 0;
+                if (!craft.enabled) {continue;}
                 if (!game.bld.getBuildingExt('workshop').meta.on && name !== "wood") {continue;}
                 // Ensure that we have reached our cap
                 if (current && current.value > craft.max) {continue;}
@@ -3269,10 +3270,9 @@ var run = function() {
         },
         canCraft: function (name, amount) {
             var craft = this.getCraft(name);
-            var enabled = options.auto.craft.items[name].enabled;
             var result = false;
 
-            if (craft.unlocked && enabled) {
+            if (craft.unlocked) {
                 result = true;
 
                 var prices = game.workshop.getCraftPrice(craft);
@@ -3300,7 +3300,7 @@ var run = function() {
         },
         getLowestCraftAmount: function (name, limited, limRat, aboveTrigger) {
             var amount = Number.MAX_VALUE;
-            var plateMax = Number.MAX_VALUE;
+            var autoMax = Number.MAX_VALUE;
             var materials = this.getMaterials(name);
 
             var craft = this.getCraft(name);
@@ -3322,15 +3322,25 @@ var run = function() {
                 if (game.getResourcePerTick('coal', true) > 0) {
                     if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > ((ratio + 1) / 125) / ((steelRatio + 1) / 100)) {
                         var ironInTime = ((this.getResource('coal').maxValue * trigger - this.getValue('coal')) / game.getResourcePerTick('coal', true)) * Math.max(game.getResourcePerTick('iron', true), 0);
-                        plateMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
+                        autoMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
                     }
                 }
             }
 
-            var res = this.getResource(name);
+            // 减少贸易船的合成
+            let res = game.resPool.resourceMap[name];
+            if (name === 'ship' && limited) {
+                let shipLimit = 5 * game.bld.get("reactor").on + 225;
+                let shipValue = res.value;
+                let titaniumMax = res.maxValue;
+                limRat = (shipValue > shipLimit * 0.75) ? 0.45 : limRat;
+                //limRat = (shipValue > shipLimit) ? 0.35 + 0.1 * (Math.log(shipLimit) / Math.log(shipValue) : limRat;
+                limRat = (0.03 * shipValue > titaniumMax) ? 0.03 : limRat;
+            }
 
             for (var i in materials) {
                 var delta = undefined;
+                let resValue = this.getValueAvailable(name, true);
                 if (! limited || (this.getResource(i).maxValue > 0 && aboveTrigger) || (name === 'ship' && optionVal && (this.getResource('ship').value < optionShipVal)) ) {
                     // If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
                     delta = this.getValueAvailable(i) / materials[i];
@@ -3339,10 +3349,10 @@ var run = function() {
                     // Currently this determines the amount of resources that can be crafted such that base materials are proportionally distributed across limited resources.
                     // This base material distribution is governed by limRat "limited ratio" which defaults to 0.5, corresponding to half of the possible components being further crafted.
                     // If this were another value, such as 0.75, then if you had 10000 beams and 0 scaffolds, 7500 of the beams would be crafted into scaffolds.
-                    delta = limRat * ((this.getValueAvailable(i, true) + (materials[i] / (1 + ratio)) * this.getValueAvailable(res.name, true)) / materials[i]) - (this.getValueAvailable(res.name, true) / (1 + ratio));
+                    delta = limRat * ((this.getValueAvailable(i, true) + (materials[i] / (1 + ratio)) * resValue) / materials[i]) - (resValue / (1 + ratio));
                 }
 
-                amount = Math.min(delta,amount,plateMax);
+                amount = Math.min(delta, amount, autoMax);
             }
 
             // If we have a maximum value, ensure that we don't produce more than
@@ -3479,7 +3489,7 @@ var run = function() {
         },
         getPotentialCatnip: function (worstWeather, pastures, aqueducts) {
             var fieldProd = game.getEffect('catnipPerTickBase');
-            if (worstWeather) {
+            if (worstWeather == undefined) {
                 fieldProd *= 0.1;
                 fieldProd *= 1 + game.getLimitedDR(game.getEffect("coldHarshness"),1);
 
@@ -3492,7 +3502,7 @@ var run = function() {
             var vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
             var baseProd = fieldProd + vilProd;
 
-            if (aqueducts) {
+            if (aqueducts == undefined) {
                 var hydroponics = game.space.getBuilding('hydroponics');
                 var hydroponicsEffect = hydroponics.effects['catnipRatio'];
                 baseProd *= 1 + game.bld.getBuildingExt('aqueduct').meta.stages[0].effects['catnipRatio'] * aqueducts + hydroponicsEffect * hydroponics.val;
