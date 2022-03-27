@@ -898,7 +898,7 @@ var run = function() {
                     // dynamic priority. distribute to the job which have lowest (job.val / job.max) value.
                     // if all jobs reach the max, then distribute kittens to unlimited job.
                     woodcutter: {enabled: true, max: 30, limited: true},
-                    farmer:     {enabled: true, max: 10, limited: true},
+                    farmer:     {enabled: false, max: 10, limited: true},
                     scholar:    {enabled: true, max: 10, limited: true},
                     hunter:     {enabled: true, max: 15, limited: true},
                     miner:      {enabled: true, max: 30, limited: true},
@@ -1083,8 +1083,8 @@ var run = function() {
             if (options.auto.time.enabled)                                                  {refresh += this.chrono();}
             if (subOptions.enabled && subOptions.items.crypto.enabled)                      {this.crypto();}
             if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
-            if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
             if (options.auto.distribute.enabled)                                            {this.distribute();}
+            if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
             if (subOptions.enabled)                                                         {refresh += this.miscOptions();}
             if (refresh > 0)                                                                {game.ui.render();/*game.resPool.update();*/}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
@@ -1342,7 +1342,7 @@ var run = function() {
             // Combust time crystal
             TimeSkip:
             if (optionVals.timeSkip.enabled && game.workshop.get('chronoforge').researched) {
-                var timeCrystal = game.resPool.get('timeCrystal');
+                var timeCrystal = game.resPool.get('timeCrystal') - this.craftManager.getValueAvailable('timeCrystal', true);
 
                 var currentCycle = game.calendar.cycle;
                 var currentYear = game.calendar.year;
@@ -1439,15 +1439,20 @@ var run = function() {
             }
         },
         promote: function () {
-            if (game.science.get('civil').researched && game.village.leader != null) {
-                var leader = game.village.leader;
+            let leader = game.village.leader;
+            if (game.science.get('civil').researched && leader) {
+                let optionDistribute = options.auto.distribute;
+                let optionLeader = optionDistribute.items.leader;
+                if (optionDistribute.enabled && optionLeader.enabled && leader.job != optionLeader.leaderJob) {
+                    return;
+                }
+
                 var rank = leader.rank;
-                var gold = this.craftManager.getResource('gold');
-                var goldStock = this.craftManager.getStock('gold');
+                let gold = this.craftManager.getValueAvailable('gold', true);
 
                 // game.village.sim.goldToPromote will check gold
                 // game.village.sim.promote check both gold and exp
-                if (game.village.sim.goldToPromote(rank, rank + 1, gold - goldStock)[0] && game.village.sim.promote(leader, rank + 1) == 1) {
+                if (game.village.sim.goldToPromote(rank, rank + 1, gold)[0] && game.village.sim.promote(leader, rank + 1) == 1) {
                     iactivity('act.promote', [rank + 1], 'ks-promote');
                     gamePage.tabs[1].censusPanel.census.renderGovernment(gamePage.tabs[1].censusPanel.census);
                     gamePage.tabs[1].censusPanel.census.update();
