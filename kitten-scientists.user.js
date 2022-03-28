@@ -1496,10 +1496,10 @@ var run = function() {
             var freeKittens = game.village.getFreeKittens();
             if (!freeKittens) {return;}
 
-            var pastures = (game.bld.getBuildingExt('pasture').meta.stage === 0) ? game.bld.getBuildingExt('pasture').meta.val : 0;
-            var aqueducts = (game.bld.getBuildingExt('aqueduct').meta.stage === 0) ? game.bld.getBuildingExt('aqueduct').meta.val : 0;
+            let agriculture = game.science.get("agriculture").researched;
+            var catnipRatio = (game.resPool.get("catnip").value <= game.resPool.get("catnip").maxValue);
             var catnipValue = game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value);
-            if (this.craftManager.getPotentialCatnip(false, pastures, aqueducts) < 0 && game.science.get("agriculture").researched && catnipValue < 0 && game.resPool.get("catnip").value <= game.resPool.get("catnip").maxValue) {
+            if (this.craftManager.getPotentialCatnip(false) <= 0 && agriculture && catnipValue <= 0 && catnipRatio) {
                 game.village.assignJob(game.village.getJob("farmer"), 1);
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
@@ -1511,15 +1511,21 @@ var run = function() {
             var jobName = '';
             var minRatio = Infinity;
             var currentRatio = 0;
-            for (var i in game.village.jobs) {
-                var name = game.village.jobs[i].name;
+            for (var i = game.village.jobs.length - 1; i >= 0; i--) {
                 var unlocked = game.village.jobs[i].unlocked;
+                if (!unlocked) {continue;}
+
+                var name = game.village.jobs[i].name;
                 var enabled = options.auto.distribute.items[name].enabled;
+                if (!enabled) {continue;}
+
                 var maxGame = game.village.getJobLimit(name);
-                var maxKS = (options.auto.distribute.items[name].max === -1) ? Number.MAX_VALUE : options.auto.distribute.items[name].max;
                 var val = game.village.jobs[i].value;
+                if (val >= maxGame) {continue;}
+
+                var maxKS = (options.auto.distribute.items[name].max === -1) ? Number.MAX_VALUE : options.auto.distribute.items[name].max;
                 var limited = options.auto.distribute.items[name].limited;
-                if (unlocked && enabled && val < maxGame && (!limited || val < maxKS)) {
+                if (!limited || val < maxKS) {
                     currentRatio = val / maxKS;
                     if (currentRatio < minRatio) {
                         minRatio = currentRatio;
@@ -3489,7 +3495,7 @@ var run = function() {
         },
         getPotentialCatnip: function (worstWeather, pastures, aqueducts) {
             var fieldProd = game.getEffect('catnipPerTickBase');
-            if (worstWeather == undefined) {
+            if (worstWeather) {
                 fieldProd *= 0.1;
                 fieldProd *= 1 + game.getLimitedDR(game.getEffect("coldHarshness"),1);
 
@@ -3502,7 +3508,7 @@ var run = function() {
             var vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
             var baseProd = fieldProd + vilProd;
 
-            if (aqueducts == undefined) {
+            if (aqueducts != undefined) {
                 var hydroponics = game.space.getBuilding('hydroponics');
                 var hydroponicsEffect = hydroponics.effects['catnipRatio'];
                 baseProd *= 1 + game.bld.getBuildingExt('aqueduct').meta.stages[0].effects['catnipRatio'] * aqueducts + hydroponicsEffect * hydroponics.val;
@@ -3525,7 +3531,7 @@ var run = function() {
 
             var baseDemand = game.village.getResConsumption()['catnip'];
             var uniPastures = game.bld.getBuildingExt('unicornPasture').meta.val;
-            if (pastures) {
+            if (pastures != undefined) {
                 baseDemand *= 1 + (game.getLimitedDR(pastures * -0.005 + uniPastures * -0.0015, 1.0));
             } else {
                 baseDemand *= 1 + game.getEffect("catnipDemandRatio");
