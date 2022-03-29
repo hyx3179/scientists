@@ -721,7 +721,7 @@ var run = function() {
 
                     // Helios
                     sunlifter:          {require: 'eludium', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
-                    containmentChamber: {require: 'science', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
+                    containmentChamber: {require: 'science', enabled: false, max:5, checkForReset: true, triggerForReset: -1},
                     heatsink:           {require: 'thorium', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
                     sunforge:           {require: false,     enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 
@@ -2357,7 +2357,7 @@ var run = function() {
             var crafts = options.auto.craft.items;
             var manager = this.craftManager;
             var trigger = options.auto.craft.trigger;
-            var craftsItem = ['beam','wood', 'slab', 'plate', 'steel', 'alloy', 'concrate', 'gear', 'scaffold', 'ship', 'tanker', 'parchment', 'manuscript', 'compedium', 'blueprint', 'kerosene', 'megalith', 'eludium', 'thorium'];
+            var craftsItem = ['ship', 'beam','wood', 'slab', 'plate', 'steel', 'alloy', 'concrate', 'gear', 'scaffold', 'tanker', 'parchment', 'manuscript', 'compedium', 'blueprint', 'kerosene', 'megalith', 'eludium', 'thorium'];
 
             for (var name of craftsItem) {
                 var craft = crafts[name];
@@ -3313,7 +3313,7 @@ var run = function() {
             var ratio = game.getResCraftRatio(craft.name);
             var trigger = options.auto.craft.trigger;
             var optionVal = options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
-            var optionShipVal =  options.auto.options.items.shipOverride.subTrigger;
+            var optionShipVal = options.auto.options.items.shipOverride.subTrigger;
 
             // Safeguard if materials for craft cannot be determined.
             if (!materials) {return 0;}
@@ -3333,29 +3333,22 @@ var run = function() {
                 }
             }
 
-            // 减少贸易船的合成
-            let res = game.resPool.resourceMap[name];
-            if (name === 'ship' && limited) {
-                let shipLimit = 5 * game.bld.get("reactor").on + 225;
-                let shipValue = res.value;
-                let titaniumMax = res.maxValue;
-                limRat = (shipValue > shipLimit * 0.75) ? 0.45 : limRat;
-                //limRat = (shipValue > shipLimit) ? 0.35 + 0.1 * (Math.log(shipLimit) / Math.log(shipValue) : limRat;
-                limRat = (0.03 * shipValue > titaniumMax) ? 0.03 : limRat;
-            }
+            useRatio = this.getLimRat(name, limited, limRat);
 
             for (var i in materials) {
                 var delta = undefined;
                 let resValue = this.getValueAvailable(name, true);
-                if (! limited || (this.getResource(i).maxValue > 0 && aboveTrigger) || (name === 'ship' && optionVal && (this.getResource('ship').value < optionShipVal)) ) {
+                let material = materials[i];
+                let shipBoolean = (name === 'ship' && optionVal && this.getResource('ship').value < optionShipVal);
+                if (!limited || (this.getResource(i).maxValue > 0 && aboveTrigger) || shipBoolean) {
                     // If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
-                    delta = this.getValueAvailable(i) / materials[i];
+                    delta = this.getValueAvailable(i) / material;
                 } else {
                     // Take the currently present amount of material to craft into account
                     // Currently this determines the amount of resources that can be crafted such that base materials are proportionally distributed across limited resources.
                     // This base material distribution is governed by limRat "limited ratio" which defaults to 0.5, corresponding to half of the possible components being further crafted.
                     // If this were another value, such as 0.75, then if you had 10000 beams and 0 scaffolds, 7500 of the beams would be crafted into scaffolds.
-                    delta = limRat * ((this.getValueAvailable(i, true) + (materials[i] / (1 + ratio)) * resValue) / materials[i]) - (resValue / (1 + ratio));
+                    delta = useRatio * ((this.getValueAvailable(i, true) + (material / (1 + ratio)) * resValue) / material) - (resValue / (1 + ratio));
                 }
 
                 amount = Math.min(delta, amount, autoMax);
@@ -3365,6 +3358,7 @@ var run = function() {
             // this value. This should currently only impact wood crafting, but is
             // written generically to ensure it works for any craft that produces a
             // good with a maximum value.
+            let res = game.resPool.resourceMap[name];
             if (res.maxValue > 0 && amount > (res.maxValue - res.value)) {amount = res.maxValue - res.value;}
 
             return amount;
@@ -3492,6 +3486,25 @@ var run = function() {
             }
 
             return value;
+        },
+        getLimRat: function (name, limited, limRat) {
+            let res = game.resPool.resourceMap[name];
+            if (name === 'ship' && limited) {
+                let shipLimit = 5 * game.bld.get("reactor").on + 225;
+                let shipValue = res.value;
+                let titaniumMax = res.maxValue;
+                limRat = (shipValue > shipLimit * 0.75) ? 0.4 : limRat;
+                limRat = (shipValue > shipLimit * 2) ? 0.01 + 0.39 * (Math.log(shipLimit) / Math.log(shipValue)) : limRat;
+                limRat = (0.03 * shipValue > titaniumMax) ? 0.01 : limRat;
+            }
+            
+            // 减少E合金的合成
+            if (name === 'eludium' && limited) {
+                let RR = game.time.getCFU("ressourceRetrieval").on;
+                limRat = (RR > 10) ? 0.4 : limRat;
+            }
+
+            return limRat;
         },
         getPotentialCatnip: function (worstWeather, pastures, aqueducts) {
             var fieldProd = game.getEffect('catnipPerTickBase');
