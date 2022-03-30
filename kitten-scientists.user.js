@@ -407,7 +407,6 @@ var run = function() {
             'filter.accelerate': '光阴似箭',
             'summary.accelerate': '小猫加速时间 {0} 次',
             'option.time.skip': '时间跳转',
-            'act.time.skip.moon': '由于未收平衡小猫决定呆在红月!',
             'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
             'ui.cycles': '周期',
             'ui.maximum': '上限',
@@ -460,6 +459,7 @@ var run = function() {
 
             'summary.resource': '小猫自动调整资源: {0} 的消耗率',
             'summary.moon': '小猫停在红月周期散热 {0} 次',
+            'summary.time.skip.moon': '由于燃烧时间水晶支出大于收入，小猫决定攒难得素，停留在红月 {0} 次!',
 
             'summary.blackcoin.buy': '小猫出售遗物并买入 {0} 次黑币',
             'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
@@ -756,10 +756,10 @@ var run = function() {
                     temporalBattery:     {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
                     blastFurnace:        {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
                     timeBoiler:          {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
-                    temporalAccelerator: {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+                    temporalAccelerator: {require: false,          enabled: false, max: 1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
                     temporalImpedance:   {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
                     ressourceRetrieval:  {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
-                    temporalPress:  {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+                    temporalPress:       {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 
                     // Void Space has variant void.
                     cryochambers:        {require: false,          enabled: false, max:-1, variant: 'void', checkForReset: true, triggerForReset: -1},
@@ -776,7 +776,7 @@ var run = function() {
                     timeSkip:           {enabled: true, subTrigger: 500,     misc: true, label: i18n('option.time.skip'), maximum: 1,
                         0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true,
                         spring: true, summer: false, autumn: false, winter: false, 
-                        wait: false, adore: false, craft: false},
+                        wait: false, adore: false, craft: false, moonMsg: -1},
                     reset:              {enabled: false, subTrigger: 99999, misc: true, label: i18n('option.time.reset')}
                 }
             },
@@ -1342,7 +1342,8 @@ var run = function() {
             // Combust time crystal
             TimeSkip:
             if (optionVals.timeSkip.enabled && game.workshop.get('chronoforge').researched) {
-                var timeCrystal = game.resPool.get('timeCrystal') - this.craftManager.getValueAvailable('timeCrystal', true);
+                var timeCrystalValue = this.craftManager.getValueAvailable('timeCrystal', true);
+                let cost = Math.max(subTrigger, timeSkipMaximum);
 
                 var currentCycle = game.calendar.cycle;
                 var currentYear = game.calendar.year;
@@ -1350,9 +1351,12 @@ var run = function() {
 
                 var heatMax = game.getEffect('heatMax');
                 var heatNow = game.time.heat;
+
                 var timeSkipMaximum = optionVals.timeSkip.maximum;
                 var subTrigger = optionVals.timeSkip.subTrigger;
-                if (timeCrystal.value < Math.max(subTrigger, timeSkipMaximum) || currentDay < 0 || !optionVals.timeSkip[currentCycle] || heatNow >= heatMax) {break TimeSkip;}
+                if (timeCrystalValue < cost || currentDay < 0 || !optionVals.timeSkip[currentCycle] || heatNow >= heatMax) {
+                    break TimeSkip;
+                }
 
                 // 红月判断收支平衡
                 var prestige = (game.prestige.getPerk("numeromancy").researched && game.prestige.getPerk("numerology").researched);
@@ -1367,10 +1371,15 @@ var run = function() {
                     }, "moonOutpost")['unobtainiumPerTickSpace'];
                     // 平衡周期 
                     var calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50 ;
+                    let cycleYear = game.calendar.cycleYear;
                     var tradeVal = unobtainiumTick * calendar / (cycleFestival * cycleEffects);
-                    if (!optionVals.timeSkip.moonMsg) {
-                        optionVals.timeSkip.moonMsg = true;
-                        iactivity('act.time.skip.moon');
+                    if (tradeVal < 1) {
+                        if (cycleYear != optionVals.timeSkip.moonMsg) {
+                            optionVals.timeSkip.moonMsg = cycleYear;
+                            iactivity('summary.time.skip.moon', [1]);
+                            storeForSummary('time.skip.moon', 1);
+                        }
+                        break TimeSkip;
                     }
                 }
 
