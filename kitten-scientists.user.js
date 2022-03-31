@@ -596,7 +596,7 @@ var run = function() {
                     marker:             {require: 'unobtainium', enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
                     unicornGraveyard:   {require: false,         enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
                     unicornNecropolis:  {require: false,         enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
-                    blackPyramid:       {require: 'unobtainium', enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
+                    blackPyramid:       {require: 'unobtainium', enabled: true, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
                     // Order of the Sun is variant s.
                     solarchant:         {require: 'faith',       enabled: true, max:-1,  variant: 's', checkForReset: true, triggerForReset: -1},
                     scholasticism:      {require: 'faith',       enabled: true, max:2,  variant: 's', checkForReset: true, triggerForReset: -1},
@@ -646,14 +646,14 @@ var run = function() {
 
                     // production
                     field:          {require: 'catnip',      enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-                    pasture:        {require: 'catnip',      enabled: true, max:-1, stage: 0, checkForReset: true, triggerForReset: -1},
+                    pasture:        {require: 'catnip',      enabled: true, max:150, stage: 0, checkForReset: true, triggerForReset: -1},
                     solarFarm:      {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'pasture', checkForReset: true, triggerForReset: -1},
                     mine:           {require: 'wood',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     lumberMill:     {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-                    aqueduct:       {require: 'minerals',    enabled: true, max:-1, stage: 0, checkForReset: true, triggerForReset: -1},
+                    aqueduct:       {require: 'minerals',    enabled: true, max:250, stage: 0, checkForReset: true, triggerForReset: -1},
                     hydroPlant:     {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'aqueduct', checkForReset: true, triggerForReset: -1},
-                    oilWell:        {require: 'coal',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-                    quarry:         {require: 'coal',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+                    oilWell:        {require: 'coal',        enabled: true, max:200, checkForReset: true, triggerForReset: -1},
+                    quarry:         {require: 'coal',        enabled: true, max:300, checkForReset: true, triggerForReset: -1},
 
                     // conversion
                     smelter:        {require: 'minerals',    enabled: true,  max:-1, checkForReset: true, triggerForReset: -1},
@@ -666,12 +666,12 @@ var run = function() {
 
                     // science
                     library:        {require: 'wood',        enabled: true, max:-1, stage: 0, checkForReset: true, triggerForReset: -1},
-                    dataCenter:     {require: false,         enabled: true, max:-1, stage: 1, name: 'library', checkForReset: true, triggerForReset: -1},
+                    dataCenter:     {require: false,         enabled: true, max:150, stage: 1, name: 'library', checkForReset: true, triggerForReset: -1},
                     academy:        {require: 'wood',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     observatory:    {require: 'iron',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
                     // other
-                    amphitheatre:   {require: 'minerals',    enabled: true, max:40, stage: 0, checkForReset: true, triggerForReset: -1},
+                    amphitheatre:   {require: 'minerals',    enabled: true, max:50, stage: 0, checkForReset: true, triggerForReset: -1},
                     broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1},
                     tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     chapel:         {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
@@ -685,7 +685,7 @@ var run = function() {
 
                     // storage
                     barn:           {require: 'wood',        enabled: true, max:15, checkForReset: true, triggerForReset: -1},
-                    harbor:         {require: false,         enabled: false,max:-1,  checkForReset: true, triggerForReset: -1},
+                    harbor:         {require: false,         enabled: false,max:200,  checkForReset: true, triggerForReset: -1},
                     warehouse:      {require: false,         enabled: true,max:200, checkForReset: true, triggerForReset: -1},
             
                     // zebras
