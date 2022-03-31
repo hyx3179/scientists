@@ -1343,6 +1343,8 @@ var run = function() {
             TimeSkip:
             if (optionVals.timeSkip.enabled && game.workshop.get('chronoforge').researched) {
                 var timeCrystalValue = this.craftManager.getValueAvailable('timeCrystal', true);
+                var timeSkipMaximum = optionVals.timeSkip.maximum;
+                var subTrigger = optionVals.timeSkip.subTrigger;
                 let cost = Math.max(subTrigger, timeSkipMaximum);
 
                 var currentCycle = game.calendar.cycle;
@@ -1351,9 +1353,6 @@ var run = function() {
 
                 var heatMax = game.getEffect('heatMax');
                 var heatNow = game.time.heat;
-
-                var timeSkipMaximum = optionVals.timeSkip.maximum;
-                var subTrigger = optionVals.timeSkip.subTrigger;
                 if (timeCrystalValue < cost || currentDay < 0 || !optionVals.timeSkip[currentCycle] || heatNow >= heatMax) {
                     break TimeSkip;
                 }
@@ -3189,6 +3188,12 @@ var run = function() {
                 }
             }
         },
+        getSumPrices: function (build, price) {
+            var currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
+            var buildRatio = currentRatio + game.getEffect("priceRatio");
+            var sumPrices = (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
+            return sumPrices;
+        },
         sellBuild: function (name) {
             var build = this.getBuild(name).meta;
             var prices = build.stages[build.stage].prices;
@@ -3196,9 +3201,7 @@ var run = function() {
                 var price = prices[i];
                 var res = game.resPool.get(price.name);
                 if (res.isRefundable() && !price.isTemporary && build.val) {
-                    var currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
-                    var buildRatio = currentRatio + game.getEffect("priceRatio");
-                    var sumPrices = (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
+                    var sumPrices = this.getBuildSumPrices(build, price);
                     game.resPool.addResEvent(price.name, sumPrices * 0.5);
                 }
             }
@@ -3305,6 +3308,25 @@ var run = function() {
         },
         getCraft: function (name) {
             return game.workshop.getCraft(name);
+        },
+        setOption: function () {
+            //let crafts = options.auto.craft.items;
+            //let beamValue = game.resPool.resourceMap[beam].value;
+            //let 
+            //let 
+            //if () {
+            //    
+            //    let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
+            //    let buildRatio = currentRatio + game.getEffect("priceRatio");
+            //    let sumPrices = (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
+            //}
+
+            let parchmentOtion = options.auto.craft.items.parchment;
+            let parchmentEnabled = parchmentOtion.enabled;
+            let parchmentLimited = options.auto.craft.items.parchment.limited;
+            if (parchmentEnabled && !parchmentLimited) {
+                $('#toggle-limited-parchment').click();
+            }
         },
         singleCraftPossible: function (name) {
             var materials = this.getMaterials(name);
