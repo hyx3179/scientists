@@ -414,7 +414,7 @@ var run = function() {
             'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
             'time.skip.season.enable': '启用在 {0} 跳转时间',
             'time.skip.season.disable': '停止在 {0} 跳转时间',
-            'time.skip.trigger.set': '燃烧时间水晶仅当时间水晶数量大于该触发值，取值范围为正整数',
+            'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n上限为每次燃烧水晶最大年数，根据时计炉数量，一开始推荐1\n周期默认全勾就行，珂学家会自动判断是否停在红月',
             'summary.time.skip': '跳过 {0} 年',
             'filter.time.skip': '时间跳转',
 
@@ -474,7 +474,7 @@ var run = function() {
             'summary.breweryOff': '节日结束了，小猫担心浪费资源关闭了 {0} 个酿酒厂',
             'summary.brewery': '小猫根据节日调整了 {0} 次酿酒厂',
             'summary.festival': '举办了 {0} 次节日',
-            'summary.stars': '观测了 {0} 颗流星',
+            'summary.stars': '观测了 {0} 次天文事件',
             'summary.praise': '通过赞美太阳积累了 {0} 虔诚',
             'summary.hunt': '派出了 {0} 批可爱的小猫猎人',
             'summary.embassy': '设立了 {0} 个大使馆',
@@ -638,7 +638,7 @@ var run = function() {
                     // housing
                     hut:            {require: 'wood',        enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
                     logHouse:       {require: 'minerals',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
-                    mansion:        {require: 'titanium',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
+                    mansion:        {require: 'titanium',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1, auto: false},
 
                     // craft bonuses
                     workshop:       {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
@@ -672,8 +672,8 @@ var run = function() {
 
                     // other
                     amphitheatre:   {require: 'minerals',    enabled: true, max:50, stage: 0, checkForReset: true, triggerForReset: -1},
-                    broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1},
-                    tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+                    broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1, auto: false},
+                    tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false},
                     chapel:         {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false},
                     mint:           {require: 'gold',         enabled: true,max:100,  checkForReset: true, triggerForReset: -1},
@@ -1831,16 +1831,16 @@ var run = function() {
             var buildManager = this.religionManager;
             var craftManager = this.craftManager;
             var bulkManager = this.bulkManager;
-            var trigger = options.auto.faith.trigger;
+
+            let solarMeta = game.religion.meta[1].meta[5];
+            let unlocked = game.religion.faith > solarMeta.faith;
+            var trigger = (!solarMeta.on && unlocked) ? 1 : options.auto.faith.trigger;
+            if (!solarMeta.on && unlocked && options.auto.faith.items.solarRevolution.enabled) {
+                buildManager.build("solarRevolution", "s", 1);
+            }
 
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
             //buildManager.manager.render();
-
-            var solarMeta = game.religion.meta[1].meta[5];
-            var unlocked = game.resPool.resourceMap['faith'].value > solarMeta.faith;
-            if (!solarMeta.on && unlocked && game.resPool.hasRes(solarMeta.prices) && options.auto.faith.items.solarRevolution.enabled) {
-                buildManager.build("solarRevolution", "s", 1);
-            }
 
             var metaData = {};
             for (var name in builds) {
@@ -1941,22 +1941,28 @@ var run = function() {
                 var work = game.workshop.upgrades;
                 let noup = [];
                 if (upgrades.upgrades.limited) {
-                    noup = ["factoryOptimization","factoryRobotics","spaceEngineers","aiEngineers","chronoEngineers","steelPlants","amFission","biofuel","gmo","factoryAutomation","advancedAutomation","invisibleBlackHand", "pneumaticPress"];
+                    noup = ['factoryOptimization','factoryRobotics','spaceEngineers','aiEngineers','chronoEngineers','steelPlants','amFission','biofuel','gmo','factoryAutomation','advancedAutomation','invisibleBlackHand', 'pneumaticPress'];
                     if (!game.bld.getBuildingExt('pasture').meta.on || game.bld.getBuildingExt('pasture').meta.stage === 0) {
-                        noup = noup.concat(["photovoltaic", "thinFilm", "qdot"]);
+                        noup = noup.concat(['photovoltaic', 'thinFilm', 'qdot']);
                     }
                     if (!game.bld.getBuildingExt('aqueduct').meta.on || game.bld.getBuildingExt('aqueduct').meta.stage === 0) {
-                        noup = noup.concat(["hydroPlantTurbines"]);
+                        noup = noup.concat(['hydroPlantTurbines']);
                     }
                     if (!game.bld.getBuildingExt('steamworks').meta.on) {
-                        noup = noup.concat(["printingPress"]);
+                        noup = noup.concat(['printingPress']);
                     }
                     if (game.resPool.energyWinterProd - game.resPool.energyCons - Math.max(game.bld.getBuildingExt('oilWell').meta.on, 40) <= 0) {
-                        noup = noup.concat(["pumpjack"]);
+                        noup = noup.concat(['pumpjack']);
                     }
+
+                    // 没测地学过滤 地外计划
+                    if (!game.workshop.get('geodesy').researched) {
+                        noup = noup.concat(['seti','pumpjack']);
+                    }
+
                     // 微型亚空间
                     if (!game.workshop.meta[0].meta[125].researched) {
-                        noup = noup.concat(["eludiumReflectors", 'amBases', 'coldFusion', 'amReactors']);
+                        noup = noup.concat(['eludiumReflectors', 'amBases', 'coldFusion', 'amReactors']);
                     }
                 }
 
@@ -2268,15 +2274,69 @@ var run = function() {
                 // 神学前最多只造 1个神殿
                 let theology = game.science.meta[0].meta[16].researched;
                 let temple = builds['temple'];
+                var solarMeta = game.religion.meta[1].meta[5];
                 if (!theology) {
                     if (!temple.auto) {
                         temple.auto = temple.max;
                         temple.max = (game.prestige.getPerk('renaissance').researched) ? 0 : 1;
                     }
                 } else {
+                    if (temple.auto && solarMeta.on) {
+                        temple.max = temple.auto;
+                        temple.auto = null;
+                    }
+                }
+
+                // 太阳革命前不造交易所和神殿
+                var unlocked = game.religion.faith > solarMeta.faith;
+                let tradepost = builds['tradepost'];
+                if (!solarMeta.on) {
+                    if (unlocked && options.auto.faith.items.solarRevolution.enabled) {
+                        if (!temple.auto) {
+                            temple.auto = temple.max;
+                            temple.max = 0;
+                        }
+                        if (!tradepost.auto) {
+                            tradepost.auto = tradepost.max;
+                            tradepost.max = 0;
+                        }
+                    }
+                } else {
                     if (temple.auto) {
                         temple.max = temple.auto;
                         temple.auto = null;
+                    }
+                    if (tradepost.auto) {
+                        tradepost.max = tradepost.auto;
+                        tradepost.auto = null;
+                    }
+                }
+
+
+                // 广播塔 宅邸
+                let mansion = builds['mansion'];
+                let broadcastTower = builds['broadcastTower'];
+                let geodesy = game.workshop.get('geodesy').researched;
+                var blackSky = game.challenges.isActive('blackSky');
+                if (!geodesy) {
+                    if (!blackSky) {
+                        if (!mansion.auto) {
+                            mansion.auto = mansion.max;
+                            mansion.max = 0;
+                        }
+                        if (!broadcastTower.auto) {
+                            broadcastTower.auto = broadcastTower.max;
+                            broadcastTower.max = 0;
+                        }
+                    } else {
+                        if (mansion.auto) {
+                            mansion.max = mansion.auto;
+                            mansion.auto = null;
+                        }
+                        if (broadcastTower.auto) {
+                            broadcastTower.max = broadcastTower.auto;
+                            broadcastTower.auto = null;
+                        }
                     }
                 }
 
@@ -2299,7 +2359,7 @@ var run = function() {
             var buildList = bulkManager.bulk(builds, metaData, trigger, 'bonfire');
 
             var calcinerMeta = game.bld.getBuildingExt('calciner').meta;
-            if (game.challenges.isActive("blackSky") && options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerMeta.val) {
+            if (blackSky && options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerMeta.val) {
                 buildManager.build("calciner", undefined, 1);
             }
 
@@ -3201,7 +3261,7 @@ var run = function() {
                 var price = prices[i];
                 var res = game.resPool.get(price.name);
                 if (res.isRefundable() && !price.isTemporary && build.val) {
-                    var sumPrices = this.getBuildSumPrices(build, price);
+                    var sumPrices = this.getSumPrices(build, price);
                     game.resPool.addResEvent(price.name, sumPrices * 0.5);
                 }
             }
@@ -6396,6 +6456,7 @@ var loadTest = function() {
         }, 2000);
     } else {
         // Kittens loaded, run Kitten Scientist's Automation Engine
+        game.workshop.metaCache['geodesy'] = game.workshop.get('geodesy');
         run();
         loadTest = run = null;
     }
