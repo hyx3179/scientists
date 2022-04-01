@@ -1649,7 +1649,7 @@ var run = function() {
                             }
                         }
                         var btnButton = religionManager.getBuildButton(btn.name, 'z');
-                        if (!btnButton) {
+                        if (!btnButton && game.bld.getBuildingExt("ziggurat").on) {
                             this.religionManager.manager.render();
                         } else {
                             if (game.resPool.hasRes(buttonPrices)) {
@@ -3371,11 +3371,10 @@ var run = function() {
         },
         setOption: function () {
             //let crafts = options.auto.craft.items;
-            //let beamValue = game.resPool.resourceMap[beam].value;
-            //let 
-            //let 
-            //if () {
-            //    
+            //if (options.auto.craft.items.beam.limited) {
+            //    let beamValue = game.resPool.resourceMap[beam].value;.
+            //    let build =;
+            //    let price =;
             //    let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
             //    let buildRatio = currentRatio + game.getEffect("priceRatio");
             //    let sumPrices = (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
@@ -3384,7 +3383,7 @@ var run = function() {
             let parchmentOtion = options.auto.craft.items.parchment;
             let parchmentEnabled = parchmentOtion.enabled;
             let parchmentLimited = options.auto.craft.items.parchment.limited;
-            if (parchmentEnabled && !parchmentLimited) {
+            if (parchmentEnabled && parchmentLimited) {
                 $('#toggle-limited-parchment').click();
             }
         },
