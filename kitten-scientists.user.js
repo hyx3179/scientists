@@ -686,7 +686,7 @@ var run = function() {
                     ziggurat:       {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     chronosphere:   {require: 'unobtainium', enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     aiCore:         {require: false,         enabled: false,max:-1,  checkForReset: true, triggerForReset: -1},
-                    brewery:        {require: false,         enabled: false,max:-1,  checkForReset: true, triggerForReset: -1, auto: false},
+                    brewery:        {require: false,         enabled: true,max:-1,  checkForReset: true, triggerForReset: -1, auto: false},
 
                     // storage
                     barn:           {require: 'wood',        enabled: true, max:15, checkForReset: true, triggerForReset: -1},
@@ -1513,9 +1513,9 @@ var run = function() {
             let agriculture = game.science.get("agriculture").researched;
             var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
             var catnipValue = game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value);
-            let nomalWinterCatnip = this.craftManager.getPotentialCatnip(false);
-            let coldWinterCatnip = this.craftManager.getPotentialCatnip(true) < 0;
-            if (nomalWinterCatnip <= 0 && agriculture && (catnipValue < 0 || freeKittens <= 2) && catnipRatio) {
+            let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0 || game.village.jobs[1].value == 0);
+            let coldWinterCatnip = this.craftManager.getPotentialCatnip(true);
+            if (nomalWinterCatnip && agriculture && (catnipValue < 0 || freeKittens <= 2) && catnipRatio) {
                 game.village.assignJob(game.village.getJob("farmer"), 1);
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
