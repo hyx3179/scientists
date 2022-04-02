@@ -55,7 +55,7 @@ var run = function() {
             'blackcoin.sell': 'Kittens sold your Blackcoins and bought {0} Relics',
             'act.feed': 'Kittens fed the Elders. The elders are pleased',
             'act.observe': 'Kitten Scientists have observed a star',
-            'act.hunt': 'Sent kittens on {0} hunts',
+            'act.hunt': 'Sent {1} on {0} hunts',
             'act.build': 'Kittens have built a new {0}',
             'act.builds': 'Kittens have built a new {0} {1} times.',
             'act.craft': 'Kittens have crafted {0} {1}',
@@ -270,7 +270,7 @@ var run = function() {
             'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
             'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
             'act.observe': '小猫珂学家观测到一次天文现象',
-            'act.hunt': '派出 {0} 波小猫去打猎',
+            'act.hunt': '派出 {0} 波{1}去打猎',
             'act.hunt.unicorn': '小猫急着给独角兽配种',
             'act.build': '小猫建造了一个 {0}',
             'act.builds': '小猫建造了 {1} 个新的 {0}',
@@ -2504,20 +2504,21 @@ var run = function() {
             let unicornValue = game.resPool.resourceMap['unicorns'].value;
             let unicorn = game.achievements.get('unicornConspiracy').unlocked || unicornValue;
             let unicornPasture = game.bld.getBuildingExt('unicornPasture').meta.val;
+            let hunter = (game.ironWill) ? game.resPool.resourceMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
             if (!unicornPasture && unicorn && manpower.value > 700 && unicornValue < 3) {
                 let count = 7;
                 game.resPool.addResEvent("manpower", -count * 100);
                 game.village.gainHuntRes(count);
                 storeForSummary('hunt', count);
                 iactivity('act.hunt.unicorn');
-                iactivity('act.hunt', [count], 'ks-hunt');
+                iactivity('act.hunt', [count, hunter], 'ks-hunt');
             }
 
             if (options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue) {
                 // No way to send only some hunters. Thus, we hunt with everything
                 var huntCount = Math.floor(manpower.value / 100);
                 storeForSummary('hunt', huntCount);
-                iactivity('act.hunt', [huntCount], 'ks-hunt');
+                iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
 
                 var huntCount = Math.floor(manpower.value / 100);
                 var aveOutput = this.craftManager.getAverageHunt();
