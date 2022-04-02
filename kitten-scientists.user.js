@@ -1867,10 +1867,11 @@ var run = function() {
                 } else {
                     var model = buildManager.getBuildButton(name, build.variant).model;
                     var panel = (build.variant === 'c') ? game.science.get('cryptotheology').researched : true;
-                    if (model.visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable === true && model.metadata.on == 0)) {
+                    let visible = (build.variant === 's') ? game.religion.faith >= metabuild.faith : model.visible;
+                    if (visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable === true && model.metadata.on == 0)) {
                         buildManager.getBuildButton(name, build.variant).controller.updateEnabled(model);
                     }
-                    metaData[name].rHidden = !(model.visible && model.enabled && panel);
+                    metaData[name].rHidden = !(visible && model.enabled && panel);
                 }
             }
 
