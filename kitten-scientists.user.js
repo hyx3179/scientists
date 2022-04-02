@@ -292,6 +292,11 @@ var run = function() {
             'build.embassy': '在 {1} 设立了 {0} 个大使馆',
             'build.embassies': '在 {1} 设立了 {0} 个大使馆',
 
+            'build.auto.temple': '太阳革命 演化后才会建造神殿',
+            'build.auto.tradepost': '太阳革命演化后才会建造交易所',
+            'build.auto.mansion': '测地学解锁后建造宅邸',
+            'build.auto.broadcastTower': '测地学解锁后建造广播塔',
+
             'act.praise': '赞美太阳! 转化 {0} 信仰为 {1} 虔诚',
             'act.praise.msg': '小猫加速赞美太阳，直到太阳革命加成大于 {0}',
             'act.sun.discover': '小猫宗教 {0} 方面获得演化',
@@ -1086,7 +1091,8 @@ var run = function() {
             if (options.auto.distribute.enabled)                                            {this.distribute();}
             if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
             if (subOptions.enabled)                                                         {refresh += this.miscOptions();}
-            if (refresh > 0)                                                                {game.ui.render();/*game.resPool.update();*/}
+            if (refresh > 0)                                                                {game.resPool.update();}
+            if (refresh > 1)                                                                {game.ui.render();}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
         },
         halfInterval: async function () {
@@ -2245,10 +2251,11 @@ var run = function() {
             var bulkManager = this.bulkManager;
             var trigger = options.auto.build.trigger;
             var refreshRequired = 0;
+            var blackSky = game.challenges.isActive('blackSky');
 
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
-            //buildManager.manager.render();
 
+            //buildManager.manager.render(); 
             if (builds['hut']) {
                 // 解锁磁电机才会造蒸汽工房
                 var steamworksMeta = game.bld.getBuildingExt('steamworks').meta;
@@ -2292,15 +2299,18 @@ var run = function() {
                 }
 
                 // 太阳革命前不造交易所和神殿
+                let faithMeta = game.resPool.resourceMap['faith'];
                 var unlocked = game.religion.faith > solarMeta.faith;
                 let tradepost = builds['tradepost'];
-                if (!solarMeta.on) {
+                if (!solarMeta.on && faithMeta.maxValue > 750) {
                     if (unlocked && options.auto.faith.items.solarRevolution.enabled) {
                         if (!temple.auto) {
+                            iactivity('build.auto.temple');
                             temple.auto = temple.max;
                             temple.max = 0;
                         }
                         if (!tradepost.auto) {
+                            iactivity('build.auto.tradepost');
                             tradepost.auto = tradepost.max;
                             tradepost.max = 0;
                         }
@@ -2321,26 +2331,27 @@ var run = function() {
                 let mansion = builds['mansion'];
                 let broadcastTower = builds['broadcastTower'];
                 let geodesy = game.workshop.get('geodesy').researched;
-                var blackSky = game.challenges.isActive('blackSky');
                 if (!geodesy) {
                     if (!blackSky) {
                         if (!mansion.auto) {
+                            iactivity('build.auto.mansion');
                             mansion.auto = mansion.max;
                             mansion.max = 0;
                         }
                         if (!broadcastTower.auto) {
+                            iactivity('build.auto.broadcastTower');
                             broadcastTower.auto = broadcastTower.max;
                             broadcastTower.max = 0;
                         }
-                    } else {
-                        if (mansion.auto) {
-                            mansion.max = mansion.auto;
-                            mansion.auto = null;
-                        }
-                        if (broadcastTower.auto) {
-                            broadcastTower.max = broadcastTower.auto;
-                            broadcastTower.auto = null;
-                        }
+                    }
+                } else {
+                    if (mansion.auto) {
+                        mansion.max = mansion.auto;
+                        mansion.auto = null;
+                    }
+                    if (broadcastTower.auto) {
+                        broadcastTower.max = broadcastTower.auto;
+                        broadcastTower.auto = null;
                     }
                 }
 
@@ -2497,6 +2508,7 @@ var run = function() {
         },
         hunt: function () {
             clearTimeout(this.huntId);
+            //console.log(this.craftManager.getAverageHunt().furs*Math.floor(manpower.value / 100))
             var manpower = this.craftManager.getResource('manpower');
             if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
