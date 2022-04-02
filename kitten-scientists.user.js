@@ -1509,7 +1509,7 @@ var run = function() {
             var catnipValue = game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value);
             let nomalWinterCatnip = this.craftManager.getPotentialCatnip(false);
             let coldWinterCatnip = this.craftManager.getPotentialCatnip(true) < 0;
-            if (nomalWinterCatnip <= 0 && agriculture && (catnipValue < 0 || coldWinterCatnip) && catnipRatio) {
+            if (nomalWinterCatnip <= 0 && agriculture && (catnipValue < 0 || freeKittens <= 2) && catnipRatio) {
                 game.village.assignJob(game.village.getJob("farmer"), 1);
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
@@ -2443,7 +2443,8 @@ var run = function() {
                 if (!manager.singleCraftPossible(name)) {continue;}
                 // Craft the resource if we meet the trigger requirement
                 if (!require || trigger <= require.value / require.maxValue) {
-                    amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, true);
+                    let aboveTrigger = (!require || name == 'alloy' || name == 'compedium') ? false : true;
+                    amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, aboveTrigger);
                 } else if (craft.limited) {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
                     let ratio = game.getResCraftRatio();
@@ -3015,7 +3016,11 @@ var run = function() {
             var button = this.getBuildButton(name, variant);
 
             if (!button || !button.model.metadata) {return game.religionTab.render();}
-            if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
+            if (!button.model.enabled) {
+                button.model.prices = button.controller.getPrices(button.model);
+                button.controller.updateEnabled(button.model);
+                return;
+            }
 
             var amountTemp = amount;
             var label = build.label;
@@ -3434,7 +3439,7 @@ var run = function() {
                 let resValue = this.getValueAvailable(name, true);
                 let material = materials[i];
                 let shipBoolean = (name === 'ship' && optionVal && this.getResource('ship').value < optionShipVal);
-                if (!limited || (this.getResource(i).maxValue > 0 && aboveTrigger) || shipBoolean) {
+                if (!limited || aboveTrigger || shipBoolean) {
                     // If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
                     delta = this.getValueAvailable(i) / material;
                 } else {
