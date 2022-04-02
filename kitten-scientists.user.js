@@ -1505,9 +1505,11 @@ var run = function() {
             if (!freeKittens) {return;}
 
             let agriculture = game.science.get("agriculture").researched;
-            var catnipRatio = (game.resPool.get("catnip").value <= game.resPool.get("catnip").maxValue);
+            var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
             var catnipValue = game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value);
-            if (this.craftManager.getPotentialCatnip(false) <= 0 && agriculture && catnipValue <= 0 && catnipRatio) {
+            let winterCatnip = this.craftManager.getPotentialCatnip(false);
+            let coldWinterCatnip = this.craftManager.getPotentialCatnip(true) < 0;
+            if (this.craftManager.getPotentialCatnip(false) <= 0 && agriculture && (catnipValue < 0 || coldWinterCatnip) && catnipRatio) {
                 game.village.assignJob(game.village.getJob("farmer"), 1);
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
@@ -1951,8 +1953,10 @@ var run = function() {
                     if (!game.bld.getBuildingExt('steamworks').meta.on) {
                         noup = noup.concat(['printingPress']);
                     }
+
+                    // 缺电过滤抽油机 和 碳封存
                     if (game.resPool.energyWinterProd - game.resPool.energyCons - Math.max(game.bld.getBuildingExt('oilWell').meta.on, 40) <= 0) {
-                        noup = noup.concat(['pumpjack']);
+                        noup = noup.concat(['pumpjack', 'carbonSequestration']);
                     }
 
                     // 没测地学过滤 地外计划
