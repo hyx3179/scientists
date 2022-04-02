@@ -1507,9 +1507,9 @@ var run = function() {
             let agriculture = game.science.get("agriculture").researched;
             var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
             var catnipValue = game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value);
-            let winterCatnip = this.craftManager.getPotentialCatnip(false);
+            let nomalWinterCatnip = this.craftManager.getPotentialCatnip(false);
             let coldWinterCatnip = this.craftManager.getPotentialCatnip(true) < 0;
-            if (this.craftManager.getPotentialCatnip(false) <= 0 && agriculture && (catnipValue < 0 || coldWinterCatnip) && catnipRatio) {
+            if (nomalWinterCatnip <= 0 && agriculture && (catnipValue < 0 || coldWinterCatnip) && catnipRatio) {
                 game.village.assignJob(game.village.getJob("farmer"), 1);
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
@@ -4362,6 +4362,11 @@ var run = function() {
                 } else {
                     if (name[1] == 'limited') {
                         option.limited = value;
+
+                        // 羊皮纸限制默认关闭
+                        if (name[2] == 'parchment' && value) {
+                            $('#toggle-limited-parchment').click();
+                        }
                     } else if (name[1] == 'leaderJob') {
                         option[name[1]] = name[2];
                     } else if (name[1] == 'leaderTrait') {
@@ -5469,8 +5474,13 @@ var run = function() {
 
         input.on('change', function () {
             if (input.is(':checked') && option.limited == false) {
-                option.limited = true;
-                imessage('craft.limited', [iname]);
+                if (name == 'parchment') {
+                    input.prop("checked", false);
+                    option.limited = false;
+                } else {
+                    option.limited = true;
+                    imessage('craft.limited', [iname]);
+                }
             } else if ((!input.is(':checked')) && option.limited == true) {
                 option.limited = false;
                 let require = (option.require) ? game.resPool.resourceMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
@@ -6439,7 +6449,7 @@ var run = function() {
                         iactivity('auto.countdown', [countdown]);
                     }
                     options.countdown -= 1;
-                } else if (countdown < 11) {
+                } else if (countdown <= 10) {
                     imessage('reset.countdown.' + countdown);
                     options.countdown -= 1;
                 }
