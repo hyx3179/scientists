@@ -897,6 +897,7 @@ var run = function() {
                 }
             },
             distribute: {
+                religion: false,
                 // Should KS automatically distribute free kittens
                 enabled: false,
                 items: {
@@ -1512,10 +1513,11 @@ var run = function() {
 
             let agriculture = game.science.get("agriculture").researched;
             var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
-            var catnipValue = game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value);
+            var catnipValue = (game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value) < 0 || freeKittens <= 2);
             let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0 || game.village.jobs[1].value == 0);
             let coldWinterCatnip = this.craftManager.getPotentialCatnip(true);
-            if (nomalWinterCatnip && agriculture && (catnipValue < 0 || freeKittens <= 2) && catnipRatio) {
+            let religionCatnip = options.auto.distribute.religion;
+            if (religionCatnip || (nomalWinterCatnip && agriculture && catnipValue && catnipRatio)) {
                 game.village.assignJob(game.village.getJob("farmer"), 1);
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
@@ -1706,7 +1708,7 @@ var run = function() {
             var apocripha = game.religion.getRU('apocripha').on;
 
             // enough faith, and then TAP
-            if (Math.min(0.999 , Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
+            if (Math.min(0.999, Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
                 var worship = game.religion.faith;
                 var moonBoolean = game.space.meta[0].meta[1].on;
 
@@ -2154,9 +2156,9 @@ var run = function() {
                 var pastureMeta = game.bld.getBuildingExt('pasture').meta;
                 if (pastureMeta.stage === 0 && options.auto.build.items.solarFarm.enabled) {
                     if (pastureMeta.stages[1].stageUnlocked) {
-                        var energy = (game.resPool.energyWinterProd < game.resPool.energyCons);
+                        var energy = (game.resPool.energyWinterProd - 45 < game.resPool.energyCons);
                         var broadcastTower = game.bld.getBuildingExt('amphitheatre').meta.stage == 1;
-                        var boolean = (energy || (broadcastTower && game.getResourcePerTick('titanium', true) > 25));
+                        var boolean = (energy && broadcastTower && game.getResourcePerTick('titanium', true) > 25);
                         if (craftManager.getPotentialCatnip(true, 0, aqueducts) > 45 && boolean) {
                             var prices = pastureMeta.stages[1].prices;
                             if (bulkManager.singleBuildPossible(pastureMeta, prices, 1 )) {
@@ -2329,7 +2331,6 @@ var run = function() {
                     }
                 }
 
-
                 // 广播塔 宅邸
                 let mansion = builds['mansion'];
                 let broadcastTower = builds['broadcastTower'];
@@ -2396,6 +2397,14 @@ var run = function() {
                             buildList[i].count = 1;
                         } else if (!game.workshop.get("miningDrill").researched) {
                             continue;
+                        }
+                    }
+
+                    if (buildList[i].id === 'biolab') {
+                        if (!game.workshop.get('orbitalGeodesy').researched) {
+                            buildList[i].count = 0;
+                        } else if (!game.workshop.get('spaceManufacturing').researched) {
+                            buildList[i].count *= 0.5;
                         }
                     }
 
@@ -2877,6 +2886,9 @@ var run = function() {
             }
             if (catnipTick < 0) {
                 let optionFaith = options.auto.faith;
+                if (!options.auto.distribute.religion) {
+                    options.auto.distribute.religion = true;
+                }
                 // 次元超越猫薄荷
                 if (value && optionFaith.transcendCatnip < 10) {
                     iactivity('transcend.catnip');
