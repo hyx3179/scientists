@@ -292,11 +292,6 @@ var run = function() {
             'build.embassy': '在 {1} 设立了 {0} 个大使馆',
             'build.embassies': '在 {1} 设立了 {0} 个大使馆',
 
-            'build.auto.temple': '太阳革命 演化后才会建造神殿',
-            'build.auto.tradepost': '太阳革命演化后才会建造交易所',
-            'build.auto.mansion': '测地学解锁后建造宅邸',
-            'build.auto.broadcastTower': '测地学解锁后建造广播塔',
-
             'act.praise': '赞美太阳! 转化 {0} 信仰为 {1} 虔诚',
             'act.praise.msg': '小猫加速赞美太阳，直到太阳革命加成大于 {0}',
             'act.sun.discover': '小猫宗教 {0} 方面获得演化',
@@ -383,7 +378,7 @@ var run = function() {
             'filter.enable': '过滤 {0}',
             'filter.disable': '取消过滤 {0}',
 
-            'craft.limited': '限制下：额外每2秒制作 {0}，数量AI自动（根据工艺制作效率、资源数量）',
+            'craft.limited': '限制{0}（理解为该资源触发条件、消耗率小猫自动设置并保留资源。',
             'craft.limitedTitle': '根据原材料和目标材料的数量',
             'craft.unlimited': '触发资源：{1}{0}',
             'craft.winterCatnip': '因寒冬猫薄荷产量低于0，故取消使用猫薄荷',
@@ -456,6 +451,11 @@ var run = function() {
             'option.fix.cry': '修复冷冻仓',
             'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
             'summary.fix.cry': '修复了 {0} 个冷冻仓',
+
+            'summary.auto.temple': '太阳革命 演化后才会建造神殿',
+            'summary.auto.tradepost': '太阳革命演化后才会建造交易所',
+            'summary.auto.mansion': '测地学解锁后建造宅邸',
+            'summary.auto.broadcastTower': '测地学解锁后建造广播塔',
 
             'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
             'summary.upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
@@ -939,7 +939,7 @@ var run = function() {
                 }
             },
             resources: {
-                furs:        {enabled: true,  stock: 100, checkForReset: false, stockForReset: Infinity},
+                furs:        {enabled: true,  stock: 350, checkForReset: false, stockForReset: Infinity},
                 timeCrystal: {enabled: false, stock: 0,    checkForReset: true,  stockForReset: 500000}
             },
             policies: [],
@@ -1516,8 +1516,9 @@ var run = function() {
             var catnipValue = (game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value) < 0 || freeKittens <= 2);
             let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0 || game.village.jobs[1].value == 0);
             let coldWinterCatnip = this.craftManager.getPotentialCatnip(true);
-            let religionCatnip = options.auto.distribute.religion;
-            if (religionCatnip || (nomalWinterCatnip && agriculture && catnipValue && catnipRatio)) {
+            let religionCatnip = options.auto.distribute;
+            if (religionCatnip.religion || (nomalWinterCatnip && agriculture && catnipValue && catnipRatio)) {
+                religionCatnip.religion = false;
                 game.village.assignJob(game.village.getJob("farmer"), 1);
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
@@ -1815,7 +1816,7 @@ var run = function() {
                 PraiseSubTrigger = 0;
             }
 
-            var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value && !game.challenges.isActive("atheism"));
+            var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && !game.challenges.isActive("atheism"));
             if (booleanForPraise || forceStep) {
                 // 60秒一次 最多10次消息
                 if (option.autoPraise.subTrigger == 0.98 && option.autoPraise.msg < 10 && rate < 0.98 && Date.now() > option.autoPraise.time + 6e4) {
@@ -2179,7 +2180,7 @@ var run = function() {
                 if (aqueductMeta.stage === 0 && options.auto.build.items.hydroPlant.enabled && pastureMeta.stage === 1) {
                     if (aqueductMeta.stages[1].stageUnlocked) {
                         var energy = (game.resPool.energyWinterProd < game.resPool.energyCons);
-                        if (craftManager.getPotentialCatnip(true, pastures, 0) > 45 && energy) {
+                        if (craftManager.getPotentialCatnip(true, pastures, 0) > 90 && energy) {
                             var prices = aqueductMeta.stages[1].prices;
                             if (bulkManager.singleBuildPossible(aqueductMeta, prices, 1)) {
                                 buildManager.sellBuild('aqueduct');
@@ -2310,12 +2311,14 @@ var run = function() {
                 if (!solarMeta.on && faithMeta.maxValue > 750 && !atheism) {
                     if (unlocked && options.auto.faith.items.solarRevolution.enabled) {
                         if (!temple.auto) {
-                            iactivity('build.auto.temple');
+                            iactivity('summary.auto.temple');
+                            storeForSummary('auto.temple');
                             temple.auto = temple.max;
                             temple.max = 0;
                         }
                         if (!tradepost.auto) {
-                            iactivity('build.auto.tradepost');
+                            iactivity('summary.auto.tradepost');
+                            storeForSummary('auto.tradepost');
                             tradepost.auto = tradepost.max;
                             tradepost.max = 0;
                         }
@@ -2339,14 +2342,16 @@ var run = function() {
                 if (!geodesy) {
                     if (!blackSky && archeology) {
                         if (!mansion.auto) {
-                            iactivity('build.auto.mansion');
+                            iactivity('summary.auto.mansion');
+                            storeForSummary('auto.mansion');
                             mansion.auto = mansion.max;
                             mansion.max = 0;
                         }
                         if (!broadcastTower.auto) {
-                            iactivity('build.auto.broadcastTower');
+                            iactivity('summary.auto.broadcastTower');
+                            storeForSummary('auto.broadcastTower');
                             broadcastTower.auto = broadcastTower.max;
-                            broadcastTower.max = 0;
+                            broadcastTower.max = 3;
                         }
                     }
                 } else {
@@ -2465,9 +2470,18 @@ var run = function() {
                 // Ensure that we have reached our cap
                 if (current && current.value > craft.max) {continue;}
                 if (!manager.singleCraftPossible(name)) {continue;}
+                
+                // 巨石
+                if (name == 'megalith') {
+                    if (current.value > 50 || game.bld.metaCache.ziggurat.meta.on) {
+                        if (!game.workshop.get('orbitalGeodesy').researched) {
+                            continue;
+                        }
+                    }
+                }
                 // Craft the resource if we meet the trigger requirement
                 if (!require || trigger <= require.value / require.maxValue) {
-                    let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint') ? false : true;
+                    let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name =='steel') ? false : true;
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, aboveTrigger);
                 } else if (craft.limited) {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
@@ -2600,7 +2614,10 @@ var run = function() {
                 var prof = tradeManager.getProfitability(name);
 
                 // 优先太阳革命
-                let sloar = game.religion.meta[1].meta[5].on || game.challenges.isActive("atheism") || gold.value > 500;
+                let solarRevolution = game.religion.getRU('solarRevolution');
+                let faithValue = game.resPool.resourceMap['faith'].value;
+                let atheism = game.challenges.isActive("atheism");
+                let sloar = (solarRevolution.on || atheism || faithValue < 100 || game.religion.faith < solarRevolution.faith);
 
                 // 有采矿钻和登红月后优先点出超越和赞美群星
                 let transcendence = (game.religion.getRU("transcendence").on || !options.auto.faith.items.transcendence.enabled);
@@ -3630,6 +3647,11 @@ var run = function() {
             if (name === 'eludium' && limited) {
                 let RR = game.time.getCFU("ressourceRetrieval").on;
                 limRat = (RR > 10) ? 0.4 : limRat;
+            }
+
+            if (name === 'megalith' && limited) {
+                let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
+                limRat = (spaceManufacturing) ? limRat : 0.20;
             }
 
             return limRat;
