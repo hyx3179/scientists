@@ -2303,8 +2303,9 @@ var run = function() {
                 // 太阳革命前不造交易所和神殿
                 let faithMeta = game.resPool.resourceMap['faith'];
                 var unlocked = game.religion.faith > solarMeta.faith;
+                let atheism = game.challenges.isActive('atheism');
                 let tradepost = builds['tradepost'];
-                if (!solarMeta.on && faithMeta.maxValue > 750) {
+                if (!solarMeta.on && faithMeta.maxValue > 750 && !atheism) {
                     if (unlocked && options.auto.faith.items.solarRevolution.enabled) {
                         if (!temple.auto) {
                             iactivity('build.auto.temple');
@@ -2333,8 +2334,9 @@ var run = function() {
                 let mansion = builds['mansion'];
                 let broadcastTower = builds['broadcastTower'];
                 let geodesy = game.workshop.get('geodesy').researched;
+                let archeology = game.science.get('archeology').researched;
                 if (!geodesy) {
-                    if (!blackSky) {
+                    if (!blackSky && archeology) {
                         if (!mansion.auto) {
                             iactivity('build.auto.mansion');
                             mansion.auto = mansion.max;
@@ -2456,7 +2458,7 @@ var run = function() {
                 if (!manager.singleCraftPossible(name)) {continue;}
                 // Craft the resource if we meet the trigger requirement
                 if (!require || trigger <= require.value / require.maxValue) {
-                    let aboveTrigger = (!require || name == 'alloy' || name == 'compedium') ? false : true;
+                    let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint') ? false : true;
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, aboveTrigger);
                 } else if (craft.limited) {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
