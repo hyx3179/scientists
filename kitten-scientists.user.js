@@ -1761,8 +1761,9 @@ var run = function() {
                                 forceStep = true;
                             }
                             for (var i = 0; i < game.religion.transcendenceUpgrades.length; i++) {
-                                if (!game.religion.transcendenceUpgrades[i].unlocked && tt >= game.religion.transcendenceUpgrades[i].tier) {
-                                    game.religion.transcendenceUpgrades[i].unlocked = true;
+                                let upgrade = game.religion.transcendenceUpgrades[i];
+                                if (!upgrade.unlocked && tt >= upgrade.tier && upgrade.name != 'mausoleum') {
+                                    upgrade.unlocked = true;
                                     refreshRequired = 1;
                                 }
                             }
