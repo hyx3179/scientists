@@ -1812,15 +1812,15 @@ var run = function() {
             var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
             var expectSolarRevolutionRatio = Math.min(0.0005 * Math.pow(Math.E, 0.66 * transformTier), 0.75) * 10;
             // 太阳革命加速恢复到期望值
-            if (game.religion.meta[1].meta[5].on && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
+            if (game.religion.getRU('solarRevolution').on && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
                 PraiseSubTrigger = 0;
             }
 
             var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && !game.challenges.isActive("atheism"));
             if (booleanForPraise || forceStep) {
                 // 60秒一次 最多10次消息
-                if (option.autoPraise.subTrigger == 0.98 && option.autoPraise.msg < 10 && rate < 0.98 && Date.now() > option.autoPraise.time + 6e4) {
-                    option.autoPraise.msg += 1;
+                if (option.autoPraise.subTrigger == 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 1e5) {
+                    //option.autoPraise.msg += 1;
                     option.autoPraise.time = Date.now();
                     let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio * 100) + "%";
                     iactivity('act.praise.msg', [expectSolar]);
@@ -1844,8 +1844,8 @@ var run = function() {
             var craftManager = this.craftManager;
             var bulkManager = this.bulkManager;
 
-            let solarMeta = game.religion.meta[1].meta[5];
-            let unlocked = game.religion.faith > solarMeta.faith;
+            let solarMeta = game.religion.getRU('solarRevolution');
+            let unlocked = (game.religion.faith > solarMeta.faith && game.resPool.resourceMap['faith'].maxValue > 750);
             var trigger = (!solarMeta.on && unlocked) ? 1 : options.auto.faith.trigger;
             if (!solarMeta.on && unlocked && options.auto.faith.items.solarRevolution.enabled) {
                 buildManager.build("solarRevolution", "s", 1);
@@ -1886,7 +1886,7 @@ var run = function() {
             for (var entry in buildList) {
                 if (buildList[entry].count > 0) {
 
-                    count = (game.religion.meta[1].meta[5].on) ? buildList[entry].count : 1;
+                    count = (game.religion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
 
                     buildManager.build(buildList[entry].id, buildList[entry].variant, count);
                     refreshRequired = 1;
@@ -2290,7 +2290,7 @@ var run = function() {
                 // 神学前最多只造 1个神殿
                 let theology = game.science.meta[0].meta[16].researched;
                 let temple = builds['temple'];
-                var solarMeta = game.religion.meta[1].meta[5];
+                var solarMeta = game.religion.getRU('solarRevolution');
                 if (!theology) {
                     if (!temple.auto) {
                         temple.auto = temple.max;
@@ -2391,9 +2391,12 @@ var run = function() {
             if (!buildList) {return;}
             for (var i = 0; i < buildList.length; i++) {
                 let count;
+                let id = buildList[i].id;
+                let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
+
                 if (buildList[i].count > 0) {
                     //当喵力上限太少过滤铸币厂
-                    if (buildList[i].id === 'mint' && !game.challenges.isActive("pacifism")) {
+                    if (id === 'mint' && !game.challenges.isActive("pacifism")) {
                         var manpower = game.resPool.get('manpower').maxValue;
                         var mint = game.bld.getBuildingExt('mint').meta.val === 0;
                         if (manpower <= 2.3e4) {
@@ -2405,17 +2408,29 @@ var run = function() {
                         }
                     }
 
-                    if (buildList[i].id === 'biolab') {
-                        if (!game.workshop.get('orbitalGeodesy').researched) {
+                    if (id === 'biolab') {
+                        if (!orbitalGeodesy) {
                             buildList[i].count = 0;
                         } else if (!game.workshop.get('spaceManufacturing').researched) {
                             buildList[i].count *= 0.5;
                         }
                     }
 
-                    count = (game.religion.meta[1].meta[5].on) ? buildList[i].count : Math.ceil(buildList[i].count / 3);
 
-                    buildManager.build(buildList[i].name || buildList[i].id, buildList[i].stage, count);
+                    count = (game.religion.getRU('solarRevolution').on) ? buildList[i].count : Math.ceil(buildList[i].count / 3);
+
+                    if (id == 'academy' || id == 'pasture'|| id == 'barn' || id == 'harbor' || id == 'smelter' || id == 'library') {
+                        let minerals = (game.resPool.resourceMap['minerals'].maxValue * 0.98 < game.resPool.resourceMap['minerals'].value);
+                        let wood = (game.resPool.resourceMap['wood'].maxValue * 0.98 < game.resPool.resourceMap['wood'].value);
+                        if (minerals || (!orbitalGeodesy && game.bld.get(id).val > 2) || wood) {
+                            count = Math.floor(buildList[i].count * 0.5);
+                            if (count == 0) {
+                                continue;
+                            }
+                        }
+                    }
+
+                    buildManager.build(buildList[i].name || id, buildList[i].stage, count);
                     refreshRequired = 1;
                 }
             }
