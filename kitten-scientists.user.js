@@ -1879,6 +1879,20 @@ var run = function() {
                 }
             }
 
+            let t, a;
+            let leaderO = options.auto.distribute.items.leader;
+            let triatHas = game.village.traits.find((item, index) => {
+                return item.name === 'wise';
+            });
+            if (game.science.get('civil').researched && !game.challenges.isActive("anarchy") && triatHas && game.village.leader) {
+                t = game.village.leader.trait.name;
+                game.village.leader.trait.name = 'wise';
+                if (leaderO.enabled) {
+                    leaderO.enabled = false;
+                    a = true;
+                }
+            }
+
             var buildList = bulkManager.bulk(builds, metaData, trigger);
 
             var refreshRequired = 0;
@@ -1890,6 +1904,13 @@ var run = function() {
 
                     buildManager.build(buildList[entry].id, buildList[entry].variant, count);
                     refreshRequired = 1;
+                }
+            }
+
+            if (t) {
+                game.village.leader.trait.name = t;
+                if (a) {
+                    leaderO.enabled = true;
                 }
             }
 
@@ -2261,6 +2282,7 @@ var run = function() {
             var trigger = options.auto.build.trigger;
             var refreshRequired = 0;
             var blackSky = game.challenges.isActive('blackSky');
+            var renaissance = game.prestige.getPerk('renaissance').researched;
 
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 
@@ -2298,7 +2320,7 @@ var run = function() {
                 if (!theology) {
                     if (!temple.auto) {
                         temple.auto = temple.max;
-                        temple.max = (game.prestige.getPerk('renaissance').researched) ? 0 : 1;
+                        temple.max = (renaissance) ? 0 : 1;
                     }
                 } else {
                     if (temple.auto && solarMeta.on) {
@@ -2424,12 +2446,15 @@ var run = function() {
                     count = (game.religion.getRU('solarRevolution').on) ? buildList[i].count : Math.ceil(buildList[i].count / 3);
 
                     if (id == 'academy' || id == 'pasture'|| id == 'barn' || id == 'harbor' || id == 'smelter' || id == 'library') {
-                        let minerals = (game.resPool.resourceMap['minerals'].maxValue * 0.98 < game.resPool.resourceMap['minerals'].value);
-                        let wood = (game.resPool.resourceMap['wood'].maxValue * 0.98 < game.resPool.resourceMap['wood'].value);
-                        if (minerals || (!orbitalGeodesy && game.bld.get(id).val > 2) || wood) {
-                            count = Math.floor(buildList[i].count * 0.5);
-                            if (count == 0) {
-                                continue;
+                        let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
+                        if (renaissance || vitruvianFeline) {
+                            let minerals = (game.resPool.resourceMap['minerals'].maxValue * 0.94 < game.resPool.resourceMap['minerals'].value);
+                            let wood = (game.resPool.resourceMap['wood'].maxValue * 0.94 < game.resPool.resourceMap['wood'].value);
+                            if (minerals || (!orbitalGeodesy && game.bld.get(id).val > 2) || wood) {
+                                count = Math.floor(buildList[i].count * 0.5);
+                                if (count == 0) {
+                                    continue;
+                                }
                             }
                         }
                     }
@@ -3085,16 +3110,21 @@ var run = function() {
             var button = this.getBuildButton(name, variant);
 
             if (!button || !button.model.metadata) {return game.religionTab.render();}
+
             if (!button.model.enabled) {
                 button.model.prices = button.controller.getPrices(button.model);
                 button.controller.updateEnabled(button.model);
-                return;
+                if (!button.model.enabled) {
+                    return;
+                }
             }
 
-            var amountTemp = amount;
+            //var amountTemp = amount;
             var label = build.label;
             amount = this.bulkManager.construct(button.model, button, amount);
-            if (amount !== amountTemp) {warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);}
+            //if (amount !== amountTemp) {
+            //    warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);
+            //}
 
             if (variant === "s") {
                 storeForSummary(label, amount, 'faith');
