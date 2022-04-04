@@ -2054,7 +2054,8 @@ var run = function() {
             }
 
             if (upgrades.missions.enabled && gamePage.spaceTab.visible) {
-                var missionsLength = Math.min(game.space.meta[0].meta.length, upgrades.missions.subTrigger);
+                let subTrigger = upgrades.missions.subTrigger;
+                var missionsLength = Math.min(game.space.meta[0].meta.length, subTrigger);
                 var missions = game.space.meta[0].meta;
                 missionLoop:
                 for (var i = 0; i < missionsLength ; i++) {
@@ -2065,6 +2066,9 @@ var run = function() {
                         game.spaceTab.render();
                         continue;
                     }
+
+                    if (subTrigger == 4 && !missions[3].unlocked && i == 2) {continue;}
+
                     if (Btn.model.metadata.val || Btn.model.metadata.on) {continue;}
                     var prices = Btn.model.prices;
                     for (var resource of prices) {
