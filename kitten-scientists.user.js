@@ -2491,6 +2491,15 @@ var run = function() {
 
             for (var entry in buildList) {
                 if (buildList[entry].count > 0) {
+                    if (buildList[entry].id == 'containmentChamber') {
+                        let antimatter = game.resPool.resourceMap['antimatter'];
+                        let perYear = game.getEffect('antimatterProduction');
+                        let energyExtra = (game.resPool.energyProd < game.resPool.energyCons);
+                        if (perYear * 500 + antimatter.value < antimatter.maxValue || energyExtra) {
+                            continue;
+                        }
+                    }
+
                     buildManager.build(buildList[entry].id, buildList[entry].count);
                     refreshRequired = 1;
                 }
@@ -2879,6 +2888,7 @@ var run = function() {
                         game.bld.getBuildingExt('biolab').meta.on = 0;
                         iactivity('summary.biolab', [number]);
                         storeForSummary('biolab', number);
+                        return refreshRequired;
                     }
                     let oilWell = game.bld.getBuildingExt('oilWell').meta;
                     if (game.workshop.get('pumpjack').researched && oilWell.isAutomationEnabled) {
@@ -3126,6 +3136,8 @@ var run = function() {
             //    warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);
             //}
 
+            if (amount === 0) {return;}
+
             if (variant === "s") {
                 storeForSummary(label, amount, 'faith');
                 if (amount === 1) {
@@ -3135,9 +3147,7 @@ var run = function() {
                 }
             } else {
                 storeForSummary(label, amount, 'build');
-                if (amount === 0) {
-                    return;
-                } else if (amount === 1) {
+                if (amount === 1) {
                     iactivity('act.build', [label], 'ks-build');
                 } else {
                     iactivity('act.builds', [label, amount], 'ks-build');
