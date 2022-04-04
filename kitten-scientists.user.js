@@ -2575,7 +2575,7 @@ var run = function() {
             if (options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue) {
                 // No way to send only some hunters. Thus, we hunt with everything
                 var huntCount = Math.floor(manpower.value / 100);
-                if (manpower.perTickCached < 100) {
+                if (manpower.perTickCached < 100 && manpower.value >= 200) {
                     huntCount -= 1;
                 }
                 game.resPool.addResEvent("manpower", -huntCount * 100);
