@@ -2571,10 +2571,14 @@ var run = function() {
             if (options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue) {
                 // No way to send only some hunters. Thus, we hunt with everything
                 var huntCount = Math.floor(manpower.value / 100);
+                if (manpower.perTickCached < 100) {
+                    huntCount -= 1;
+                }
+                game.resPool.addResEvent("manpower", -huntCount * 100);
+                game.village.gainHuntRes(huntCount);
                 storeForSummary('hunt', huntCount);
                 iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
 
-                var huntCount = Math.floor(manpower.value / 100);
                 var aveOutput = this.craftManager.getAverageHunt();
                 var trueOutput = {};
 
@@ -2585,7 +2589,7 @@ var run = function() {
 
                 this.cacheManager.pushToCache({'materials': trueOutput, 'timeStamp': game.timer.ticksTotal});
 
-                game.village.huntAll();
+                //game.village.huntAll();
             }
         },
         trade: function () {
