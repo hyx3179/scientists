@@ -18,7 +18,7 @@
 
 var kg_version = "小猫珂学家版本1.5.0";
 var address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
-
+ game = window.game
 // Game will be referenced in loadTest function
 //var game = null;
 var lang = (localStorage["com.nuclearunicorn.kittengame.language"] == 'zh') ? 'zh' : 'en';
@@ -296,6 +296,7 @@ var run = function() {
             'act.praise.msg': '小猫加速赞美太阳，直到太阳革命加成大于 {0}',
             'act.sun.discover': '小猫宗教 {0} 方面获得演化',
             'act.sun.discovers': '小猫宗教 {0} 方面获得演化 {1} 次',
+            'act.sun.discovers.leader': '宗教 {0} 在哲学家领袖降价下获得演化 {1} 次',
 
             'ui.items': '项目',
             'ui.disable.all': '全部禁用',
@@ -1902,7 +1903,7 @@ var run = function() {
 
                     count = (game.religion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
 
-                    buildManager.build(buildList[entry].id, buildList[entry].variant, count);
+                    buildManager.build(buildList[entry].id, buildList[entry].variant, count, t);
                     refreshRequired = 1;
                 }
             }
@@ -3115,7 +3116,7 @@ var run = function() {
         manager: undefined,
         crafts: undefined,
         bulkManager: undefined,
-        build: function (name, variant, amount) {
+        build: function (name, variant, amount, t) {
             var build = this.getBuild(name, variant);
             var button = this.getBuildButton(name, variant);
 
@@ -3140,6 +3141,9 @@ var run = function() {
 
             if (variant === "s") {
                 storeForSummary(label, amount, 'faith');
+                if (t) {
+                    return iactivity('act.sun.discovers.leader', [label, amount], 'ks-faith');
+                }
                 if (amount === 1) {
                     iactivity('act.sun.discover', [label], 'ks-faith');
                 } else {
@@ -3337,15 +3341,14 @@ var run = function() {
             if (!button || !button.model.metadata) {return game.bldTab.render();}
             if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
 
-            var amountTemp = amount;
+            //var amountTemp = amount;
             var label = build.meta.label ? build.meta.label : build.meta.stages[stage].label;
             amount = this.bulkManager.construct(button.model, button, amount);
-            if (amount !== amountTemp) {/*warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);*/}
+            //if (amount !== amountTemp) {/*warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);*/}
+            if (amount === 0) {return;}
             storeForSummary(label, amount, 'build');
 
-            if (amount == 0) {
-                return;
-            } else if (amount === 1) {
+            if (amount === 1) {
                 iactivity('act.build', [label], 'ks-build');
             } else{
                 iactivity('act.builds', [label, amount], 'ks-build');
@@ -3488,22 +3491,19 @@ var run = function() {
             return game.workshop.getCraft(name);
         },
         setOption: function () {
+            //let warehouseOpt = options.auto.build.warehouse;
+            //if (warehouseOpt.enabled) {
+            //    
+            //}
             //let crafts = options.auto.craft.items;
             //if (options.auto.craft.items.beam.limited) {
-            //    let beamValue = game.resPool.resourceMap[beam].value;.
-            //    let build =;
-            //    let price =;
+            //    let beamValue = this.getResource('beam').value;
+            //    let build = game.bld.get('warehouse');
+            //    let price = build.prices[0].val;
             //    let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
             //    let buildRatio = currentRatio + game.getEffect("priceRatio");
-            //    let sumPrices = (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
+            //    let sumPrices = (price * Math.pow(buildRatio, build.val - 1) - price * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
             //}
-
-            let parchmentOtion = options.auto.craft.items.parchment;
-            let parchmentEnabled = parchmentOtion.enabled;
-            let parchmentLimited = options.auto.craft.items.parchment.limited;
-            if (parchmentEnabled && parchmentLimited) {
-                $('#toggle-limited-parchment').click();
-            }
         },
         singleCraftPossible: function (name) {
             var materials = this.getMaterials(name);
@@ -3541,7 +3541,7 @@ var run = function() {
                 }
             }
 
-            useRatio = this.getLimRat(name, limited, limRat);
+            let useRatio = this.getLimRat(name, limited, limRat);
 
             for (var i in materials) {
                 var delta = undefined;
