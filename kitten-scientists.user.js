@@ -18,9 +18,7 @@
 
 var kg_version = "小猫珂学家版本1.5.0";
 var address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
- game = window.game
 // Game will be referenced in loadTest function
-//var game = null;
 var lang = (localStorage["com.nuclearunicorn.kittengame.language"] == 'zh') ? 'zh' : 'en';
 
 var run = function() {
@@ -954,6 +952,7 @@ var run = function() {
     // GameLog Modification
     // ====================
 
+    //var game = window.game;
     // Increase messages displayed in log
     game.console.maxMessages = 1000;
 
@@ -1012,7 +1011,7 @@ var run = function() {
     var imessage = function(key, args, t) { message(i18n(key, args), t); };
     var iactivity = function(key, args, t) { activity(i18n(key, args), t); };
     var isummary = function(key, args, t) { summary(i18n(key, args), t); };
-    var iwarning = function(key, args, t) { warning(i18n(key, args), t); };
+    //var iwarning = function(key, args, t) { warning(i18n(key, args), t); };
 
     // Core Engine for Kitten Scientists
     // =================================
@@ -1470,8 +1469,8 @@ var run = function() {
                 // game.village.sim.promote check both gold and exp
                 if (game.village.sim.goldToPromote(rank, rank + 1, gold)[0] && game.village.sim.promote(leader, rank + 1) == 1) {
                     iactivity('act.promote', [rank + 1], 'ks-promote');
-                    gamePage.tabs[1].censusPanel.census.renderGovernment(gamePage.tabs[1].censusPanel.census);
-                    gamePage.tabs[1].censusPanel.census.update();
+                    game.tabs[1].censusPanel.census.renderGovernment(game.tabs[1].censusPanel.census);
+                    game.tabs[1].censusPanel.census.update();
                     storeForSummary('promote', 1);
                 }
             }
@@ -1516,7 +1515,6 @@ var run = function() {
             var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
             var catnipValue = (game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value) < 0 || freeKittens <= 2);
             let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0 || game.village.jobs[1].value == 0);
-            let coldWinterCatnip = this.craftManager.getPotentialCatnip(true);
             let religionCatnip = options.auto.distribute;
             if (religionCatnip.religion || (nomalWinterCatnip && agriculture && catnipValue && catnipRatio)) {
                 religionCatnip.religion = false;
@@ -1622,7 +1620,7 @@ var run = function() {
         },
         worship: function () {
             var builds = options.auto.faith.items;
-            var manager = this.religionManager;
+            //var manager = this.religionManager;
             var buildManager = this.buildManager;
             var craftManager = this.craftManager;
             var option = options.auto.faith.addition;
@@ -1842,7 +1840,7 @@ var run = function() {
         _worship: function (builds) {
             var builds = builds || options.auto.faith.items;
             var buildManager = this.religionManager;
-            var craftManager = this.craftManager;
+            //var craftManager = this.craftManager;
             var bulkManager = this.bulkManager;
 
             let solarMeta = game.religion.getRU('solarRevolution');
@@ -1922,7 +1920,7 @@ var run = function() {
             if (!game.timeTab.visible) {return refreshRequired;}
             var builds = options.auto.time.items;
             var buildManager = this.timeManager;
-            var craftManager = this.craftManager;
+            //var craftManager = this.craftManager;
             var bulkManager = this.bulkManager;
             var trigger = options.auto.time.trigger;
 
@@ -1972,7 +1970,7 @@ var run = function() {
             //upgradeManager.workManager.render();
             //upgradeManager.sciManager.render();
 
-            if (upgrades.upgrades.enabled && gamePage.workshopTab.visible) {
+            if (upgrades.upgrades.enabled && game.workshopTab.visible) {
                 var work = game.workshop.upgrades;
                 let noup = [];
                 if (upgrades.upgrades.limited) {
@@ -2018,7 +2016,7 @@ var run = function() {
                 }
             }
 
-            if (upgrades.techs.enabled && gamePage.libraryTab.visible) {
+            if (upgrades.techs.enabled && game.libraryTab.visible) {
                 var tech = game.science.techs;
                 techLoop:
                 for (let upg of tech) {
@@ -2035,7 +2033,7 @@ var run = function() {
                 }
             }
 
-            if (upgrades.policies.enabled && gamePage.libraryTab.visible) {
+            if (upgrades.policies.enabled && game.libraryTab.visible) {
                 // write a function to make breaking big loop easier
                 (function (){
                     var policies = game.science.policies;
@@ -2075,7 +2073,7 @@ var run = function() {
                 })();
             }
 
-            if (upgrades.missions.enabled && gamePage.spaceTab.visible) {
+            if (upgrades.missions.enabled && game.spaceTab.visible) {
                 let subTrigger = upgrades.missions.subTrigger;
                 var missionsLength = Math.min(game.space.meta[0].meta.length, subTrigger);
                 var missions = game.space.meta[0].meta;
@@ -2278,7 +2276,7 @@ var run = function() {
         build: function (builds) {
             var builds = builds || options.auto.build.items;
             var buildManager = this.buildManager;
-            var craftManager = this.craftManager;
+            //var craftManager = this.craftManager;
             var bulkManager = this.bulkManager;
             var trigger = options.auto.build.trigger;
             var refreshRequired = 0;
@@ -2290,7 +2288,7 @@ var run = function() {
             //buildManager.manager.render(); 
             if (builds['hut']) {
                 // 解锁磁电机才会造蒸汽工房
-                var steamworksMeta = game.bld.getBuildingExt('steamworks').meta;
+                //var steamworksMeta = game.bld.getBuildingExt('steamworks').meta;
                 var steamW = builds['steamworks'];
                 if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.val) {
                     if (!steamW.max) {
@@ -2479,7 +2477,7 @@ var run = function() {
 
             var metaData = {};
             for (var name in builds) {
-                var build = builds[name];
+                //var build = builds[name];
                 metaData[name] = buildManager.getBuild(name);
             }
 
@@ -3181,6 +3179,7 @@ var run = function() {
             }
             var build = this.getBuild(name, variant);
             for (var i = 0; i < buttons.length; i++) {
+                if (!buttons[i]) {continue;}
                 var haystack = buttons[i].model.name;
                 if (haystack.indexOf(build.label) !== -1) {
                     return buttons[i];
@@ -4054,7 +4053,7 @@ var run = function() {
             for (var item of race.sells) {
                 //var item = race.sells[s];
                 if (!this.isValidTrade(item, race)) {continue;}
-                var resource = this.craftManager.getResource(item.name);
+                //var resource = this.craftManager.getResource(item.name);
                 var mean = 0;
                 var tradeChance = (race.embassyPrices) ? item.chance * (1 + game.getLimitedDR(0.01 * race.embassyLevel, 0.75)) : item.chance;
                 var sRatio = (!item.seasons) ? 1 : 1 + item.seasons[game.calendar.getCurSeason().name];
@@ -5085,7 +5084,7 @@ var run = function() {
             });
                         
             var resourcesList = getResourceOptions();
-                        
+
             // When we click the items button, make sure we clear resources
             button.on('click', function () {
                 resourcesList.toggle(false);
