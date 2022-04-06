@@ -1898,7 +1898,13 @@ var run = function() {
             let count;
             for (var entry in buildList) {
                 if (buildList[entry].count > 0) {
-
+                    // 无金字塔过滤神印
+                    if (buildList[entry].id === 'marker') {
+                        if (!game.religion.getZU("blackPyramid").getEffectiveValue(game)) {
+                            continue;
+                        }
+                    }
+    
                     count = (game.religion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
 
                     buildManager.build(buildList[entry].id, buildList[entry].variant, count, t);
