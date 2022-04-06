@@ -2282,6 +2282,7 @@ var run = function() {
             var refreshRequired = 0;
             var blackSky = game.challenges.isActive('blackSky');
             var renaissance = game.prestige.getPerk('renaissance').researched;
+            var atheism = game.challenges.isActive('atheism');
 
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 
@@ -2331,7 +2332,6 @@ var run = function() {
                 // 太阳革命前不造交易所和神殿
                 let faithMeta = game.resPool.resourceMap['faith'];
                 var unlocked = game.religion.faith > solarMeta.faith;
-                let atheism = game.challenges.isActive('atheism');
                 let tradepost = builds['tradepost'];
                 if (!solarMeta.on && faithMeta.maxValue > 750 && !atheism) {
                     if (unlocked && options.auto.faith.items.solarRevolution.enabled) {
@@ -2415,7 +2415,7 @@ var run = function() {
 
             if (!buildList) {return;}
             for (var i = 0; i < buildList.length; i++) {
-                let count;
+                let count, halfCount;
                 let id = buildList[i].id;
                 let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
 
@@ -2433,16 +2433,7 @@ var run = function() {
                         }
                     }
 
-                    if (id === 'biolab') {
-                        if (!orbitalGeodesy) {
-                            buildList[i].count = 0;
-                        } else if (!game.workshop.get('spaceManufacturing').researched) {
-                            buildList[i].count *= 0.5;
-                        }
-                    }
-
-
-                    count = (game.religion.getRU('solarRevolution').on) ? buildList[i].count : Math.ceil(buildList[i].count / 3);
+                    count = (game.religion.getRU('solarRevolution').on && !atheism) ? buildList[i].count : Math.ceil(buildList[i].count / 3);
 
                     if (id == 'academy' || id == 'pasture'|| id == 'barn' || id == 'harbor' || id == 'smelter' || id == 'library') {
                         let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
@@ -2450,12 +2441,25 @@ var run = function() {
                             let minerals = (game.resPool.resourceMap['minerals'].maxValue * 0.94 < game.resPool.resourceMap['minerals'].value);
                             let wood = (game.resPool.resourceMap['wood'].maxValue * 0.94 < game.resPool.resourceMap['wood'].value);
                             if (minerals || (!orbitalGeodesy && game.bld.get(id).val > 2) || wood) {
-                                count = Math.floor(buildList[i].count * 0.5);
-                                if (count == 0) {
-                                    continue;
-                                }
+                                halfCount = true;
                             }
                         }
+                    }
+
+                    if (id === 'biolab') {
+                        if (!orbitalGeodesy) {
+                            count = 0;
+                        } else if (!game.workshop.get('spaceManufacturing').researched) {
+                            halfCount = true;
+                        }
+                    }
+
+                    if (halfCount) {
+                        count =Math.floor(count * 0.5);
+                    }
+
+                    if (count === 0) {
+                        continue;
                     }
 
                     buildManager.build(buildList[i].name || id, buildList[i].stage, count);
