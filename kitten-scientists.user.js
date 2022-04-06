@@ -1635,6 +1635,13 @@ var run = function() {
 
                 var btn = this.getBestUnicornBuilding();
                 if (btn) {
+                    let tearsVal = craftManager.getValue('tears');
+                    let zigguratOn = game.bld.getBuildingExt('ziggurat').meta.on;
+                    let unicornsVal = craftManager.getValue('unicorns');
+                    if (!tearsVal && unicornsVal >= 2500 && zigguratOn) {
+                        tearsVal += zigguratOn;
+                        unicornsVal -= 2500;
+                    }
                     if (btn.opts) {
                         if (!btn.model.enabled) {
                             btn.controller.updateEnabled(btn.model);
@@ -1649,18 +1656,18 @@ var run = function() {
                                 tearNeed = buttonPrices[i].val;
                             }
                         }
-                        var tearHave = craftManager.getValue('tears') - craftManager.getStock('tears');
+                        var tearHave = tearsVal - craftManager.getStock('tears');
                         if (tearNeed > tearHave) {
                             // if no ziggurat, getBestUnicornBuilding will return unicornPasture
-                            var maxSacrifice = Math.floor((craftManager.getValue('unicorns') - craftManager.getStock('unicorns')) / 2500);
-                            var needSacrifice = Math.ceil((tearNeed - tearHave) / game.bld.getBuildingExt('ziggurat').meta.on);
+                            var maxSacrifice = Math.floor((unicornsVal - craftManager.getStock('unicorns')) / 2500);
+                            var needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
                             if (needSacrifice <= maxSacrifice) {
                                 if (!game.religionTab.sacrificeBtn) {game.religionTab.render();}
                                 game.religionTab.sacrificeBtn.controller._transform(game.religionTab.sacrificeBtn.model, needSacrifice);
                             }
                         }
                         var btnButton = religionManager.getBuildButton(btn.name, 'z');
-                        if (!btnButton && game.bld.getBuildingExt("ziggurat").on) {
+                        if (!btnButton && zigguratOn) {
                             this.religionManager.manager.render();
                         } else {
                             if (game.resPool.hasRes(buttonPrices)) {
@@ -2296,6 +2303,7 @@ var run = function() {
             var blackSky = game.challenges.isActive('blackSky');
             var renaissance = game.prestige.getPerk('renaissance').researched;
             var atheism = game.challenges.isActive('atheism');
+            var orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
 
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 
@@ -2305,7 +2313,7 @@ var run = function() {
                 //var steamworksMeta = game.bld.getBuildingExt('steamworks').meta;
                 var steamW = builds['steamworks'];
                 if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.val) {
-                    if (!steamW.max) {
+                    if (!steamW.auto) {
                         steamW.auto = steamW.max;
                         steamW.max = 0;
                     }
@@ -2378,25 +2386,27 @@ var run = function() {
                 let geodesy = game.workshop.get('geodesy').researched;
                 let archeology = game.science.get('archeology').researched;
                 if (!geodesy) {
-                    if (!blackSky && archeology) {
-                        if (!mansion.auto) {
-                            iactivity('summary.auto.mansion');
-                            storeForSummary('auto.mansion');
-                            mansion.auto = mansion.max;
-                            mansion.max = 0;
-                        }
-                        if (!broadcastTower.auto) {
-                            iactivity('summary.auto.broadcastTower');
-                            storeForSummary('auto.broadcastTower');
-                            broadcastTower.auto = broadcastTower.max;
-                            broadcastTower.max = 3;
-                        }
+                    if (!mansion.auto && !blackSky && archeology) {
+                        iactivity('summary.auto.mansion');
+                        storeForSummary('auto.mansion');
+                        mansion.auto = mansion.max;
+                        mansion.max = 0;
                     }
                 } else {
                     if (mansion.auto) {
                         mansion.max = mansion.auto;
                         mansion.auto = null;
                     }
+                }
+
+                if (!orbitalGeodesy) {
+                    if (!broadcastTower.auto) {
+                        iactivity('summary.auto.broadcastTower');
+                        storeForSummary('auto.broadcastTower');
+                        broadcastTower.auto = broadcastTower.max;
+                        broadcastTower.max = 3;
+                    }
+                } else {
                     if (broadcastTower.auto) {
                         broadcastTower.max = broadcastTower.auto;
                         broadcastTower.auto = null;
@@ -2430,7 +2440,6 @@ var run = function() {
             for (var i = 0; i < buildList.length; i++) {
                 let count, halfCount;
                 let id = buildList[i].id;
-                let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
 
                 if (buildList[i].count > 0) {
                     //当喵力上限太少过滤铸币厂
@@ -6607,6 +6616,7 @@ var loadTest = function() {
     } else {
         // Kittens loaded, run Kitten Scientist's Automation Engine
         game.workshop.metaCache['geodesy'] = game.workshop.get('geodesy');
+        game.workshop.metaCache['orbitalGeodesy'] = game.workshop.get('orbitalGeodesy');
         run();
         loadTest = run = null;
     }
