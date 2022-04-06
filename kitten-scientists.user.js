@@ -346,7 +346,9 @@ var run = function() {
             'option.faith.adore': '赞美群星',
             'adore.catnip': '注意赞美群星后猫薄荷产量不够，故取消赞美群星了',
             'act.adore': '赞美群星! 转化 {0} 虔诚为 {1} 顿悟',
+            'act.adore.last': '下次小猫赞美群星，会等到虔诚大于 {0} ',
             'summary.adore': '通过赞美群星积累了 {0} 顿悟',
+            'summary.adore.last': '下次赞美群星会等到虔诚大于{0} ',
             'filter.adore': '赞美群星',
             'adore.trigger.set': '为赞美群星设定一个新触发值，取值范围为 0 到 1 的小数。（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 赞美群星再赞美太阳后，需太阳革命加成 ≥ 触发值 * 1000%\n2. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n3.探索月球已完成\n4. 次元超越等级低于 11，需赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n5. 次元超越等级低于 12，需当前虔诚＞上次赞美群星时候的虔诚',
 
@@ -679,7 +681,7 @@ var run = function() {
                     broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1, auto: false},
                     tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false},
                     chapel:         {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-                    temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false},
+                    temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false, autoF: false},
                     mint:           {require: 'gold',         enabled: true,max:100,  checkForReset: true, triggerForReset: -1},
                     // unicornPasture: {require: false,         enabled: true},
                     ziggurat:       {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
@@ -952,7 +954,6 @@ var run = function() {
     // GameLog Modification
     // ====================
 
-    //var game = window.game;
     // Increase messages displayed in log
     game.console.maxMessages = 1000;
 
@@ -1794,6 +1795,12 @@ var run = function() {
                 if ((autoAdoreEnabled && apocripha && booleanForAdore && tier && this.catnipForReligion() > 0) || forceStep) {
                     if (tt < 12) {
                         option.adore.lastFaith = worship;
+                        let worshipL = game.getDisplayValueExt(worship * 0.75);
+                        iactivity('act.adore.last', [worshipL], 'ks-adore');
+                        if (!activitySummary.other) {
+                            activitySummary.other = {};
+                        }
+                        activitySummary.other['adore.last'] = worshipL;
                     }
                     game.religion._resetFaithInternal(1.01);
 
@@ -2324,14 +2331,14 @@ var run = function() {
                 let temple = builds['temple'];
                 var solarMeta = game.religion.getRU('solarRevolution');
                 if (!theology) {
-                    if (!temple.auto) {
-                        temple.auto = temple.max;
+                    if (!temple.autoF) {
+                        temple.autoF = temple.max;
                         temple.max = (renaissance) ? 0 : 1;
                     }
                 } else {
-                    if (temple.auto && solarMeta.on) {
-                        temple.max = temple.auto;
-                        temple.auto = null;
+                    if (temple.autoF) {
+                        temple.max = temple.autoF;
+                        temple.autoF = null;
                     }
                 }
 
@@ -3500,14 +3507,16 @@ var run = function() {
             return game.workshop.getCraft(name);
         },
         setOption: function () {
+            let build = game.bld.get('warehouse');
             //let warehouseOpt = options.auto.build.warehouse;
-            //if (warehouseOpt.enabled) {
+            //let maxVal = (warehouseOpt.enabled) ? 0 : warehouseOpt.max;
+            //if ( || maxVal != -1) {
             //    
             //}
             //let crafts = options.auto.craft.items;
             //if (options.auto.craft.items.beam.limited) {
             //    let beamValue = this.getResource('beam').value;
-            //    let build = game.bld.get('warehouse');
+            //    
             //    let price = build.prices[0].val;
             //    let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
             //    let buildRatio = currentRatio + game.getEffect("priceRatio");
