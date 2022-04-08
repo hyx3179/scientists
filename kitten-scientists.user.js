@@ -291,7 +291,7 @@ var run = function() {
             'build.embassies': '在 {1} 设立了 {0} 个大使馆',
 
             'act.praise': '赞美太阳! 转化 {0} 信仰为 {1} 虔诚',
-            'act.praise.msg': '小猫加速赞美太阳，直到太阳革命加成大于 {0}',
+            'act.praise.msg': '因虔诚太低，小猫每天都会赞美太阳，直到太阳革命加成大于 {0}',
             'act.sun.discover': '小猫宗教 {0} 方面获得演化',
             'act.sun.discovers': '小猫宗教 {0} 方面获得演化 {1} 次',
             'act.sun.discovers.leader': '宗教 {0} 在哲学家领袖降价下获得演化 {1} 次',
@@ -405,6 +405,8 @@ var run = function() {
             'ui.timeCtrl': '时间操纵',
             'option.accelerate': '光阴似箭',
             'act.accelerate': '固有时制御，二倍速!',
+            'act.accelerate.acl': '抓稳了，要加速了!',
+            'act.accelerate.slow': '不行了，要减速了',
             'filter.accelerate': '光阴似箭',
             'summary.accelerate': '小猫加速时间 {0} 次',
             'option.time.skip': '时间跳转',
@@ -453,6 +455,7 @@ var run = function() {
             'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
             'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
+            'summary.auto.steamworks': '有 磁电机 后才会建造蒸汽工房',
             'summary.auto.temple': '太阳革命 演化后才会建造神殿',
             'summary.auto.tradepost': '太阳革命演化后才会建造交易所',
             'summary.auto.mansion': '测地学解锁后建造宅邸',
@@ -1090,7 +1093,7 @@ var run = function() {
             if (options.auto.time.enabled)                                                  {refresh += this.chrono();}
             if (subOptions.enabled && subOptions.items.crypto.enabled)                      {this.crypto();}
             if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
-            if (options.auto.distribute.enabled)                                            {this.distribute();}
+            if (options.auto.distribute.enabled)                                            {refresh += this.distribute();}
             if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
             if (subOptions.enabled)                                                         {refresh += this.miscOptions();}
             if (refresh > 0)                                                                {game.resPool.update();}
@@ -1326,22 +1329,24 @@ var run = function() {
         },
         timeCtrl: function () {
             var optionVals = options.auto.timeCtrl.items;
+            var refreshRequired = 0;
 
             // Tempus Fugit
-            if (optionVals.accelerateTime.enabled && !game.time.isAccelerated && game.science.get("calendar").researched) {
+            if (optionVals.accelerateTime.enabled && game.science.get("calendar").researched) {
                 var tf = game.resPool.get('temporalFlux');
-                if (tf.value >= Math.max(tf.maxValue * optionVals.accelerateTime.subTrigger, 1)) {
+                if (tf.value >= Math.max(tf.maxValue * optionVals.accelerateTime.subTrigger, 1) && !game.time.isAccelerated) {
                     game.time.isAccelerated = true;
-                    engine.stop(false);
-                    if (options.auto.engine.enabled) {
-                        engine.start(false);
-                    }
                     iactivity('act.accelerate', [], 'ks-accelerate');
                     storeForSummary('accelerate', 1);
                 }
                 if (options.interval != Math.ceil (100 / game.getTicksPerSecondUI()) * 100) {
                     engine.stop(false);
                     if (options.auto.engine.enabled) {
+                        if (options.interval == 2000) {
+                            iactivity('act.accelerate.acl');
+                        } else {
+                            iactivity('act.accelerate.slow');
+                        }
                         engine.start(false);
                     }
                 }
@@ -1439,7 +1444,7 @@ var run = function() {
                 if (willSkip > 0) {
                     willSkip = Math.min(willSkip, Math.max(500 , game.getEffect("temporalPressCap") * 25));
 
-                    if (game.time.getCFU("ressourceRetrieval").val > 0) {
+                    if (game.time.getCFU("ressourceRetrieval").val > 4) {
                         optionVals.timeSkip.adore = true;
                         this.skipCtrlRes();
                     }
@@ -1448,11 +1453,13 @@ var run = function() {
                     shatter.controller.doShatterAmt(shatter.model, willSkip);
                     willSkip = game.calendar.year - beforeSkipYear;
                     if (!willSkip) {return;}
+                    refreshRequired = -100;
                     iactivity('act.time.skip', [willSkip], 'ks-timeSkip');
                     storeForSummary('time.skip', willSkip);
-                    return -100;
                 }
             }
+
+            return refreshRequired;
         },
         promote: function () {
             let leader = game.village.leader;
@@ -1479,7 +1486,7 @@ var run = function() {
         distribute: function () {
             var distributeItem = options.auto.distribute.items;
             var leaderVals = distributeItem.leader;
-            var refreshRequired = false;
+            var refreshRequired = 0;
             if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy")) {
                 var leaderJobName = leaderVals.leaderJob;
                 var traitName = leaderVals.leaderTrait;
@@ -1501,7 +1508,7 @@ var run = function() {
                             game.village.getJob(leaderJobName).value++;
                             correctLeaderKitten.job = leaderJobName;
                             game.villageTab.censusPanel.census.makeLeader(correctLeaderKitten);
-                            refreshRequired = true;
+                            refreshRequired += 1;
                             iactivity('act.distributeLeader', [i18n('$village.trait.' + traitName)], 'ks-distribute');
                             storeForSummary('distribute', 1);
                         }
@@ -1510,7 +1517,7 @@ var run = function() {
             }
 
             var freeKittens = game.village.getFreeKittens();
-            if (!freeKittens) {return;}
+            if (!freeKittens) {return refreshRequired;}
 
             let agriculture = game.science.get("agriculture").researched;
             var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
@@ -1523,8 +1530,8 @@ var run = function() {
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
                 storeForSummary('catnip', 1);
-                this.villageManager.render();
-                return;
+                refreshRequired += 1;
+                return refreshRequired;
             }
 
             var jobName = '';
@@ -1554,11 +1561,11 @@ var run = function() {
             }
             if (jobName) {
                 game.village.assignJob(game.village.getJob(jobName), 1);
-                refreshRequired = true;
+                refreshRequired += 1;
                 iactivity('act.distribute', [i18n('$village.job.' + jobName)], 'ks-distribute');
                 storeForSummary('distribute', 1);
             }
-            if (refreshRequired) {this.villageManager.render();}
+            return refreshRequired;
         },
         autofeed: function () {
             var levi = game.diplomacy.get("leviathans");
@@ -1635,13 +1642,7 @@ var run = function() {
 
                 var btn = this.getBestUnicornBuilding();
                 if (btn) {
-                    let tearsVal = craftManager.getValue('tears');
-                    let zigguratOn = game.bld.getBuildingExt('ziggurat').meta.on;
-                    let unicornsVal = craftManager.getValue('unicorns');
-                    if (!tearsVal && unicornsVal >= 2500 && zigguratOn) {
-                        tearsVal += zigguratOn;
-                        unicornsVal -= 2500;
-                    }
+                    let zigguratOn = game.bld.get('ziggurat').on;
                     if (btn.opts) {
                         if (!btn.model.enabled) {
                             btn.controller.updateEnabled(btn.model);
@@ -1656,13 +1657,21 @@ var run = function() {
                                 tearNeed = buttonPrices[i].val;
                             }
                         }
-                        var tearHave = tearsVal - craftManager.getStock('tears');
+                        let tears = game.resPool.resourceMap['tears'].value;
+                        let unicorns = game.resPool.resourceMap['unicorns'].value;
+                        if (!tears && unicorns >= 2500 && zigguratOn) {
+                            game.resPool.resourceMap['tears'].value.value += zigguratOn;
+                            game.resPool.resourceMap['unicorns'].value -= 2500;
+                        }
+                        var tearHave = tears - craftManager.getStock('tears');
                         if (tearNeed > tearHave) {
                             // if no ziggurat, getBestUnicornBuilding will return unicornPasture
-                            var maxSacrifice = Math.floor((unicornsVal - craftManager.getStock('unicorns')) / 2500);
+                            var maxSacrifice = Math.floor((unicorns - craftManager.getStock('unicorns')) / 2500);
                             var needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
                             if (needSacrifice <= maxSacrifice) {
-                                if (!game.religionTab.sacrificeBtn) {game.religionTab.render();}
+                                if (!game.religionTab.sacrificeBtn || !game.religionTab.sacrificeBtn.model) {
+                                    return game.religionTab.render();
+                                }
                                 game.religionTab.sacrificeBtn.controller._transform(game.religionTab.sacrificeBtn.model, needSacrifice);
                             }
                         }
@@ -1831,12 +1840,12 @@ var run = function() {
 
             var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && !game.challenges.isActive("atheism"));
             if (booleanForPraise || forceStep) {
-                // 60秒一次 最多10次消息
-                if (option.autoPraise.subTrigger == 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 1e5) {
+                // 30秒一次
+                if (option.autoPraise.subTrigger == 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 3e4) {
                     //option.autoPraise.msg += 1;
                     option.autoPraise.time = Date.now();
                     let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio * 100) + "%";
-                    iactivity('act.praise.msg', [expectSolar]);
+                    iactivity('act.praise.msg', [expectSolar], 'ks-praise');
                 }
                 if (!game.religion.getFaithBonus) {
                     var apocryphaBonus = game.religion.getApocryphaBonus();
@@ -1858,8 +1867,10 @@ var run = function() {
             var bulkManager = this.bulkManager;
 
             let solarMeta = game.religion.getRU('solarRevolution');
-            let unlocked = (game.religion.faith > solarMeta.faith && game.resPool.resourceMap['faith'].maxValue > 750);
-            var trigger = (!solarMeta.on && unlocked) ? 1 : options.auto.faith.trigger;
+            let leaderRatio = 1 - game.getLimitedDR(0.09 + 0.01 * (1 + game.prestige.getBurnedParagonRatio()), 1.0);
+            let faithMeta = game.resPool.resourceMap['faith'];
+            let unlocked = (game.religion.faith > solarMeta.faith && faithMeta.maxValue > 750 && faithMeta.value < 750 * leaderRatio );
+            let trigger = (!solarMeta.on && unlocked) ? 1 : options.auto.faith.trigger;
             if (!solarMeta.on && unlocked && options.auto.faith.items.solarRevolution.enabled) {
                 buildManager.build("solarRevolution", "s", 1);
             }
@@ -1888,7 +1899,7 @@ var run = function() {
                     if (visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable === true && model.metadata.on == 0)) {
                         buildManager.getBuildButton(name, build.variant).controller.updateEnabled(model);
                     }
-                    metaData[name].rHidden = !(visible && model.enabled && panel);
+                    metaData[name].rHidden = (build.variant === 's') ? !visible : !(visible && model.enabled && panel);
                 }
             }
 
@@ -1994,15 +2005,21 @@ var run = function() {
                 var work = game.workshop.upgrades;
                 let noup = [];
                 if (upgrades.upgrades.limited) {
-                    noup = ['factoryOptimization','factoryRobotics','spaceEngineers','aiEngineers','chronoEngineers','steelPlants','amFission','biofuel','gmo','factoryAutomation','advancedAutomation','invisibleBlackHand', 'pneumaticPress'];
+                    noup = ['factoryOptimization','factoryRobotics','spaceEngineers','aiEngineers','chronoEngineers','steelPlants','amFission','biofuel','gmo','invisibleBlackHand'];
                     if (!game.bld.getBuildingExt('pasture').meta.on || game.bld.getBuildingExt('pasture').meta.stage === 0) {
                         noup = noup.concat(['photovoltaic', 'thinFilm', 'qdot']);
                     }
                     if (!game.bld.getBuildingExt('aqueduct').meta.on || game.bld.getBuildingExt('aqueduct').meta.stage === 0) {
                         noup = noup.concat(['hydroPlantTurbines']);
                     }
-                    if (!game.bld.getBuildingExt('steamworks').meta.on) {
-                        noup = noup.concat(['printingPress']);
+
+                    let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
+                    if (!game.bld.get('steamworks').on) {
+                        noup = noup.concat(['printingPress'], autoM);
+                    } else {
+                        if (!game.opts.enableRedshift) {
+                            noup = noup.concat(autoM);
+                        }
                     }
 
                     // 缺电过滤抽油机 和 碳封存
@@ -2042,11 +2059,23 @@ var run = function() {
                 for (let upg of tech) {
                     if (upg.researched || !upg.unlocked) {continue;}
 
-                    var prices = dojo.clone(upg.prices);
+                    let prices = dojo.clone(upg.prices);
                     prices = game.village.getEffectLeader("scientist", prices);
                     for (var resource of prices) {
+                        /*if (upgrades.techs.limited) {
+                            let res = game.resPool.resourceMap[resource.name];
+                            if (resource.name !== 'science') {
+                                if (res.craftable) {
+                                    let amt = resource.val - res.value;
+                                    if (amt > 0) {
+                                        var baseAmt = amt / (1 + game.getResCraftRatio(res.name));
+                                        game.workshop.craft(res.name, baseAmt, false , true );
+                                    }
+                                }
+                            } else if (res.value > resource) {
+                            }
+                        }*/
                         if (craftManager.getValueAvailable(resource.name, true) < resource.val) {continue techLoop;}
-
                     }
                     //refreshRequired = true;
                     upgradeManager.build(upg, 'science');
@@ -2303,17 +2332,19 @@ var run = function() {
             var blackSky = game.challenges.isActive('blackSky');
             var renaissance = game.prestige.getPerk('renaissance').researched;
             var atheism = game.challenges.isActive('atheism');
-            var orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
+            let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
+            let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
 
             // Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 
             //buildManager.manager.render(); 
             if (builds['hut']) {
                 // 解锁磁电机才会造蒸汽工房
-                //var steamworksMeta = game.bld.getBuildingExt('steamworks').meta;
                 var steamW = builds['steamworks'];
-                if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.val) {
-                    if (!steamW.auto) {
+                if (!game.challenges.isActive("pacifism") && !game.bld.get('magneto').val) {
+                    if (!steamW.auto && game.bld.get('steamworks').unlocked) {
+                        iactivity('summary.auto.steamworks');
+                        storeForSummary('auto.steamworks');
                         steamW.auto = steamW.max;
                         steamW.max = 0;
                     }
@@ -2356,7 +2387,7 @@ var run = function() {
                 let tradepost = builds['tradepost'];
                 if (!solarMeta.on && faithMeta.maxValue > 750 && !atheism) {
                     if (unlocked && options.auto.faith.items.solarRevolution.enabled) {
-                        if (!temple.auto) {
+                        if (!temple.auto && game.science.get('philosophy').researched) {
                             iactivity('summary.auto.temple');
                             storeForSummary('auto.temple');
                             temple.auto = temple.max;
@@ -2385,6 +2416,8 @@ var run = function() {
                 let broadcastTower = builds['broadcastTower'];
                 let geodesy = game.workshop.get('geodesy').researched;
                 let archeology = game.science.get('archeology').researched;
+                let shipVal = game.resPool.resourceMap['ship'].value;
+                let titaniumMore = (!orbitalGeodesy || shipVal < 600);
                 if (!geodesy) {
                     if (!mansion.auto && !blackSky && archeology) {
                         iactivity('summary.auto.mansion');
@@ -2392,14 +2425,16 @@ var run = function() {
                         mansion.auto = mansion.max;
                         mansion.max = 0;
                     }
-                } else {
-                    if (mansion.auto) {
+                } else if (mansion.auto){
+                    if (titaniumMore && !mansion.max) {
+                        mansion.max = 45;
+                    } else {
                         mansion.max = mansion.auto;
                         mansion.auto = null;
                     }
                 }
 
-                if (!orbitalGeodesy) {
+                if (!titaniumMore) {
                     if (!broadcastTower.auto) {
                         iactivity('summary.auto.broadcastTower');
                         storeForSummary('auto.broadcastTower');
@@ -2468,10 +2503,12 @@ var run = function() {
                         }
                     }
 
-                    if (id === 'biolab') {
-                        if (!orbitalGeodesy) {
-                            count = 0;
-                        } else if (!game.workshop.get('spaceManufacturing').researched) {
+                    if (!orbitalGeodesy && id === 'biolab') {
+                        count = 0;
+                    }
+
+                    if (id === 'biolab' || id === 'broadcastTower') {
+                        if (!spaceManufacturing) {
                             halfCount = true;
                         }
                     }
@@ -2485,7 +2522,7 @@ var run = function() {
                     }
 
                     buildManager.build(buildList[i].name || id, buildList[i].stage, count);
-                    refreshRequired = 1;
+                    refreshRequired += 1;
                 }
             }
 
@@ -2613,7 +2650,6 @@ var run = function() {
         },
         hunt: function () {
             clearTimeout(this.huntId);
-            //console.log(this.craftManager.getAverageHunt().furs*Math.floor(manpower.value / 100))
             var manpower = this.craftManager.getResource('manpower');
             if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
@@ -2621,28 +2657,37 @@ var run = function() {
             let unicornValue = game.resPool.resourceMap['unicorns'].value;
             let unicorn = game.achievements.get('unicornConspiracy').unlocked || unicornValue;
             let unicornPasture = game.bld.getBuildingExt('unicornPasture').meta.val;
-            let hunter = (game.ironWill) ? game.resPool.resourceMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
-            if (!unicornPasture && unicorn && manpower.value > 700 && unicornValue < 3) {
-                let count = 7;
-                game.resPool.addResEvent("manpower", -count * 100);
-                game.village.gainHuntRes(count);
-                storeForSummary('hunt', count);
-                iactivity('act.hunt.unicorn');
-                iactivity('act.hunt', [count, hunter], 'ks-hunt');
-            }
+            let unicornHunt = (!unicornPasture && unicorn && manpower.value > 700 && unicornValue < 3);
 
-            if (options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue) {
+            // 铸币厂前加速打猎
+            let aveOutput = this.craftManager.getAverageHunt();
+            let huntCount = Math.floor(manpower.value / 100);
+            let architecture = !game.science.get('architecture').researched && game.science.get('writing').researched;
+            let totalFur = 153125 / Math.pow(game.getCraftRatio(), 2);
+            let parchment = game.resPool.resourceMap['parchment'].value < Math.ceil(25 / game.getCraftRatio()) * 100;
+            let preCount = Math.ceil(totalFur / aveOutput.furs) + 2;
+            let mint = (architecture && huntCount > preCount && parchment);
+            if (options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue || mint || unicornHunt) {
                 // No way to send only some hunters. Thus, we hunt with everything
-                var huntCount = Math.floor(manpower.value / 100);
                 if (manpower.perTickCached < 100 && manpower.value >= 200) {
                     huntCount -= 1;
                 }
+
+                if (mint) {
+                    huntCount = preCount;
+                }
+
+                if (unicornHunt) {
+                    huntCount = 7;
+                    iactivity('act.hunt.unicorn');
+                }
+
+                let hunter = (game.ironWill) ? game.resPool.resourceMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
                 game.resPool.addResEvent("manpower", -huntCount * 100);
                 game.village.gainHuntRes(huntCount);
                 storeForSummary('hunt', huntCount);
                 iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
 
-                var aveOutput = this.craftManager.getAverageHunt();
                 var trueOutput = {};
 
                 for (var out in aveOutput) {
@@ -3482,7 +3527,7 @@ var run = function() {
             var craft = this.getCraft(name);
             var ratio = game.getResCraftRatio(craft.name);
 
-            game.craft(craft.name, amount);
+            game.workshop.craft(craft.name, amount, true, false);
 
             var iname = game.resPool.get(name).title;
 
@@ -5081,7 +5126,7 @@ var run = function() {
                 if (toggleName === 'faith') {
                     value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title")+ ")"]), auto.trigger);
                 } else if (toggleName === 'trade') {
-                    value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.gold.title") + ")"] ), auto.trigger);
+                    value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"] ), auto.trigger);
                 } else {
                     value = window.prompt(i18n('ui.trigger.set', [itext]), auto.trigger);
                 }
@@ -6617,6 +6662,7 @@ var loadTest = function() {
         // Kittens loaded, run Kitten Scientist's Automation Engine
         game.workshop.metaCache['geodesy'] = game.workshop.get('geodesy');
         game.workshop.metaCache['orbitalGeodesy'] = game.workshop.get('orbitalGeodesy');
+        game.workshop.metaCache['spaceManufacturing'] = game.workshop.get('spaceManufacturing');
         run();
         loadTest = run = null;
     }
