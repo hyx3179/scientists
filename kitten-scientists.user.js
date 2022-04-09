@@ -459,7 +459,7 @@ var run = function() {
             'summary.auto.temple': '太阳革命 演化后才会建造神殿',
             'summary.auto.tradepost': '太阳革命演化后才会建造交易所',
             'summary.auto.mansion': '测地学解锁后建造宅邸',
-            'summary.auto.broadcastTower': '测地学解锁后建造广播塔',
+            'summary.auto.broadcastTower': '轨道测地学解锁后建造广播塔',
 
             'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
             'summary.upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
@@ -474,8 +474,8 @@ var run = function() {
             'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
             'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
-            'summary.pumpjack': '小猫担心电不够并关闭了 {0} 次油井自动化',
-            'summary.biolab': '小猫担心电不够并关闭了 {0} 个生物实验室',
+            'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
+            'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(非常没用的工坊升级)',
             'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
             'summary.reactor': '小猫向反应堆投入了铀开始发光呐',
             'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐',
@@ -687,7 +687,7 @@ var run = function() {
                     temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1, auto: false, autoF: false},
                     mint:           {require: 'gold',         enabled: true,max:100,  checkForReset: true, triggerForReset: -1},
                     // unicornPasture: {require: false,         enabled: true},
-                    ziggurat:       {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+                    ziggurat:       {require: false,         enabled: true, max:110, checkForReset: true, triggerForReset: -1},
                     chronosphere:   {require: 'unobtainium', enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
                     aiCore:         {require: false,         enabled: false,max:-1,  checkForReset: true, triggerForReset: -1},
                     brewery:        {require: false,         enabled: true,max:-1,  checkForReset: true, triggerForReset: -1, auto: false},
@@ -762,7 +762,7 @@ var run = function() {
                 items: {
                     // Variants denote whether these buildings fall within the Chronoforge or Void categories.
                     // Chronoforge has variant chrono.
-                    temporalBattery:     {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+                    temporalBattery:     {require: false,          enabled: false, max:0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
                     blastFurnace:        {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
                     timeBoiler:          {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
                     temporalAccelerator: {require: false,          enabled: false, max: 1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
@@ -1505,9 +1505,9 @@ var run = function() {
                                 game.village.sim.removeJob(leaderJobName, 1);
                             }
                             game.village.unassignJob(correctLeaderKitten);
-                            game.village.getJob(leaderJobName).value++;
-                            correctLeaderKitten.job = leaderJobName;
                             game.villageTab.censusPanel.census.makeLeader(correctLeaderKitten);
+                            correctLeaderKitten.job = leaderJobName;
+                            game.village.getJob(leaderJobName).value++;
                             refreshRequired += 1;
                             iactivity('act.distributeLeader', [i18n('$village.trait.' + traitName)], 'ks-distribute');
                             storeForSummary('distribute', 1);
@@ -1530,7 +1530,7 @@ var run = function() {
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
                 storeForSummary('catnip', 1);
-                refreshRequired += 1;
+                refreshRequired += 2;
                 return refreshRequired;
             }
 
@@ -1561,7 +1561,7 @@ var run = function() {
             }
             if (jobName) {
                 game.village.assignJob(game.village.getJob(jobName), 1);
-                refreshRequired += 1;
+                refreshRequired += 2;
                 iactivity('act.distribute', [i18n('$village.job.' + jobName)], 'ks-distribute');
                 storeForSummary('distribute', 1);
             }
@@ -1660,7 +1660,7 @@ var run = function() {
                         let tears = game.resPool.resourceMap['tears'].value;
                         let unicorns = game.resPool.resourceMap['unicorns'].value;
                         if (!tears && unicorns >= 2500 && zigguratOn) {
-                            game.resPool.resourceMap['tears'].value.value += zigguratOn;
+                            game.resPool.resourceMap['tears'].value += zigguratOn;
                             game.resPool.resourceMap['unicorns'].value -= 2500;
                         }
                         var tearHave = tears - craftManager.getStock('tears');
@@ -1726,7 +1726,6 @@ var run = function() {
 
             // enough faith, and then TAP
             if (Math.min(0.999, Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
-                var worship = game.religion.faith;
                 var moonBoolean = game.space.meta[0].meta[1].on;
 
                 // Transcend
@@ -2342,7 +2341,7 @@ var run = function() {
                 // 解锁磁电机才会造蒸汽工房
                 var steamW = builds['steamworks'];
                 if (!game.challenges.isActive("pacifism") && !game.bld.get('magneto').val) {
-                    if (!steamW.auto && game.bld.get('steamworks').unlocked) {
+                    if (steamW.auto === false && game.bld.get('steamworks').unlocked && steamW.enabled) {
                         iactivity('summary.auto.steamworks');
                         storeForSummary('auto.steamworks');
                         steamW.auto = steamW.max;
@@ -2374,11 +2373,9 @@ var run = function() {
                         temple.autoF = temple.max;
                         temple.max = (renaissance) ? 0 : 1;
                     }
-                } else {
-                    if (temple.autoF) {
-                        temple.max = temple.autoF;
-                        temple.autoF = null;
-                    }
+                } else if (temple.autoF){
+                    temple.max = temple.autoF;
+                    temple.autoF = null;
                 }
 
                 // 太阳革命前不造交易所和神殿
@@ -2417,7 +2414,7 @@ var run = function() {
                 let geodesy = game.workshop.get('geodesy').researched;
                 let archeology = game.science.get('archeology').researched;
                 let shipVal = game.resPool.resourceMap['ship'].value;
-                let titaniumMore = (!orbitalGeodesy || shipVal < 600);
+                let titaniumMore = (orbitalGeodesy || shipVal > 600);
                 if (!geodesy) {
                     if (!mansion.auto && !blackSky && archeology) {
                         iactivity('summary.auto.mansion');
@@ -2435,17 +2432,15 @@ var run = function() {
                 }
 
                 if (!titaniumMore) {
-                    if (!broadcastTower.auto) {
+                    if (broadcastTower.auto === false) {
                         iactivity('summary.auto.broadcastTower');
                         storeForSummary('auto.broadcastTower');
                         broadcastTower.auto = broadcastTower.max;
                         broadcastTower.max = 3;
                     }
-                } else {
-                    if (broadcastTower.auto) {
-                        broadcastTower.max = broadcastTower.auto;
-                        broadcastTower.auto = null;
-                    }
+                } else if (broadcastTower.auto) {
+                    broadcastTower.max = broadcastTower.auto;
+                    broadcastTower.auto = null;
                 }
 
                 var important = {
@@ -2594,6 +2589,7 @@ var run = function() {
                         }
                     }
                 }
+
                 // Craft the resource if we meet the trigger requirement
                 if (!require || trigger <= require.value / require.maxValue) {
                     let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name =='steel') ? false : true;
@@ -2953,7 +2949,7 @@ var run = function() {
                 }
                 // 缺电
                 if (game.resPool.energyWinterProd < game.resPool.energyCons) {
-                    if (game.workshop.get('biofuel').researched && game.bld.getBuildingExt('biolab').meta.on) {
+                    if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
                         let number = game.bld.getBuildingExt('biolab').meta.on;
                         game.bld.getBuildingExt('biolab').meta.on = 0;
                         iactivity('summary.biolab', [number]);
@@ -2961,7 +2957,7 @@ var run = function() {
                         return refreshRequired;
                     }
                     let oilWell = game.bld.getBuildingExt('oilWell').meta;
-                    if (game.workshop.get('pumpjack').researched && oilWell.isAutomationEnabled) {
+                    if (oilWell.isAutomationEnabled && game.workshop.get('pumpjack').researched) {
                         oilWell.isAutomationEnabled = false;
                         iactivity('summary.pumpjack', [1]);
                         storeForSummary('pumpjack', 1);
