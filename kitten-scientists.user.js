@@ -272,16 +272,16 @@ var run = function() {
             'act.hunt.unicorn': '小猫急着给独角兽配种',
             'act.build': '小猫建造了一个 {0}',
             'act.builds': '小猫建造了 {1} 个新的 {0}',
-            'act.craft': '小猫制作了 {0} {1}',
-            'act.trade': '小猫与 {1} 交易 {0} 次',
+            'act.craft': ' {0} {1}',
+            'act.trade': ' {1} 交易 {0} 次',
 
             'upgrade.space.mission': '小猫执行了 {0} 的任务',
             'upgrade.space': '小猫执行了 {0}',
             'upgrade.race': '小猫遇到了 {0}',
-            'upgrade.upgrade': '小猫发明了 {0}',
+            'upgrade.upgrade': '{1}发明了 {0}',
             'upgrade.limited': '优化 {0}',
             'upgrade.unlimited': '全部 {0}',
-            'upgrade.tech': '小猫掌握了 {0}',
+            'upgrade.tech': '{1}掌握了 {0}',
             'upgrade.policy': '小猫通过了 {0} 法案',
 
             'festival.hold': '小猫开始举办节日',
@@ -542,6 +542,9 @@ var run = function() {
         activitycolor: '#E65C00', // orange
         // The color for resources with stock counts higher than current resource max
         stockwarncolor: '#DD1E00',
+
+        // 复制的特质
+        copyTrait: false,
 
         //猫薄荷日志
         catnipMsg: true,
@@ -949,7 +952,8 @@ var run = function() {
             policies: [],
             cache: {
                 cache:    [],
-                cacheSum: {}
+                cacheSum: {},
+                trait:    {},
             }
         }
     };
@@ -1098,6 +1102,7 @@ var run = function() {
             if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
             if (refresh > 0)                                                                {game.resPool.update();}
             if (refresh > 1)                                                                {game.ui.render();}
+            if (options.copyTrait)                                                          {setTimeout(()=>this.setTrait(),1000)}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
         },
         halfInterval: async function () {
@@ -1902,19 +1907,7 @@ var run = function() {
                 }
             }
 
-            let t, a;
-            let leaderO = options.auto.distribute.items.leader;
-            let triatHas = game.village.traits.find((item, index) => {
-                return item.name === 'wise';
-            });
-            if (game.science.get('civil').researched && !game.challenges.isActive("anarchy") && triatHas && game.village.leader) {
-                t = game.village.leader.trait.name;
-                game.village.leader.trait.name = 'wise';
-                if (leaderO.enabled) {
-                    leaderO.enabled = false;
-                    a = true;
-                }
-            }
+            this.setTrait('wise');
 
             var buildList = bulkManager.bulk(builds, metaData, trigger);
 
@@ -1931,15 +1924,8 @@ var run = function() {
     
                     count = (game.religion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
 
-                    buildManager.build(buildList[entry].id, buildList[entry].variant, count, t);
+                    buildManager.build(buildList[entry].id, buildList[entry].variant, count);
                     refreshRequired = 1;
-                }
-            }
-
-            if (t) {
-                game.village.leader.trait.name = t;
-                if (a) {
-                    leaderO.enabled = true;
                 }
             }
 
@@ -1997,9 +1983,9 @@ var run = function() {
             var buildManager = this.buildManager;
             var refreshRequired = 0;
 
+            this.setTrait('scientist');
             //upgradeManager.workManager.render();
             //upgradeManager.sciManager.render();
-
             if (upgrades.upgrades.enabled && game.workshopTab.visible) {
                 var work = game.workshop.upgrades;
                 let noup = [];
@@ -2570,6 +2556,8 @@ var run = function() {
             var trigger = options.auto.craft.trigger;
             var craftsItem = ['ship', 'beam','wood', 'slab', 'plate', 'steel', 'alloy', 'concrate', 'gear', 'scaffold', 'tanker', 'parchment', 'manuscript', 'compedium', 'blueprint', 'kerosene', 'megalith', 'eludium', 'thorium'];
 
+            this.setTrait('engineer');
+
             for (var name of craftsItem) {
                 var craft = crafts[name];
                 var current = !craft.max ? false : manager.getResource(name);
@@ -2677,10 +2665,14 @@ var run = function() {
                     huntCount = 7;
                     iactivity('act.hunt.unicorn');
                 }
-
                 let hunter = (game.ironWill) ? game.resPool.resourceMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
+                if (options.auto.cache.trait['manager']) {
+                    hunter = $I('village.trait.manager') + hunter;
+                }
                 game.resPool.addResEvent("manpower", -huntCount * 100);
+                this.setTrait('manager');
                 game.village.gainHuntRes(huntCount);
+                this.setTrait();
                 storeForSummary('hunt', huntCount);
                 iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
 
@@ -2834,6 +2826,8 @@ var run = function() {
 
             cacheManager.pushToCache({'materials': tradeNet, 'timeStamp': game.timer.ticksTotal});
 
+            this.setTrait('merchant');
+
             for (var name in tradesDone) {
                 if (tradesDone[name] > 0) {
                     tradeManager.trade(name, tradesDone[name]);
@@ -2896,6 +2890,7 @@ var run = function() {
                         game.resPool.resources[13].value -= emBulk.priceSum;
                         emBulk.race.embassyLevel += emBulk.val;
                         storeForSummary('embassy', emBulk.val);
+                        refreshRequired += 1;
                         if (emBulk.val !== 1) {
                             iactivity('build.embassies', [emBulk.val, emBulk.race.title], 'ks-trade');
                         } else {
@@ -2982,6 +2977,31 @@ var run = function() {
                 }
             }
             return refreshRequired;
+        },
+        setTrait: function (trait) {
+            if (trait) {
+                if (game.science.get('civil').researched && !game.challenges.isActive("anarchy") && game.village.leader) {
+                    let cache = options.auto.cache;
+                    if (!cache.trait[trait]) {
+                        let hasTrait = game.village.traits.some(obj => obj.name === trait);
+                        if (hasTrait) {
+                            cache.trait[trait] = true;
+                        }
+                    }
+                    if (!options.copyTrait) {
+                        options.copyTrait = game.village.leader.trait.name;
+                    }
+
+                    let copy = dojo.clone(game.village.leader);
+                    copy['trait']['name'] = trait;
+                    game.village.leader = null;
+                    game.village.leader = copy;
+                    copy = null;
+                }
+            } else if (options.copyTrait) {
+                game.village.leader.trait.name = options.copyTrait;
+                options.copyTrait = undefined;
+            }
         },
         skipCtrlRes: function () {
             let addCraft = options.auto.timeCtrl.items.timeSkip;
@@ -3181,7 +3201,7 @@ var run = function() {
         manager: undefined,
         crafts: undefined,
         bulkManager: undefined,
-        build: function (name, variant, amount, t) {
+        build: function (name, variant, amount) {
             var build = this.getBuild(name, variant);
             var button = this.getBuildButton(name, variant);
 
@@ -3206,7 +3226,7 @@ var run = function() {
 
             if (variant === "s") {
                 storeForSummary(label, amount, 'faith');
-                if (t) {
+                if (options.auto.cache['wise']) {
                     return iactivity('act.sun.discovers.leader', [label, amount], 'ks-faith');
                 }
                 if (amount === 1) {
@@ -3335,7 +3355,13 @@ var run = function() {
                 }
                 return;
             }
-            if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
+            if (!button.model.enabled) {
+                button.model.prices = button.controller.getPrices(button.model);
+                button.controller.updateEnabled(button.model);
+                if (!button.model.enabled) {
+                    return;
+                }
+            }
             if (game.village.leader && button.model.metadata.requiredLeaderJob && game.village.leader.job != button.model.metadata.requiredLeaderJob){
                 var jobTitle = game.village.getJob(button.model.metadata.requiredLeaderJob).title;
                 game.msg($I("msg.policy.wrongLeaderJobForResearch", [button.model.metadata.label, jobTitle]), "important");
@@ -3353,18 +3379,19 @@ var run = function() {
             } 
 
             //need to simulate a click so the game updates everything properly
+            button.model.prices = button.controller.getPrices(button.model);
             button.controller.payPrice(button.model, {}, function() {});
             button.controller.onPurchase(button.model, {}, function() {});
             game.stats.getStat("totalClicks").val += 1;
             
             var label = upgrade.label;
-
+            let leader = (options.auto.cache.trait['scientist']) ? '科学家小猫' : '小猫';
             if (variant === 'workshop') {
                 storeForSummary(label, 1, 'upgrade');
-                iactivity('upgrade.upgrade', [label], 'ks-upgrade');
+                iactivity('upgrade.upgrade', [label, leader], 'ks-upgrade');
             } else if (variant === 'science') {
                 storeForSummary(label, 1, 'research');
-                iactivity('upgrade.tech', [label], 'ks-research');
+                iactivity('upgrade.tech', [label, leader], 'ks-research');
             } else if (variant === 'policy') {
                 iactivity('upgrade.policy', [label]);
             }
@@ -3530,8 +3557,9 @@ var run = function() {
             // determine actual amount after crafting upgrades
             amount = (amount * (1 + ratio)).toFixed(2);
 
+            let leader = (options.auto.cache.trait['engineer']) ? '工匠小猫制作了 ' : '小猫制作了 ';
             storeForSummary(iname, amount, 'craft');
-            iactivity('act.craft', [game.getDisplayValueExt(amount), iname], 'ks-craft');
+            iactivity('act.craft', [leader + game.getDisplayValueExt(amount), iname], 'ks-craft');
         },
         canCraft: function (name, amount) {
             var craft = this.getCraft(name);
@@ -4081,9 +4109,10 @@ var run = function() {
 
             if (!button.model.enabled || !options.auto.trade.items[name].enabled) {warning('KS trade checks are not functioning properly, please create an issue on the github page.');}
 
+            let leader = (options.auto.cache.trait['merchant']) ? '商人小猫与' : '小猫与';
             game.diplomacy.tradeMultiple(race, amount);
             storeForSummary(race.title, amount, 'trade');
-            iactivity('act.trade', [amount, ucfirst(race.title)], 'ks-trade');
+            iactivity('act.trade', [amount, leader + ucfirst(race.title)], 'ks-trade');
         },
         getProfitability: function (name) {
             var race = this.getRace(name);
