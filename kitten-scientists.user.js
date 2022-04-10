@@ -455,7 +455,7 @@ var run = function() {
             'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
             'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
-            'summary.auto.steamworks': '有 磁电机 后才会建造蒸汽工房',
+            'summary.auto.steamworks': '有磁电机后才会建造蒸汽工房',
             'summary.auto.temple': '太阳革命 演化后才会建造神殿',
             'summary.auto.tradepost': '太阳革命演化后才会建造交易所',
             'summary.auto.mansion': '测地学解锁后建造宅邸',
@@ -1081,21 +1081,21 @@ var run = function() {
             var subOptions = options.auto.options;
             var refresh = 0;
             if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
-            if (options.auto.upgrade.enabled)                                               {refresh += this.upgrade();}
+            if (options.auto.upgrade.enabled)                                               {refresh += ~~this.upgrade();}
             if (subOptions.enabled && subOptions.items.festival.enabled)                    {this.holdFestival();}
-            if (options.auto.build.enabled)                                                 {refresh += this.build();}
-            if (options.auto.space.enabled)                                                 {refresh += this.space();}
-            if (options.auto.timeCtrl.enabled)                                              {refresh += this.timeCtrl();}
+            if (options.auto.build.enabled)                                                 {refresh += ~~this.build();}
+            if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
+            if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
             if (options.auto.craft.enabled)                                                 {this.craft();}
             if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.setHunt();}
             if (options.auto.trade.enabled)                                                 {this.trade();}
-            if (options.auto.faith.enabled)                                                 {refresh += this.worship();}
-            if (options.auto.time.enabled)                                                  {refresh += this.chrono();}
+            if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
+            if (options.auto.time.enabled)                                                  {refresh += ~~this.chrono();}
             if (subOptions.enabled && subOptions.items.crypto.enabled)                      {this.crypto();}
             if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
-            if (options.auto.distribute.enabled)                                            {refresh += this.distribute();}
+            if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
             if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
-            if (subOptions.enabled)                                                         {refresh += this.miscOptions();}
+            if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
             if (refresh > 0)                                                                {game.resPool.update();}
             if (refresh > 1)                                                                {game.ui.render();}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
@@ -2432,7 +2432,7 @@ var run = function() {
                 }
 
                 if (!titaniumMore) {
-                    if (broadcastTower.auto === false) {
+                    if (broadcastTower.auto === false && game.science.get('electronics').researched) {
                         iactivity('summary.auto.broadcastTower');
                         storeForSummary('auto.broadcastTower');
                         broadcastTower.auto = broadcastTower.max;
