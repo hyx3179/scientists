@@ -272,6 +272,7 @@ var run = function() {
             'act.hunt.unicorn': '小猫急着给独角兽配种',
             'act.build': '小猫建造了一个 {0}',
             'act.builds': '小猫建造了 {1} 个新的 {0}',
+            'act.build.lower': '未研究轨道测地学，降低牧场、图书馆、研究院、熔炉、粮仓、港口的优先度',
             'act.craft': ' {0} {1}',
             'act.trade': ' {1} 交易 {0} 次',
 
@@ -475,7 +476,8 @@ var run = function() {
 
             'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
             'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
-            'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(非常没用的工坊升级)',
+            'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
+            'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
             'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
             'summary.reactor': '小猫向反应堆投入了铀开始发光呐',
             'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐',
@@ -634,6 +636,8 @@ var run = function() {
                 }
             },
             build: {
+                // 营火低优先级建筑
+                lower: false,
                 // Should buildings be built automatically?
                 enabled: false,
                 // When a building requires a certain resource (this is what their *require* property refers to), then
@@ -1511,9 +1515,9 @@ var run = function() {
                                 game.village.sim.removeJob(leaderJobName, 1);
                             }
                             game.village.unassignJob(correctLeaderKitten);
-                            game.villageTab.censusPanel.census.makeLeader(correctLeaderKitten);
                             correctLeaderKitten.job = leaderJobName;
                             game.village.getJob(leaderJobName).value++;
+                            game.villageTab.censusPanel.census.makeLeader(correctLeaderKitten);
                             refreshRequired += 1;
                             //game.villageTab.update();
                             iactivity('act.distributeLeader', [i18n('$village.trait.' + traitName)], 'ks-distribute');
@@ -2050,20 +2054,18 @@ var run = function() {
                     let prices = dojo.clone(upg.prices);
                     prices = game.village.getEffectLeader("scientist", prices);
                     for (var resource of prices) {
-                        /*if (upgrades.techs.limited) {
-                            let res = game.resPool.resourceMap[resource.name];
-                            if (resource.name !== 'science') {
+                        let name = resource.name;
+                        if (craftManager.getValueAvailable(resource.name, true) < resource.val) {
+                            /*if (name !== 'science') {
+                                let res = game.resPool.resourceMap[name];
                                 if (res.craftable) {
                                     let amt = resource.val - res.value;
                                     if (amt > 0) {
-                                        var baseAmt = amt / (1 + game.getResCraftRatio(res.name));
-                                        game.workshop.craft(res.name, baseAmt, false , true );
                                     }
                                 }
-                            } else if (res.value > resource) {
-                            }
-                        }*/
-                        if (craftManager.getValueAvailable(resource.name, true) < resource.val) {continue techLoop;}
+                            }*/
+                            continue techLoop;
+                        }
                     }
                     //refreshRequired = true;
                     upgradeManager.build(upg, 'science');
@@ -2483,6 +2485,10 @@ var run = function() {
                             let wood = (game.resPool.resourceMap['wood'].maxValue * 0.94 < game.resPool.resourceMap['wood'].value);
                             if (minerals || (!orbitalGeodesy && game.bld.get(id).val > 2) || wood) {
                                 halfCount = true;
+                                let lower = options.auto.build.lower;
+                                if (!lower) {
+                                    iactivity('act.build.lower');
+                                }
                             }
                         }
                     }
@@ -2558,6 +2564,7 @@ var run = function() {
             var manager = this.craftManager;
             var trigger = options.auto.craft.trigger;
             var craftsItem = ['ship', 'beam','wood', 'slab', 'plate', 'steel', 'alloy', 'concrate', 'gear', 'scaffold', 'tanker', 'parchment', 'manuscript', 'compedium', 'blueprint', 'kerosene', 'megalith', 'eludium', 'thorium'];
+            let ratio = game.getCraftRatio();
 
             this.setTrait('engineer');
 
@@ -2587,8 +2594,7 @@ var run = function() {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, aboveTrigger);
                 } else if (craft.limited) {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
-                    let ratio = game.getResCraftRatio();
-                    amount *= Math.max(Math.min(Math.log(ratio), 1), 0.25);
+                    amount *= Math.max(Math.min(Math.log(ratio), 1), 0.2);
                 }
                 if (amount >= 1) {
                     manager.craft(name, amount);
@@ -2952,7 +2958,8 @@ var run = function() {
                     if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
                         let number = game.bld.getBuildingExt('biolab').meta.on;
                         game.bld.getBuildingExt('biolab').meta.on = 0;
-                        iactivity('summary.biolab', [number]);
+                        let msg = '冬季产出电:' + game.getDisplayValueExt(game.resPool.energyWinterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
+                        iactivity('summary.biolab.test', [msg + number]);
                         storeForSummary('biolab', number);
                         return refreshRequired;
                     }
@@ -3000,10 +3007,7 @@ var run = function() {
                         options.copyTrait = game.village.leader.trait.name;
                     }
 
-                    let copy = dojo.clone(game.village.leader);
-                    copy['trait']['name'] = trait;
-                    game.village.leader = null;
-                    game.village.leader = copy;
+                    game.village.leader.trait.name = trait;
                 }
             } else if (options.copyTrait) {
                 game.village.leader.trait.name = options.copyTrait;
@@ -3643,6 +3647,17 @@ var run = function() {
                     }
                 }
             }
+
+            /*if (name === 'manuscript' && limited) {
+                //aboveTrigger
+                for (var i= 16, i < 18; i++) {
+                    let meta = game.science.meta[0].meta[i];
+                    if (!meta.researched) {
+                        console.log(materials)
+                        //meta.prices[1].val /  ratio
+                    }
+                }
+            }*/
 
             let useRatio = this.getLimRat(name, limited, limRat);
 
