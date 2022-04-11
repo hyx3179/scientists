@@ -496,6 +496,7 @@ var run = function() {
             'summary.building': '建造了 {0} 个 {1}',
             'summary.sun': '在宗教 {1} 方面演化 {0} 次',
             'summary.craft': '制作了 {0} 个 {1}',
+            'summary.craft.en': '制作了 {0} 个 {1}',
             'summary.trade': '{1} 贸易了 {0} 次',
             'summary.year': '年',
             'summary.years': '年',
@@ -545,19 +546,14 @@ var run = function() {
         activitycolor: '#E65C00', // orange
         // The color for resources with stock counts higher than current resource max
         stockwarncolor: '#DD1E00',
-
         // 复制的特质
         copyTrait: false,
-
         //猫薄荷日志
         catnipMsg: true,
-
         //倒计时
         countdown: 120,
-
         // The default consume rate.
         consume: 0.6,
-
         // The default settings for game automation.
         auto: {
             // Settings related to KS itself.
@@ -1054,6 +1050,8 @@ var run = function() {
         villageManager: undefined,
         cacheManager: undefined,
         loop: undefined,
+        huntID: undefined,
+        renderID: undefined,
         start: function (msg = true) {
             options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
             if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
@@ -1088,6 +1086,7 @@ var run = function() {
         iterate: async function () {
             var subOptions = options.auto.options;
             var refresh = 0;
+            clearTimeout(this.renderID);
             if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
             if (options.auto.upgrade.enabled)                                               {refresh += ~~this.upgrade();}
             if (subOptions.enabled && subOptions.items.festival.enabled)                    {this.holdFestival();}
@@ -1095,7 +1094,7 @@ var run = function() {
             if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
             if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
             if (options.auto.craft.enabled)                                                 {this.craft();}
-            if (subOptions.enabled && subOptions.items.hunt.enabled)                        {setTimeout(()=>this.hunt(),1000)}
+            if (subOptions.enabled && subOptions.items.hunt.enabled)                        {huntID = setTimeout(()=>this.hunt(),1000)}
             if (options.auto.trade.enabled)                                                 {this.trade();}
             if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
             if (options.auto.time.enabled)                                                  {refresh += ~~this.chrono();}
@@ -1106,7 +1105,7 @@ var run = function() {
             if (options.copyTrait)                                                          {this.setTrait();}
             if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
             if (refresh > 0)                                                                {game.resPool.update();}
-            if (refresh > 1)                                                                {setTimeout(()=>game.ui.render(),333);}
+            if (refresh > 1)                                                                {renderID = setTimeout(()=>game.ui.render(),333);}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
         },
         reset: async function () {
@@ -1508,7 +1507,6 @@ var run = function() {
                             game.village.getJob(leaderJobName).value++;
                             game.villageTab.censusPanel.census.makeLeader(correctLeaderKitten);
                             refreshRequired += 1;
-                            //game.villageTab.update();
                             iactivity('act.distributeLeader', [i18n('$village.trait.' + traitName)], 'ks-distribute');
                             storeForSummary('distribute', 1);
                         }
@@ -1516,13 +1514,18 @@ var run = function() {
                 }
             }
 
-            var freeKittens = game.village.getFreeKittens();
-            if (!freeKittens) {return refreshRequired;}
-
+            let farmer = options.auto.distribute.items.farmer;
             let agriculture = game.science.get("agriculture").researched;
+            let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0 || game.village.jobs[1].value == 0);
+            var freeKittens = game.village.getFreeKittens();
+            if (!freeKittens) {
+                return refreshRequired;
+            } else if (false && farmer.enabled && agriculture && nomalWinterCatnip && game.village.sim.kittens.length) {
+                game.village.sim.removeJob('woodcutter');
+            }
+
             var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
             var catnipValue = (game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value) < 0 || freeKittens <= 2);
-            let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0 || game.village.jobs[1].value == 0);
             let religionCatnip = options.auto.distribute;
             if (religionCatnip.religion || (nomalWinterCatnip && agriculture && catnipValue && catnipRatio)) {
                 religionCatnip.religion = false;
@@ -1530,6 +1533,7 @@ var run = function() {
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
                 storeForSummary('catnip', 1);
+                game.village.updateResourceProduction();
                 return 2;
             }
 
@@ -1829,15 +1833,17 @@ var run = function() {
                 }
             }
 
-            // Praise
+            // 太阳革命加速恢复到期望值
             var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
             var expectSolarRevolutionRatio = Math.min(0.0005 * Math.pow(Math.E, 0.66 * transformTier), 0.75) * 10;
-            // 太阳革命加速恢复到期望值
-            if (game.religion.getRU('solarRevolution').on && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
+            let solarRevolution = game.religion.getRU('solarRevolution').on;
+            if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
                 PraiseSubTrigger = 0;
             }
 
-            var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && !game.challenges.isActive("atheism"));
+            // Praise
+            var fistReset = (rate < 1 || !game.prestige.getPerk("voidOrder").researched || solarRevolution)
+            var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
             if (booleanForPraise || forceStep) {
                 // 30秒一次
                 if (option.autoPraise.subTrigger == 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 3e4) {
@@ -1855,7 +1861,7 @@ var run = function() {
                 storeForSummary('praise', worshipInc);
                 iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
                 game.religion.praise();
-                //refreshRequired += 1;
+                refreshRequired += 1;
             }
             return refreshRequired;
         },
@@ -2466,7 +2472,7 @@ var run = function() {
 
                     count = (game.religion.getRU('solarRevolution').on && !atheism) ? buildList[i].count : Math.ceil(buildList[i].count / 3);
 
-                    if (id == 'academy' || id == 'pasture'|| id == 'barn' || id == 'harbor' || id == 'smelter' || id == 'library') {
+                    if (id == 'academy' || id == 'pasture'|| id == 'barn' || id == 'harbor' || id == 'library') {
                         let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
                         if (renaissance || vitruvianFeline) {
                             let minerals = (game.resPool.resourceMap['minerals'].value < game.resPool.resourceMap['minerals'].maxValue * 0.94);
@@ -2482,7 +2488,7 @@ var run = function() {
                         }
                     }
 
-                    if (!orbitalGeodesy && id === 'biolab') {
+                    if (id === 'biolab' && !orbitalGeodesy) {
                         count = 0;
                     }
 
@@ -2493,7 +2499,7 @@ var run = function() {
                     }
 
                     if (halfCount) {
-                        count =Math.floor(count * 0.5);
+                        count = Math.floor(count * 0.5);
                     }
 
                     if (count === 0) {
@@ -2553,24 +2559,23 @@ var run = function() {
             var manager = this.craftManager;
             var trigger = options.auto.craft.trigger;
             var craftsItem = ['ship', 'beam','wood', 'slab', 'plate', 'steel', 'alloy', 'concrate', 'gear', 'scaffold', 'tanker', 'parchment', 'manuscript', 'compedium', 'blueprint', 'kerosene', 'megalith', 'eludium', 'thorium'];
-            let ratio = game.getCraftRatio();
 
             this.setTrait('engineer');
 
             for (var name of craftsItem) {
                 var craft = crafts[name];
-                var current = !craft.max ? false : manager.getResource(name);
+                //var current = !craft.max ? false : manager.getResource(name);
                 var require = !craft.require ? false : manager.getResource(craft.require);
                 var amount = 0;
                 if (!craft.enabled) {continue;}
                 if (!game.bld.getBuildingExt('workshop').meta.on && name !== "wood") {continue;}
                 // Ensure that we have reached our cap
-                if (current && current.value > craft.max) {continue;}
+                //if (current && current.value > craft.max) {continue;}
                 if (!manager.singleCraftPossible(name)) {continue;}
                 
                 // 巨石
                 if (name == 'megalith') {
-                    if (current.value > 50 || game.bld.metaCache.ziggurat.meta.on) {
+                    if (game.resPool.resourceMap[name].value > 50 || game.bld.metaCache.ziggurat.meta.on) {
                         if (!game.workshop.get('orbitalGeodesy').researched) {
                             continue;
                         }
@@ -2583,7 +2588,6 @@ var run = function() {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, aboveTrigger);
                 } else if (craft.limited) {
                     amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
-                    amount *= Math.max(Math.min(Math.log(ratio), 1), 0.2);
                 }
                 if (amount >= 1) {
                     manager.craft(name, amount);
@@ -2631,6 +2635,7 @@ var run = function() {
             }
         },
         hunt: function () {
+            clearTimeout(this.huntID);
             var manpower = this.craftManager.getResource('manpower');
             if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
@@ -2945,10 +2950,10 @@ var run = function() {
                 // 缺电
                 if (game.resPool.energyWinterProd < game.resPool.energyCons) {
                     if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
-                        let number = game.bld.getBuildingExt('biolab').meta.on;
-                        game.bld.getBuildingExt('biolab').meta.on = 0;
                         let msg = '冬季产出电:' + game.getDisplayValueExt(game.resPool.energyWinterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
                         iactivity('summary.biolab.test', [msg + number]);
+                        let number = game.bld.getBuildingExt('biolab').meta.on;
+                        game.bld.getBuildingExt('biolab').meta.on = 0;
                         storeForSummary('biolab', number);
                         return refreshRequired;
                     }
@@ -2983,22 +2988,27 @@ var run = function() {
             if (trait) {
                 if (game.science.get('civil').researched && !game.challenges.isActive("anarchy") && game.village.leader) {
                     let cache = options.auto.cache;
+                    let msg;
                     if (!cache.trait[trait]) {
                         let hasTrait = game.village.traits.some(obj => obj.name === trait);
                         if (hasTrait) {
                             cache.trait[trait] = true;
-                            if (trait === 'engineer') {
-                                i18nData['zh']['summary.craft'] = '工匠制作了 {0} 个 {1}';
-                            }
+                            msg = true;
                         }
                     }
                     if (!options.copyTrait) {
                         let traitName = game.village.leader.trait.name;
                         options.copyTrait = traitName;
                         cache.trait[traitName] = true;
+                        msg = true;
                     }
+                    game.village.leader.trait.name = trait;  
 
-                    game.village.leader.trait.name = trait;
+                    if (msg) {
+                        if (cache.trait['engineer']) {
+                            i18nData['zh']['summary.craft'] = '工匠制作了 {0} 个 {1}';
+                        }
+                    }
                 }
             } else if (options.copyTrait) {
                 game.village.leader.trait.name = options.copyTrait;
@@ -3387,6 +3397,7 @@ var run = function() {
             game.stats.getStat("totalClicks").val += 1;
             
             var label = upgrade.label;
+            //let scientist = options.auto.cache.trait['scientist']
             let leader = (options.auto.cache.trait['scientist']) ? '科学家小猫' : '小猫';
             if (variant === 'workshop') {
                 storeForSummary(label, 1, 'upgrade');
@@ -3573,7 +3584,7 @@ var run = function() {
                 var prices = game.workshop.getCraftPrice(craft);
                 for (var i in prices) {
                     var price = prices[i];
-                    var value = this.getValueAvailable(price.name);
+                    var value = this.getValueAvailable(price.name, true);
 
                     if (value < price.val * amount) {
                         result = false;
@@ -3620,6 +3631,7 @@ var run = function() {
             var trigger = options.auto.craft.trigger;
             var optionVal = options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
             var optionShipVal = options.auto.options.items.shipOverride.subTrigger;
+            let force = (name === 'ship' && optionVal && this.getResource('ship').value < optionShipVal);
 
             // Safeguard if materials for craft cannot be determined.
             if (!materials) {return 0;}
@@ -3640,43 +3652,47 @@ var run = function() {
             }
 
             if (name === 'manuscript' && limited) {
-                for (var i = 16; i < 19;i++) {
+                for (var i = 16; i < 19; i++) {
                     let meta = game.science.meta[0].meta[i];
                     if (!meta.researched) {
                         let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
                         let autoMax = Math.ceil(meta.prices[1].val * craftPrices / ratio);
                         let resVal = game.resPool.resourceMap['parchment'].value;
+                        console.log(resVal,autoMax * craftPrices)
                         if (resVal > autoMax * craftPrices) {
-                            aboveTrigger = true;
+                            force = true;
+                            break;
                         }
                     }
                 }
             }
 
-            if (name === 'compedium' && limited) {
-                for (var i = 19; i < 26;i++) {
+            if (name === 'compedium' && limited && game.science.get('navigation').researched) {
+                for (var i = 19; i < 26; i++) {
                     let meta = game.science.meta[0].meta[i];
-                    if (meta.researched) {
+                    if (!meta.researched) {
                         if (meta.prices[1].name == name) {
                             let autoMax = Math.ceil(meta.prices[1].val * 50 / ratio);
                             let resVal = game.resPool.resourceMap['compedium'].value;
                             if (resVal > autoMax * 50) {
-                                aboveTrigger = true;
+                                force = true;
+                                break;
                             }
                         }
                     }
                 }
             }
 
-            if (name === 'blueprint' && limited) {
-                for (var i = 30; i < 44;i++) {
+            if (name === 'blueprint' && limited && game.prestige.getPerk('vitruvianFeline').researched) {
+                for (var i = 30; i < 44; i++) {
                     let meta = game.science.meta[0].meta[i];
-                    if (meta.researched) {
+                    if (!meta.researched) {
                         if (meta.prices[1].name == name) {
                             let autoMax = Math.ceil(meta.prices[1].val * 25 / ratio);
                             let resVal = game.resPool.resourceMap['compedium'].value;
                             if (resVal > autoMax * 25) {
-                                aboveTrigger = true;
+                                force = true;
+                                break;
                             }
                         }
                     }
@@ -3689,10 +3705,9 @@ var run = function() {
                 var delta = undefined;
                 let resValue = this.getValueAvailable(name, true);
                 let material = materials[i];
-                let shipBoolean = (name === 'ship' && optionVal && this.getResource('ship').value < optionShipVal);
-                if (!limited || aboveTrigger || shipBoolean) {
+                if (!limited || aboveTrigger || force) {
                     // If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
-                    delta = this.getValueAvailable(i) / material;
+                    delta = this.getValueAvailable(i, force) / material;
                 } else {
                     // Take the currently present amount of material to craft into account
                     // Currently this determines the amount of resources that can be crafted such that base materials are proportionally distributed across limited resources.
@@ -3710,6 +3725,11 @@ var run = function() {
             // good with a maximum value.
             let res = game.resPool.resourceMap[name];
             if (res.maxValue > 0 && amount > (res.maxValue - res.value)) {amount = res.maxValue - res.value;}
+
+            if (limited && !force) {
+                console.log(name)
+                amount *= Math.max(Math.min(Math.log(ratio), 1), 0.2);
+            }
 
             return amount;
         },
