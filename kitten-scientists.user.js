@@ -485,7 +485,8 @@ var run = function() {
             'summary.festival': '举办了 {0} 次节日',
             'summary.stars': '观测了 {0} 次天文事件',
             'summary.praise': '通过赞美太阳积累了 {0} 虔诚',
-            'summary.hunt': '派出了 {0} 批可爱的小猫猎人',
+            'summary.hunt': '派出了 {0} 批可爱的小猫',
+            'summary.hunt.manager': '管理者领袖派出了 {0} 批可爱的小猫',
             'summary.embassy': '设立了 {0} 个大使馆',
             'summary.feed': '向上古神献祭 {0} 只死灵兽',
             'summary.tech': '掌握了 {0}',
@@ -493,7 +494,7 @@ var run = function() {
             'summary.building': '建造了 {0} 个 {1}',
             'summary.sun': '在宗教 {1} 方面演化 {0} 次',
             'summary.craft': '制作了 {0} 个 {1}',
-            'summary.trade': '与 {1} 贸易了 {0} 次',
+            'summary.trade': '{1} 贸易了 {0} 次',
             'summary.year': '年',
             'summary.years': '年',
             'summary.separator': ' ',
@@ -1091,18 +1092,18 @@ var run = function() {
             if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
             if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
             if (options.auto.craft.enabled)                                                 {this.craft();}
-            if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.setHunt();}
+            if (subOptions.enabled && subOptions.items.hunt.enabled)                        {setTimeout(()=>this.hunt(),1000)}
             if (options.auto.trade.enabled)                                                 {this.trade();}
             if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
             if (options.auto.time.enabled)                                                  {refresh += ~~this.chrono();}
             if (subOptions.enabled && subOptions.items.crypto.enabled)                      {this.crypto();}
             if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
-            if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
             if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
             if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
+            if (options.copyTrait)                                                          {this.setTrait();}
+            if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
             if (refresh > 0)                                                                {game.resPool.update();}
-            if (refresh > 1)                                                                {game.ui.render();}
-            if (options.copyTrait)                                                          {setTimeout(()=>this.setTrait(),1000)}
+            if (refresh > 1)                                                                {setTimeout(()=>game.ui.render(),333);}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
         },
         halfInterval: async function () {
@@ -1492,7 +1493,7 @@ var run = function() {
             var distributeItem = options.auto.distribute.items;
             var leaderVals = distributeItem.leader;
             var refreshRequired = 0;
-            if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy")) {
+            if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy") && !options.copyTrait) {
                 var leaderJobName = leaderVals.leaderJob;
                 var traitName = leaderVals.leaderTrait;
                 var optionsTheocracy = false;
@@ -1514,6 +1515,7 @@ var run = function() {
                             correctLeaderKitten.job = leaderJobName;
                             game.village.getJob(leaderJobName).value++;
                             refreshRequired += 1;
+                            //game.villageTab.update();
                             iactivity('act.distributeLeader', [i18n('$village.trait.' + traitName)], 'ks-distribute');
                             storeForSummary('distribute', 1);
                         }
@@ -1569,6 +1571,7 @@ var run = function() {
                 refreshRequired += 2;
                 iactivity('act.distribute', [i18n('$village.job.' + jobName)], 'ks-distribute');
                 storeForSummary('distribute', 1);
+                //game.villageTab.update()
             }
             return refreshRequired;
         },
@@ -1820,7 +1823,7 @@ var run = function() {
                         if (!activitySummary.other) {
                             activitySummary.other = {};
                         }
-                        activitySummary.other['adore.last'] = worshipL;
+                        activitySummary.other['adore.last'] = worship * 0.75;
                     }
                     game.religion._resetFaithInternal(1.01);
 
@@ -1870,6 +1873,8 @@ var run = function() {
             //var craftManager = this.craftManager;
             var bulkManager = this.bulkManager;
 
+            this.setTrait('wise');
+
             let solarMeta = game.religion.getRU('solarRevolution');
             let leaderRatio = 1 - game.getLimitedDR(0.09 + 0.01 * (1 + game.prestige.getBurnedParagonRatio()), 1.0);
             let faithMeta = game.resPool.resourceMap['faith'];
@@ -1906,8 +1911,6 @@ var run = function() {
                     metaData[name].rHidden = (build.variant === 's') ? !visible : !(visible && model.enabled && panel);
                 }
             }
-
-            this.setTrait('wise');
 
             var buildList = bulkManager.bulk(builds, metaData, trigger);
 
@@ -2666,14 +2669,16 @@ var run = function() {
                     iactivity('act.hunt.unicorn');
                 }
                 let hunter = (game.ironWill) ? game.resPool.resourceMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
-                if (options.auto.cache.trait['manager']) {
-                    hunter = $I('village.trait.manager') + hunter;
-                }
                 game.resPool.addResEvent("manpower", -huntCount * 100);
                 this.setTrait('manager');
                 game.village.gainHuntRes(huntCount);
                 this.setTrait();
-                storeForSummary('hunt', huntCount);
+                if (options.auto.cache.trait['manager']) {
+                    hunter = $I('village.trait.manager') + hunter;
+                    storeForSummary('hunt.manager', huntCount);
+                } else {
+                    storeForSummary('hunt', huntCount);
+                }
                 iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
 
                 var trueOutput = {};
@@ -2903,7 +2908,7 @@ var run = function() {
             // fix Cryochamber
             if (optionVals.fixCry.enabled && game.time.getVSU("usedCryochambers").val > 0) {
                 var fixed = 0;
-                var btn = this.game.timeTab.vsPanel.children[0].children[0]; //check?
+                var btn = game.timeTab.vsPanel.children[0].children[0]; //check?
                 // buyItem will check resources
                 while (btn.controller.buyItem(btn.model, {}, function() {})) {
                     fixed += 1;
@@ -2986,6 +2991,9 @@ var run = function() {
                         let hasTrait = game.village.traits.some(obj => obj.name === trait);
                         if (hasTrait) {
                             cache.trait[trait] = true;
+                            if (trait === 'engineer') {
+                                i18nData['zh']['summary.craft'] = '工匠制作了 {0} 个 {1}';
+                            }
                         }
                     }
                     if (!options.copyTrait) {
@@ -2996,7 +3004,6 @@ var run = function() {
                     copy['trait']['name'] = trait;
                     game.village.leader = null;
                     game.village.leader = copy;
-                    copy = null;
                 }
             } else if (options.copyTrait) {
                 game.village.leader.trait.name = options.copyTrait;
@@ -4111,7 +4118,7 @@ var run = function() {
 
             let leader = (options.auto.cache.trait['merchant']) ? '商人小猫与' : '小猫与';
             game.diplomacy.tradeMultiple(race, amount);
-            storeForSummary(race.title, amount, 'trade');
+            storeForSummary(leader + ' ' + race.title, amount, 'trade');
             iactivity('act.trade', [amount, leader + ucfirst(race.title)], 'ks-trade');
         },
         getProfitability: function (name) {
