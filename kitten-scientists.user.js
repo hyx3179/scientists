@@ -268,7 +268,7 @@ var run = function() {
             'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
             'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
             'act.observe': '小猫珂学家观测到一次天文现象',
-            'act.hunt': '派出 {0} 波{1}去打猎',
+            'act.hunt': ' {0} 波{1}去打猎',
             'act.hunt.unicorn': '小猫急着给独角兽配种',
             'act.build': '小猫建造了一个 {0}',
             'act.builds': '小猫建造了 {1} 个新的 {0}',
@@ -1054,7 +1054,6 @@ var run = function() {
         villageManager: undefined,
         cacheManager: undefined,
         loop: undefined,
-        huntId: undefined,
         start: function (msg = true) {
             options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
             if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
@@ -1109,16 +1108,6 @@ var run = function() {
             if (refresh > 0)                                                                {game.resPool.update();}
             if (refresh > 1)                                                                {setTimeout(()=>game.ui.render(),333);}
             if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
-        },
-        halfInterval: async function () {
-            return new Promise(() => {
-                this.huntId = setTimeout(() => {
-                    engine.hunt();
-                }, Math.floor(options.interval / 2));
-            });
-        },
-        setHunt: async function () {
-            await this.halfInterval();
         },
         reset: async function () {
 
@@ -1541,8 +1530,7 @@ var run = function() {
                 iactivity('act.distribute.catnip', [], 'ks-distribute');
                 iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
                 storeForSummary('catnip', 1);
-                refreshRequired += 2;
-                return refreshRequired;
+                return 2;
             }
 
             var jobName = '';
@@ -2481,12 +2469,13 @@ var run = function() {
                     if (id == 'academy' || id == 'pasture'|| id == 'barn' || id == 'harbor' || id == 'smelter' || id == 'library') {
                         let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
                         if (renaissance || vitruvianFeline) {
-                            let minerals = (game.resPool.resourceMap['minerals'].maxValue * 0.94 < game.resPool.resourceMap['minerals'].value);
-                            let wood = (game.resPool.resourceMap['wood'].maxValue * 0.94 < game.resPool.resourceMap['wood'].value);
-                            if (minerals || (!orbitalGeodesy && game.bld.get(id).val > 2) || wood) {
+                            let minerals = (game.resPool.resourceMap['minerals'].value < game.resPool.resourceMap['minerals'].maxValue * 0.94);
+                            let wood = (game.resPool.resourceMap['wood'].value < game.resPool.resourceMap['wood'].maxValue * 0.94);
+                            if (minerals && wood && !orbitalGeodesy && game.bld.get(id).val > 2) {
                                 halfCount = true;
                                 let lower = options.auto.build.lower;
                                 if (!lower) {
+                                    options.auto.build.lower = true;
                                     iactivity('act.build.lower');
                                 }
                             }
@@ -2642,7 +2631,6 @@ var run = function() {
             }
         },
         hunt: function () {
-            clearTimeout(this.huntId);
             var manpower = this.craftManager.getResource('manpower');
             if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
@@ -2680,12 +2668,13 @@ var run = function() {
                 game.village.gainHuntRes(huntCount);
                 this.setTrait();
                 if (options.auto.cache.trait['manager']) {
+                    iactivity('act.hunt', ['管理者派出' + huntCount, hunter], 'ks-hunt');
                     hunter = $I('village.trait.manager') + hunter;
                     storeForSummary('hunt.manager', huntCount);
                 } else {
                     storeForSummary('hunt', huntCount);
+                    iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
                 }
-                iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
 
                 var trueOutput = {};
 
@@ -3004,7 +2993,9 @@ var run = function() {
                         }
                     }
                     if (!options.copyTrait) {
-                        options.copyTrait = game.village.leader.trait.name;
+                        let traitName = game.village.leader.trait.name;
+                        options.copyTrait = traitName;
+                        cache.trait[traitName] = true;
                     }
 
                     game.village.leader.trait.name = trait;
@@ -3648,16 +3639,49 @@ var run = function() {
                 }
             }
 
-            /*if (name === 'manuscript' && limited) {
-                //aboveTrigger
-                for (var i= 16, i < 18; i++) {
+            if (name === 'manuscript' && limited) {
+                for (var i = 16; i < 19;i++) {
                     let meta = game.science.meta[0].meta[i];
                     if (!meta.researched) {
-                        console.log(materials)
-                        //meta.prices[1].val /  ratio
+                        let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
+                        let autoMax = Math.ceil(meta.prices[1].val * craftPrices / ratio);
+                        let resVal = game.resPool.resourceMap['parchment'].value;
+                        if (resVal > autoMax * craftPrices) {
+                            aboveTrigger = true;
+                        }
                     }
                 }
-            }*/
+            }
+
+            if (name === 'compedium' && limited) {
+                for (var i = 19; i < 26;i++) {
+                    let meta = game.science.meta[0].meta[i];
+                    if (meta.researched) {
+                        if (meta.prices[1].name == name) {
+                            let autoMax = Math.ceil(meta.prices[1].val * 50 / ratio);
+                            let resVal = game.resPool.resourceMap['compedium'].value;
+                            if (resVal > autoMax * 50) {
+                                aboveTrigger = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (name === 'blueprint' && limited) {
+                for (var i = 30; i < 44;i++) {
+                    let meta = game.science.meta[0].meta[i];
+                    if (meta.researched) {
+                        if (meta.prices[1].name == name) {
+                            let autoMax = Math.ceil(meta.prices[1].val * 25 / ratio);
+                            let resVal = game.resPool.resourceMap['compedium'].value;
+                            if (resVal > autoMax * 25) {
+                                aboveTrigger = true;
+                            }
+                        }
+                    }
+                }
+            }
 
             let useRatio = this.getLimRat(name, limited, limRat);
 
