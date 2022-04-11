@@ -268,7 +268,7 @@ var run = function() {
             'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
             'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
             'act.observe': '小猫珂学家观测到一次天文现象',
-            'act.hunt': ' {0} 波{1}去打猎',
+            'act.hunt': '{0} 波{1}去打猎',
             'act.hunt.unicorn': '小猫急着给独角兽配种',
             'act.build': '小猫建造了一个 {0}',
             'act.builds': '小猫建造了 {1} 个新的 {0}',
@@ -4288,9 +4288,10 @@ var run = function() {
             return Math.floor(amount);
         },
         getMaterials: function (name) {
+            let modifier = (game.challenges.isActive("postApocalypse")) ? game.bld.getPollutionLevel() : 1;
             var materials = {
-                manpower: 50 - game.getEffect("tradeCatpowerDiscount"),
-                gold: 15 - game.getEffect("tradeGoldDiscount")
+                manpower: modifier * (50 - game.getEffect("tradeCatpowerDiscount")),
+                gold: modifier * (15 - game.getEffect("tradeGoldDiscount"))
             };
 
             if (name === undefined) {return materials;}
