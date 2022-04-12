@@ -293,9 +293,9 @@ var run = function() {
 
 			'act.praise': '赞美太阳! 转化 {0} 信仰为 {1} 虔诚',
 			'act.praise.msg': '因虔诚太低，小猫每天都会赞美太阳，直到太阳革命加成大于 {0}',
-			'act.sun.discover': '小猫宗教 {0} 方面获得演化',
-			'act.sun.discovers': '小猫宗教 {0} 方面获得演化 {1} 次',
-			'act.sun.discovers.leader': '宗教 {0} 在哲学家领袖降价下获得演化 {1} 次',
+			'act.sun.discover': '小猫在宗教祷告了 {0} ',
+			'act.sun.discovers': '小猫在宗教祷告了 {0} {1} 次',
+			'act.sun.discovers.leader': '哲学家小猫在宗教祷告了 {0} {1} 次',
 
 			'ui.items': '项目',
 			'ui.disable.all': '全部禁用',
@@ -491,12 +491,12 @@ var run = function() {
 			'summary.hunt.manager': '管理者领袖派出了 {0} 批可爱的小猫',
 			'summary.embassy': '设立了 {0} 个大使馆',
 			'summary.feed': '向上古神献祭 {0} 只死灵兽',
-			'summary.tech': '掌握了 {0}',
-			'summary.upgrade': '发明了 {0}',
+			'summary.tech': '{0}',
+			'summary.upgrade': '{0}',
 			'summary.building': '建造了 {0} 个 {1}',
-			'summary.sun': '在宗教 {1} 方面演化 {0} 次',
-			'summary.craft': '制作了 {0} 个 {1}',
-			'summary.craft.en': '制作了 {0} 个 {1}',
+			'summary.sun': '{1} {0} 次',
+			'summary.craft': '制作了{0} 个 {1}',
+			'summary.craftLeader': '工匠制作了 {0} 个 {1}',
 			'summary.trade': '{1} 贸易了 {0} 次',
 			'summary.year': '年',
 			'summary.years': '年',
@@ -1094,7 +1094,7 @@ var run = function() {
 			if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
 			if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
 			if (options.auto.craft.enabled)                                                 {this.craft();}
-			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {huntID = setTimeout(()=>this.hunt(),1000);}
+			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.huntID = setTimeout(()=>this.hunt(),1000);}
 			if (options.auto.trade.enabled)                                                 {this.trade();}
 			if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
 			if (options.auto.time.enabled)                                                  {refresh += ~~this.chrono();}
@@ -1105,7 +1105,7 @@ var run = function() {
 			if (options.copyTrait)                                                          {this.setTrait();}
 			if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
 			if (refresh > 0)                                                                {game.resPool.update();}
-			if (refresh > 1)                                                                {renderID = setTimeout(()=>game.ui.render(),333);}
+			if (refresh > 1)                                                                {this.renderID = setTimeout(()=>game.ui.render(),333);}
 			if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
 		},
 		reset: async function () {
@@ -1520,9 +1520,9 @@ var run = function() {
 			var freeKittens = game.village.getFreeKittens();
 			if (!freeKittens) {
 				return refreshRequired;
-			} else if (false && farmer.enabled && agriculture && nomalWinterCatnip && game.village.sim.kittens.length) {
+			} /*else if (false && farmer.enabled && agriculture && nomalWinterCatnip && game.village.sim.kittens.length) {
 				game.village.sim.removeJob('woodcutter');
-			}
+			}*/
 
 			var catnipRatio = (game.resPool.get("catnip").value < game.resPool.get("catnip").maxValue);
 			var catnipValue = (game.resPool.get("catnip").value - (1700 * game.village.happiness * game.resPool.get("kittens").value) < 0 || freeKittens <= 2);
@@ -1655,7 +1655,7 @@ var run = function() {
 					} else {
 						let buttonPrices = dojo.clone(btn.prices);
 						let tearNeed;
-						for (var i = 0; i < buttonPrices.length; i++) {
+						for (i = 0; i < buttonPrices.length; i++) {
 							buttonPrices[i].val = buttonPrices[i].val * Math.pow(1.15, btn.on);
 							if (buttonPrices[i].name == 'tears') {
 								tearNeed = buttonPrices[i].val;
@@ -1712,7 +1712,7 @@ var run = function() {
 			var worship = game.religion.faith;
 			var epiphany = game.religion.faithRatio;
 			var maxSolarRevolution = 10 + game.getEffect("solarRevolutionLimit");
-			var adoreTrigger = (option.adore.subTrigger == 0.001) ? Math.min(0.0005*Math.pow(Math.E,0.65*tt), 0.375) : option.adore.subTrigger;
+			var adoreTrigger = (option.adore.subTrigger == 0.001) ? Math.min(0.0005 * Math.pow(Math.E,0.65 * tt), 0.375) : option.adore.subTrigger;
 			var triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
 			var epiphanyInc = worship / 1000000 * (tt + 1) * (tt + 1) * 1.01;
 			var epiphanyAfterAdore = epiphany + epiphanyInc;
@@ -1772,7 +1772,7 @@ var run = function() {
 							game.religion.transcendenceTier += 1;
 							var atheism = game.challenges.getChallenge("atheism");
 							atheism.calculateEffects(atheism, game);
-							var blackObelisk = game.religion.getTU("blackObelisk");
+							blackObelisk = game.religion.getTU("blackObelisk");
 							blackObelisk.calculateEffects(blackObelisk, game);
 							game.msg($I("religion.transcend.msg.success", [game.religion.transcendenceTier]));
 							// ========================================================================================================
@@ -2472,7 +2472,7 @@ var run = function() {
 
 					count = (game.religion.getRU('solarRevolution').on && !atheism) ? buildList[i].count : Math.ceil(buildList[i].count / 3);
 
-					if (id == 'academy' || id == 'pasture'|| id == 'barn' || id == 'harbor' || id == 'library') {
+					if (id == 'academy' || id == 'pasture' || id == 'barn' || id == 'harbor' || id == 'library') {
 						let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
 						if (renaissance || vitruvianFeline) {
 							let minerals = (game.resPool.resourceMap['minerals'].value < game.resPool.resourceMap['minerals'].maxValue * 0.94);
@@ -2584,7 +2584,7 @@ var run = function() {
 
 				// Craft the resource if we meet the trigger requirement
 				if (!require || trigger <= require.value / require.maxValue) {
-					let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name =='steel') ? false : true;
+					let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name == 'steel') ? false : true;
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, aboveTrigger);
 				} else if (craft.limited) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
@@ -2988,27 +2988,19 @@ var run = function() {
 			if (trait) {
 				if (game.science.get('civil').researched && !game.challenges.isActive("anarchy") && game.village.leader) {
 					let cache = options.auto.cache;
-					let msg;
 					if (!cache.trait[trait]) {
 						let hasTrait = game.village.traits.some(obj => obj.name === trait);
 						if (hasTrait) {
 							cache.trait[trait] = true;
-							msg = true;
 						}
 					}
 					if (!options.copyTrait) {
 						let traitName = game.village.leader.trait.name;
 						options.copyTrait = traitName;
 						cache.trait[traitName] = true;
-						msg = true;
 					}
-					game.village.leader.trait.name = trait;  
 
-					if (msg) {
-						if (cache.trait['engineer']) {
-							i18nData['zh']['summary.craft'] = '工匠制作了 {0} 个 {1}';
-						}
-					}
+					game.village.leader.trait.name = trait;  
 				}
 			} else if (options.copyTrait) {
 				game.village.leader.trait.name = options.copyTrait;
@@ -3042,7 +3034,7 @@ var run = function() {
 			var transcendenceReached = game.religion.getRU("transcendence").on;
 			var tt = transcendenceReached ? game.religion.transcendenceTier : 0;
 			if (value) {
-				tt +=1;
+				tt += 1;
 			}
 			var epiphany = game.religion.faithRatio;
 			var epiphanyInc = game.religion.faith / 1000000 * (tt + 1) * (tt + 1) * 1.01;
@@ -3055,7 +3047,7 @@ var run = function() {
 					catnipTick += catnipTick * Math.max(game.village.happiness * (1 + game.getEffect("hapinnessConsumptionRatio")) - 1, 0) * (1 + game.getEffect("catnipDemandWorkerRatioGlobal"));
 				}
 				var solarRevolutionRatio = 1 + game.religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
-				catnipTick = ((game.resPool.get('catnip').perTickCached - catnipTick) * (1 + solarRevolutionAdterAdore) / solarRevolutionRatio) + catnipTick+game.globalEffectsCached.catnipPerTickCon;
+				catnipTick = ((game.resPool.get('catnip').perTickCached - catnipTick) * (1 + solarRevolutionAdterAdore) / solarRevolutionRatio) + catnipTick + game.globalEffectsCached.catnipPerTickCon;
 			}
 			if (catnipTick < 0) {
 				let optionFaith = options.auto.faith;
@@ -3237,8 +3229,8 @@ var run = function() {
 			if (amount === 0) {return;}
 
 			if (variant === "s") {
-				storeForSummary(label, amount, 'faith');
-				if (options.auto.cache['wise']) {
+				if (options.auto.cache.trait['wise']) {
+					storeForSummary('哲学家小猫祷告了 ' + label, amount, 'faith');
 					return iactivity('act.sun.discovers.leader', [label, amount], 'ks-faith');
 				}
 				if (amount === 1) {
@@ -3246,6 +3238,7 @@ var run = function() {
 				} else {
 					iactivity('act.sun.discovers', [label, amount], 'ks-faith');
 				}
+				storeForSummary('小猫祷告了 ' + label, amount, 'faith');
 			} else {
 				storeForSummary(label, amount, 'build');
 				if (amount === 1) {
@@ -3400,10 +3393,10 @@ var run = function() {
 			//let scientist = options.auto.cache.trait['scientist']
 			let leader = (options.auto.cache.trait['scientist']) ? '科学家小猫' : '小猫';
 			if (variant === 'workshop') {
-				storeForSummary(label, 1, 'upgrade');
+				storeForSummary(leader + "掌握了 " + label, 1, 'upgrade');
 				iactivity('upgrade.upgrade', [label, leader], 'ks-upgrade');
 			} else if (variant === 'science') {
-				storeForSummary(label, 1, 'research');
+				storeForSummary(leader + "发明了 " + label, 1, 'research');
 				iactivity('upgrade.tech', [label, leader], 'ks-research');
 			} else if (variant === 'policy') {
 				iactivity('upgrade.policy', [label]);
@@ -3571,7 +3564,11 @@ var run = function() {
 			amount = (amount * (1 + ratio)).toFixed(2);
 
 			let leader = (options.auto.cache.trait['engineer']) ? '工匠小猫制作了 ' : '小猫制作了 ';
-			storeForSummary(iname, amount, 'craft');
+			if (options.auto.cache.trait['engineer']) {
+				storeForSummary(iname, amount, 'craftLeader');
+			} else {
+				storeForSummary(iname, amount, 'craft');
+			}
 			iactivity('act.craft', [leader + game.getDisplayValueExt(amount), iname], 'ks-craft');
 		},
 		canCraft: function (name, amount) {
@@ -3625,6 +3622,7 @@ var run = function() {
 			var amount = Number.MAX_VALUE;
 			var autoMax = Number.MAX_VALUE;
 			var materials = this.getMaterials(name);
+            var i;
 
 			var craft = this.getCraft(name);
 			var ratio = game.getResCraftRatio(craft.name);
@@ -3652,7 +3650,7 @@ var run = function() {
 			}
 
 			if (name === 'manuscript' && limited) {
-				for (var i = 16; i < 19; i++) {
+				for (i = 16; i < 19; i++) {
 					let meta = game.science.meta[0].meta[i];
 					if (!meta.researched) {
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
@@ -3667,7 +3665,7 @@ var run = function() {
 			}
 
 			if (name === 'compedium' && limited && game.science.get('navigation').researched) {
-				for (var i = 19; i < 26; i++) {
+				for (i = 19; i < 26; i++) {
 					let meta = game.science.meta[0].meta[i];
 					if (!meta.researched) {
 						if (meta.prices[1].name == name) {
@@ -3683,7 +3681,7 @@ var run = function() {
 			}
 
 			if (name === 'blueprint' && limited && game.prestige.getPerk('vitruvianFeline').researched) {
-				for (var i = 30; i < 44; i++) {
+				for (i = 30; i < 44; i++) {
 					let meta = game.science.meta[0].meta[i];
 					if (!meta.researched) {
 						if (meta.prices[1].name == name) {
@@ -3700,7 +3698,7 @@ var run = function() {
 
 			let useRatio = this.getLimRat(name, limited, limRat);
 
-			for (var i in materials) {
+			for (i in materials) {
 				var delta = undefined;
 				let resValue = this.getValueAvailable(name, true);
 				let material = materials[i];
@@ -4228,7 +4226,7 @@ var run = function() {
 				var shipCount = game.resPool.get("ship").value;
 				var zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
 				var titanProb = Math.min(0.15 + shipCount * 0.0035, 1);
-				let modifier = (shipCount < 230) ? Math.log(shipCount) * shipCount * 0.00084 - 0.01: 1;
+				let modifier = (shipCount < 230) ? Math.log(shipCount) * shipCount * 0.00084 - 0.01 : 1;
 				output["titanium"] = (1.5 + shipCount * 0.03) * (1 + zebraRelationModifierTitanium) * titanProb * successRat * modifier;
 			}
 
@@ -5214,7 +5212,7 @@ var run = function() {
 				var value;
 				engine.stop(false);
 				if (toggleName === 'faith') {
-					value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title")+ ")"]), auto.trigger);
+					value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title") + ")"]), auto.trigger);
 				} else if (toggleName === 'trade') {
 					value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"] ), auto.trigger);
 				} else {
@@ -6068,14 +6066,14 @@ var run = function() {
 			var input = element.children('input');
 			input.on('click', function () {
 				var a = confirm(i18n('ui.trigger.useWorkers.alert'));
-				if (a==true && option.enabled == false) {
+				if (a == true && option.enabled == false) {
 					engine.stop();
 					option.enabled = true;
 					kittenStorage.items[input.attr('id')] = option.enabled;
 					if (options.auto.engine.enabled) {
 						engine.start();
 					}
-				} else if (a ==true && option.enabled == true) {
+				} else if (a == true && option.enabled == true) {
 					engine.stop();
 					option.enabled = false;
 					kittenStorage.items[input.attr('id')] = option.enabled;
@@ -6122,7 +6120,7 @@ var run = function() {
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
-				if (b && b.length >=10) {
+				if (b && b.length >= 10) {
 					if (b.charAt(0) !== "{") {
 						var ksSave = JSON.parse(LZString.decompressFromBase64(b));
 					}
@@ -6163,9 +6161,9 @@ var run = function() {
 				saveToKittenStorage();
 				var style = document.getElementById('ks-donate').style;
 				if (!option.enabled) {
-					style.display='none';
+					style.display = 'none';
 				} else {
-					style.display='block';
+					style.display = 'block';
 				}
 				style = null;
 			});
@@ -6551,6 +6549,10 @@ var run = function() {
 		// Crafts
 		for (var name in activitySummary.craft) {
 			isummary('summary.craft', [game.getDisplayValueExt(activitySummary.craft[name]), ucfirst(name)]);
+		}
+
+		for (var name in activitySummary.craftLeader) {
+			isummary('summary.craftLeader', [game.getDisplayValueExt(activitySummary.craftLeader[name]), ucfirst(name)]);
 		}
 
 		// Trading
