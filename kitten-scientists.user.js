@@ -3055,12 +3055,12 @@ var run = function() {
 					options.auto.distribute.religion = true;
 				}
 				// 次元超越猫薄荷
-				if (value && optionFaith.transcendCatnip < 10) {
+				if (value && optionFaith.transcendCatnip < 98) {
 					iactivity('transcend.catnip');
 					optionFaith.transcendCatnip += 1;
 				}
 				// 赞美群星猫薄荷
-				if (!value && options.auto.faith.adoreCatnip < 10) {
+				if (!value && options.auto.faith.adoreCatnip < 98) {
 					iactivity('adore.catnip');
 					optionFaith.adoreCatnip += 1;
 				}
@@ -3622,10 +3622,11 @@ var run = function() {
 			var amount = Number.MAX_VALUE;
 			var autoMax = Number.MAX_VALUE;
 			var materials = this.getMaterials(name);
+			let resValue = this.getValueAvailable(name, true);
             var i;
 
 			var craft = this.getCraft(name);
-			var ratio = game.getResCraftRatio(craft.name);
+			var ratio = game.getResCraftRatio(craft.name) + 1;
 			var trigger = options.auto.craft.trigger;
 			var optionVal = options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
 			var optionShipVal = options.auto.options.items.shipOverride.subTrigger;
@@ -3636,27 +3637,30 @@ var run = function() {
 
 			if (name === 'steel' && limited && options.auto.craft.items['plate'].enabled) {
 				var plateRatio = game.getResCraftRatio("plate");
-				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / ((ratio + 1) / 100)) {
+				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
 					return 0;
 				}
 			} else if (name === 'plate' && limited && options.auto.craft.items['steel'].enabled) {
 				var steelRatio = game.getResCraftRatio("steel");
 				if (game.getResourcePerTick('coal', true) > 0) {
-					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > ((ratio + 1) / 125) / ((steelRatio + 1) / 100)) {
+					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > (ratio / 125) / ((steelRatio + 1) / 100)) {
 						var ironInTime = ((this.getResource('coal').maxValue * trigger - this.getValue('coal')) / game.getResourcePerTick('coal', true)) * Math.max(game.getResourcePerTick('iron', true), 0);
 						autoMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
 					}
 				}
 			}
 
+			let res = game.resPool.resourceMap;
+			let gScience = game.science;
+			let scienceMeta = gScience.meta[0];
 			if (name === 'manuscript' && limited) {
 				for (i = 16; i < 19; i++) {
-					let meta = game.science.meta[0].meta[i];
+					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
-						let autoMax = Math.ceil(meta.prices[1].val * craftPrices / ratio);
-						let resVal = game.resPool.resourceMap['parchment'].value;
-						if (resVal > autoMax * craftPrices) {
+						let autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio) * craftPrices;
+						let resVal = res['parchment'].value;
+						if (resVal > autoMax && autoMax >= 1) {
 							force = true;
 							break;
 						}
@@ -3664,14 +3668,14 @@ var run = function() {
 				}
 			}
 
-			if (name === 'compedium' && limited && game.science.get('navigation').researched) {
-				for (i = 19; i < 26; i++) {
-					let meta = game.science.meta[0].meta[i];
+			if (name === 'compedium' && limited && gScience.get('navigation').researched) {
+				for (i = 19; i < 27; i++) {
+					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
 						if (meta.prices[1].name == name) {
-							let autoMax = Math.ceil(meta.prices[1].val * 50 / ratio);
-							let resVal = game.resPool.resourceMap['compedium'].value;
-							if (resVal > autoMax * 50) {
+							let autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio) * 50;
+							let resVal = res['manuscript'].value;
+							if (resVal > autoMax && autoMax >= 1) {
 								force = true;
 								break;
 							}
@@ -3680,14 +3684,14 @@ var run = function() {
 				}
 			}
 
-			if (name === 'blueprint' && limited && game.prestige.getPerk('vitruvianFeline').researched) {
+			if (name === 'blueprint' && limited && scienceMeta.meta[26].researched && game.prestige.getPerk('vitruvianFeline').researched) {
 				for (i = 30; i < 44; i++) {
-					let meta = game.science.meta[0].meta[i];
+					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
 						if (meta.prices[1].name == name) {
-							let autoMax = Math.ceil(meta.prices[1].val * 25 / ratio);
-							let resVal = game.resPool.resourceMap['compedium'].value;
-							if (resVal > autoMax * 25) {
+							let autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio) * 25;
+							let resVal = res['compedium'].value;
+							if (resVal > autoMax && autoMax >= 1) {
 								force = true;
 								break;
 							}
@@ -3700,7 +3704,6 @@ var run = function() {
 
 			for (i in materials) {
 				var delta = undefined;
-				let resValue = this.getValueAvailable(name, true);
 				let material = materials[i];
 				if (!limited || aboveTrigger || force) {
 					// If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
@@ -3710,7 +3713,7 @@ var run = function() {
 					// Currently this determines the amount of resources that can be crafted such that base materials are proportionally distributed across limited resources.
 					// This base material distribution is governed by limRat "limited ratio" which defaults to 0.5, corresponding to half of the possible components being further crafted.
 					// If this were another value, such as 0.75, then if you had 10000 beams and 0 scaffolds, 7500 of the beams would be crafted into scaffolds.
-					delta = useRatio * ((this.getValueAvailable(i, true) + (material / (1 + ratio)) * resValue) / material) - (resValue / (1 + ratio));
+					delta = useRatio * ((this.getValueAvailable(i, true) + (material / ratio) * resValue) / material) - (resValue / ratio);
 				}
 
 				amount = Math.min(delta, amount, autoMax);
@@ -3720,11 +3723,11 @@ var run = function() {
 			// this value. This should currently only impact wood crafting, but is
 			// written generically to ensure it works for any craft that produces a
 			// good with a maximum value.
-			let res = game.resPool.resourceMap[name];
-			if (res.maxValue > 0 && amount > (res.maxValue - res.value)) {amount = res.maxValue - res.value;}
+
+			if (res[name].maxValue > 0 && amount > (res[name].maxValue - res[name].value)) {amount = res[name].maxValue - res[name].value;}
 
 			if (limited && !force) {
-				amount *= Math.max(Math.min(Math.log(ratio), 1), 0.2);
+				amount *= Math.max(Math.min(Math.log(ratio - 1), 1), 0.2);
 			}
 
 			return amount;
