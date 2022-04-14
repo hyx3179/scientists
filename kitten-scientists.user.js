@@ -2369,7 +2369,7 @@ var run = function() {
 				var steamW = test['steamworks'];
 				if (!game.challenges.isActive("pacifism") && !game.bld.get('magneto').val) {
 					if (steamW.auto === false && game.bld.get('steamworks').unlocked && steamW.enabled) {
-						iactivity('summary.auto.steamworks', [], 'ks-build');
+						//iactivity('summary.auto.steamworks', [], 'ks-build');
 						storeForSummary('auto.steamworks');
 						steamW.enabled = false;
 					}
@@ -2391,7 +2391,7 @@ var run = function() {
 				let faithMeta = game.resPool.resourceMap['faith'];
 				var tf = function () {
 					if (!tradepost.auto) {
-						iactivity('summary.auto.tradepost', [], 'ks-build');
+						//iactivity('summary.auto.tradepost', [], 'ks-build');
 						storeForSummary('auto.tradepost');
 						tradepost.max = 10;
 					}
@@ -2408,7 +2408,7 @@ var run = function() {
 				if (!solarMeta.on && !atheism) {
 					if (unlocked && options.auto.faith.items.solarRevolution.enabled && faithMeta.maxValue > 750 ) {
 						if (!temple.auto && game.science.get('philosophy').researched) {
-							iactivity('summary.auto.temple', [], 'ks-build');
+							//iactivity('summary.auto.temple', [], 'ks-build');
 							storeForSummary('auto.temple');
 							temple.auto = temple.max;
 							temple.max = 0;
@@ -2439,7 +2439,7 @@ var run = function() {
 				let titaniumMore = (orbitalGeodesy || shipVal > 600);
 				if (!geodesy) {
 					if (!mansion.auto && !blackSky && archeology) {
-						iactivity('summary.auto.mansion', [], 'ks-build');
+						//iactivity('summary.auto.mansion', [], 'ks-build');
 						storeForSummary('auto.mansion');
 						mansion.auto = mansion.max;
 						mansion.max = 0;
@@ -2456,7 +2456,7 @@ var run = function() {
 
 				if (!titaniumMore) {
 					if (broadcastTower && game.science.get('electronics').researched) {
-						iactivity('summary.auto.broadcastTower', [], 'ks-build');
+						//iactivity('summary.auto.broadcastTower', [], 'ks-build');
 						storeForSummary('auto.broadcastTower');
 						broadcastTower.max = 3;
 					}
