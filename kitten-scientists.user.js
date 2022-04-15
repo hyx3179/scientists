@@ -486,6 +486,9 @@ var run = function() {
 			'summary.breweryOn': '节日开始了，小猫开启了 {0} 个酿酒厂庆祝节日',
 			'summary.breweryOff': '节日结束了，小猫担心浪费资源关闭了 {0} 个酿酒厂',
 			'summary.brewery': '小猫根据节日调整了 {0} 次酿酒厂',
+            'summary.chronocontrolOn': '小猫开启了时间操纵延长时间悖论的持续天数',
+            'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
+            'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
 			'summary.festival': '举办了 {0} 次节日',
 			'summary.stars': '观测了 {0} 次天文事件',
 			'summary.praise': '通过赞美太阳积累了 {0} 虔诚',
@@ -2923,6 +2926,22 @@ var run = function() {
 					game.time.testShatter = 1;
 					iactivity('summary.temporalAccelerator');
 					storeForSummary('temporalAccelerator');
+				}
+				// 仅悖论季节开启时间操纵
+				var chronocontrol = game.time.getVSU("chronocontrol");
+				if (chronocontrol.val > 0) {
+					var TemporalParadox = game.calendar.futureSeasonTemporalParadox;
+					var currentDay = game.calendar.day;
+					var cB = this.timeManager.getBuildButton("chronocontrol");
+					if (TemporalParadox == -1 && currentDay > 98) {
+						cB.controller.onAll(cB.model);
+						iactivity('summary.chronocontrolOn');
+						storeForSummary('chronocontrol');
+					} else if (chronocontrol.on && currentDay > 0) {
+						cB.controller.offAll(cB.model);
+						iactivity('summary.chronocontrolOff');
+						storeForSummary('chronocontrol');
+					}
 				}
 				// 缺电
 				if (game.resPool.energyWinterProd && game.resPool.energyWinterProd < game.resPool.energyCons) {
