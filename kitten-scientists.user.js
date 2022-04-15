@@ -2367,10 +2367,11 @@ var run = function() {
 						mint.enabled = false;
 					}
 				}
+				//日志函数
 				let msg = (build, clean)=> {
 					if (!clean) {
 						if (!activitySummary.other['auto.' + build]) {
-							iactivity('summary.auto.' + build, []/*, 'ks-build'*/);
+							iactivity('summary.auto.' + build, [], 'ks-build');
 							storeForSummary('auto.' + build);
 						}
 					} else {
@@ -2443,7 +2444,6 @@ var run = function() {
 						msg('mansion', true);
 					}
 				}
-
 				if (!titaniumMore) {
 					if (broadcastTower && game.science.get('electronics').researched) {
 						msg('broadcastTower');
@@ -4239,7 +4239,7 @@ var run = function() {
 			var cost = 0;
 			for (var mat in materials) {
 				var tick = this.craftManager.getTickVal(this.craftManager.getResource(mat));
-				if ((mat == 'gold'|| mat == 'manpower') && game.workshop.get('geodesy').researched) {tick *= 1.3;}
+				if ((mat == 'gold'|| mat == 'manpower') && game.workshop.get('geodesy').researched) {tick *= 2;}
 				if (tick <= 0) {return false;}
 				cost += materials[mat] / tick;
 			}
