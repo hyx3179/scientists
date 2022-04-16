@@ -2405,7 +2405,7 @@ var run = function() {
 				var unlocked = game.religion.faith > solarMeta.faith;
 				let faithMeta = game.resPool.resourceMap['faith'];
 				if (!theology && game.science.get('philosophy').researched) {
-					temple.max = (faithMeta > 750) ? 0 : 1
+					temple.max = (faithMeta > 750) ? 0 : 1;
 					tradepost.max = 12;
 					msg('tradepost');
 				}
@@ -2419,13 +2419,9 @@ var run = function() {
 							tradepost.max = 12;
 						}
 					}
-				} else {
-					if (theology) {
-						msg('temple', true);
-					}
-					if (theology) {
-						msg('tradepost', true);
-					}
+				} else if (theology) {
+					msg('temple', true);
+					msg('tradepost', true);
 				}
 
 				// 广播塔 宅邸
@@ -2485,7 +2481,7 @@ var run = function() {
 			}
 
 			if (JSON.stringify(build2)!="{}") {
-				this.build(build2);
+				refreshRequired += this.build(build2);
 			}
 
 			return refreshRequired;
@@ -2901,14 +2897,17 @@ var run = function() {
 			
 			// auto turn on steamworks
 			if (game.village.maxKittens > 130 || game.stats.getStat("totalResets").val > 0) {
+				let msg = (name, number) => {
+					iactivity('summary.' + name, [number]);
+					storeForSummary(name, number);
+				}
 				// 自动打开蒸汽工房
 				var st = game.bld.getBuildingExt('steamworks').meta;
 				var ma = game.bld.getBuildingExt('magneto').meta;
 				if (st.val && st.on !== st.val && ma.on > 7) {
 					var stButton = buildManager.getBuildButton('steamworks');
 					stButton.controller.onAll(stButton.model);
-					iactivity('summary.steamworks');
-					storeForSummary('steamworks');
+					msg('steamworks');
 				}
 				// 自动打开反应堆
 				var re = game.bld.getBuildingExt('reactor').meta;
@@ -2916,16 +2915,14 @@ var run = function() {
 				if (re.val && re.on !== re.val && ur > 0) {
 					var reButton = buildManager.getBuildButton('reactor');
 					reButton.controller.onAll(reButton.model);
-					iactivity('summary.reactor');
-					storeForSummary('reactor');
+					msg('reactor');
 				}
 				// 自动打开时空加速器自动化
 				var timeA = game.time.getCFU("temporalAccelerator");
 				if (timeA.on && game.time.testShatter === 0){
 					timeA.isAutomationEnabled = true;
 					game.time.testShatter = 1;
-					iactivity('summary.temporalAccelerator');
-					storeForSummary('temporalAccelerator');
+					msg('temporalAccelerator');
 				}
 				// 仅悖论季节开启时间操纵
 				var chronocontrol = game.time.getVSU("chronocontrol");
@@ -2956,8 +2953,7 @@ var run = function() {
 					let oilWell = game.bld.getBuildingExt('oilWell').meta;
 					if (oilWell.isAutomationEnabled && game.workshop.get('pumpjack').researched) {
 						oilWell.isAutomationEnabled = false;
-						iactivity('summary.pumpjack', [1]);
-						storeForSummary('pumpjack', 1);
+						msg('pumpjack', 1);
 					}
 				}
 				// 自动开关酿酒厂
@@ -3303,7 +3299,6 @@ var run = function() {
 			if (amount !== amountTemp) {warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);}
 			storeForSummary(label, amount, 'build');
 
-
 			if (amount === 1) {
 				iactivity('act.build', [label], 'ks-build');
 			} else {
@@ -3462,10 +3457,13 @@ var run = function() {
 			switch (id) {
 				case 'smelter':
 					if (game.workshopTab.visible) {break;}
+					// falls through
 				case 'library':
 					if (!game.science.get('writing').researched) {break;}
+					// falls through
 				case 'lumberMill':
 					if (game.resPool.resourceMap['gold'].value) {break;}
+					// falls through
 				case 'academy':
 				case 'pasture':
 				case 'barn':
