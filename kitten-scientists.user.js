@@ -242,7 +242,7 @@ var run = function() {
 			'option.observe': '观测天文现象',
 			'option.festival': '举办节日',
 			'option.praise': '赞美太阳',
-			'option.shipOverride': '强制贸易船',
+			'option.shipOverride': '无视贸易船限制',
 			'option.autofeed': '献祭死灵兽',
 			'option.hunt': '派出猎人',
 			'option.crypto': '黑币交易',
@@ -2900,7 +2900,7 @@ var run = function() {
 				let msg = (name, number) => {
 					iactivity('summary.' + name, [number]);
 					storeForSummary(name, number);
-				}
+				};
 				// 自动打开蒸汽工房
 				var st = game.bld.getBuildingExt('steamworks').meta;
 				var ma = game.bld.getBuildingExt('magneto').meta;
@@ -2924,7 +2924,7 @@ var run = function() {
 					game.time.testShatter = 1;
 					msg('temporalAccelerator');
 				}
-				// 仅悖论季节开启时间操纵
+				/* 仅悖论季节开启时间操纵
 				var chronocontrol = game.time.getVSU("chronocontrol");
 				if (chronocontrol.val > 0) {
 					var TemporalParadox = game.calendar.futureSeasonTemporalParadox;
@@ -2939,7 +2939,7 @@ var run = function() {
 						iactivity('summary.chronocontrolOff');
 						storeForSummary('chronocontrol');
 					}
-				}
+				}*/
 				// 缺电
 				if (game.resPool.energyWinterProd && game.resPool.energyWinterProd < game.resPool.energyCons) {
 					if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
