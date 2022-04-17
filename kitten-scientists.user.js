@@ -483,12 +483,12 @@ var run = function() {
 			'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
 			'summary.reactor': '小猫向反应堆投入了铀开始发光呐',
 			'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐',
-			'summary.breweryOn': '节日开始了，小猫开启了 {0} 个酿酒厂庆祝节日',
-			'summary.breweryOff': '节日结束了，小猫担心浪费资源关闭了 {0} 个酿酒厂',
+			'summary.breweryOn': '小猫开启了酿酒厂庆祝节日',
+			'summary.breweryOff': '小猫关闭了酿酒厂节省资源',
 			'summary.brewery': '小猫根据节日调整了 {0} 次酿酒厂',
-            'summary.chronocontrolOn': '小猫开启了时间操纵延长时间悖论的持续天数',
-            'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
-            'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
+			'summary.chronocontrolOn': '小猫开启了时间操纵延长时间悖论的持续天数',
+			'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
+			'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
 			'summary.festival': '举办了 {0} 次节日',
 			'summary.stars': '观测了 {0} 次天文事件',
 			'summary.praise': '通过赞美太阳积累了 {0} 虔诚',
@@ -2924,22 +2924,6 @@ var run = function() {
 					game.time.testShatter = 1;
 					msg('temporalAccelerator');
 				}
-				/* 仅悖论季节开启时间操纵
-				var chronocontrol = game.time.getVSU("chronocontrol");
-				if (chronocontrol.val > 0) {
-					var TemporalParadox = game.calendar.futureSeasonTemporalParadox;
-					var currentDay = game.calendar.day;
-					var cB = this.timeManager.getBuildButton("chronocontrol");
-					if (TemporalParadox == -1 && currentDay > 98) {
-						cB.controller.onAll(cB.model);
-						iactivity('summary.chronocontrolOn');
-						storeForSummary('chronocontrol');
-					} else if (chronocontrol.on && currentDay > 0) {
-						cB.controller.offAll(cB.model);
-						iactivity('summary.chronocontrolOff');
-						storeForSummary('chronocontrol');
-					}
-				}*/
 				// 缺电
 				if (game.resPool.energyWinterProd && game.resPool.energyWinterProd < game.resPool.energyCons) {
 					if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
@@ -2956,21 +2940,39 @@ var run = function() {
 						msg('pumpjack', 1);
 					}
 				}
-				// 自动开关酿酒厂
-				var brewery = game.bld.get('brewery');
-				var breweryButton = buildManager.getBuildButton('brewery');
-				if (breweryButton) {
-					if (game.calendar.festivalDays) {
-						let off = brewery.val - brewery.on;
-						if (off) {
-							breweryButton.controller.onAll(breweryButton.model);
-							iactivity('summary.breweryOn', [off]);
-							storeForSummary('brewery');
+				// 自动控制 时间操纵 酿酒厂 开关
+				var list = [{
+					name: 'brewery',
+					metadata: game.bld.get('brewery'),
+					Button: buildManager.getBuildButton('brewery'),
+					conditionOn: game.calendar.festivalDays,
+					conditionOff: game.bld.get('brewery').on,
+				}];
+				if (!gamePage.opts.enableRedshift) {
+					// 开启离线进度时不调整时间操纵
+					list.push({
+						name: 'chronocontrol',
+						metadata: game.time.getVSU('chronocontrol'),
+						Button: this.timeManager.getBuildButton('chronocontrol'),
+						conditionOn: game.calendar.futureSeasonTemporalParadox == -1 && game.calendar.day > 98,
+						conditionOff: game.time.getVSU('chronocontrol').on && game.calendar.day > 0,
+					});
+				}
+				for (let index = 0; index < list.length; index++) {
+					var element = list[index];
+					if (element.metadata.val > 0) {
+						if (element.conditionOn) {
+							let off = element.metadata.val - element.metadata.on;
+							if (off) {
+								element.Button.controller.onAll(element.Button.model);
+								iactivity('summary.' + element.name + 'On');
+								storeForSummary(element.name);
+							}
+						} else if (element.conditionOff) {
+							element.Button.controller.offAll(element.Button.model);
+							iactivity('summary.' + element.name + 'Off');
+							storeForSummary(element.name);
 						}
-					} else if (brewery.on) {
-						iactivity('summary.breweryOff', [brewery.on]);
-						breweryButton.controller.offAll(breweryButton.model);
-						storeForSummary('brewery');
 					}
 				}
 			}
