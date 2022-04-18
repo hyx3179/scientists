@@ -791,7 +791,7 @@ var run = function() {
 					accelerateTime:     {enabled: true,  subTrigger: 1,     misc: true, label: i18n('option.accelerate')},
 					timeSkip:           {enabled: true, subTrigger: 500,     misc: true, label: i18n('option.time.skip'), maximum: 1,
 						0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true,
-						spring: true, summer: false, autumn: false, winter: false, 
+						spring: true, summer: false, autumn: false, winter: false,
 						wait: false, adore: false, craft: false, moonMsg: -1},
 					reset:              {enabled: false, subTrigger: 99999, misc: true, label: i18n('option.time.reset')}
 				}
@@ -1214,7 +1214,7 @@ var run = function() {
 					}
 				}
 			}
-			if (check(this.religionManager.manager.tab.zgUpgradeButtons) || 
+			if (check(this.religionManager.manager.tab.zgUpgradeButtons) ||
 				check(this.religionManager.manager.tab.rUpgradeButtons) ||
 				check(this.religionManager.manager.tab.children[0].children[0].children) ||
 				checkList.length) {return;}
@@ -1383,7 +1383,7 @@ var run = function() {
 					var cycleEffects = game.calendar.cycleEffectsBasics({
 						unobtainiumPerTickSpace: 1
 					}, "moonOutpost")['unobtainiumPerTickSpace'];
-					// 平衡周期 
+					// 平衡周期
 					var calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50 ;
 					let cycleYear = game.calendar.cycleYear;
 					var tradeVal = unobtainiumTick * calendar / (cycleFestival * cycleEffects);
@@ -2342,7 +2342,7 @@ var run = function() {
 					steamworks:items['steamworks'],
 				};
 				items = Object.assign(important, items);
-				let optimize =['academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','biolab'];
+				let optimize = ['academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','biolab','accelerator'];
 				for (var item in items) {
 					if (optimize.indexOf(item) == -1) {
 						copyItem[item] = items[item];
@@ -2480,7 +2480,7 @@ var run = function() {
 				}
 			}
 
-			if (JSON.stringify(build2)!="{}") {
+			if (JSON.stringify(build2) != "{}") {
 				refreshRequired += this.build(build2);
 			}
 
@@ -2995,7 +2995,7 @@ var run = function() {
 						cache.trait[traitName] = true;
 					}
 
-					game.village.leader.trait.name = trait;  
+					game.village.leader.trait.name = trait;
 				}
 			} else if (options.copyTrait) {
 				game.village.leader.trait.name = options.copyTrait;
@@ -3375,7 +3375,7 @@ var run = function() {
 						return;
 					}
 				}
-			} 
+			}
 
 			//need to simulate a click so the game updates everything properly
 			button.model.prices = button.controller.getPrices(button.model);
@@ -3486,6 +3486,7 @@ var run = function() {
 						}
 					}
 					break;
+				case 'accelerator':
 				case 'broadcastTower':
 				case 'biolab':
 					if (!spaceManufacturing) {
@@ -3645,12 +3646,12 @@ var run = function() {
 			//let warehouseOpt = options.auto.build.warehouse;
 			//let maxVal = (warehouseOpt.enabled) ? 0 : warehouseOpt.max;
 			//if ( || maxVal != -1) {
-			//    
+			//
 			//}
 			//let crafts = options.auto.craft.items;
 			//if (options.auto.craft.items.beam.limited) {
 			//    let beamValue = this.getResource('beam').value;
-			//    
+			//
 			//    let price = build.prices[0].val;
 			//    let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
 			//    let buildRatio = currentRatio + game.getEffect("priceRatio");
@@ -3695,7 +3696,7 @@ var run = function() {
 			var optionShipVal = options.auto.options.items.shipOverride.subTrigger;
 			let res = game.resPool.resourceMap;
 			let shipValue = res['ship'].value;
-			let force = (name === 'ship' && optionVal &&  shipValue< optionShipVal);
+			let force = (name === 'ship' && optionVal && shipValue < optionShipVal);
 
 			// Safeguard if materials for craft cannot be determined.
 			if (!materials) {return 0;}
@@ -3713,7 +3714,7 @@ var run = function() {
 						autoMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
 					}
 				}
-				if (!shipValue && ratio > 4 && res['starchart'].value >=25) {
+				if (!shipValue && ratio > 4 && res['starchart'].value >= 25) {
 					autoMax = Number.MAX_VALUE;
 					force = true;
 				}
@@ -4112,7 +4113,7 @@ var run = function() {
 							var nextPriceCheck = (tempPool['oil'] < oilPrice * Math.pow(1.05, k + data.val));
 						} else if (cryoKarma) {
 							var nextPriceCheck = (tempPool['karma'] < karmaPrice * Math.pow(priceRatio, k + data.val));
-						} else {                           
+						} else {
 							// 检查无限
 							let price = prices[p].val * Math.pow(priceRatio, k + data.val);
 							var nextPriceCheck = (tempPool[prices[p].name] < price || price == Infinity);
@@ -4258,7 +4259,7 @@ var run = function() {
 			var cost = 0;
 			for (var mat in materials) {
 				var tick = this.craftManager.getTickVal(this.craftManager.getResource(mat));
-				if ((mat == 'gold'|| mat == 'manpower') && game.workshop.get('geodesy').researched) {tick *= 2;}
+				if ((mat == 'gold' || mat == 'manpower') && game.workshop.get('geodesy').researched) {tick *= 2;}
 				if (tick <= 0) {return false;}
 				cost += materials[mat] / tick;
 			}
@@ -4315,7 +4316,7 @@ var run = function() {
 			return output;
 		},
 		isValidTrade: function (item, race) {
-			return (!(item.minLevel && race.embassyLevel < item.minLevel) 
+			return (!(item.minLevel && race.embassyLevel < item.minLevel)
 			&& (game.resPool.get(item.name).unlocked || item.name === 'titanium' || item.name === 'uranium' || race.name === 'leviathans'));
 		},
 		getLowestTradeAmount: function (name, limited, trigConditions) {
@@ -6053,7 +6054,7 @@ var run = function() {
 			seasonsButton.on('click', function () {
 				cyclesList.toggle(false);
 				seasonsList.toggle();
-			});    
+			});
 
 			element.append(cyclesButton, seasonsButton, maximunButton, triggerButton, cyclesList, seasonsList);
 
@@ -6122,7 +6123,7 @@ var run = function() {
 	var getOptionsOption = function (name, option) {
 		var element = getOption(name, option);
 
-		// hack for style. 
+		// hack for style.
 		// If there are more UI options, split it to "getUIOption"
 		if (name == 'style') {
 			var input = element.children('input');
@@ -6771,7 +6772,7 @@ var run = function() {
 
 	loadFromKittenStorage();
 
-	// hack for style. 
+	// hack for style.
 	// If there are more UI options, split it to "updateUI"
 	$('#toggle-style').trigger('change');
 	$('#toggle-donate').trigger('change');
@@ -6809,7 +6810,7 @@ var run = function() {
 
 	var autoOpen = function() {
 		if (!options.auto.engine.enabled && options.auto.options.items.autoScientists.enabled) {
-				let countdown = (options.countdown); 
+				let countdown = (options.countdown);
 				if (countdown == 0) {
 					toggleEngine.click();
 					clearInterval(autoOpenTime);
