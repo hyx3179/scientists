@@ -2954,7 +2954,7 @@ var run = function() {
 						name: 'chronocontrol',
 						metadata: game.time.getVSU('chronocontrol'),
 						Button: this.timeManager.getBuildButton('chronocontrol'),
-						conditionOn: game.calendar.futureSeasonTemporalParadox == -1 && game.calendar.day > 98,
+						conditionOn: game.calendar.futureSeasonTemporalParadox < 1 && game.calendar.day > 98,
 						conditionOff: game.time.getVSU('chronocontrol').on && game.calendar.day > 0,
 					});
 				}
