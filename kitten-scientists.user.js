@@ -2898,6 +2898,7 @@ var run = function() {
 				var timeA = game.time.getCFU("temporalAccelerator");
 				if (timeA.on && game.time.testShatter === 0){
 					timeA.isAutomationEnabled = true;
+					game.upgrade({chronoforge: ['temporalAccelerator']});
 					game.time.testShatter = 1;
 					msg('temporalAccelerator');
 				}
@@ -2914,6 +2915,7 @@ var run = function() {
 					let oilWell = game.bld.getBuildingExt('oilWell').meta;
 					if (oilWell.isAutomationEnabled && game.workshop.get('pumpjack').researched) {
 						oilWell.isAutomationEnabled = false;
+						game.upgrade({buildings: ['oilWell']});
 						msg('pumpjack', 1);
 					}
 				}
