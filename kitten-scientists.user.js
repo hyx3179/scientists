@@ -959,6 +959,7 @@ var run = function() {
 				cache:    [],
 				cacheSum: {},
 				trait:    {},
+				upgrade:  {},
 			}
 		}
 	};
@@ -1097,7 +1098,7 @@ var run = function() {
 			if (options.auto.build.enabled)                                                 {refresh += ~~this.build();}
 			if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
 			if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
-			//updateCaches
+			if (JSON.stringify(options.auto.cache.upgarde) != "{}")                         {game.upgrade(options.auto.cache.upgarde);}
 			if (options.auto.craft.enabled)                                                 {this.craft();}
 			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.huntID = setTimeout(()=>this.hunt(),1000);}
 			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
@@ -4166,7 +4167,18 @@ var run = function() {
 					if (meta.updateEffects) {
 						meta.updateEffects(meta, game);
 					}
-					game.upgrade(meta.upgrades);
+					for(let i in meta.upgrades) {
+						let upgrade = options.auto.cache.upgrade[i];
+						if (!upgrade) {
+							options.auto.cache.upgrade[i] = [];
+						}
+						if (options.auto.cache.upgrade[i].indexOf(meta.upgrades[i]) == -1) {
+							for (let j in meta.upgrades[i]) {
+								options.auto.cache.upgrade[i].push(meta.upgrades[i][j]);
+							}
+						}
+					}
+					//game.upgrade(options.auto.cache.upgrade);
 				}
 			}
 			return counter;
