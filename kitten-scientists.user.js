@@ -306,7 +306,7 @@ var run = function() {
 			'ui.trigger.resource': '触发资源为',
 			'ui.none': '无',
 			'ui.limit': '限制',
-			'ui.upgradesLimit': '过滤',
+			'ui.upgradesLimit': '优选',
 			'ui.trigger.shipOverride.set': '输入一个新的 强制贸易船 触发值，\n贸易船数量低于触发条件时会无视工艺的贸易船限制启用。',
 			'ui.trigger.missions.set': '输入一个新的 探索星球 触发值,取值范围为 0 到 13 的整数。\n分别对应13颗星球。',
 			'ui.trigger.crypto.set': '输入一个新的 {0} 触发值，\n支持3个参数：-符号隔开数字参数\n第一个数字：当遗物数量大于触发值才会进行黑币交易\n第二个数字：买入的最高价（超过这价格就不会买了）\n第三个数字：卖出最低的价格。（低于这价格就不会卖出）\n默认10000-881-1060',
@@ -397,7 +397,7 @@ var run = function() {
 			'ui.max.set': '设置 {0} 的最大值',
 			'summary.distribute': '帮助 {0} 只猫猫找到工作',
 			'filter.distribute': '猫口分配',
-			'set.leader': '会自动切换 {0} 的领袖做对应的特质项目',
+			'set.leader': '会自动切换 {0}',
 
 			'option.promote': '提拔领袖',
 			'act.promote': '领袖被提拔到 {0} 级',
@@ -536,7 +536,7 @@ var run = function() {
 		return value;
 	};
 
-	var options = {
+	const options = {
 		// When debug is enabled, messages that go to the game log are also logged using window.console.
 		debug: false,
 		// The interval at which the internal processing loop is run, in milliseconds.
@@ -1098,7 +1098,7 @@ var run = function() {
 			if (options.auto.build.enabled)                                                 {refresh += ~~this.build();}
 			if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
 			if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
-			if (JSON.stringify(options.auto.cache.upgarde) != "{}")                         {game.upgrade(options.auto.cache.upgarde);}
+			if (refresh && options.auto.cache.upgrade)                                      {this.gameUpgrade();}
 			if (options.auto.craft.enabled)                                                 {this.craft();}
 			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.huntID = setTimeout(()=>this.hunt(),1000);}
 			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
@@ -1520,15 +1520,16 @@ var run = function() {
 				}
 			}
 
-			let farmer = options.auto.distribute.items.farmer;
+			let minerItem = options.auto.distribute.items.miner;
 			let agriculture = game.science.get("agriculture").researched;
 			let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 || game.village.jobs[1].value == 0);
 			var freeKittens = game.village.getFreeKittens();
+			let miner = game.village.jobs[4];
 			if (!freeKittens) {
 				return refreshRequired;
-			} /*else if (false && farmer.enabled && agriculture && nomalWinterCatnip && game.village.sim.kittens.length) {
+			} else if (minerItem.enabled && miner.unlocked && !miner.value && game.village.sim.kittens.length) {
 				game.village.sim.removeJob('woodcutter');
-			}*/
+			}
 
 			var catnipRatio = (game.resPool.get("catnip").value <= game.resPool.get("catnip").maxValue);
 			var catnipValue = (game.resPool.get("catnip").value - (1800 * game.village.happiness * game.resPool.get("kittens").value) < 0 || freeKittens > 1);
@@ -1558,8 +1559,8 @@ var run = function() {
 				if (val >= maxGame) {continue;}
 
 				var maxKS = (options.auto.distribute.items[name].max === -1) ? Number.MAX_VALUE : options.auto.distribute.items[name].max;
-				maxKS = (name == 'hunter' && game.getEffect('manpowerJobRatio') <= 0.5) ? 0 : maxKS;
-				maxKS = (name == 'hunter' && game.resPool.get("manpower").value <= 0.75) ? Math.floor(maxKS * 0.5) : maxKS;
+				maxKS = (name == 'hunter' && game.getEffect('manpowerJobRatio') < 0.5) ? 0 : maxKS;
+				maxKS = (name == 'hunter' && game.getEffect('manpowerJobRatio') <= 0.75) ? Math.floor(maxKS * 0.5) : maxKS;
 				var limited = options.auto.distribute.items[name].limited;
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
@@ -1995,7 +1996,8 @@ var run = function() {
 			this.setTrait('scientist');
 			//upgradeManager.workManager.render();
 			//upgradeManager.sciManager.render();
-			if (upgrades.upgrades.enabled && game.workshopTab.visible) {
+			if (upgrades.upgrades.enabled && game.bld.getBuildingExt('workshop').meta.on) {
+				if (!game.workshopTab.visible) {refreshRequired = 2;}
 				var work = game.workshop.upgrades;
 				let noup = [];
 				if (upgrades.upgrades.limited) {
@@ -2046,7 +2048,7 @@ var run = function() {
 					for (var resource of prices) {
 						if (craftManager.getValueAvailable(resource.name, true) < resource.val) {continue workLoop;}
 					}
-					//refreshRequired = true;
+					refreshRequired = 1;
 					upgradeManager.build(upg, 'workshop');
 				}
 			}
@@ -2073,7 +2075,7 @@ var run = function() {
 							continue techLoop;
 						}
 					}
-					//refreshRequired = true;
+					refreshRequired = 1;
 					upgradeManager.build(upg, 'science');
 				}
 			}
@@ -2383,8 +2385,8 @@ var run = function() {
 				let tradepost = copyItem['tradepost'];
 				var unlocked = game.religion.faith > solarMeta.faith;
 				let faithMeta = game.resPool.resourceMap['faith'];
-				if (!theology && game.science.get('philosophy').researched) {
-					temple.max = (faithMeta > 750) ? 0 : 1;
+				if (!theology && game.science.get('philosophy').researched && renaissance) {
+					temple.max =  Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
 					tradepost.max = 12;
 					msg('tradepost');
 				}
@@ -2397,7 +2399,7 @@ var run = function() {
 							temple.enabled = false;
 						}
 					}
-					tradepost.max = 16;
+					tradepost.max = 15;
 				} else if (theology) {
 					msg('temple', true);
 					msg('tradepost', true);
@@ -2536,8 +2538,8 @@ var run = function() {
 
 				// Craft the resource if we meet the trigger requirement
 				if (!require || trigger <= require.value / require.maxValue) {
-					let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name == 'steel') ? false : true;
-					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, aboveTrigger);
+					//let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name == 'steel') ? false : true;
+					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, true);
 				} else if (craft.limited) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
 				}
@@ -2958,6 +2960,13 @@ var run = function() {
 			}
 			return refreshRequired;
 		},
+		gameUpgrade: function () {
+			game.upgrade(options.auto.cache.upgrade);
+			//or (var i in options.auto.cache.upgrade) {
+			//	options.auto.cache.upgrade[i] = null;
+			//
+			options.auto.cache.upgrade = null;
+		},
 		setTrait: function (trait) {
 			if (trait) {
 				if (game.science.get('civil').researched && game.village.leader && !game.challenges.isActive("anarchy")) {
@@ -2966,7 +2975,7 @@ var run = function() {
 						let hasTrait = game.village.traits.some(obj => obj.name === trait);
 						if (hasTrait) {
 							cache.trait[trait] = true;
-							iactivity('set.leader', [$I('village.trait.' + trait)], 'ks-distribute');
+							activity(i18n('set.leader', [$I('village.trait.' + trait) + '的领袖，其效果为：' + $I('village.bonus.desc.' + trait)]));
 						}
 					}
 					if (!options.copyTrait) {
@@ -3437,15 +3446,15 @@ var run = function() {
 			let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
 			let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
 			switch (id) {
-				case 'aqueduct':
-				case 'smelter':
-					if (game.workshopTab.visible) {break;}
+				case 'lumberMill':
+					if (game.resPool.resourceMap['gold'].value) {break;}
 					// falls through
+				case 'aqueduct':
 				case 'library':
 					if (!game.science.get('writing').researched) {break;}
 					// falls through
-				case 'lumberMill':
-					if (game.resPool.resourceMap['gold'].value) {break;}
+				case 'smelter':
+					if (game.workshopTab.visible) {break;}
 					// falls through
 				case 'academy':
 				case 'pasture':
@@ -3456,7 +3465,7 @@ var run = function() {
 					if (vitruvianFeline) {
 						let minerals = (game.resPool.resourceMap['minerals'].value < game.resPool.resourceMap['minerals'].maxValue * 0.94);
 						let wood = (game.resPool.resourceMap['wood'].value < game.resPool.resourceMap['wood'].maxValue * 0.94);
-						if (minerals && wood && !orbitalGeodesy && game.bld.get(id).val > 2) {
+						if (minerals && wood && !orbitalGeodesy && game.bld.get(id).val) {
 							halfCount = true;
 							let lower = options.auto.build.lower;
 							if (!lower) {
@@ -3682,12 +3691,7 @@ var run = function() {
 			// Safeguard if materials for craft cannot be determined.
 			if (!materials) {return 0;}
 
-			if (name === 'steel' && limited && options.auto.craft.items['plate'].enabled) {
-				var plateRatio = game.getResCraftRatio("plate");
-				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
-					return 0;
-				}
-			} else if (name === 'plate' && limited && options.auto.craft.items['steel'].enabled) {
+			if (name === 'plate' && limited && options.auto.craft.items['steel'].enabled) {
 				var steelRatio = game.getResCraftRatio("steel");
 				if (game.getResourcePerTick('coal', true) > 0) {
 					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > (ratio / 125) / ((steelRatio + 1) / 100)) {
@@ -3756,9 +3760,10 @@ var run = function() {
 			for (i in materials) {
 				var delta = undefined;
 				let material = materials[i];
-				if (!limited || aboveTrigger || force) {
+				let doall = (!limited || force || (res[i].maxValue > 0 && aboveTrigger));
+				if (doall) {
 					// If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
-					delta = this.getValueAvailable(i, force) / material;
+					delta = this.getValueAvailable(i, doall) / material;
 				} else {
 					// Take the currently present amount of material to craft into account
 					// Currently this determines the amount of resources that can be crafted such that base materials are proportionally distributed across limited resources.
@@ -3768,6 +3773,17 @@ var run = function() {
 				}
 
 				amount = Math.min(delta, amount, autoMax);
+			}
+
+			if (name === 'steel' && limited && options.auto.craft.items['plate'].enabled) {
+				let calciner = game.bld.getBuildingExt('calciner').meta;
+				if (!calciner.isAutomationEnabled && calciner.val) {
+					amount = Math.max(0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio")), amount);
+				}
+				var plateRatio = game.getResCraftRatio("plate");
+				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
+					amount = 0;
+				}
 			}
 
 			// If we have a maximum value, ensure that we don't produce more than
@@ -4169,18 +4185,21 @@ var run = function() {
 					if (meta.updateEffects) {
 						meta.updateEffects(meta, game);
 					}
+					if (!options.auto.cache.upgrade) {
+						options.auto.cache.upgrade = {};
+					}
 					for(let i in meta.upgrades) {
-						let upgrade = options.auto.cache.upgrade[i];
-						if (!upgrade) {
+						if (!options.auto.cache.upgrade[i]) {
 							options.auto.cache.upgrade[i] = [];
 						}
-						if (options.auto.cache.upgrade[i].indexOf(meta.upgrades[i]) == -1) {
-							for (let j in meta.upgrades[i]) {
-								options.auto.cache.upgrade[i].push(meta.upgrades[i][j]);
+						let upgrade = options.auto.cache.upgrade[i];
+						for (let j in meta.upgrades[i]) {
+							if (upgrade.indexOf(meta.upgrades[i]) == -1) {
+								upgrade.push(meta.upgrades[i][j]);
 							}
 						}
 					}
-					//game.upgrade(options.auto.cache.upgrade);
+					//game.upgrade(meta.upgrades);
 				}
 			}
 			return counter;
@@ -5403,7 +5422,7 @@ var run = function() {
 				imessage('trade.limited', [iname]);
 			} else if ((!input.is(':checked')) && option.limited == true) {
 				option.limited = false;
-				let require = (option.require === false) ? '资源满足单次贸易条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
+				let require = (option.require === false) ? '资源满足黄金的触发条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
 				imessage('trade.unlimited', [iname, require]);
 			}
 			kittenStorage.items[input.attr('id')] = option.limited;
