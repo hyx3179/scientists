@@ -1,0 +1,28 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches:
+      - master-hyx3179
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: |
+          wget https://repo1.maven.org/maven2/com/google/javascript/closure-compiler/v20220405/closure-compiler-v20220405.jar -O ./compiler.jar
+          mkdir ./public
+          java -jar compiler.jar --js kitten-scientists.user.js --js_output_file ./public/kitten-scientists.user.js
+          mv ./ks.version.json ./public
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
