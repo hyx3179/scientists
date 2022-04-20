@@ -19,7 +19,8 @@ jobs:
           wget https://repo1.maven.org/maven2/com/google/javascript/closure-compiler/v20220405/closure-compiler-v20220405.jar -O ./compiler.jar
           mkdir ./public
           java -jar compiler.jar --js kitten-scientists.user.js --js_output_file ./public/kitten-scientists.user.js
-          mv ./ks.version.json ./public
+          wget https://hyx3179.github.io/scientists/ks.version.json -O ./public/ks.version.json
+          node generate-buildver.js
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
