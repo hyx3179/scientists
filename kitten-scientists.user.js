@@ -1094,35 +1094,37 @@ var run = function() {
 			if (!game.mobileSaveOnPause)                                                    {return;}
 			var subOptions = options.auto.options;
 			let refresh = 0;
+			let cacheU = options.auto.cache.upgrade;
 			clearTimeout(this.renderID);
 			if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
 			if (options.auto.upgrade.enabled)                                               {refresh += ~~this.upgrade();}
 			if (subOptions.enabled && subOptions.items.festival.enabled)                    {this.holdFestival();}
 			if (options.auto.build.enabled)                                                 {refresh += ~~this.build();}
 			if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
+			if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
 			if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
-			if (refresh > 0)                                                                {game.updateCaches();}
+			if (refresh > 0)                                                                {if(cacheU){this.gameUpgrade();}else{game.updateCaches();}}
 			if (options.auto.craft.enabled)                                                 {this.craft();}
 			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.delay();}
 			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
 			if (options.auto.trade.enabled)                                                 {this.trade();}
-			if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
 			if (options.auto.time.enabled)                                                  {refresh += ~~this.chrono();}
 			if (subOptions.enabled && subOptions.items.crypto.enabled)                      {this.crypto();}
 			if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
 			if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
 			if (options.copyTrait)                                                          {this.setTrait();}
 			if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
-			if (options.auto.cache.upgrade)                                                 {this.gameUpgrade();}
 			if (refresh > 0)                                                                {game.resPool.update();}
-			if (refresh > 1)                                                                {this.delay('render');}
+			if (Math.abs(refresh) > 1)                                                      {this.delay('render');}
 			if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
 		},
 		delay: function (render) {
 			if (render) {
-				this.renderID = setTimeout(() => game.ui.render(), 333);
+				let timer = game.timer;
+				let delayAfterTick = Math.floor(1000 / game.getTicksPerSecondUI() - Date.now() + timer.timestampStart + 1);
+				this.renderID = setTimeout(() => {game.ui.render()}, delayAfterTick);
 			} else {
-				this.huntID = setTimeout(() => this.hunt(), 1000);
+				this.huntID = setTimeout(() => {this.hunt()}, options.interval * 0.5);
 			}
 		},
 		reset: async function () {
@@ -2043,7 +2045,7 @@ var run = function() {
 					}
 
 					// 缺电过滤抽油机 和 碳封存
-					if (game.resPool.energyWinterProd - game.resPool.energyCons - Math.max(game.bld.getBuildingExt('oilWell').meta.on, 40) <= 0) {
+					if (game.resPool.energyProd - game.resPool.energyCons - Math.max(game.bld.getBuildingExt('oilWell').meta.on, 40) <= 0) {
 						noup = noup.concat(['pumpjack', 'carbonSequestration']);
 					}
 
@@ -2249,7 +2251,7 @@ var run = function() {
 			if (upgrades.buildings.enabled) {
 				var pastures = (game.bld.getBuildingExt('pasture').meta.stage === 0) ? game.bld.getBuildingExt('pasture').meta.val : 0;
 				var aqueducts = (game.bld.getBuildingExt('aqueduct').meta.stage === 0) ? game.bld.getBuildingExt('aqueduct').meta.val : 0;
-				let winterProd = game.resPool.energyWinterProd;
+				let winterProd = (game.calendar.season == 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let upgradeBuilding = (name, meta) => {
 					let prices = meta.stages[1].prices;
 					if (bulkManager.singleBuildPossible(meta, prices, 1 )) {
@@ -2931,13 +2933,14 @@ var run = function() {
 					msg('temporalAccelerator');
 				}
 				// 缺电
-				if (game.resPool.energyWinterProd && game.resPool.energyWinterProd < game.resPool.energyCons) {
+				let winterProd = (game.calendar.season == 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+				if (winterProd && winterProd < game.resPool.energyCons) {
 					if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
-						let msg = '冬季产出电:' + game.getDisplayValueExt(game.resPool.energyWinterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
+						let msg = '冬季产出电:' + game.getDisplayValueExt(winterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
 						let number = game.bld.getBuildingExt('biolab').meta.on;
 						iactivity('summary.biolab.test', [msg + number]);
 						game.bld.getBuildingExt('biolab').meta.on = 0;
-						storeForSummary('biolab', number);
+						storeForSummary('biolab.test', msg + number);
 						return refreshRequired;
 					}
 					let oilWell = game.bld.getBuildingExt('oilWell').meta;
@@ -3543,7 +3546,7 @@ var run = function() {
 				case 'accelerator':
 				case 'factory':
 				case 'mansion':
-					if (!spaceManufacturing) {
+					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1) {
 						halfCount = true;
 					}
 			}
