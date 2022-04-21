@@ -1029,6 +1029,25 @@ var run = function() {
 	var isummary = function(key, args, t) { summary(i18n(key, args), t); };
 	//var iwarning = function(key, args, t) { warning(i18n(key, args), t); };
 
+	// 缓存upgrade
+	var cacheUpgrades = (meta) => {
+		if (!options.auto.cache.upgrade) {
+			options.auto.cache.upgrade = {};
+		}
+		let metaUpgrades = meta.upgrades;
+		for(let i in metaUpgrades) {
+			if (!options.auto.cache.upgrade[i]) {
+				options.auto.cache.upgrade[i] = [];
+			}
+			let upgrade = options.auto.cache.upgrade[i];
+			for (let j in metaUpgrades[i]) {
+				if (upgrade.indexOf(metaUpgrades[i]) == -1) {
+					upgrade.push(metaUpgrades[i][j]);
+				}
+			}
+		}
+	};
+
 	// Core Engine for Kitten Scientists
 	// =================================
 
@@ -1092,10 +1111,10 @@ var run = function() {
 		},
 		iterate: async function () {
 			if (!game.mobileSaveOnPause)                                                    {return;}
+			clearTimeout(this.renderID);
 			var subOptions = options.auto.options;
 			let refresh = 0;
 			let cacheU = options.auto.cache.upgrade;
-			clearTimeout(this.renderID);
 			if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
 			if (options.auto.upgrade.enabled)                                               {refresh += ~~this.upgrade();}
 			if (subOptions.enabled && subOptions.items.festival.enabled)                    {this.holdFestival();}
@@ -1103,7 +1122,7 @@ var run = function() {
 			if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
 			if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
 			if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
-			if (refresh > 0)                                                                {if(cacheU){this.gameUpgrade();}else{game.updateCaches();}}
+			if (refresh)                                                                    {if(cacheU){this.gameUpgrade();}else{game.updateCaches();}}
 			if (options.auto.craft.enabled)                                                 {this.craft();}
 			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.delay();}
 			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
@@ -1122,9 +1141,9 @@ var run = function() {
 			if (render) {
 				let timer = game.timer;
 				let delayAfterTick = Math.floor(1000 / game.getTicksPerSecondUI() - Date.now() + timer.timestampStart + 1);
-				this.renderID = setTimeout(() => {game.ui.render()}, delayAfterTick);
+				this.renderID = setTimeout(() => {game.ui.render();}, delayAfterTick);
 			} else {
-				this.huntID = setTimeout(() => {this.hunt()}, options.interval * 0.5);
+				this.huntID = setTimeout(() => {this.hunt();}, options.interval * 0.5);
 			}
 		},
 		reset: async function () {
@@ -1725,7 +1744,7 @@ var run = function() {
 			// religion build
 			let amt = this._worship(builds);
 			if (refreshRequired) {
-				if (options.auto.cache.upgrade) {
+				if (!options.auto.cache.upgrade && !amt) {
 					game.updateCaches();
 				}
 			}
@@ -1892,7 +1911,6 @@ var run = function() {
 				storeForSummary('praise', worshipInc);
 				iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
 				game.religion.praise();
-				refreshRequired += 1;
 			}
 			return refreshRequired;
 		},
@@ -3412,24 +3430,11 @@ var run = function() {
 					policy.blocked = true;
 				}
 			}
-			if(meta.onResearch){
+			if (meta.onResearch) {
 				meta.onResearch(game);
 			}
 			if (meta.upgrades) {
-				if (!options.auto.cache.upgrade) {
-					options.auto.cache.upgrade = {};
-				}
-				for(let i in meta.upgrades) {
-					if (!options.auto.cache.upgrade[i]) {
-						options.auto.cache.upgrade[i] = [];
-					}
-					let upgrade = options.auto.cache.upgrade[i];
-					for (let j in meta.upgrades[i]) {
-						if (upgrade.indexOf(meta.upgrades[i]) == -1) {
-							upgrade.push(meta.upgrades[i][j]);
-						}
-					}
-				}
+				cacheUpgrades(meta);
 			}
 
 			game.stats.getStat("totalClicks").val += 1;
@@ -4273,20 +4278,7 @@ var run = function() {
 					if (meta.updateEffects) {
 						meta.updateEffects(meta, game);
 					}
-					if (!options.auto.cache.upgrade) {
-						options.auto.cache.upgrade = {};
-					}
-					for(let i in meta.upgrades) {
-						if (!options.auto.cache.upgrade[i]) {
-							options.auto.cache.upgrade[i] = [];
-						}
-						let upgrade = options.auto.cache.upgrade[i];
-						for (let j in meta.upgrades[i]) {
-							if (upgrade.indexOf(meta.upgrades[i]) == -1) {
-								upgrade.push(meta.upgrades[i][j]);
-							}
-						}
-					}
+					cacheUpgrades(meta);
 					//game.upgrade(meta.upgrades);
 				}
 			}
@@ -5182,14 +5174,13 @@ var run = function() {
 				var bub = addi.bestUnicornBuilding;
 				input.on('change', function () {
 					if (input.is(':checked') && !bub.enabled) {
-
 						bub.enabled = true;
 						// enable all unicorn buildings
-						for (var unicornName in options.auto.unicorn.items) {
-							var building = $('#toggle-' + unicornName);
-							building.prop('checked', true);
-							building.trigger('change');
-						}
+						//for (var unicornName in options.auto.unicorn.items) {
+						//	var building = $('#toggle-' + unicornName);
+						//	building.prop('checked', true);
+						//	building.trigger('change');
+						//}
 						imessage('status.sub.enable', [i18n('option.faith.best.unicorn')]);
 
 					} else if ((!input.is(':checked')) && bub.enabled) {
