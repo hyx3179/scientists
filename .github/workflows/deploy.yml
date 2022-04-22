@@ -21,9 +21,19 @@ jobs:
           java -jar compiler.jar --js kitten-scientists.user.js --js_output_file ./public/kitten-scientists.user.js
           wget https://hyx3179.github.io/scientists/ks.version.json -O ./public/ks.version.json
           node generate-buildver.js
+          cp -r ./public ./public_Netlify
+          echo -e '/*\n  Access-Control-Allow-Origin: *' > ./public_Netlify/_headers
 
-      - name: Deploy
+      - name: Deploy GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
+
+      - name: Deploy Netlify
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          npm install netlify-cli -g
+          netlify deploy --dir=public_Netlify --prod
