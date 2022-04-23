@@ -1114,7 +1114,6 @@ var run = function() {
 			clearTimeout(this.renderID);
 			var subOptions = options.auto.options;
 			let refresh = 0;
-			let cacheU = options.auto.cache.upgrade;
 			if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
 			if (options.auto.upgrade.enabled)                                               {refresh += ~~this.upgrade();}
 			if (subOptions.enabled && subOptions.items.festival.enabled)                    {this.holdFestival();}
@@ -1122,7 +1121,7 @@ var run = function() {
 			if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
 			if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
 			if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
-			if (refresh)                                                                    {if(cacheU){this.gameUpgrade();}else{game.updateCaches();}}
+			if (refresh || options.auto.cache.upgrade)                                      {this.gameUpgrade();}
 			if (options.auto.craft.enabled)                                                 {this.craft();}
 			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.delay();}
 			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
@@ -1554,7 +1553,8 @@ var run = function() {
 
 			let minerItem = options.auto.distribute.items.miner;
 			let agriculture = game.science.get("agriculture").researched;
-			let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 || game.village.jobs[1].value == 0);
+			let happiness = game.village.happiness;
+			let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || game.village.jobs[1].value == 0);
 			var freeKittens = game.village.getFreeKittens();
 			let miner = game.village.jobs[4];
 			if (!freeKittens) {
@@ -1564,10 +1564,11 @@ var run = function() {
 				return refreshRequired;
 			}
 
-			var catnipRatio = (game.resPool.get("catnip").value <= game.resPool.get("catnip").maxValue);
-			var catnipValue = (game.resPool.get("catnip").value - (1800 * game.village.happiness * game.resPool.get("kittens").value) < 0 || freeKittens > 1);
+			let resCatnip = game.resPool.get("catnip");
+			let resKitten = game.resPool.get("kittens");
+			var catnipValue = (resCatnip.value - (1800 * happiness * resKitten.value) < 0 || resKitten.maxValue - resKitten.value == 1 || freeKittens > 1);
 			let religionCatnip = options.auto.distribute;
-			if (religionCatnip.religion || (nomalWinterCatnip && agriculture && catnipValue && catnipRatio)) {
+			if (religionCatnip.religion || (nomalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue)) {
 				religionCatnip.religion = false;
 				game.village.assignJob(game.village.getJob("farmer"), 1);
 				iactivity('act.distribute.catnip', [], 'ks-distribute');
@@ -1884,8 +1885,8 @@ var run = function() {
 
 			// 太阳革命加速恢复到期望值
 			var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
-			let solarLimmit = 0.0375 * game.getEffect('solarRevolutionLimit') * game.religion.transcendenceTier;
-			var expectSolarRevolutionRatio = Math.min(0.005 * Math.pow(Math.E, 0.66 * transformTier), solarLimmit + 7.5);
+			let solarLimmit = 3.75 * game.getEffect('solarRevolutionLimit') * game.religion.transcendenceTier + 750;
+			var expectSolarRevolutionRatio = Math.min(0.5 * Math.pow(Math.E, 0.66 * transformTier), solarLimmit);
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
 			if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
 				PraiseSubTrigger = 0;
@@ -1899,7 +1900,7 @@ var run = function() {
 				if (option.autoPraise.subTrigger == 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 3e4) {
 					//option.autoPraise.msg += 1;
 					option.autoPraise.time = Date.now();
-					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio * 100) + "%";
+					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio) + "%";
 					iactivity('act.praise.msg', [expectSolar], 'ks-praise');
 				}
 				if (!game.religion.getFaithBonus) {
@@ -2468,7 +2469,7 @@ var run = function() {
 						msg('mansion', true);
 					}
 				}
-				if (!spaceManufacturing) {
+				if (game.science.get('superconductors').researched && !spaceManufacturing) {
 					msg('broadcastTower');
 					msg('biolab');
 					broadcastTower.max = 8;
@@ -3007,11 +3008,15 @@ var run = function() {
 			return refreshRequired;
 		},
 		gameUpgrade: function () {
-			game.upgrade(options.auto.cache.upgrade);
-			for (var i in options.auto.cache.upgrade) {
-				options.auto.cache.upgrade[i] = null;
+			if (options.auto.cache.upgrade) {
+				game.upgrade(options.auto.cache.upgrade);
+				for (var i in options.auto.cache.upgrade) {
+					options.auto.cache.upgrade[i] = null;
+				}
+				options.auto.cache.upgrade = null;
+			} else {
+				game.updateCaches();
 			}
-			options.auto.cache.upgrade = null;
 		},
 		setTrait: function (trait) {
 			if (trait) {
@@ -3881,7 +3886,7 @@ var run = function() {
 
 			if (res[name].maxValue > 0 && amount > (res[name].maxValue - res[name].value)) {amount = res[name].maxValue - res[name].value;}
 
-			if (limited && !force && name != 'wood') {
+			if (limited && !force) {
 				amount *= Math.max(Math.min(Math.log(ratio - 1), 1), 0.2);
 			}
 
@@ -3985,7 +3990,7 @@ var run = function() {
 				
 				var catnipTick = (game.calendar.season !== 0 || this.getResource(name).maxValue * trigger < value || game.getResourcePerTick("catnip", true) < 0);
 				if (resPerTick < 0 && catnipTick) {
-					stock -= resPerTick * 800 * 5;
+					stock -= resPerTick * 1000 * 5;
 					if (options.catnipMsg) {
 						iactivity('craft.winterCatnip');
 						options.catnipMsg = false;
@@ -4055,7 +4060,7 @@ var run = function() {
 
 			} else {
 				//fieldProd *= game.calendar.getWeatherMod({name: "catnip"});
-				let calendar = (game.calendar.year < 4) ? 0 : - 0.15;
+				let calendar = (game.calendar.year < 4) ? 0 : 0.15;
 				fieldProd *= game.calendar.seasons[3].modifiers.catnip - calendar;
 			}
 			var vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
