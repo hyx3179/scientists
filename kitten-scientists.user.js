@@ -337,6 +337,7 @@ var run = function() {
 			'ui.faith.addtion': '附加选项',
 			'option.faith.best.unicorn': '自动最效率独角兽建筑',
 			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会建造最佳独角兽建筑',
+			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
 			'transcend.catnip': '注意次元超越再赞美群星后猫薄荷产量不够，故取消次元超越了(自己补下农民)',
@@ -1121,28 +1122,30 @@ var run = function() {
 			if (options.auto.space.enabled)                                                 {refresh += ~~this.space();}
 			if (options.auto.faith.enabled)                                                 {refresh += ~~this.worship();}
 			if (options.auto.timeCtrl.enabled)                                              {refresh += ~~this.timeCtrl();}
-			if (refresh || options.auto.cache.upgrade)                                      {this.gameUpgrade();}
+			if (refresh > 0 || options.auto.cache.upgrade)                                  {this.gameUpgrade();}
 			if (options.auto.craft.enabled)                                                 {this.craft();}
 			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.delay();}
 			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
 			if (options.auto.trade.enabled)                                                 {this.trade();}
 			if (options.auto.time.enabled)                                                  {refresh += ~~this.chrono();}
 			if (subOptions.enabled && subOptions.items.crypto.enabled)                      {this.crypto();}
+			if (options.copyTrait)                                                          {this.setTrait();}
 			if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
 			if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
-			if (options.copyTrait)                                                          {this.setTrait();}
 			if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
-			if (refresh > 0)                                                                {game.resPool.update();}
-			if (Math.abs(refresh) > 1)                                                      {this.delay('render');}
+			if (refresh)                                                                    {game.resPool.update();}
+			if (refresh > 1)                                                                {this.delay('render');}
 			if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
 		},
 		delay: function (render) {
 			if (render) {
-				let timer = game.timer;
-				let delayAfterTick = Math.floor(1000 / game.getTicksPerSecondUI() - Date.now() + timer.timestampStart + 1);
-				this.renderID = setTimeout(() => {game.ui.render();}, delayAfterTick);
+				this.renderID = setTimeout(() => {
+					game.ui.render();
+				}, 201 - Date.now() + game.timer.timestampStart);
 			} else {
-				this.huntID = setTimeout(() => {this.hunt();}, options.interval * 0.5);
+				this.huntID = setTimeout(() => {
+					this.hunt();
+				}, options.interval * 0.5);
 			}
 		},
 		reset: async function () {
@@ -1717,10 +1720,23 @@ var run = function() {
 							var maxSacrifice = Math.floor((unicorns - craftManager.getStock('unicorns')) / 2500);
 							var needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
 							if (needSacrifice <= maxSacrifice) {
-								if (!game.religionTab.sacrificeBtn || !game.religionTab.sacrificeBtn.model) {
+								let sacrificeBtn = game.religionTab.sacrificeBtn;
+								game.religionTab.sacrificeBtn.controller.controllerOpts;
+								if (!sacrificeBtn || !sacrificeBtn.model) {
 									return game.religionTab.render();
 								}
-								game.religionTab.sacrificeBtn.controller._transform(game.religionTab.sacrificeBtn.model, needSacrifice);
+								let unicornTotal = sacrificeBtn.model.prices[0].val * needSacrifice;
+								if (unicorns > unicornTotal) {
+									let gainCount = zigguratOn * needSacrifice;
+									let sacrificeController = sacrificeBtn.controller.controllerOpts;
+									game.resPool.addResEvent(sacrificeBtn.model.prices[0].name, -unicornTotal);
+									game.resPool.addResEvent(sacrificeController.gainedResource, gainCount);
+									game.stats.getStat("unicornsSacrificed").val += unicornTotal;
+									let displayNumber = [game.getDisplayValueExt(unicornTotal), game.getDisplayValueExt(gainCount)];
+									game.msg($I(sacrificeController.logTextID, displayNumber), "notice", sacrificeController.logfilterID);
+									activity(i18n('unicornSacrifice', displayNumber));
+								}
+								//game.religionTab.sacrificeBtn.controller._transform(game.religionTab.sacrificeBtn.model, needSacrifice);
 							}
 						}
 						var btnButton = religionManager.getBuildButton(btn.name, 'z');
@@ -1743,13 +1759,7 @@ var run = function() {
 				delete builds.unicornPasture;
 			}
 			// religion build
-			let amt = this._worship(builds);
-			if (refreshRequired) {
-				if (!options.auto.cache.upgrade && !amt) {
-					game.updateCaches();
-				}
-			}
-			if (amt) {refreshRequired += amt;}
+			refreshRequired += this._worship(builds);
 
 			var resourceFaith = craftManager.getResource('faith');
 			var rate = resourceFaith.value / resourceFaith.maxValue;
@@ -1888,7 +1898,7 @@ var run = function() {
 			let solarLimmit = 3.75 * game.getEffect('solarRevolutionLimit') * game.religion.transcendenceTier + 750;
 			var expectSolarRevolutionRatio = Math.min(0.5 * Math.pow(Math.E, 0.66 * transformTier), solarLimmit);
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
-			if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio) {
+			if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio * 0.01) {
 				PraiseSubTrigger = 0;
 			}
 
