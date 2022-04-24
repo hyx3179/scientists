@@ -1600,6 +1600,9 @@ var run = function() {
 					maxKS = (game.village.maxKittens > 10) ? 1 : 0;
 				}
 				maxKS = (name == 'hunter' && game.getEffect('manpowerJobRatio') < 0.75) ? Math.round(maxKS * 0.5) : maxKS;
+				if (name == 'geologist' && !game.workshop.get("geodesy").researched) {
+					maxKS = (game.prestige.getParagonProductionRatio() > 1.5) ? 1 : Math.round(maxKS * 0.5);
+				}
 				var limited = options.auto.distribute.items[name].limited;
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
