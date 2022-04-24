@@ -10563,13 +10563,13 @@ window.run = function() {
 				href: 'bitcoin:' + address + '?amount=0.00048&label=Kittens Donation',
 				target: '_blank',
 				text: address
-			})).prepend($('<img alt="bit" src="https://s1.ax1x.com/2022/04/30/OSmUAK.png" height="15px" />', {
+			/*})).prepend($('<img alt="bit" src="https://s1.ax1x.com/2022/04/30/OSmUAK.png" height="15px" />', {
 				css: {
 					height: '15px',
 					width: '15px',
 					padding: '3px 4px 0 4px',
 					verticalAlign: 'bottom'
-				},
+				},*/
 			}));
 
 			// Add some padding above the donation item
