@@ -1557,7 +1557,7 @@ var run = function() {
 			let minerItem = options.auto.distribute.items.miner;
 			let agriculture = game.science.get("agriculture").researched;
 			let happiness = game.village.happiness;
-			let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || game.village.jobs[1].value == 0);
+			let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || (game.village.jobs[1].value == 0 && distributeItem['farmer'].enabled));
 			var freeKittens = game.village.getFreeKittens();
 			let miner = game.village.jobs[4];
 			if (!freeKittens) {
@@ -1588,7 +1588,7 @@ var run = function() {
 				if (!unlocked) {continue;}
 
 				var name = game.village.jobs[i].name;
-				var enabled = options.auto.distribute.items[name].enabled;
+				var enabled = distributeItem[name].enabled;
 				if (!enabled) {continue;}
 
 				var maxGame = game.village.getJobLimit(name);
