@@ -1,0 +1,22 @@
+name: Upgrade jsDelivr
+
+on:
+  push:
+    branches:
+      - gh-pages
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+
+      - name: Upgrade jsDelivr
+        run: |
+          fileList=`git log --pretty=format:"" --name-only -1`
+          for file in $fileList; do curl https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@gh-pages/$file; done;
+          curl https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@gh-pages/
