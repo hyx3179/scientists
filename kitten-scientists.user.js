@@ -1724,7 +1724,6 @@ var run = function() {
 							var needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
 							if (needSacrifice <= maxSacrifice) {
 								let sacrificeBtn = game.religionTab.sacrificeBtn;
-								game.religionTab.sacrificeBtn.controller.controllerOpts;
 								if (!sacrificeBtn || !sacrificeBtn.model) {
 									return game.religionTab.render();
 								}
@@ -1872,7 +1871,7 @@ var run = function() {
 				// Adore
 				var lastFaith = option.adore.lastFaith;
 				var BooleanForLastFaith = (!lastFaith || worship > lastFaith * 0.75 || tt > 11);
-				var tier = (!game.religion.faithRatio || transcendenceReached);
+				var tier = (!game.religion.faithRatio || tt);
 				var booleanForAdore = (solarRevolutionAdterAdore >= triggerSolarRevolution && worship >= 1e5 && BooleanForLastFaith && moonBoolean);
 				if ((autoAdoreEnabled && apocripha && booleanForAdore && tier && this.catnipForReligion() > 0) || forceStep) {
 					if (tt < 12) {
@@ -2221,61 +2220,34 @@ var run = function() {
 				var maxRaces = (game.diplomacy.get('leviathans').unlocked) ? 8 : 7;
 				if (game.diplomacyTab.racePanels.length < maxRaces) {
 					var manpower = craftManager.getValueAvailable('manpower', true);
-					if (!game.diplomacy.get('lizards').unlocked) {
+					let unlockrace = function () {
 						if (manpower >= 1000) {
 							game.resPool.get('manpower').value -= 1000;
-							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
 							manpower -= 1000;
-							refreshRequired = 1;
+							refreshRequired += 1;
+							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
 						}
+					};
+					if (!game.diplomacy.get('lizards').unlocked) {
+						unlockrace();
 					}
 					if (!game.diplomacy.get('sharks').unlocked) {
-						if (manpower >= 1000) {
-							game.resPool.get('manpower').value -= 1000;
-							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
-							manpower -= 1000;
-							refreshRequired = 1;
-						}
+						unlockrace();
 					}
 					if (!game.diplomacy.get('griffins').unlocked) {
-						if (manpower >= 1000) {
-							game.resPool.get('manpower').value -= 1000;
-							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
-							manpower -= 1000;
-							refreshRequired = 1;
-						}
+						unlockrace();
 					}
 					if (!game.diplomacy.get('nagas').unlocked && game.resPool.get("culture").value >= 1500) {
-						if (manpower >= 1000) {
-							game.resPool.get('manpower').value -= 1000;
-							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
-							manpower -= 1000;
-							refreshRequired = 1;
-						}
+						unlockrace();
 					}
 					if (!game.diplomacy.get('zebras').unlocked && game.resPool.get("ship").value >= 1) {
-						if (manpower >= 1000) {
-							game.resPool.get('manpower').value -= 1000;
-							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
-							manpower -= 1000;
-							refreshRequired = 1;
-						}
+						unlockrace();
 					}
 					if (!game.diplomacy.get('spiders').unlocked && game.resPool.get("ship").value >= 100 && game.resPool.get("science").maxValue > 125000) {
-						if (manpower >= 1000) {
-							game.resPool.get('manpower').value -= 1000;
-							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
-							manpower -= 1000;
-							refreshRequired = 1;
-						}
+						unlockrace();
 					}
 					if (!game.diplomacy.get('dragons').unlocked && game.science.get("nuclearFission").researched) {
-						if (manpower >= 1000) {
-							game.resPool.get('manpower').value -= 1000;
-							iactivity('upgrade.race', [ game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
-							manpower -= 1000;
-							refreshRequired = 1;
-						}
+						unlockrace();
 					}
 				}
 			}
