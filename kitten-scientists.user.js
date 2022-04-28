@@ -1689,13 +1689,9 @@ var run = function() {
 			var craftManager = this.craftManager;
 			var option = options.auto.faith.addition;
 			var refreshRequired = 0;
+			let noPastureCopy = false;
 
 			if (option.bestUnicornBuilding.enabled) {
-				var validBuildings = ['unicornTomb', 'ivoryTower', 'ivoryCitadel', 'skyPalace', 'unicornUtopia','sunspire'];
-				for (var i = 0; i < validBuildings.length; i ++) {
-					delete builds[validBuildings[i]];
-				}
-
 				var btn = this.getBestUnicornBuilding();
 				let zigguratOn = game.bld.get('ziggurat').on;
 				let tears = game.resPool.resourceMap['tears'].value;
@@ -1756,14 +1752,15 @@ var run = function() {
 				}
 			} else {
 				//builds = Object.assign({}, builds, Object.fromEntries(Object.entries(options.auto.unicorn.items).filter(([k,v]) => v.variant != 'zp')));
-				builds = Object.assign(builds, options.auto.unicorn.items);
 				if (options.auto.unicorn.items.unicornPasture.enabled) {
 					this.build({unicornPasture: {require: false, enabled: true}});
 				}
-				delete builds.unicornPasture;
+				let noPastureCopy = JSON.parse(JSON.stringify(options.auto.unicorn.items));
+				noPastureCopy = Object.assign(noPastureCopy, options.auto.faith.items);
+				noPastureCopy.unicornPasture = null;
 			}
 			// religion build
-			refreshRequired += this._worship(builds);
+			refreshRequired += this._worship(noPastureCopy || builds);
 
 			var resourceFaith = craftManager.getResource('faith');
 			var rate = resourceFaith.value / resourceFaith.maxValue;
@@ -2392,7 +2389,7 @@ var run = function() {
 							storeForSummary('auto.' + build);
 						}
 					} else {
-						delete activitySummary.other['auto.' + build];
+						activitySummary.other['auto.' + build] = null;
 					}
 				};
 				// 解锁磁电机才会造蒸汽工房
