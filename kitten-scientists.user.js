@@ -398,7 +398,7 @@ var run = function() {
 			'ui.max.set': '设置 {0} 的最大值',
 			'summary.distribute': '帮助 {0} 只猫猫找到工作',
 			'filter.distribute': '猫口分配',
-			'set.leader': '会自动切换 {0}',
+			'set.leader': '{1}，{0}猫猫自觉顶替当前领袖，喵喵喵！',
 
 			'option.promote': '提拔领袖',
 			'act.promote': '领袖被提拔到 {0} 级',
@@ -2688,6 +2688,7 @@ var run = function() {
 			if (!tradeManager.singleTradePossible(undefined)) {return;}
 
 			var season = game.calendar.getCurSeason().name;
+			let goldTrigger = requireTrigger <= gold.value / gold.maxValue;
 
 			let c;
 			this.setTrait('merchant');
@@ -2731,8 +2732,8 @@ var run = function() {
 				let miningDrillMoon = (transcendence && apocripha) || !game.space.meta[0].meta[1].on || !game.workshop.meta[0].meta[58].researched;
 				if (trade.limited && prof && sloar && miningDrillMoon) {
 					trades.push(name);
-					c = trade.limited && prof;
-				} else if ((!require || requireTrigger <= require.value / require.maxValue) && requireTrigger <= gold.value / gold.maxValue) {
+					c = c || trade.limited && prof;
+				} else if ((!require || requireTrigger <= require.value / require.maxValue) && goldTrigger) {
 					trades.push(name);
 				}
 			}
@@ -2740,7 +2741,7 @@ var run = function() {
 			if (trades.length === 0) {return;}
 
 			// Figure out how much we can currently trade
-			c = (c) ? 0.4 : 1;
+			c = (c && !goldTrigger) ? 0.4 : 1;
 			var maxTrades = tradeManager.getLowestTradeAmount(undefined, true, false) * c;
 
 			// Distribute max trades without starving any race
@@ -3009,7 +3010,8 @@ var run = function() {
 						let hasTrait = game.village.traits.some(obj => obj.name === trait);
 						if (hasTrait) {
 							cache.trait[trait] = true;
-							activity(i18n('set.leader', [$I('village.trait.' + trait) + '的领袖，其效果为：' + $I('village.bonus.desc.' + trait)]));
+							let leaderMsg = [$I('village.trait.' + trait), '当' + $I('village.bonus.desc.' + trait).slice(0,2) + "项目时"];
+							activity(i18n('set.leader', leaderMsg));
 						}
 					}
 					if (!options.copyTrait) {
