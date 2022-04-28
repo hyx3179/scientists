@@ -1079,9 +1079,11 @@ var run = function() {
 		loop: undefined,
 		huntID: undefined,
 		renderID: undefined,
+		worker: undefined,
 		start: function (msg = true) {
 			options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
 			if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
+				if (this.worker) {return;}
 				var blob = new Blob([
 					"onmessage = function(e) { setInterval(function(){postMessage('miaowu')}, '" + options.interval + "' ); }"
 				]);
@@ -3654,7 +3656,25 @@ var run = function() {
 			var craft = this.getCraft(name);
 			var ratio = game.getResCraftRatio(craft.name);
 
-			game.workshop.craft(craft.name, amount, true, false);
+			//game.workshop.craft(craft.name, amount, true, false);
+			var craftRatio = game.getResCraftRatio(craft.name);
+			amount = Math.ceil(amount);
+			var craftAmt = amount * (1 + craftRatio);
+			let prices = dojo.clone(game.workshop.getCraftPrice(craft));
+			for (var i = prices.length - 1; i >= 0; i--) {
+				prices[i].val *= amount;
+			}
+			
+			if (game.resPool.hasRes(prices)) {
+				game.resPool.payPrices(prices);
+				game.resPool.addResEvent(craft.name,craftAmt);
+				if (craft.upgrades){
+					cacheUpgrades(craft.upgrades);
+				}
+				game.stats.getStat("totalCrafts").val++;
+				game.stats.getStatCurrent("totalCrafts").val++;
+				prices = null;
+			}
 
 			var iname = game.resPool.get(name).title;
 
