@@ -795,7 +795,7 @@ var run = function() {
 						0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true,
 						spring: true, summer: false, autumn: false, winter: false,
 						wait: false, adore: false, craft: false, moonMsg: -1},
-					reset:              {enabled: false, subTrigger: 99999, misc: true, label: i18n('option.time.reset')}
+					//reset:              {enabled: false, subTrigger: 99999, misc: true, label: i18n('option.time.reset')}
 				}
 			},
 			craft: {
@@ -1135,7 +1135,7 @@ var run = function() {
 			if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
 			if (refresh)                                                                    {game.resPool.update();}
 			if (refresh > 1)                                                                {this.delay('render');}
-			if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
+			//if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
 		},
 		delay: function (render) {
 			if (render) {
@@ -2660,7 +2660,6 @@ var run = function() {
 				this.setTrait();
 				if (options.auto.cache.trait['manager']) {
 					iactivity('act.hunt', ['管理者派出' + huntCount, hunter], 'ks-hunt');
-					hunter = $I('village.trait.manager') + hunter;
 					storeForSummary('hunt.manager', huntCount);
 				} else {
 					storeForSummary('hunt', huntCount);
