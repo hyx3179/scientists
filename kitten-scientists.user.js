@@ -3797,7 +3797,7 @@ var run = function() {
 					if (!meta.researched || cacheManuscript) {
 						let temple = (res['faith'].maxValue > 750) ? 0 : 25;
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
-						let autoMax = Math.ceil((price - temple - resValue) / ratio);
+						autoMax = Math.ceil((price - temple - resValue) / ratio);
 						let resVal = res['parchment'].value;
 						if (resVal > autoMax * craftPrices && Math.abs(autoMax) >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
 							force = true;
@@ -3816,9 +3816,9 @@ var run = function() {
 					if (!meta.researched || cacheCompedium) {
 						if (meta.prices[1].name == name || cacheCompedium) {
 							let price = (cacheCompedium || meta.prices[1].val);
-							let autoMax = Math.ceil((price - resValue) / ratio) * 50;
+							autoMax = Math.ceil((price - resValue) / ratio);
 							let resVal = res['manuscript'].value;
-							if (resVal > autoMax && autoMax >= 1) {
+							if (resVal > autoMax * 50 && autoMax >= 1) {
 								force = true;
 								options.auto.cache.resources['compedium'] = 0;
 							} else {
@@ -3832,14 +3832,14 @@ var run = function() {
 				}
 			}
 
-			if (name === 'blueprint' && limited && scienceMeta.meta[26].researched && game.prestige.getPerk('vitruvianFeline').researched) {
+			if (name === 'blueprint' && limited && gScience.get('electricity').researched) {
 				for (i = 30; i < 44; i++) {
 					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
 						if (meta.prices[1].name == name) {
-							let autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio) * 25;
+							autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio);
 							let resVal = res['compedium'].value;
-							if (resVal > autoMax && autoMax >= 1) {
+							if (resVal > autoMax * 25 && autoMax >= 1) {
 								force = true;
 							} else {
 								options.auto.cache.resources['compedium'] = autoMax;
