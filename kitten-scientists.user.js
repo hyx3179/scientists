@@ -2555,7 +2555,7 @@ var run = function() {
 			for (var name of craftsItem) {
 				var craft = crafts[name];
 				//var current = !craft.max ? false : manager.getResource(name);
-				var require = !craft.require ? false : manager.getResource(craft.require);
+				var require = !craft.require ? 0 : manager.getResource(craft.require);
 				var amount = 0;
 				if (!craft.enabled) {continue;}
 				if (!game.bld.getBuildingExt('workshop').meta.on && name !== "wood") {continue;}
@@ -2563,8 +2563,8 @@ var run = function() {
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.singleCraftPossible(name)) {continue;}
 				// Craft the resource if we meet the trigger requirement
-				if (!require || trigger <= Math.max(1, require.value / require.maxValue)) {
-					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, true);
+				if (!require || Math.min(1, require.value / require.maxValue) >= trigger) {
+					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, require);
 				} else if (craft.limited) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
 				}
@@ -3829,7 +3829,7 @@ var run = function() {
 			for (i in materials) {
 				var delta = undefined;
 				let material = materials[i];
-				let doall = (!limited || force || (res[i].maxValue > 0 && aboveTrigger));
+				let doall = (!limited || force || (res[i].maxValue > 0 && aboveTrigger !== false));
 				if (doall) {
 					// If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
 					delta = this.getValueAvailable(i, force) / material;
@@ -3864,7 +3864,7 @@ var run = function() {
 
 			if (res[name].maxValue > 0 && amount > (res[name].maxValue - res[name].value)) {amount = res[name].maxValue - res[name].value;}
 
-			if (limited && !force && !aboveTrigger) {
+			if (limited && !force && aboveTrigger != false) {
 				amount *= Math.max(Math.min(Math.log(ratio - 1), 1), 0.2);
 			}
 
