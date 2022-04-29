@@ -340,16 +340,17 @@ var run = function() {
 			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
-			'transcend.catnip': '注意次元超越再赞美群星后猫薄荷产量不够，故取消次元超越了(自己补下农民)',
+			'summary..transcend.catnip': '次元超越再赞美群星后每秒猫薄荷产量过低：{0}，故取消次元超越了(自己补下农民)',
 			'act.transcend': '消耗 {0} 顿悟，达到次元超越 {1}',
 			'summary.transcend': '次元超越了 {0} 次',
 			'filter.transcend': '次元超越',
 
 			'option.faith.adore': '赞美群星',
-			'adore.catnip': '注意赞美群星后猫薄荷产量不够，故取消赞美群星了',
 			'act.adore': '赞美群星! 转化 {0} 虔诚为 {1} 顿悟',
 			'act.adore.last': '下次小猫赞美群星，会等到虔诚大于 {0} ',
 			'summary.adore': '通过赞美群星积累了 {0} 顿悟',
+			'summary.adore.catnip': '赞美群星后每秒猫薄荷产量过低：{0}，故取消赞美群星了(自己补下农民)',
+			'summary.adore.solar': '赞美群星后太阳革命需达到：{0}',
 			'summary.adore.last': '下次赞美群星会等到虔诚大于{0} ',
 			'filter.adore': '赞美群星',
 			'adore.trigger.set': '为赞美群星设定一个新触发值，取值范围为 0 到 1 的小数。（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 赞美群星再赞美太阳后，需太阳革命加成 ≥ 触发值 * 1000%\n2. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n3.探索月球已完成\n4. 次元超越等级低于 11，需赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n5. 次元超越等级低于 12，需当前虔诚＞上次赞美群星时候的虔诚',
@@ -1871,15 +1872,19 @@ var run = function() {
 				var lastFaith = option.adore.lastFaith;
 				var BooleanForLastFaith = (!lastFaith || worship > lastFaith * 0.75 || tt > 11);
 				var tier = (!game.religion.faithRatio || tt);
-				var booleanForAdore = (solarRevolutionAdterAdore >= triggerSolarRevolution && worship >= 1e5 && BooleanForLastFaith && moonBoolean);
-				if ((autoAdoreEnabled && apocripha && booleanForAdore && tier && this.catnipForReligion() > 0) || forceStep) {
+				let booleanForAdore = solarRevolutionAdterAdore >= triggerSolarRevolution;
+				if (!booleanForAdore) {
+					let solarPercent = triggerSolarRevolution * 5 + "%";
+					iactivity('summary.adore.solar', [solarPercent], 'ks-adore');
+					activitySummary.other['adore.solar'] = solarPercent;
+				}
+				booleanForAdore = (booleanForAdore && worship >= 1e5 && BooleanForLastFaith && moonBoolean);
+				booleanForAdore = (booleanForAdore && autoAdoreEnabled && apocripha && tier && this.catnipForReligion() > 0);
+				if (booleanForAdore || forceStep) {
 					if (tt < 12) {
 						option.adore.lastFaith = worship;
 						let worshipL = game.getDisplayValueExt(worship * 0.75);
 						iactivity('act.adore.last', [worshipL], 'ks-adore');
-						if (!activitySummary.other) {
-							activitySummary.other = {};
-						}
 						activitySummary.other['adore.last'] = worship * 0.75;
 					}
 					game.religion._resetFaithInternal(1.01);
@@ -2724,13 +2729,13 @@ var run = function() {
 				let solarRevolution = game.religion.getRU('solarRevolution');
 				let faithValue = game.resPool.resourceMap['faith'].value;
 				let atheism = game.challenges.isActive("atheism");
-				let sloar = (solarRevolution.on || atheism || faithValue < 100 || game.religion.faith < solarRevolution.faith);
+				let solar = (solarRevolution.on || atheism || faithValue < 100 || game.religion.faith < solarRevolution.faith);
 
 				// 有采矿钻和登红月后优先点出超越和赞美群星
 				let transcendence = (game.religion.getRU("transcendence").on || !options.auto.faith.items.transcendence.enabled);
 				let apocripha = (game.religion.getRU('apocripha').on || !options.auto.faith.items.apocripha.enabled);
 				let miningDrillMoon = (transcendence && apocripha) || !game.space.meta[0].meta[1].on || !game.workshop.meta[0].meta[58].researched;
-				if (trade.limited && prof && sloar && miningDrillMoon) {
+				if (trade.limited && prof && solar && miningDrillMoon) {
 					trades.push(name);
 					c = c || trade.limited && prof;
 				} else if ((!require || requireTrigger <= require.value / require.maxValue) && goldTrigger) {
@@ -3048,8 +3053,8 @@ var run = function() {
 			iactivity('summary.resource', [name]);
 			storeForSummary('resource');
 		},
-		catnipForReligion: function (value) {
-			var value = value || 0;
+		catnipForReligion: function (istranscend) {
+			var value = istranscend || 0;
 			var catnipTick = 1;
 			var transcendenceReached = game.religion.getRU("transcendence").on;
 			var tt = transcendenceReached ? game.religion.transcendenceTier : 0;
@@ -3075,14 +3080,14 @@ var run = function() {
 					options.auto.distribute.religion = true;
 				}
 				// 次元超越猫薄荷
-				if (value && optionFaith.transcendCatnip < 98) {
-					iactivity('transcend.catnip');
-					optionFaith.transcendCatnip += 1;
+				if (value) {
+					iactivity('summary.transcend.catnip', [game.getDisplayValueExt(catnipTick * 5)]);
+					activitySummary.other['transcend.catnip'] = catnipTick * 5;
 				}
 				// 赞美群星猫薄荷
-				if (!value && options.auto.faith.adoreCatnip < 98) {
-					iactivity('adore.catnip');
-					optionFaith.adoreCatnip += 1;
+				if (!value) {
+					iactivity('summary.adore.catnip', [game.getDisplayValueExt(catnipTick * 5)]);
+					activitySummary.other['adore.catnip'] = catnipTick * 5;
 				}
 			}
 			
@@ -6678,7 +6683,9 @@ var run = function() {
 	// add activity button
 	// ===================
 
-	var activitySummary = {};
+	var activitySummary = {
+		other: {},
+	};
 	var resetActivitySummary = function () {
 		activitySummary = {
 			lastyear: game.calendar.year,
