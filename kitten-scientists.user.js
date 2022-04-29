@@ -2573,7 +2573,7 @@ var run = function() {
 				}
 
 				// Craft the resource if we meet the trigger requirement
-				if (!require || trigger <= require.value / require.maxValue) {
+				if (!require || (trigger <= require.value / require.maxValue && require.value < require.maxValue)) {
 					//let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name == 'steel') ? false : true;
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, true);
 				} else if (craft.limited) {
@@ -3658,12 +3658,12 @@ var run = function() {
 			if (!this.canCraft(name, amount)) {return;}
 
 			var craft = this.getCraft(name);
-			var ratio = game.getResCraftRatio(craft.name);
+			var ratio = game.getResCraftRatio(craft.name) + 1;
 
 			//game.workshop.craft(craft.name, amount, true, false);
-			var craftRatio = game.getResCraftRatio(craft.name);
+			//var craftRatio = game.getResCraftRatio(craft.name);
 			amount = Math.ceil(amount);
-			var craftAmt = amount * (1 + craftRatio);
+			var craftAmt = amount * ratio;
 			let prices = dojo.clone(game.workshop.getCraftPrice(craft));
 			for (var i = prices.length - 1; i >= 0; i--) {
 				prices[i].val *= amount;
@@ -3683,7 +3683,8 @@ var run = function() {
 			var iname = game.resPool.get(name).title;
 
 			// determine actual amount after crafting upgrades
-			amount = (amount * (1 + ratio)).toFixed(2);
+			// amount = (amount * (1 + ratio)).toFixed(2);
+			amount = craftAmt;
 
 			let leader = (options.auto.cache.trait['engineer']) ? '工匠小猫制作了 ' : '小猫制作了 ';
 			if (options.auto.cache.trait['engineer']) {
@@ -3758,7 +3759,7 @@ var run = function() {
 			return true;
 		},
 		getLowestCraftAmount: function (name, limited, limRat, aboveTrigger) {
-			var amount = Number.MAX_VALUE;
+			//var amount = Number.MAX_VALUE;
 			var autoMax = Number.MAX_VALUE;
 			var materials = this.getMaterials(name);
 			let resValue = this.getValueAvailable(name, true);
@@ -3773,6 +3774,10 @@ var run = function() {
 			let shipValue = res['ship'].value;
 			let force = (name === 'ship' && optionVal && shipValue < optionShipVal);
 
+			// 默认数量设为可达无限的最小值
+			var amount = Number.MAX_VALUE / ratio + Number.MAX_VALUE / Math.pow(2, 53) / ratio;
+			// 跳过资源达到无限的情况
+			if (res[name].value == Infinity) { return 0 };
 			// Safeguard if materials for craft cannot be determined.
 			if (!materials) {return 0;}
 
