@@ -3862,7 +3862,7 @@ var run = function() {
 				let doall = (!limited || force || (res[i].maxValue > 0 && aboveTrigger));
 				if (doall) {
 					// If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
-					delta = this.getValueAvailable(i, doall) / material;
+					delta = this.getValueAvailable(i, force) / material;
 				} else {
 					// Take the currently present amount of material to craft into account
 					// Currently this determines the amount of resources that can be crafted such that base materials are proportionally distributed across limited resources.
