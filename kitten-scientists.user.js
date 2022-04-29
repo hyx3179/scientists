@@ -340,7 +340,7 @@ var run = function() {
 			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
-			'summary..transcend.catnip': '次元超越再赞美群星后每秒猫薄荷产量过低：{0}，故取消次元超越了(自己补下农民)',
+			'summary.transcend.catnip': '次元超越再赞美群星后每秒猫薄荷产量过低：{0}，故取消次元超越了(自己补下农民)',
 			'act.transcend': '消耗 {0} 顿悟，达到次元超越 {1}',
 			'summary.transcend': '次元超越了 {0} 次',
 			'filter.transcend': '次元超越',
@@ -480,6 +480,7 @@ var run = function() {
 			'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
+			'summary.calciner': '小猫担心浪费铁和煤并关闭了煅烧炉自动化',
 			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
 			'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
 			'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
@@ -704,7 +705,7 @@ var run = function() {
 
 					// storage
 					barn:           {require: 'wood',        enabled: true, max:15, checkForReset: true, triggerForReset: -1},
-					harbor:         {require: false,         enabled: false,max:200,  checkForReset: true, triggerForReset: -1},
+					harbor:         {require: false,         enabled: true,max:200, checkForReset: true, triggerForReset: -1},
 					warehouse:      {require: false,         enabled: true,max:200, checkForReset: true, triggerForReset: -1},
 			
 					// zebras
@@ -837,7 +838,7 @@ var run = function() {
 					compedium:  {require: 'science',     max: 0, limited: true,  limRat: 0.5, enabled: true},
 					blueprint:  {require: 'science',     max: 0, limited: true,  limRat: 0.5, enabled: true},
 					kerosene:   {require: 'oil',         max: 0, limited: true,  limRat: 0.5, enabled: true},
-					megalith:   {require: false,         max: 0, limited: true,  limRat: 0.5, enabled: false},
+					megalith:   {require: false,         max: 0, limited: true,  limRat: 0.5, enabled: true},
 					eludium:    {require: 'unobtainium', max: 0, limited: false,  limRat: 0.5, enabled: true},
 					thorium:    {require: 'uranium',     max: 0, limited: true,  limRat: 0.5, enabled: true}
 				}
@@ -1874,7 +1875,7 @@ var run = function() {
 				var tier = (!game.religion.faithRatio || tt);
 				let booleanForAdore = solarRevolutionAdterAdore >= triggerSolarRevolution;
 				if (!booleanForAdore) {
-					let solarPercent = triggerSolarRevolution * 5 + "%";
+					let solarPercent = triggerSolarRevolution * 100 + "%";
 					iactivity('summary.adore.solar', [solarPercent], 'ks-adore');
 					activitySummary.other['adore.solar'] = solarPercent;
 				}
@@ -2561,17 +2562,6 @@ var run = function() {
 				// Ensure that we have reached our cap
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.singleCraftPossible(name)) {continue;}
-				
-				// 巨石
-				if (name == 'megalith') {
-					let resMap = game.resPool.resourceMap;
-					if (resMap.value > 50 || game.bld.metaCache.ziggurat.meta.on || resMap['unicorns'].value < 2500) {
-						if (!game.workshop.get('orbitalGeodesy').researched) {
-							continue;
-						}
-					}
-				}
-
 				// Craft the resource if we meet the trigger requirement
 				if (!require || trigger <= require.value / require.maxValue) {
 					//let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name == 'steel') ? false : true;
@@ -2975,6 +2965,12 @@ var run = function() {
 						conditionOn: game.calendar.futureSeasonTemporalParadox < 1 && game.calendar.day > 98,
 						conditionOff: game.time.getVSU('chronocontrol').on && game.calendar.day > 0,
 					});
+					let calciner = game.bld.getBuildingExt('calciner').meta;
+					if (!game.time.getCFU("ressourceRetrieval").on && calciner.isAutomationEnabled) {
+						calciner.isAutomationEnabled = false;
+						game.upgrade({buildings: ['calciner']});
+						msg('calciner');
+					}
 				}
 				for (let index = 0; index < list.length; index++) {
 					var element = list[index];
@@ -4050,6 +4046,11 @@ var run = function() {
 			if (name === 'megalith' && limited) {
 				let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
 				limRat = (spaceManufacturing) ? limRat : 0.20;
+				if (res.value > 50 || game.bld.metaCache.ziggurat.meta.on || resMap['unicorns'].value < 2500) {
+					if (!game.workshop.get('orbitalGeodesy').researched) {
+						limRat = 0.01;
+					}
+				}
 			}
 
 			if (name === 'gear'  && limited) {
