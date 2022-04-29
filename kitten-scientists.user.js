@@ -4142,6 +4142,8 @@ var run = function() {
 				var build = builds[name];
 				var data = metaData[name];
 				if (!build.enabled) {continue;}
+				// 建筑数量大于等于限值时直接下一个
+				if (build.max != -1 && build.max <= data.val) { continue; }
 				if (data.tHidden === true) {continue;}
 				if (data.rHidden === true) {continue;}
 				if ((data.rHidden === undefined) && !data.unlocked) {continue;}
@@ -4223,9 +4225,8 @@ var run = function() {
 						} else if (cryoKarma) {
 							var nextPriceCheck = (tempPool['karma'] < karmaPrice * Math.pow(priceRatio, k + data.val));
 						} else {
-							// 检查无限
 							let price = prices[p].val * Math.pow(priceRatio, k + data.val);
-							var nextPriceCheck = (tempPool[prices[p].name] < price || price == Infinity);
+							var nextPriceCheck = tempPool[prices[p].name] < price;
 						}
 						if (nextPriceCheck || (data.noStackable && (k + data.val) >= 1) || (build.id === 'ressourceRetrieval' && k + data.val >= 100)
 						  || (build.id === 'cryochambers' && game.bld.getBuildingExt('chronosphere').meta.val <= k + data.val)) {
@@ -4254,12 +4255,10 @@ var run = function() {
 						} else if (cryoKarma) {
 							tempPool['karma'] -= karmaPrice * Math.pow(priceRatio, k + data.val);
 						} else {
-							//if building value greater than limit value should not calculated.
-							if (build.val >= build.limit && build.limit > 0) {
-								continue bulkLoop;
-							}
 							var pVal = prices[p].val * Math.pow(priceRatio, k + data.val);
 							tempPool[prices[p].name] -= (prices[p].name === 'void') ? Math.ceil(pVal) : pVal;
+							// 检查 NaN
+							tempPool[prices[p].name] = tempPool[prices[p].name] ? tempPool[prices[p].name] : 0;
 						}
 					}
 					countList[j].count++;
