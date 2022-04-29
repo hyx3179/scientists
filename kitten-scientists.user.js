@@ -3713,38 +3713,8 @@ var run = function() {
 			return game.workshop.getCraft(name);
 		},
 		setOption: function () {
-			let build = game.bld.get('warehouse');
-			//let warehouseOpt = options.auto.build.warehouse;
-			//let maxVal = (warehouseOpt.enabled) ? 0 : warehouseOpt.max;
-			//if ( || maxVal != -1) {
-			//
-			//}
-			//let crafts = options.auto.craft.items;
-			//if (options.auto.craft.items.beam.limited) {
-			//    let beamValue = this.getResource('beam').value;
-			//
-			//    let price = build.prices[0].val;
-			//    let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
-			//    let buildRatio = currentRatio + game.getEffect("priceRatio");
-			//    let sumPrices = (price * Math.pow(buildRatio, build.val - 1) - price * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
-			//}
 		},
 		setAuto: function (value, ratio) {
-			/*for (i = 16; i < 19; i++) {
-				let meta = scienceMeta.meta[i];
-				if (!meta.researched) {
-					let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
-					let autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio);
-					let resVal = res['parchment'].value;
-					console.log(autoMax);
-					if (resVal > autoMax * craftPrices && autoMax >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
-						force = true;
-						break;
-					}
-				}
-			}
-			return autoMax;
-			*/
 		},
 		singleCraftPossible: function (name) {
 			var materials = this.getMaterials(name);
@@ -3772,7 +3742,7 @@ var run = function() {
 			// 默认数量设为可达无限的最小值
 			var amount = Number.MAX_VALUE / ratio + Number.MAX_VALUE / Math.pow(2, 53) / ratio;
 			// 跳过资源达到无限的情况
-			if (res[name].value == Infinity) { return 0 };
+			if (res[name].value == Infinity) { return 0; }
 			// Safeguard if materials for craft cannot be determined.
 			if (!materials) {return 0;}
 
@@ -3964,12 +3934,7 @@ var run = function() {
 			return output;
 		},
 		getResource: function (name) {
-			//if (name === 'slabs') {name = 'slab';} //KG BETA BUGFIX
-			// for (var i in game.resPool.resources) {
-			//     var res = game.resPool.resources[i];
-			//     if (res.name === name) return res;
-			// }
-			var res = game.resPool.get(name);
+			var res = game.resPool.resourceMap[name];
 			if (res) {return res;}
 			warning('unable to find resource ' + name);
 			return null;
@@ -3995,7 +3960,6 @@ var run = function() {
 
 			if ('catnip' === name) {
 				var resPerTick = this.getPotentialCatnip(false);
-				
 				var catnipTick = (game.calendar.season !== 0 || this.getResource(name).maxValue * trigger < value || game.getResourcePerTick("catnip", true) < 0);
 				if (resPerTick < 0 && catnipTick) {
 					stock -= resPerTick * 1000 * 5;
@@ -4209,7 +4173,6 @@ var run = function() {
 					var priceRatio = build.priceRatio;
 					var source = build.source;
 					for (var p = 0; p < prices.length; p++) {
-
 						var spaceOil = false;
 						var cryoKarma = false;
 						if (source && source === 'space' && prices[p].name === 'oil') {
