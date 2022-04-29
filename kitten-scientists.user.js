@@ -2359,7 +2359,7 @@ var run = function() {
 					steamworks:items['steamworks'],
 				};
 				items = Object.assign(important, items);
-				let optimize = ['academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','factroy','quarry'];
+				let optimize = ['academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','factroy','quarry','aqueduct'];
 				for (var item in items) {
 					if (optimize.indexOf(item) == -1) {
 						copyItem[item] = items[item];
@@ -2563,8 +2563,7 @@ var run = function() {
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.singleCraftPossible(name)) {continue;}
 				// Craft the resource if we meet the trigger requirement
-				if (!require || (trigger <= require.value / require.maxValue && require.value < require.maxValue)) {
-					//let aboveTrigger = (!require || name == 'alloy' || name == 'compedium' || name == 'manuscript' || name == 'blueprint' || name == 'steel') ? false : true;
+				if (!require || trigger <= Math.max(1, require.value / require.maxValue)) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, true);
 				} else if (craft.limited) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
@@ -3510,7 +3509,7 @@ var run = function() {
 					if (game.workshopTab.visible) {break;}
 					// falls through
 				case 'aqueduct':
-					if (game.calendar.year > 3 || !game.challenges.isActive('winterIsComing')) {break;}
+					if (game.calendar.year > 3 || game.challenges.isActive('winterIsComing')) {break;}
 					// falls through
 				case 'lumberMill':
 					if (id == 'lumberMill' && game.resPool.resourceMap['gold'].value) {break;}
@@ -3895,7 +3894,7 @@ var run = function() {
 
 			if (res[name].maxValue > 0 && amount > (res[name].maxValue - res[name].value)) {amount = res[name].maxValue - res[name].value;}
 
-			if (limited && !force) {
+			if (limited && !force && !aboveTrigger) {
 				amount *= Math.max(Math.min(Math.log(ratio - 1), 1), 0.2);
 			}
 
