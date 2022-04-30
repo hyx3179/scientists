@@ -382,6 +382,7 @@ var run = function() {
 			'filter.enable': '过滤 {0}',
 			'filter.disable': '取消过滤 {0}',
 
+			'craft.force': '小猫为了研究科学，偷偷使用了材料合成了{0}',
 			'craft.limited': '限制{0}（理解为该资源触发条件、消耗率都为AI自动设置。',
 			'craft.limited.parchment': '小猫贴心地帮你关闭了{0}的限制',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
@@ -506,6 +507,7 @@ var run = function() {
 			'summary.sun': '{1} {0} 次',
 			'summary.craft': '制作了{0} 个 {1}',
 			'summary.craftLeader': '工匠制作了 {0} 个 {1}',
+			'summary.craftForce': '小猫偷偷使用了 {0} 次材料，为了科学。',
 			'summary.trade': '{1} 贸易了 {0} 次',
 			'summary.year': '年',
 			'summary.years': '年',
@@ -2555,7 +2557,7 @@ var run = function() {
 			for (var name of craftsItem) {
 				var craft = crafts[name];
 				//var current = !craft.max ? false : manager.getResource(name);
-				var require = !craft.require ? 0 : manager.getResource(craft.require);
+				var require = !craft.require ? 'noRequire' : manager.getResource(craft.require);
 				var amount = 0;
 				if (!craft.enabled) {continue;}
 				if (!game.bld.getBuildingExt('workshop').meta.on && name !== "wood") {continue;}
@@ -2563,7 +2565,7 @@ var run = function() {
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.singleCraftPossible(name)) {continue;}
 				// Craft the resource if we meet the trigger requirement
-				if (!require || Math.min(1, require.value / require.maxValue) >= trigger) {
+				if (require == 'noRequire' || (require.value / require.maxValue >= trigger && require.value <= require.maxValue)) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, require);
 				} else if (craft.limited) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
@@ -3716,10 +3718,6 @@ var run = function() {
 		getCraft: function (name) {
 			return game.workshop.getCraft(name);
 		},
-		setOption: function () {
-		},
-		setAuto: function (value, ratio) {
-		},
 		singleCraftPossible: function (name) {
 			var materials = this.getMaterials(name);
 			for (var mat in materials) {
@@ -3766,18 +3764,21 @@ var run = function() {
 
 			let gScience = game.science;
 			let scienceMeta = gScience.meta[0];
+			let indexMax;
 			if (name === 'manuscript' && limited) {
 				let cacheManuscript = options.auto.cache.resources['manuscript'];
-				i = (cacheManuscript) ? 18 : 16;
-				for (;i < 19; i++) {
+				indexMax= (cacheManuscript) ? 19 : 17;
+				for (i = 16; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript) {
-						let temple = (res['faith'].maxValue > 750) ? 0 : 25;
+						price = (res['faith'].maxValue > 750) ? price : resValue + 10;
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
-						autoMax = Math.ceil((price - temple - resValue) / ratio);
+						autoMax = Math.ceil((price - resValue) / ratio);
 						let resVal = res['parchment'].value;
-						if (resVal > autoMax * craftPrices && Math.abs(autoMax) >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
+						if (resVal > autoMax * craftPrices && autoMax >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
+							iactivity("craft.force", [res[name].title], 'ks-craft');
+							storeForSummary('craftForce', 1);
 							force = true;
 							options.auto.cache.resources['manuscript'] = 0;
 						}
@@ -3788,39 +3789,48 @@ var run = function() {
 
 			if (name === 'compedium' && limited && gScience.get('navigation').researched) {
 				let cacheCompedium = options.auto.cache.resources['compedium'];
-				i = (cacheCompedium) ? 26 : 19;
-				for (; i < 27; i++) {
+				indexMax = (cacheCompedium) ? 27 : 19;
+				for (i = 18; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
 					if (!meta.researched || cacheCompedium) {
+						if (meta.name == 'metaphysics' || meta.name == 'drama') {
+							continue;
+						}
 						if (meta.prices[1].name == name || cacheCompedium) {
 							let price = (cacheCompedium || meta.prices[1].val);
 							autoMax = Math.ceil((price - resValue) / ratio);
 							let resVal = res['manuscript'].value;
 							if (resVal > autoMax * 50 && autoMax >= 1) {
 								force = true;
+								iactivity("craft.force", [res[name].title], 'ks-craft');
+								storeForSummary('craftForce', 1);
 								options.auto.cache.resources['compedium'] = 0;
 							} else {
-								options.auto.cache.resources['manuscript'] = autoMax;
+								options.auto.cache.resources['manuscript'] = autoMax * 50;
 							}
 						}
-						if (meta.name != 'metaphysics' || meta.name != 'drama') {
-							break;
-						}
+						break;
 					}
 				}
 			}
 
 			if (name === 'blueprint' && limited && gScience.get('electricity').researched) {
+				//indexMax = (game.village.maxKittens > 130) ? 44 : 34;
 				for (i = 30; i < 44; i++) {
 					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
+						if (meta.name == 'quantumCryptography' || meta.name == 'blackchain') {
+							continue;
+						}
 						if (meta.prices[1].name == name) {
 							autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio);
 							let resVal = res['compedium'].value;
 							if (resVal > autoMax * 25 && autoMax >= 1) {
 								force = true;
+								iactivity("craft.force", [res[name].title], 'ks-craft');
+								storeForSummary('craftForce', 1);
 							} else {
-								options.auto.cache.resources['compedium'] = autoMax;
+								options.auto.cache.resources['compedium'] = autoMax * 25;
 							}
 						}
 						break;
@@ -3833,7 +3843,7 @@ var run = function() {
 			for (i in materials) {
 				var delta = undefined;
 				let material = materials[i];
-				let doall = (!limited || force || (res[i].maxValue > 0 && aboveTrigger !== false));
+				let doall = (!limited || force || (res[i].maxValue > 0 && aboveTrigger));
 				if (doall) {
 					// If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
 					delta = this.getValueAvailable(i, force) / material;
@@ -3868,7 +3878,7 @@ var run = function() {
 
 			if (res[name].maxValue > 0 && amount > (res[name].maxValue - res[name].value)) {amount = res[name].maxValue - res[name].value;}
 
-			if (limited && !force && aboveTrigger != false) {
+			if (limited && !force && (!aboveTrigger || aboveTrigger == 'noRequire')) {
 				amount *= Math.max(Math.min(Math.log(ratio - 1), 1), 0.2);
 			}
 
