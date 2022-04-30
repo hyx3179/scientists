@@ -1603,7 +1603,7 @@ var run = function() {
 				if (name == 'hunter' && game.getEffect('manpowerJobRatio') < 0.5) {
 					maxKS = (game.village.maxKittens > 10) ? 1 : 0;
 				}
-				maxKS = (name == 'hunter' && game.getEffect('manpowerJobRatio') < 0.75) ? Math.round(maxKS * 0.5) : maxKS;
+				maxKS = (name == 'hunter' && game.getEffect('manpowerJobRatio') < 0.75) ? Math.round(maxKS * 0.33) : maxKS;
 				if (name == 'geologist' && !game.workshop.get("geodesy").researched) {
 					maxKS = (game.prestige.getParagonProductionRatio() > 1.5) ? 1 : Math.round(maxKS * 0.5);
 				}
@@ -2419,7 +2419,7 @@ var run = function() {
 				let theology = game.science.get('theology').researched;
 				let temple = copyItem['temple'];
 				let tradepost = copyItem['tradepost'];
-				var unlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched);
+				let solarUnlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched);
 				let faithMeta = game.resPool.resourceMap['faith'];
 				if (!theology && game.science.get('philosophy').researched && renaissance) {
 					temple.max =  Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
@@ -2429,7 +2429,7 @@ var run = function() {
 
 				// 太阳革命前不造交易所和神殿
 				if (!solarMeta.on && !atheism) {
-					if (unlocked && options.auto.faith.items.solarRevolution.enabled && faithMeta.maxValue > 750 ) {
+					if (solarUnlocked && options.auto.faith.items.solarRevolution.enabled && faithMeta.maxValue > 750 ) {
 						if (game.science.get('philosophy').researched) {
 							msg('temple');
 							temple.enabled = false;
@@ -3505,23 +3505,27 @@ var run = function() {
 			let minerals = (game.resPool.resourceMap['minerals'].value > game.resPool.resourceMap['minerals'].maxValue * 0.94);
 			let wood = (game.resPool.resourceMap['wood'].value > game.resPool.resourceMap['wood'].maxValue * 0.94);
 			switch (id) {
-				case 'smelter':
-					if (game.workshopTab.visible) {break;}
-					// falls through
 				case 'aqueduct':
 					if (game.calendar.year > 3 || game.challenges.isActive('winterIsComing')) {break;}
 					// falls through
-				case 'lumberMill':
-					if (id == 'lumberMill' && game.resPool.resourceMap['gold'].value) {break;}
+				case 'smelter':
+					if (id == 'smelter' && game.science.get('theology').researched) {break;}
 					// falls through
 				case 'library':
-					if (id == 'library' && !game.science.get('writing').researched) {break;}
+					if (id == 'library' && !game.science.get('writing').unlocked) {break;}
 					// falls through
 				case 'academy':
 				case 'pasture':
 				case 'barn':
 				case 'warehouse':
 					if (minerals && wood) {break;}
+					// falls through
+				case 'lumberMill':
+					if (id == 'lumberMill' && game.bld.getBuildingExt('lumberMill').meta.on < 43) {
+						if (game.resPool.resourceMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.4) {
+							break;
+						}
+					}
 					// falls through
 				case 'harbor':
 				case 'oilWell':
