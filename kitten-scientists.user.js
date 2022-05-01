@@ -3504,8 +3504,10 @@ var run = function() {
 			let solarMeta = game.religion.getRU('solarRevolution');
 			let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
 			let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
-			let minerals = (game.resPool.resourceMap['minerals'].value > game.resPool.resourceMap['minerals'].maxValue * 0.94);
-			let wood = (game.resPool.resourceMap['wood'].value > game.resPool.resourceMap['wood'].maxValue * 0.94);
+			let resourceMap = game.resPool.resourceMap;
+			let mineralsCap = (resourceMap['minerals'].value > resourceMap['minerals'].maxValue * 0.94);
+			let woodCap = (resourceMap['wood'].value > resourceMap['wood'].maxValue * 0.94);
+			let TitaniumCap = (resourceMap['titanium'].value >= 0.95 * resourceMap['titanium'].maxValue);
 			switch (id) {
 				case 'aqueduct':
 					if (game.calendar.year > 3 || game.challenges.isActive('winterIsComing')) {break;}
@@ -3520,11 +3522,11 @@ var run = function() {
 				case 'pasture':
 				case 'barn':
 				case 'warehouse':
-					if (minerals && wood) {break;}
+					if (mineralsCap && woodCap) {break;}
 					// falls through
 				case 'lumberMill':
 					if (id == 'lumberMill' && game.bld.getBuildingExt('lumberMill').meta.on < 43) {
-						if (game.resPool.resourceMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.4) {
+						if (resourceMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.4) {
 							break;
 						}
 					}
@@ -3547,7 +3549,7 @@ var run = function() {
 				case 'accelerator':
 				case 'factory':
 				case 'mansion':
-					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1) {
+					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1 && !TitaniumCap) {
 						halfCount = true;
 					}
 			}
