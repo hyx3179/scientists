@@ -2122,20 +2122,13 @@ var run = function() {
 				techLoop:
 				for (let upg of tech) {
 					if (upg.researched || !upg.unlocked) {continue;}
+					if (upg.name == 'biology' && game.resPool.resourceMap['compedium'].value < 1500) {continue;}
 
 					let prices = dojo.clone(upg.prices);
 					prices = game.village.getEffectLeader("scientist", prices);
 					for (var resource of prices) {
 						let name = resource.name;
 						if (craftManager.getValueAvailable(resource.name, true) < resource.val) {
-							/*if (name !== 'science') {
-								let res = game.resPool.resourceMap[name];
-								if (res.craftable) {
-									let amt = resource.val - res.value;
-									if (amt > 0) {
-									}
-								}
-							}*/
 							continue techLoop;
 						}
 					}
@@ -3507,7 +3500,7 @@ var run = function() {
 			let resourceMap = game.resPool.resourceMap;
 			let mineralsCap = (resourceMap['minerals'].value > resourceMap['minerals'].maxValue * 0.94);
 			let woodCap = (resourceMap['wood'].value > resourceMap['wood'].maxValue * 0.94);
-			let TitaniumCap = (resourceMap['titanium'].value >= 0.95 * resourceMap['titanium'].maxValue);
+			let TitaniumCap = (resourceMap['titanium'].value >= 0.85 * resourceMap['titanium'].maxValue);
 			switch (id) {
 				case 'aqueduct':
 					if (game.calendar.year > 3 || game.challenges.isActive('winterIsComing')) {break;}
@@ -3769,7 +3762,7 @@ var run = function() {
 			let indexMax;
 			if (name === 'manuscript' && limited) {
 				let cacheManuscript = options.auto.cache.resources['manuscript'];
-				indexMax= (cacheManuscript) ? 19 : 17;
+				indexMax = (cacheManuscript) ? 19 : 17;
 				for (i = 16; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
@@ -3791,7 +3784,7 @@ var run = function() {
 
 			if (name === 'compedium' && limited && gScience.get('navigation').researched) {
 				let cacheCompedium = options.auto.cache.resources['compedium'];
-				indexMax = (cacheCompedium) ? 27 : 19;
+				indexMax = (cacheCompedium) ? 19 : 27;
 				for (i = 18; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
 					if (!meta.researched || cacheCompedium) {
@@ -4419,7 +4412,7 @@ var run = function() {
 					var manpowerValue = Math.max(this.craftManager.getValueAvailable(i, true) - 100, 0);
 					var total = manpowerValue / materials[i];
 				} else {
-					var total = this.craftManager.getValueAvailable(i, limited, options.auto.trade.trigger) / materials[i];
+					var total = this.craftManager.getValueAvailable(i, !limited, options.auto.trade.trigger) / materials[i];
 				}
 
 				amount = (amount === undefined || total < amount) ? total : amount;
