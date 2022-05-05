@@ -272,7 +272,6 @@ var run = function() {
 			'act.hunt.unicorn': '小猫急着给独角兽配种',
 			'act.build': '小猫建造了一个 {0}',
 			'act.builds': '小猫建造了 {1} 个新的 {0}',
-			'act.build.lower': '未研究轨道测地学，降低牧场、图书馆、研究院、熔炉、粮仓、港口的优先度',
 			'act.craft': ' {0} {1}',
 			'act.trade': ' {1} 交易 {0} 次',
 
@@ -480,8 +479,9 @@ var run = function() {
 			'summary.blackcoin.buy': '小猫出售遗物并买入 {0} 次黑币',
 			'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
+			'summary.build.lower': '未研究轨道测地学，降低牧场、图书馆、研究院、熔炉、粮仓、港口、油井、仓库、广播塔的优先度',
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
-			'summary.calciner': '小猫担心浪费铁和煤并关闭了煅烧炉自动化',
+			'summary.calciner': '小猫因为你点了钢铁工厂（其效果为浪费铁和煤参考百科），故关闭了煅烧炉自动化',
 			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
 			'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
 			'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
@@ -641,8 +641,6 @@ var run = function() {
 				}
 			},
 			build: {
-				// 营火低优先级建筑
-				lower: false,
 				// Should buildings be built automatically?
 				enabled: false,
 				// When a building requires a certain resource (this is what their *require* property refers to), then
@@ -1147,7 +1145,7 @@ var run = function() {
 			if (render) {
 				this.renderID = setTimeout(() => {
 					game.ui.render();
-				}, 201 - Date.now() + game.timer.timestampStart);
+				}, Math.max(200,201 - Date.now() + game.timer.timestampStart));
 			} else {
 				this.huntID = setTimeout(() => {
 					this.hunt();
@@ -2219,35 +2217,29 @@ var run = function() {
 				}
 				var maxRaces = (game.diplomacy.get('leviathans').unlocked) ? 8 : 7;
 				if (game.diplomacyTab.racePanels.length < maxRaces) {
-					var manpower = craftManager.getValueAvailable('manpower', true);
-					let unlockrace = function () {
+					let unlockRace = function (race) {
+						if (game.diplomacy.get(race).unlocked) {return;}
+						let manpower = craftManager.getValueAvailable('manpower', true);
 						if (manpower >= 1000) {
 							game.resPool.get('manpower').value -= 1000;
-							manpower -= 1000;
-							refreshRequired += 1;
+							refreshRequired += 2;
 							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
 						}
 					};
-					if (!game.diplomacy.get('lizards').unlocked) {
-						unlockrace();
+					unlockRace('lizards');
+					unlockRace('sharks');
+					unlockRace('griffins');
+					if (game.resPool.get("culture").value >= 1500) {
+						unlockRace('nagas');
 					}
-					if (!game.diplomacy.get('sharks').unlocked) {
-						unlockrace();
+					if (game.resPool.get("ship").value >= 1) {
+						unlockRace('zebras');
 					}
-					if (!game.diplomacy.get('griffins').unlocked) {
-						unlockrace();
+					if (game.resPool.get("ship").value >= 100 && game.resPool.get("science").maxValue > 125000) {
+						unlockRace('spiders');
 					}
-					if (!game.diplomacy.get('nagas').unlocked && game.resPool.get("culture").value >= 1500) {
-						unlockrace();
-					}
-					if (!game.diplomacy.get('zebras').unlocked && game.resPool.get("ship").value >= 1) {
-						unlockrace();
-					}
-					if (!game.diplomacy.get('spiders').unlocked && game.resPool.get("ship").value >= 100 && game.resPool.get("science").maxValue > 125000) {
-						unlockrace();
-					}
-					if (!game.diplomacy.get('dragons').unlocked && game.science.get("nuclearFission").researched) {
-						unlockrace();
+					if (game.science.get("nuclearFission").researched) {
+						unlockRace('dragons');
 					}
 				}
 			}
@@ -2343,6 +2335,7 @@ var run = function() {
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 			//buildManager.manager.render();
 
+			// 每次第一次运行builds为空
 			if (typeof builds != 'object') {
 				copyItem = {};
 				let items = options.auto.build.items;
@@ -3530,12 +3523,10 @@ var run = function() {
 					if (vitruvianFeline) {
 						if (!orbitalGeodesy && game.bld.get(id).val) {
 							halfCount = true;
-							let lower = options.auto.build.lower;
-							if (!lower) {
-								options.auto.build.lower = true;
-								iactivity('act.build.lower', [], 'ks-build');
+							if (!activitySummary.other['build.lower']) {
+								iactivity('summary.build.lower', [], 'ks-build');
+								storeForSummary('build.lower');
 							}
-							
 						}
 					}
 					break;
