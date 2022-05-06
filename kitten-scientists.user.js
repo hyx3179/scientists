@@ -507,7 +507,9 @@ var run = function() {
 			'summary.sun': '{1} {0} 次',
 			'summary.craft': '制作了{0} 个 {1}',
 			'summary.craftLeader': '工匠制作了 {0} 个 {1}',
-			'summary.craftForce': '小猫偷偷使用了 {0} 次材料，为了科学。',
+			'summary.craftManuscript': '小猫偷偷使用了 {0} 次材料合成手稿，为了科学。',
+			'summary.craftCompedium': '小猫偷偷使用了 {0} 次材料合成概要，为了科学。',
+			'summary.craftBlueprint': '小猫偷偷使用了 {0} 次材料合成蓝图，为了科学。',
 			'summary.trade': '{1} 贸易了 {0} 次',
 			'summary.year': '年',
 			'summary.years': '年',
@@ -2551,7 +2553,7 @@ var run = function() {
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.singleCraftPossible(name)) {continue;}
 				// Craft the resource if we meet the trigger requirement
-				if (require == 'noRequire' || (require.value / require.maxValue >= trigger && require.value <= require.maxValue)) {
+				if (require == 'noRequire' || (require.value / require.maxValue >= trigger && require.value <= 2 * require.maxValue)) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, require);
 				} else if (craft.limited) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
@@ -3751,6 +3753,11 @@ var run = function() {
 			let gScience = game.science;
 			let scienceMeta = gScience.meta[0];
 			let indexMax;
+			let msgScience = (name) => {
+				iactivity("craft.force", [res[name].title], 'ks-craft');
+				storeForSummary('craft' + ucfirst(name), 1);
+				force = true;
+			};
 			if (name === 'manuscript' && limited) {
 				let cacheManuscript = options.auto.cache.resources['manuscript'];
 				indexMax = (cacheManuscript) ? 19 : 17;
@@ -3763,9 +3770,7 @@ var run = function() {
 						autoMax = Math.ceil((price - resValue) / ratio);
 						let resVal = res['parchment'].value;
 						if (resVal > autoMax * craftPrices && autoMax >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
-							iactivity("craft.force", [res[name].title], 'ks-craft');
-							storeForSummary('craftForce', 1);
-							force = true;
+							msgScience('manuscript');
 							options.auto.cache.resources['manuscript'] = 0;
 						}
 						break;
@@ -3787,9 +3792,7 @@ var run = function() {
 							autoMax = Math.ceil((price - resValue) / ratio);
 							let resVal = res['manuscript'].value;
 							if (resVal > autoMax * 50 && autoMax >= 1) {
-								force = true;
-								iactivity("craft.force", [res[name].title], 'ks-craft');
-								storeForSummary('craftForce', 1);
+								msgScience('compedium');
 								options.auto.cache.resources['compedium'] = 0;
 							} else {
 								options.auto.cache.resources['manuscript'] = autoMax * 50;
@@ -3812,9 +3815,7 @@ var run = function() {
 							autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio);
 							let resVal = res['compedium'].value;
 							if (resVal > autoMax * 25 && autoMax >= 1) {
-								force = true;
-								iactivity("craft.force", [res[name].title], 'ks-craft');
-								storeForSummary('craftForce', 1);
+								msgScience('blueprint');
 							} else {
 								options.auto.cache.resources['compedium'] = autoMax * 25;
 							}
@@ -3848,13 +3849,13 @@ var run = function() {
 				let calciner = game.bld.getBuildingExt('calciner').meta;
 				//console.log(0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio")));
 				if (!calciner.isAutomationEnabled && calciner.val) {
-					amount = Math.max(0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio")), amount);
+					let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
+					amount += calcinerAmount;
 				}
 				var plateRatio = game.getResCraftRatio("plate");
 				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
 					amount = 0;
 				}
-				//console.log(amount);
 			}
 
 			// If we have a maximum value, ensure that we don't produce more than
