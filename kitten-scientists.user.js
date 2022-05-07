@@ -2075,7 +2075,6 @@ var run = function() {
 					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
 					if (game.bld.get('steamworks').on < 5) {
 						noup = noup.concat(['printingPress'], autoM, ['combustionEngine']);
-						console.log(noup)
 					} else {
 						if (!game.opts.enableRedshift) {
 							noup = noup.concat(autoM);
@@ -2104,6 +2103,14 @@ var run = function() {
 					if (!game.bld.getBuildingExt('library').meta.stage) {
 						noup = noup.concat(['starlink', 'uplink']);
 					}
+					// 加速器
+					if (!game.bld.getBuildingExt('accelerator').meta.val < 5) {
+						noup = noup.concat(['darkEnergy', 'stasisChambers', 'voidEnergy', 'energyRifts', 'tachyonAccelerators', 'lhc']);
+					}
+					// AI核心
+					if (!game.bld.getBuildingExt('aiCore').meta.val < 3) {
+						noup = noup.concat(['machineLearning', 'aiBases']);
+					}
 				}
 
 				workLoop:
@@ -2127,6 +2134,7 @@ var run = function() {
 				for (let upg of tech) {
 					if (upg.researched || !upg.unlocked) {continue;}
 					if (upg.name == 'biology' && game.resPool.resourceMap['compedium'].value < 1500) {continue;}
+					if (upg.name == 'ecology' && game.resPool.resourceMap['titanium'].value < 6000) {continue;}
 
 					let prices = dojo.clone(upg.prices);
 					prices = game.village.getEffectLeader("scientist", prices);
@@ -2353,7 +2361,7 @@ var run = function() {
 					steamworks:items['steamworks'],
 				};
 				items = Object.assign(important, items);
-				let optimize = ['academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','factroy','quarry','aqueduct'];
+				let optimize = ['academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','factroy','quarry','aqueduct','chapel'];
 				for (var item in items) {
 					if (optimize.indexOf(item) == -1) {
 						copyItem[item] = items[item];
@@ -3537,6 +3545,9 @@ var run = function() {
 					// falls through
 				case 'harbor':
 				case 'oilWell':
+				case 'chapel':
+					if (id == 'chapel' && game.science.get('drama').researched) {break;}
+					// falls through
 				case 'quarry' :
 					if (vitruvianFeline) {
 						if (!orbitalGeodesy && game.bld.get(id).val) {
@@ -3824,7 +3835,8 @@ var run = function() {
 				for (i = 30; i < 44; i++) {
 					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
-						if (meta.name == 'quantumCryptography' || meta.name == 'blackchain') {
+						let metaName = meta.name;
+						if (metaName == 'quantumCryptography' || metaName == 'blackchain' || metaName == 'ecology') {
 							continue;
 						}
 						if (meta.prices[1].name == name) {
@@ -4020,6 +4032,10 @@ var run = function() {
 			if (name === 'plate' && limited) {
 				let shipLimit = 5 * game.bld.get("reactor").on + 225;
 				limRat = (shipValue > shipLimit * 0.75) ? limRat : 0.75;
+			}
+
+			if (name === 'alloy' && limited) {
+				limRat = (game.bld.get("steamworks").on < game.bld.get("magneto").on) ? limRat : 0.75;
 			}
 
 			// 减少E合金的合成
