@@ -2072,9 +2072,10 @@ var run = function() {
 						noup = noup.concat(['hydroPlantTurbines']);
 					}
 
-					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress', 'combustionEngine'];
+					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
 					if (game.bld.get('steamworks').on < 5) {
-						noup = noup.concat(['printingPress'], autoM);
+						noup = noup.concat(['printingPress'], autoM, ['combustionEngine']);
+						console.log(noup)
 					} else {
 						if (!game.opts.enableRedshift) {
 							noup = noup.concat(autoM);
@@ -2290,7 +2291,8 @@ var run = function() {
 				}
 
 				var libraryMeta = game.bld.getBuildingExt('library').meta;
-				if (libraryMeta.stage === 0 && options.auto.build.items.dataCenter.enabled) {
+				var scienceBldMax = game.bld.getEffect("scienceMax");
+				if (libraryMeta.stage === 0 && options.auto.build.items.dataCenter.enabled && scienceBldMax) {
 					if (libraryMeta.stages[1].stageUnlocked) {
 						var enCon = (game.workshop.get('cryocomputing').researched) ? 1 : 2;
 						if (game.challenges.isActive('energy')) {enCon *= 2 * (1 + game.getEffect("energyConsumptionIncrease"));}
@@ -2301,7 +2303,6 @@ var run = function() {
 						if (game.workshop.get('machineLearning').researched) {
 							libToDat *= (1 + game.bld.get('aiCore').on * game.getEffect('dataCenterAIRatio'));
 						}
-						var scienceBldMax = game.bld.getEffect("scienceMax");
 						if (game.resPool.get('compedium').value > scienceBldMax) {
 							if (game.resPool.energyProd >= game.resPool.energyCons + enCon * libraryMeta.val / libToDat) {
 								return upgradeBuilding('library', libraryMeta);
