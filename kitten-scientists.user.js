@@ -1151,7 +1151,7 @@ var run = function() {
 			if (render) {
 				this.renderID = setTimeout(() => {
 					game.ui.render();
-				}, Math.max(200,201 - Date.now() + game.timer.timestampStart));
+				}, Math.min(200,201 - Date.now() + game.timer.timestampStart));
 			} else {
 				this.huntID = setTimeout(() => {
 					this.hunt();
@@ -3785,6 +3785,7 @@ var run = function() {
 			let msgScience = (name) => {
 				let scienceName = (cache.science) ? cache.science : "科学";
 				iactivity("craft.force", [res[name].title, scienceName], 'ks-craft');
+				cache.science = null;
 				storeForSummary('craft' + ucfirst(name), 1);
 				force = true;
 			};
