@@ -383,9 +383,9 @@ var run = function() {
 			'filter.enable': '过滤 {0}',
 			'filter.disable': '取消过滤 {0}',
 
-			'craft.force': '小猫为了研究科学，偷偷使用了材料合成了{0}',
+			'craft.force': '小猫为了研究{1}，偷偷使用了材料合成了{0}',
 			'craft.limited': '限制{0}（理解为该资源触发条件、消耗率都为AI自动设置。',
-			'craft.limited.parchment': '小猫贴心地帮你关闭了{0}的限制',
+			//'craft.limited.parchment': '小猫贴心地帮你关闭了{0}的限制',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
 			'craft.unlimited': '触发资源：{1}{0}',
 			'craft.winterCatnip': '因寒冬猫薄荷产量低于0，故取消使用猫薄荷',
@@ -970,6 +970,7 @@ var run = function() {
 				resources: {},
 				trait:    {},
 				upgrade:  undefined,
+				science: '',
 			}
 		}
 	};
@@ -2101,14 +2102,14 @@ var run = function() {
 					}
 					// 星链 上行
 					if (!game.bld.getBuildingExt('library').meta.stage) {
-						noup = noup.concat(['starlink', 'uplink']);
+						noup = noup.concat(['starlink', 'uplink', 'cryocomputing']);
 					}
 					// 加速器
 					if (!game.bld.getBuildingExt('accelerator').meta.val < 5) {
 						noup = noup.concat(['darkEnergy', 'stasisChambers', 'voidEnergy', 'energyRifts', 'tachyonAccelerators', 'lhc']);
 					}
 					// AI核心
-					if (!game.bld.getBuildingExt('aiCore').meta.val < 3) {
+					if (!game.bld.getBuildingExt('aiCore').meta.val < 4) {
 						noup = noup.concat(['machineLearning', 'aiBases']);
 					}
 				}
@@ -2436,8 +2437,8 @@ var run = function() {
 							msg('temple');
 							temple.enabled = false;
 						}
+						tradepost.max = 12;
 					}
-					tradepost.max = 15;
 				} else if (theology) {
 					msg('temple', true);
 					msg('tradepost', true);
@@ -3538,7 +3539,7 @@ var run = function() {
 					// falls through
 				case 'lumberMill':
 					if (id == 'lumberMill' && game.bld.getBuildingExt('lumberMill').meta.on < 43) {
-						if (resourceMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.4) {
+						if (resourceMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.3) {
 							break;
 						}
 					}
@@ -3780,14 +3781,16 @@ var run = function() {
 			let gScience = game.science;
 			let scienceMeta = gScience.meta[0];
 			let indexMax;
+			let cache = options.auto.cache;
 			let msgScience = (name) => {
-				iactivity("craft.force", [res[name].title], 'ks-craft');
+				let scienceName = (cache.science) ? cache.science : "科学";
+				iactivity("craft.force", [res[name].title, scienceName], 'ks-craft');
 				storeForSummary('craft' + ucfirst(name), 1);
 				force = true;
 			};
 			if (name === 'manuscript' && limited) {
-				let cacheManuscript = options.auto.cache.resources['manuscript'];
-				indexMax = (cacheManuscript) ? 19 : 17;
+				let cacheManuscript = cache.resources['manuscript'];
+				indexMax = (cacheManuscript) ? 17 : 19;
 				for (i = 16; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
@@ -3797,8 +3800,9 @@ var run = function() {
 						autoMax = Math.ceil((price - resValue) / ratio);
 						let resVal = res['parchment'].value;
 						if (resVal > autoMax * craftPrices && autoMax >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
+							cache.science = (cacheManuscript > 0) ? cache.science : meta.label;
 							msgScience('manuscript');
-							options.auto.cache.resources['manuscript'] = 0;
+							cache.resources['manuscript'] = 0;
 						}
 						break;
 					}
@@ -3806,7 +3810,7 @@ var run = function() {
 			}
 
 			if (name === 'compedium' && limited && gScience.get('navigation').researched) {
-				let cacheCompedium = options.auto.cache.resources['compedium'];
+				let cacheCompedium = cache.resources['compedium'];
 				indexMax = (cacheCompedium) ? 19 : 27;
 				for (i = 18; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
@@ -3819,10 +3823,11 @@ var run = function() {
 							autoMax = Math.ceil((price - resValue) / ratio);
 							let resVal = res['manuscript'].value;
 							if (resVal > autoMax * 50 && autoMax >= 1) {
+								cache.science = (cacheCompedium > 0) ? cache.science : meta.label;
 								msgScience('compedium');
-								options.auto.cache.resources['compedium'] = 0;
+								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 0) {
-								options.auto.cache.resources['manuscript'] = autoMax * 50;
+								cache.resources['manuscript'] = autoMax * 50;
 							}
 						}
 						break;
@@ -3843,9 +3848,10 @@ var run = function() {
 							autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio);
 							let resVal = res['compedium'].value;
 							if (resVal > autoMax * 25 && autoMax >= 1) {
+								cache.science = meta.label;
 								msgScience('blueprint');
 							} else if (autoMax >= 0) {
-								options.auto.cache.resources['compedium'] = autoMax * 25;
+								cache.resources['compedium'] = autoMax * 25;
 							}
 						}
 						break;
