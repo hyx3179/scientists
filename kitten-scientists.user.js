@@ -270,6 +270,7 @@ var run = function() {
 			'act.observe': '小猫珂学家观测到一次天文现象',
 			'act.hunt': '{0} 波{1}去打猎',
 			'act.hunt.unicorn': '小猫急着给独角兽配种',
+			'act.hunt.trade': '小猫贸易后决定去打猎',
 			'act.build': '小猫建造了一个 {0}',
 			'act.builds': '小猫建造了 {1} 个新的 {0}',
 			'act.craft': ' {0} {1}',
@@ -305,6 +306,7 @@ var run = function() {
 			'ui.trigger.resource': '触发资源为',
 			'ui.none': '无',
 			'ui.limit': '限制',
+			'ui.craftLimit': 'AI平衡',
 			'ui.upgradesLimit': '优选',
 			'ui.trigger.shipOverride.set': '输入一个新的 强制贸易船 触发值，\n贸易船数量低于触发条件时会无视工艺的贸易船限制启用。',
 			'ui.trigger.missions.set': '输入一个新的 探索星球 触发值,取值范围为 0 到 13 的整数。\n分别对应13颗星球。',
@@ -846,6 +848,7 @@ var run = function() {
 				}
 			},
 			trade: {
+				cache: false,
 				// Should KS automatically trade?
 				enabled: false,
 				// Every trade can define a required resource with the *require* property.
@@ -2192,7 +2195,7 @@ var run = function() {
 						continue;
 					}
 
-					if (!missions[3].val && i == 2) {continue;}
+					if (!missions[3].val && i == 2 && subTrigger != 3) {continue;}
 
 					if (Btn.model.metadata.val || Btn.model.metadata.on) {continue;}
 					var prices = Btn.model.prices;
@@ -2622,7 +2625,10 @@ var run = function() {
 			let parchment = game.resPool.resourceMap['parchment'].value < Math.ceil(25 / game.getCraftRatio()) * 100;
 			let preCount = Math.ceil(totalFur / aveOutput.furs) + 2;
 			let mint = (architecture && huntCount > preCount && parchment);
-			if (options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue || mint || unicornHunt) {
+
+			let manpowerBoolean = options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue;
+			let tradeCache = !manpowerBoolean && options.auto.trade.cache;
+			if (manpowerBoolean || mint || unicornHunt || tradeCache) {
 				// No way to send only some hunters. Thus, we hunt with everything
 				if (manpower.perTickCached < 100 && manpower.value >= 200) {
 					huntCount -= 1;
@@ -2636,6 +2642,13 @@ var run = function() {
 					huntCount = 7;
 					iactivity('act.hunt.unicorn');
 				}
+
+				if (tradeCache) {
+					huntCount = Math.min(huntCount, Math.max(Math.floor(manpower.perTickCached / 50), 1));
+					options.auto.trade.cache = false;
+					iactivity('act.hunt.trade', '', 'ks-hunt');
+				}
+
 				let hunter = (game.ironWill) ? game.resPool.resourceMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
 				game.resPool.addResEvent("manpower", -huntCount * 100);
 				this.setTrait('manager');
@@ -2667,18 +2680,19 @@ var run = function() {
 			var cacheManager = this.cacheManager;
 			var gold = craftManager.getResource('gold');
 			var trades = [];
-			var requireTrigger = options.auto.trade.trigger;
+			let optionTrade = options.auto.trade;
+			var requireTrigger = optionTrade.trigger;
 
 			if (!tradeManager.singleTradePossible(undefined)) {return;}
 
 			var season = game.calendar.getCurSeason().name;
 			let goldTrigger = requireTrigger <= gold.value / gold.maxValue;
 
-			let c;
+			let isLimited;
 			this.setTrait('merchant');
 			// Determine how many races we will trade this cycle
-			for (var name in options.auto.trade.items) {
-				var trade = options.auto.trade.items[name];
+			for (var name in optionTrade.items) {
+				var trade = optionTrade.items[name];
 
 				// Check if the race is in season, enabled, unlocked, and can actually afford it
 				if (!trade.enabled) {continue;}
@@ -2716,8 +2730,9 @@ var run = function() {
 				let miningDrillMoon = (transcendence && apocripha) || !game.space.meta[0].meta[1].on || !game.workshop.meta[0].meta[58].researched;
 				if (trade.limited && prof && solar && miningDrillMoon) {
 					trades.push(name);
-					c = c || trade.limited && prof;
+					isLimited = true;
 				} else if ((!require || requireTrigger <= require.value / require.maxValue) && goldTrigger) {
+					optionTrade.cache = true;
 					trades.push(name);
 				}
 			}
@@ -2725,8 +2740,8 @@ var run = function() {
 			if (trades.length === 0) {return;}
 
 			// Figure out how much we can currently trade
-			c = (c && !goldTrigger) ? 0.4 : 1;
-			var maxTrades = tradeManager.getLowestTradeAmount(undefined, true, false) * c;
+			isLimited = (isLimited && !goldTrigger) ? 0.4 : 1;
+			var maxTrades = tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited;
 
 			// Distribute max trades without starving any race
 
@@ -3764,7 +3779,7 @@ var run = function() {
 				for (i = 16; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
-					if (!meta.researched || cacheManuscript) {
+					if (!meta.researched || cacheManuscript > 0) {
 						price = (res['faith'].maxValue > 750) ? price : resValue + 10;
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
 						autoMax = Math.ceil((price - resValue) / ratio);
@@ -3783,7 +3798,7 @@ var run = function() {
 				indexMax = (cacheCompedium) ? 19 : 27;
 				for (i = 18; i < indexMax; i++) {
 					let meta = scienceMeta.meta[i];
-					if (!meta.researched || cacheCompedium) {
+					if (!meta.researched || cacheCompedium > 0) {
 						if (meta.name == 'metaphysics' || meta.name == 'drama') {
 							continue;
 						}
@@ -3794,7 +3809,7 @@ var run = function() {
 							if (resVal > autoMax * 50 && autoMax >= 1) {
 								msgScience('compedium');
 								options.auto.cache.resources['compedium'] = 0;
-							} else {
+							} else if (autoMax >= 0) {
 								options.auto.cache.resources['manuscript'] = autoMax * 50;
 							}
 						}
@@ -3816,7 +3831,7 @@ var run = function() {
 							let resVal = res['compedium'].value;
 							if (resVal > autoMax * 25 && autoMax >= 1) {
 								msgScience('blueprint');
-							} else {
+							} else if (autoMax >= 0) {
 								options.auto.cache.resources['compedium'] = autoMax * 25;
 							}
 						}
@@ -4333,7 +4348,6 @@ var run = function() {
 			if (!game.workshop.get('geodesy').researched && this.craftManager.getResource('gold').perTickCached > 9) {return true;}
 			for (var mat in materials) {
 				var tick = this.craftManager.getTickVal(this.craftManager.getResource(mat));
-				if ((mat == 'gold' || mat == 'manpower') && game.workshop.get('geodesy').researched) {tick *= 2;}
 				if (tick <= 0) {return false;}
 				cost += materials[mat] / tick;
 			}
@@ -5885,11 +5899,12 @@ var run = function() {
 		}
 
 		var element = getOption(name, option, iname);
+		if (name == 'parchment') {return element;}
 
 		var label = $('<label/>', {
 			'for': 'toggle-limited-' + name,
 			title: i18n("craft.limitedTitle"),
-			text: i18n('ui.limit')
+			text: i18n('ui.craftLimit')
 		});
 
 		var input = $('<input/>', {
@@ -5903,14 +5918,8 @@ var run = function() {
 
 		input.on('change', function () {
 			if (input.is(':checked') && option.limited == false) {
-				if (name == 'parchment') {
-					input.prop("checked", false);
-					imessage('craft.limited.parchment', [iname]);
-					option.limited = false;
-				} else {
-					option.limited = true;
-					imessage('craft.limited', [iname]);
-				}
+				option.limited = true;
+				imessage('craft.limited', [iname]);
 			} else if ((!input.is(':checked')) && option.limited == true) {
 				option.limited = false;
 				let require = (option.require) ? game.resPool.resourceMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
