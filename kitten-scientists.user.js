@@ -2120,6 +2120,10 @@ var run = function() {
 					if (!game.resPool.resourceMap['starchart'].perTickCached) {
 						noup = noup.concat(['hubbleTelescope']);
 					}
+					//钍反应堆
+					if (game.resPool.resourceMap['thorium'].value > 2) {
+						noup = noup.concat(['thoriumReactors']);
+					}
 				}
 
 				workLoop:
@@ -2309,20 +2313,12 @@ var run = function() {
 				}
 
 				var libraryMeta = game.bld.getBuildingExt('library').meta;
-				var scienceBldMax = game.bld.getEffect("scienceMax");
+				var scienceBldMax = libraryMeta.totalEffectsCached.scienceMax / (1 + game.prestige.getParagonStorageRatio());
 				if (libraryMeta.stage === 0 && options.auto.build.items.dataCenter.enabled && scienceBldMax) {
 					if (libraryMeta.stages[1].stageUnlocked) {
-						var enCon = (game.workshop.get('cryocomputing').researched) ? 1 : 2;
-						if (game.challenges.isActive('energy')) {enCon *= 2 * (1 + game.getEffect("energyConsumptionIncrease"));}
-						var libToDat = 3;
-						if (game.workshop.get('uplink').researched) {
-							libToDat *= (1 + game.bld.get('biolab').val * game.getEffect('uplinkDCRatio'));
-						}
-						if (game.workshop.get('machineLearning').researched) {
-							libToDat *= (1 + game.bld.get('aiCore').on * game.getEffect('dataCenterAIRatio'));
-						}
+						scienceBldMax = scienceBldMax / (1 + game.bld.get('biolab').val * 0.01);
 						if (game.resPool.get('compedium').value > scienceBldMax) {
-							if (game.resPool.energyProd >= game.resPool.energyCons + enCon * libraryMeta.val / libToDat) {
+							if (game.resPool.energyProd >= game.resPool.energyCons + 300) {
 								return upgradeBuilding('library', libraryMeta);
 							}
 						}
@@ -4095,7 +4091,11 @@ var run = function() {
 			if (name === 'gear'  && limited) {
 				limRat = (renaissance) ? 0.3 : limRat;
 			}
-			
+
+			if (name === 'kerosene'  && limited) {
+				limRat = (game.space.meta[0].meta[1].on) ? limRat : 0;
+			}
+
 			return limRat;
 		},
 		getPotentialCatnip: function (worstWeather, pastures, aqueducts) {
