@@ -519,7 +519,7 @@ var run = function() {
 			'summary.day': '天',
 			'summary.days': '天',
 			'summary.head': '过去 {0} 的总结',
-			'summary.show': '总结',
+			'summary.show': '小猫总结',
 		},
 	};
 	if (!i18nData[lang]) {
@@ -2121,7 +2121,7 @@ var run = function() {
 						noup = noup.concat(['hubbleTelescope']);
 					}
 					//钍反应堆
-					if (game.resPool.resourceMap['thorium'].value > 2) {
+					if (game.resPool.resourceMap['thorium'].value > 1e4) {
 						noup = noup.concat(['thoriumReactors']);
 					}
 				}
