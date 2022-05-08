@@ -408,7 +408,7 @@ var run = function() {
 			'filter.promote': '提拔领袖',
 			'summary.promote': '提拔领袖 {0} 次',
 
-			'ui.trigger.useWorkers.alert': '比如天文事件没观测全是因为后台慢速运行\n勾选将会在后台满速运行，注意会导致使用内存增多。\n电脑不好、内存≤ 8G的建议禁用\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
+			'ui.trigger.useWorkers.alert': '比如天文事件没观测、烧水晶慢，因为后台慢速运行\n勾选将会在后台满速运行，注意会导致使用内存增多。\n电脑不好、内存≤ 8G的建议禁用\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
 			'ui.timeCtrl': '时间操纵',
 			'option.accelerate': '光阴似箭',
 			'act.accelerate': '固有时制御，二倍速!',
@@ -424,7 +424,7 @@ var run = function() {
 			'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
-			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n上限为每次燃烧水晶最大年数，根据时计炉数量，一开始推荐1\n周期默认全勾就行，珂学家会自动判断是否停在红月',
+			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n上限为每次燃烧水晶最大年数，根据时计炉数量，长挂推荐1\n周期默认全勾就行，珂学家会自动判断是否停在红月',
 			'summary.time.skip': '跳过 {0} 年',
 			'filter.time.skip': '时间跳转',
 
@@ -926,7 +926,7 @@ var run = function() {
 					// if all jobs reach the max, then distribute kittens to unlimited job.
 					woodcutter: {enabled: true, max: 27, limited: true},
 					farmer:     {enabled: true, max: 1, limited: true},
-					scholar:    {enabled: true, max: 8, limited: true},
+					scholar:    {enabled: true, max: 9, limited: true},
 					hunter:     {enabled: true, max: 24, limited: true},
 					miner:      {enabled: true, max: 25, limited: true},
 					priest:     {enabled: true, max: 3, limited: false},
@@ -2087,13 +2087,13 @@ var run = function() {
 					}
 
 					// 缺电过滤抽油机 和 碳封存
-					if (game.resPool.energyProd - game.resPool.energyCons - Math.max(game.bld.getBuildingExt('oilWell').meta.on, 40) <= 0) {
-						noup = noup.concat(['pumpjack', 'carbonSequestration']);
+					if (game.resPool.energyProd - game.resPool.energyCons - 100 <= 0) {
+						noup = noup.concat(['carbonSequestration']);
 					}
 
 					// 没测地学过滤 地外计划
 					if (!game.workshop.get('geodesy').researched) {
-						noup = noup.concat(['seti','pumpjack']);
+						noup = noup.concat(['seti', 'miningDrill']);
 					}
 
 					// 微型亚空间
@@ -2105,12 +2105,20 @@ var run = function() {
 						noup = noup.concat(['starlink', 'uplink', 'cryocomputing']);
 					}
 					// 加速器
-					if (!game.bld.getBuildingExt('accelerator').meta.val < 5) {
+					if (game.bld.getBuildingExt('accelerator').meta.val < 5) {
 						noup = noup.concat(['darkEnergy', 'stasisChambers', 'voidEnergy', 'energyRifts', 'tachyonAccelerators', 'lhc']);
 					}
 					// AI核心
-					if (!game.bld.getBuildingExt('aiCore').meta.val < 4) {
+					if (!game.bld.getBuildingExt('aiCore').meta.val < 5) {
 						noup = noup.concat(['machineLearning', 'aiBases']);
+					}
+					// 太阳能卫星
+					if (game.space.getBuilding('sattelite') < 6) {
+						noup = noup.concat(['solarSatellites', 'satelliteRadio']);
+					}
+					// 星图产出
+					if (!game.resPool.resourceMap['starchart'].perTickCached) {
+						noup = noup.concat(['hubbleTelescope']);
 					}
 				}
 
@@ -2136,6 +2144,7 @@ var run = function() {
 					if (upg.researched || !upg.unlocked) {continue;}
 					if (upg.name == 'biology' && game.resPool.resourceMap['compedium'].value < 1500) {continue;}
 					if (upg.name == 'ecology' && game.resPool.resourceMap['titanium'].value < 6000) {continue;}
+					if (upg.name == 'particlePhysics' && game.resPool.resourceMap['titanium'].value < 10000) {continue;}
 
 					let prices = dojo.clone(upg.prices);
 					prices = game.village.getEffectLeader("scientist", prices);
@@ -2323,7 +2332,7 @@ var run = function() {
 				var amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
 				if (amphitheatreMeta.stage === 0) {
 					if (amphitheatreMeta.stages[1].stageUnlocked) {
-						if (game.getResourcePerTick('titanium', true) > 0.2) {
+						if (game.getResourcePerTick('titanium', true) > 1 || game.resPool.resourceMap['ship'].value > 200) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
 						}
 					}
@@ -2362,7 +2371,7 @@ var run = function() {
 					steamworks:items['steamworks'],
 				};
 				items = Object.assign(important, items);
-				let optimize = ['academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','factroy','quarry','aqueduct','chapel'];
+				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','factroy','quarry','aqueduct','chapel', 'lumberMill','observatory'];
 				for (var item in items) {
 					if (optimize.indexOf(item) == -1) {
 						copyItem[item] = items[item];
@@ -2410,6 +2419,12 @@ var run = function() {
 					}
 				} else {
 					msg('steamworks', true);
+				}
+
+				// 没铀不造反应堆
+				var reactor = copyItem['reactor'];
+				if (game.resPool.resourceMap['uranium'].value < 1) {
+					reactor.max = 0;
 				}
 
 				// 无节日不造酿酒厂
@@ -3534,6 +3549,9 @@ var run = function() {
 				case 'academy':
 				case 'pasture':
 				case 'barn':
+				case 'workshop':
+					if (id == 'workshop' && resourceMap['culture'].value) {break;}
+					// falls through
 				case 'warehouse':
 					if (mineralsCap && woodCap) {break;}
 					// falls through
@@ -3761,22 +3779,6 @@ var run = function() {
 			var amount = Number.MAX_VALUE / ratio + Number.MAX_VALUE / Math.pow(2, 53) / ratio;
 			// 跳过资源达到无限的情况
 			if (res[name].value == Infinity) { return 0; }
-			// Safeguard if materials for craft cannot be determined.
-			if (!materials) {return 0;}
-
-			if (name === 'plate' && limited && options.auto.craft.items['steel'].enabled) {
-				var steelRatio = game.getResCraftRatio("steel");
-				if (game.getResourcePerTick('coal', true) > 0) {
-					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > (ratio / 125) / ((steelRatio + 1) / 100)) {
-						var ironInTime = ((this.getResource('coal').maxValue * trigger - this.getValue('coal')) / game.getResourcePerTick('coal', true)) * Math.max(game.getResourcePerTick('iron', true), 0);
-						autoMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
-					}
-				}
-				if (!shipValue && ratio > 4 && res['starchart'].value >= 25) {
-					autoMax = Number.MAX_VALUE;
-					force = true;
-				}
-			}
 
 			let gScience = game.science;
 			let scienceMeta = gScience.meta[0];
@@ -3785,31 +3787,9 @@ var run = function() {
 			let msgScience = (name) => {
 				let scienceName = (cache.science) ? cache.science : "科学";
 				iactivity("craft.force", [res[name].title, scienceName], 'ks-craft');
-				cache.science = null;
 				storeForSummary('craft' + ucfirst(name), 1);
 				force = true;
 			};
-			if (name === 'manuscript' && limited) {
-				let cacheManuscript = cache.resources['manuscript'];
-				indexMax = (cacheManuscript) ? 17 : 19;
-				for (i = 16; i < indexMax; i++) {
-					let meta = scienceMeta.meta[i];
-					let price = cacheManuscript || meta.prices[1].val;
-					if (!meta.researched || cacheManuscript > 0) {
-						price = (res['faith'].maxValue > 750) ? price : resValue + 10;
-						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
-						autoMax = Math.ceil((price - resValue) / ratio);
-						let resVal = res['parchment'].value;
-						if (resVal > autoMax * craftPrices && autoMax >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
-							cache.science = (cacheManuscript > 0) ? cache.science : meta.label;
-							msgScience('manuscript');
-							cache.resources['manuscript'] = 0;
-						}
-						break;
-					}
-				}
-			}
-
 			if (name === 'compedium' && limited && gScience.get('navigation').researched) {
 				let cacheCompedium = cache.resources['compedium'];
 				indexMax = (cacheCompedium) ? 19 : 27;
@@ -3829,7 +3809,45 @@ var run = function() {
 								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 0) {
 								cache.resources['manuscript'] = autoMax * 50;
+								cache.science = (cacheCompedium > 0) ? cache.science : meta.label;
 							}
+						}
+						break;
+					}
+				}
+			}
+			// Safeguard if materials for craft cannot be determined.
+			if (!materials) {return 0;}
+
+			if (name === 'plate' && limited && options.auto.craft.items['steel'].enabled) {
+				var steelRatio = game.getResCraftRatio("steel");
+				if (game.getResourcePerTick('coal', true) > 0) {
+					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > (ratio / 125) / ((steelRatio + 1) / 100)) {
+						var ironInTime = ((this.getResource('coal').maxValue * trigger - this.getValue('coal')) / game.getResourcePerTick('coal', true)) * Math.max(game.getResourcePerTick('iron', true), 0);
+						autoMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
+					}
+				}
+				if (!shipValue && ratio > 4 && res['starchart'].value >= 25) {
+					autoMax = Number.MAX_VALUE;
+					force = true;
+				}
+			}
+
+			if (name === 'manuscript' && limited) {
+				let cacheManuscript = cache.resources['manuscript'];
+				indexMax = (cacheManuscript) ? 17 : 19;
+				for (i = 16; i < indexMax; i++) {
+					let meta = scienceMeta.meta[i];
+					let price = cacheManuscript || meta.prices[1].val;
+					if (!meta.researched || cacheManuscript > 0) {
+						price = (res['faith'].maxValue > 750) ? price : resValue + 10;
+						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
+						autoMax = Math.ceil((price - resValue) / ratio);
+						let resVal = res['parchment'].value;
+						if (resVal > autoMax * craftPrices && autoMax >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
+							cache.science = (cacheManuscript > 0) ? cache.science : meta.label;
+							msgScience('manuscript');
+							cache.resources['manuscript'] = 0;
 						}
 						break;
 					}
@@ -3853,6 +3871,7 @@ var run = function() {
 								msgScience('blueprint');
 							} else if (autoMax >= 0) {
 								cache.resources['compedium'] = autoMax * 25;
+								cache.science = meta.label;
 							}
 						}
 						break;
@@ -3885,11 +3904,18 @@ var run = function() {
 				//console.log(0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio")));
 				if (!calciner.isAutomationEnabled && calciner.val) {
 					let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
-					amount += calcinerAmount;
+					amount = Math.max(0, amount) + calcinerAmount;
 				}
 				var plateRatio = game.getResCraftRatio("plate");
 				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
 					amount = 0;
+				}
+				let oxidation = game.workshop.get('oxidation');
+				if (!oxidation.researched) {
+					let amt = Math.ceil(5000 / ratio);
+					if (this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt) {
+						amount = amt;
+					}
 				}
 			}
 
@@ -3988,10 +4014,15 @@ var run = function() {
 			var value = this.getValue(name);
 			var stock = this.getStock(name);
 
+			let trigger;
 			if (!typeTrigger && typeTrigger !== 0) {
-				var trigger = options.auto.craft.trigger;
+				if (typeTrigger === undefined) {
+					trigger = 1;
+				} else {
+					trigger = options.auto.craft.trigger;
+				}
 			} else {
-				var trigger = typeTrigger;
+				trigger = typeTrigger;
 			}
 
 			if ('catnip' === name) {
@@ -4042,7 +4073,7 @@ var run = function() {
 			}
 
 			if (name === 'alloy' && limited) {
-				limRat = (game.bld.get("steamworks").on < game.bld.get("magneto").on) ? limRat : 0.75;
+				limRat = (game.bld.get("steamworks").on < game.bld.get("magneto").on - 2) ? limRat : 0.75;
 			}
 
 			// 减少E合金的合成
@@ -6955,6 +6986,7 @@ var loadTest = function() {
 		game.workshop.metaCache['geodesy'] = game.workshop.get('geodesy');
 		game.workshop.metaCache['orbitalGeodesy'] = game.workshop.get('orbitalGeodesy');
 		game.workshop.metaCache['spaceManufacturing'] = game.workshop.get('spaceManufacturing');
+		game.workshop.metaCache['oxidation'] = game.workshop.get('oxidation');
 		run();
 		loadTest = run = null;
 	}
