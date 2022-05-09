@@ -252,9 +252,9 @@ var run = function() {
 			'option.useWorkers': '珂学家webWorker',
 
 			'filter.build': '建筑',
-			'filter.craft': '工艺',
-			'filter.upgrade': '升级',
-			'filter.research': '研究',
+			'filter.craft': '工艺制作',
+			'filter.upgrade': '工坊升级',
+			'filter.research': '科学研究',
 			'filter.trade': '贸易',
 			'filter.hunt': '狩猎',
 			'filter.praise': '赞美太阳',
@@ -861,7 +861,7 @@ var run = function() {
 					dragons:    {enabled: false,  require: 'titanium',    allowcapped: false,    limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true},
 
-					zebras:     {enabled: true,  require: false,         allowcapped: false,    limited: true,
+					zebras:     {enabled: true,  require: false,          allowcapped: false,    limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true},
 
 					lizards:    {enabled: false,  require: 'minerals',    allowcapped: false,    limited: true,
@@ -873,7 +873,7 @@ var run = function() {
 					griffins:   {enabled: false,  require: 'wood',        allowcapped: false,    limited: true,
 						summer:  false, autumn:  true,  winter:  false,         spring:      false},
 
-					nagas:      {enabled: false,  require: false,         allowcapped: false,    limited: true,
+					nagas:      {enabled: true,  require: false,          allowcapped: false,    limited: true,
 						summer:  false, autumn:  false, winter:  false,         spring:      true},
 
 					spiders:    {enabled: false,  require: false,         allowcapped: false,    limited: true,
@@ -888,7 +888,7 @@ var run = function() {
 				enabled: false,
 				items: {
 					upgrades:  {enabled: true, limited: true},
-					techs:     {enabled: true},
+					techs:     {enabled: true, limited: true},
 					policies:  {enabled: false},
 					races:     {enabled: true},
 					missions:  {enabled: true, subTrigger: 4},
@@ -1952,7 +1952,7 @@ var run = function() {
 			let solarMeta = game.religion.getRU('solarRevolution');
 			let leaderRatio = 1 - game.getLimitedDR(0.09 + 0.01 * (1 + game.prestige.getBurnedParagonRatio()), 1.0);
 			let faithMeta = resMap['faith'];
-			let unlocked = (game.religion.faith > solarMeta.faith && faithMeta.maxValue > 750 && resMap['gold'].maxValue > 500);
+			let unlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched) && faithMeta.maxValue > 750 && resMap['gold'].maxValue > 500;
 			let trigger = (!solarMeta.on && unlocked && game.religion.getRU('solarchant').on) ? 1.1 : options.auto.faith.trigger;
 			if (!solarMeta.on && unlocked && options.auto.faith.items.solarRevolution.enabled) {
 				buildManager.build("solarRevolution", "s", 1);
@@ -2149,9 +2149,12 @@ var run = function() {
 				techLoop:
 				for (let upg of tech) {
 					if (upg.researched || !upg.unlocked) {continue;}
-					if (upg.name == 'biology' && resMap['compedium'].value < 1500) {continue;}
-					if (upg.name == 'ecology' && resMap['titanium'].value < 6000) {continue;}
-					if (upg.name == 'particlePhysics' && resMap['titanium'].value < 10000) {continue;}
+					if (upgrades.techs.limited) {
+						if (upg.name == 'biology' && resMap['compedium'].value < 1500) {continue;}
+						if (upg.name == 'ecology' && resMap['titanium'].value < 6000) {continue;}
+						if (upg.name == 'particlePhysics' && resMap['titanium'].value < 10000) {continue;}
+						if (upg.name == 'ai' && resMap['titanium'].value < 10000) {continue;}
+					}
 
 					let prices = dojo.clone(upg.prices);
 					prices = game.village.getEffectLeader("scientist", prices);
@@ -2422,8 +2425,10 @@ var run = function() {
 
 				// 没铀不造反应堆
 				var reactor = copyItem['reactor'];
-				if (resMap['uranium'].value < 1) {
+				if (resMap['uranium'].value < 100) {
 					reactor.max = 0;
+				} else if (!spaceManufacturing && resMap['titanium'].maxValue > 125000) {
+					reactor.max = 40;
 				}
 
 				// 无节日不造酿酒厂
@@ -2456,6 +2461,23 @@ var run = function() {
 				} else if (theology) {
 					msg('temple', true);
 					msg('tradepost', true);
+				}
+
+				// 煅烧炉 
+				let calciner = copyItem['calciner'];
+				if (!orbitalGeodesy) {
+					if (resMap['science'] .value > 150000 && resMap['alloy'].value > 1000 && resMap['oil'].maxValue > 35000) {
+						calciner.max = 55;
+					} 
+				} else if (!spaceManufacturing) {
+					calciner.max = 77;
+				}
+				
+				// 太阳能
+				let solarfarm = copyItem['solarfarm'];
+				let winterProd = (game.calendar.season == 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+				if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 && winterProd > game.resPool.energyCons) {
+					solarfarm.enabled = false; 
 				}
 
 				// 广播塔 宅邸
@@ -2565,7 +2587,7 @@ var run = function() {
 			var crafts = options.auto.craft.items;
 			var manager = this.craftManager;
 			var trigger = options.auto.craft.trigger;
-			var craftsItem = ['ship', 'beam','wood', 'slab', 'plate', 'steel', 'alloy', 'concrate', 'gear', 'scaffold', 'tanker', 'parchment', 'manuscript', 'compedium', 'blueprint', 'kerosene', 'megalith', 'eludium', 'thorium'];
+			var craftsItem = ['ship', 'beam','wood', 'slab', 'plate', 'alloy', 'gear', 'steel', 'concrate', 'scaffold', 'tanker', 'parchment', 'manuscript', 'compedium', 'blueprint', 'kerosene', 'megalith', 'eludium', 'thorium'];
 
 			this.setTrait('engineer');
 
@@ -2907,9 +2929,9 @@ var run = function() {
 						storeForSummary('embassy', emBulk.val);
 						refreshRequired += 1;
 						if (emBulk.val !== 1) {
-							iactivity('build.embassies', [emBulk.val, emBulk.race.title], 'ks-trade');
+							activity(i18n('build.embassies', [emBulk.val, emBulk.race.title]));
 						} else {
-							iactivity('build.embassy', [emBulk.val, emBulk.race.title], 'ks-trade');
+							activity(i18n('build.embassy', [emBulk.val, emBulk.race.title]));
 						}
 					}
 				}
@@ -3563,7 +3585,7 @@ var run = function() {
 				case 'harbor':
 				case 'oilWell':
 				case 'chapel':
-					if (id == 'chapel' && game.science.get('drama').researched) {break;}
+					if (id == 'chapel' && game.calendar.festivalDays) {break;}
 					// falls through
 				case 'quarry' :
 					if (vitruvianFeline) {
@@ -3857,7 +3879,8 @@ var run = function() {
 					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
 						let metaName = meta.name;
-						if (metaName == 'quantumCryptography' || metaName == 'blackchain' || metaName == 'ecology') {
+						let fitlerName = ['quantumCryptography', 'blackchain', 'ecology', 'ai'];
+						if (fitlerName.indexOf(metaName) > -1) {
 							continue;
 						}
 						if (meta.prices[1].name == name) {
@@ -3898,21 +3921,27 @@ var run = function() {
 
 			if (name === 'steel' && limited && options.auto.craft.items['plate'].enabled) {
 				let calciner = game.bld.getBuildingExt('calciner').meta;
-				//console.log(0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio")));
-				if (!calciner.isAutomationEnabled && calciner.val) {
-					let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
-					amount = Math.max(0, amount) + calcinerAmount;
+				let forceSteel = (prices) => {
+					let amt = Math.ceil((5000 - resValue) / ratio);
+					if (amt > 0 && this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt) {
+						amount = amt;
+					}
+				}
+				if (calciner.val) {
+					if (!calciner.isAutomationEnabled) {
+						let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
+						amount = Math.max(0, amount) + calcinerAmount;
+					}
+					let oxidation = game.workshop.get('oxidation');
+					if (!oxidation.researched) {
+						forceSteel(5000);
+					}
+				} else {
+					forceSteel(100);
 				}
 				var plateRatio = game.getResCraftRatio("plate");
 				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
 					amount = 0;
-				}
-				let oxidation = game.workshop.get('oxidation');
-				if (!oxidation.researched) {
-					let amt = Math.ceil(5000 / ratio);
-					if (this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt) {
-						amount = amt;
-					}
 				}
 			}
 
@@ -3923,7 +3952,9 @@ var run = function() {
 
 			let maxValue = resMap[name].maxValue;
 			let value = resMap[name].value;
-			if (maxValue > 0 && amount > (maxValue - value)) {amount = maxValue - value;}
+			if (maxValue > 0 && amount * ratio > (maxValue - value)) {
+				amount = (maxValue - value) / ratio;
+			}
 
 			if (limited && !force && (!aboveTrigger || aboveTrigger == 'noRequire')) {
 				amount *= Math.max(Math.min(Math.log(ratio - 1), 1), 0.2);
@@ -4059,9 +4090,8 @@ var run = function() {
 			let renaissance = game.prestige.getPerk('renaissance').researched;
 			if (name === 'ship' && limited) {
 				let shipLimit = 5 * game.bld.get("reactor").on + 225;
-				let titaniumMax = res.maxValue;
-				limRat = (shipValue > shipLimit * 0.75) ? 0.4 : limRat;
-				limRat = (shipValue > shipLimit * 2) ? 0.01 + 0.39 * (Math.log(shipLimit) / Math.log(shipValue)) : limRat;
+				let titaniumMax = resMap['titanium'].maxValue;
+				limRat = (shipValue > shipLimit * 5) ? 0.01 + 0.39 * (Math.log(shipLimit) / Math.log(shipValue)) : limRat;
 				limRat = (0.03 * shipValue > titaniumMax) ? 0.01 : limRat;
 			}
 
@@ -5835,7 +5865,7 @@ var run = function() {
 			element.append(triggerButton);
 		}
 
-		if (name == 'upgrades') {
+		if (name == 'upgrades' || name == 'techs') {
 			var LimitedLabel = $('<label/>', {
 				'for': 'toggle-limited-' + name,
 				text: i18n('ui.upgradesLimit')
