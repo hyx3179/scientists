@@ -981,6 +981,9 @@ var run = function() {
 	// Increase messages displayed in log
 	game.console.maxMessages = 1000;
 
+	// 方便引用
+	let resMap = game.resPool.resourceMap;
+
 	var printoutput = function (args) {
 		if (game.console.messages.length >= 999) {
 			game.clearLog();
@@ -1702,11 +1705,11 @@ var run = function() {
 			if (option.bestUnicornBuilding.enabled) {
 				var btn = this.getBestUnicornBuilding();
 				let zigguratOn = game.bld.get('ziggurat').on;
-				let tears = game.resPool.resourceMap['tears'].value;
-				let unicorns = game.resPool.resourceMap['unicorns'].value;
+				let tears = resMap['tears'].value;
+				let unicorns = resMap['unicorns'].value;
 				if (!tears && unicorns >= 2500 && zigguratOn) {
-					game.resPool.resourceMap['tears'].value += zigguratOn;
-					game.resPool.resourceMap['unicorns'].value -= 2500;
+					resMap['tears'].value += zigguratOn;
+					resMap['unicorns'].value -= 2500;
 				}
 				if (btn) {
 					if (btn.opts) {
@@ -1948,8 +1951,8 @@ var run = function() {
 
 			let solarMeta = game.religion.getRU('solarRevolution');
 			let leaderRatio = 1 - game.getLimitedDR(0.09 + 0.01 * (1 + game.prestige.getBurnedParagonRatio()), 1.0);
-			let faithMeta = game.resPool.resourceMap['faith'];
-			let unlocked = (game.religion.faith > solarMeta.faith && faithMeta.maxValue > 750 && game.resPool.resourceMap['gold'].maxValue > 500);
+			let faithMeta = resMap['faith'];
+			let unlocked = (game.religion.faith > solarMeta.faith && faithMeta.maxValue > 750 && resMap['gold'].maxValue > 500);
 			let trigger = (!solarMeta.on && unlocked && game.religion.getRU('solarchant').on) ? 1.1 : options.auto.faith.trigger;
 			if (!solarMeta.on && unlocked && options.auto.faith.items.solarRevolution.enabled) {
 				buildManager.build("solarRevolution", "s", 1);
@@ -2082,7 +2085,7 @@ var run = function() {
 						}
 					}
 
-					if (!game.religion.getRU('solarRevolution').on && game.resPool.resourceMap['faith'].value >= 750 && game.religion.faith > 1000) {
+					if (!game.religion.getRU('solarRevolution').on && resMap['faith'].value >= 750 && game.religion.faith > 1000) {
 						noup = noup.concat(['caravanserai']);
 					}
 
@@ -2117,11 +2120,11 @@ var run = function() {
 						noup = noup.concat(['solarSatellites', 'satelliteRadio']);
 					}
 					// 星图产出
-					if (!game.resPool.resourceMap['starchart'].perTickCached) {
+					if (!resMap['starchart'].perTickCached) {
 						noup = noup.concat(['hubbleTelescope']);
 					}
 					//钍反应堆
-					if (game.resPool.resourceMap['thorium'].value > 1e4) {
+					if (resMap['thorium'].value > 1e4) {
 						noup = noup.concat(['thoriumReactors']);
 					}
 				}
@@ -2146,9 +2149,9 @@ var run = function() {
 				techLoop:
 				for (let upg of tech) {
 					if (upg.researched || !upg.unlocked) {continue;}
-					if (upg.name == 'biology' && game.resPool.resourceMap['compedium'].value < 1500) {continue;}
-					if (upg.name == 'ecology' && game.resPool.resourceMap['titanium'].value < 6000) {continue;}
-					if (upg.name == 'particlePhysics' && game.resPool.resourceMap['titanium'].value < 10000) {continue;}
+					if (upg.name == 'biology' && resMap['compedium'].value < 1500) {continue;}
+					if (upg.name == 'ecology' && resMap['titanium'].value < 6000) {continue;}
+					if (upg.name == 'particlePhysics' && resMap['titanium'].value < 10000) {continue;}
 
 					let prices = dojo.clone(upg.prices);
 					prices = game.village.getEffectLeader("scientist", prices);
@@ -2328,7 +2331,7 @@ var run = function() {
 				var amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
 				if (amphitheatreMeta.stage === 0) {
 					if (amphitheatreMeta.stages[1].stageUnlocked) {
-						if (game.getResourcePerTick('titanium', true) > 1 || game.resPool.resourceMap['ship'].value > 200) {
+						if (game.getResourcePerTick('titanium', true) > 1 || resMap['ship'].value > 200) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
 						}
 					}
@@ -2419,7 +2422,7 @@ var run = function() {
 
 				// 没铀不造反应堆
 				var reactor = copyItem['reactor'];
-				if (game.resPool.resourceMap['uranium'].value < 1) {
+				if (resMap['uranium'].value < 1) {
 					reactor.max = 0;
 				}
 
@@ -2434,7 +2437,7 @@ var run = function() {
 				let temple = copyItem['temple'];
 				let tradepost = copyItem['tradepost'];
 				let solarUnlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched);
-				let faithMeta = game.resPool.resourceMap['faith'];
+				let faithMeta = resMap['faith'];
 				if (!theology && game.science.get('philosophy').researched && renaissance) {
 					temple.max =  Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
 					tradepost.max = 12;
@@ -2459,7 +2462,7 @@ var run = function() {
 				let mansion = copyItem['mansion'] || build2['mansion'];
 				let broadcastTower = copyItem['broadcastTower'] || build2['broadcastTower'];
 				let archeology = game.science.get('archeology').researched;
-				let shipVal = game.resPool.resourceMap['ship'].value;
+				let shipVal = resMap['ship'].value;
 				let titaniumMore = (orbitalGeodesy || shipVal > 600);
 				if (!geodesy && !orbitalGeodesy) {
 					if (!blackSky && archeology && mansion.max) {
@@ -2543,7 +2546,7 @@ var run = function() {
 			for (var entry in buildList) {
 				if (buildList[entry].count > 0) {
 					if (buildList[entry].id == 'containmentChamber') {
-						let antimatter = game.resPool.resourceMap['antimatter'];
+						let antimatter = resMap['antimatter'];
 						let perYear = game.getEffect('antimatterProduction');
 						let energyExtra = (game.resPool.energyProd < game.resPool.energyCons);
 						if (perYear * 500 + antimatter.value < antimatter.maxValue || energyExtra) {
@@ -2633,7 +2636,7 @@ var run = function() {
 			if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
 			// 无独角兽牧场 强制打猎
-			let unicornValue = game.resPool.resourceMap['unicorns'].value;
+			let unicornValue = resMap['unicorns'].value;
 			let unicorn = game.achievements.get('unicornConspiracy').unlocked || unicornValue;
 			let unicornPasture = game.bld.getBuildingExt('unicornPasture').meta.val;
 			let unicornHunt = (!unicornPasture && unicorn && manpower.value > 700 && unicornValue < 3);
@@ -2643,7 +2646,7 @@ var run = function() {
 			let huntCount = Math.floor(manpower.value / 100);
 			let architecture = !game.science.get('architecture').researched && game.science.get('writing').researched;
 			let totalFur = 153125 / Math.pow(game.getCraftRatio(), 2);
-			let parchment = game.resPool.resourceMap['parchment'].value < Math.ceil(25 / game.getCraftRatio()) * 100;
+			let parchment = resMap['parchment'].value < Math.ceil(25 / game.getCraftRatio()) * 100;
 			let preCount = Math.ceil(totalFur / aveOutput.furs) + 2;
 			let mint = (architecture && huntCount > preCount && parchment);
 
@@ -2670,7 +2673,7 @@ var run = function() {
 					iactivity('act.hunt.trade', '', 'ks-hunt');
 				}
 
-				let hunter = (game.ironWill) ? game.resPool.resourceMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
+				let hunter = (game.ironWill) ? resMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
 				game.resPool.addResEvent("manpower", -huntCount * 100);
 				this.setTrait('manager');
 				game.village.gainHuntRes(huntCount);
@@ -2741,7 +2744,7 @@ var run = function() {
 
 				// 优先太阳革命
 				let solarRevolution = game.religion.getRU('solarRevolution');
-				let faithValue = game.resPool.resourceMap['faith'].value;
+				let faithValue = resMap['faith'].value;
 				let atheism = game.challenges.isActive("atheism");
 				let solar = (solarRevolution.on || atheism || faithValue < 100 || game.religion.faith < solarRevolution.faith);
 
@@ -3059,7 +3062,7 @@ var run = function() {
 			var resList = ['catnip', 'wood', 'minerals', 'coal', 'iron', 'oil', 'uranium', 'science'];
 			var name = '';
 			for (var i = 0; i < resList.length; i++) {
-				var res = game.resPool.resourceMap[resList[i]];
+				var res = resMap[resList[i]];
 				let resource = options.auto.resources[res.name];
 				if (!resource) {
 					resource = {};
@@ -3528,10 +3531,9 @@ var run = function() {
 			let solarMeta = game.religion.getRU('solarRevolution');
 			let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
 			let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
-			let resourceMap = game.resPool.resourceMap;
-			let mineralsCap = (resourceMap['minerals'].value > resourceMap['minerals'].maxValue * 0.94);
-			let woodCap = (resourceMap['wood'].value > resourceMap['wood'].maxValue * 0.94);
-			let TitaniumCap = (resourceMap['titanium'].value >= 0.85 * resourceMap['titanium'].maxValue);
+			let mineralsCap = (resMap['minerals'].value > resMap['minerals'].maxValue * 0.94);
+			let woodCap = (resMap['wood'].value > resMap['wood'].maxValue * 0.94);
+			let TitaniumCap = (resMap['titanium'].value >= 0.85 * resMap['titanium'].maxValue);
 			switch (id) {
 				case 'aqueduct':
 					if (game.calendar.year > 3 || game.challenges.isActive('winterIsComing')) {break;}
@@ -3546,14 +3548,14 @@ var run = function() {
 				case 'pasture':
 				case 'barn':
 				case 'workshop':
-					if (id == 'workshop' && resourceMap['culture'].value) {break;}
+					if (id == 'workshop' && resMap['culture'].value) {break;}
 					// falls through
 				case 'warehouse':
 					if (mineralsCap && woodCap) {break;}
 					// falls through
 				case 'lumberMill':
 					if (id == 'lumberMill' && game.bld.getBuildingExt('lumberMill').meta.on < 43) {
-						if (resourceMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.3) {
+						if (resMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.3) {
 							break;
 						}
 					}
@@ -3767,14 +3769,13 @@ var run = function() {
 			var trigger = options.auto.craft.trigger;
 			var optionVal = options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
 			var optionShipVal = options.auto.options.items.shipOverride.subTrigger;
-			let res = game.resPool.resourceMap;
-			let shipValue = res['ship'].value;
+			let shipValue = resMap['ship'].value;
 			let force = (name === 'ship' && optionVal && shipValue < optionShipVal);
 
 			// 默认数量设为可达无限的最小值
 			var amount = Number.MAX_VALUE / ratio + Number.MAX_VALUE / Math.pow(2, 53) / ratio;
 			// 跳过资源达到无限的情况
-			if (res[name].value == Infinity) { return 0; }
+			if (resMap[name].value == Infinity) { return 0; }
 
 			let gScience = game.science;
 			let scienceMeta = gScience.meta[0];
@@ -3782,7 +3783,7 @@ var run = function() {
 			let cache = options.auto.cache;
 			let msgScience = (name) => {
 				let scienceName = (cache.science) ? cache.science : "科学";
-				iactivity("craft.force", [res[name].title, scienceName], 'ks-craft');
+				iactivity("craft.force", [resMap[name].title, scienceName], 'ks-craft');
 				storeForSummary('craft' + ucfirst(name), 1);
 				force = true;
 			};
@@ -3798,7 +3799,7 @@ var run = function() {
 						if (meta.prices[1].name == name || cacheCompedium) {
 							let price = (cacheCompedium || meta.prices[1].val);
 							autoMax = Math.ceil((price - resValue) / ratio);
-							let resVal = res['manuscript'].value;
+							let resVal = resMap['manuscript'].value;
 							if (resVal > autoMax * 50 && autoMax >= 1) {
 								cache.science = (cacheCompedium > 0) ? cache.science : meta.label;
 								msgScience('compedium');
@@ -3823,7 +3824,7 @@ var run = function() {
 						autoMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
 					}
 				}
-				if (!shipValue && ratio > 4 && res['starchart'].value >= 25) {
+				if (!shipValue && ratio > 4 && resMap['starchart'].value >= 25) {
 					autoMax = Number.MAX_VALUE;
 					force = true;
 				}
@@ -3836,11 +3837,11 @@ var run = function() {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript > 0) {
-						price = (res['faith'].maxValue > 750) ? price : resValue + 10;
+						price = (resMap['faith'].maxValue > 750) ? price : resValue + 10;
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
 						autoMax = Math.ceil((price - resValue) / ratio);
-						let resVal = res['parchment'].value;
-						if (resVal > autoMax * craftPrices && autoMax >= 1 && res['culture'].value > craftPrices * 16 * autoMax) {
+						let resVal = resMap['parchment'].value;
+						if (resVal > autoMax * craftPrices && autoMax >= 1 && resMap['culture'].value > craftPrices * 16 * autoMax) {
 							cache.science = (cacheManuscript > 0) ? cache.science : meta.label;
 							msgScience('manuscript');
 							cache.resources['manuscript'] = 0;
@@ -3861,7 +3862,7 @@ var run = function() {
 						}
 						if (meta.prices[1].name == name) {
 							autoMax = Math.ceil((meta.prices[1].val - resValue) / ratio);
-							let resVal = res['compedium'].value;
+							let resVal = resMap['compedium'].value;
 							if (resVal > autoMax * 25 && autoMax >= 1) {
 								cache.science = meta.label;
 								msgScience('blueprint');
@@ -3880,7 +3881,7 @@ var run = function() {
 			for (i in materials) {
 				var delta = undefined;
 				let material = materials[i];
-				let doall = (!limited || force || (res[i].maxValue > 0 && aboveTrigger));
+				let doall = (!limited || force || (resMap[i].maxValue > 0 && aboveTrigger));
 				if (doall) {
 					// If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
 					delta = this.getValueAvailable(i, force) / material;
@@ -3920,7 +3921,9 @@ var run = function() {
 			// written generically to ensure it works for any craft that produces a
 			// good with a maximum value.
 
-			if (res[name].maxValue > 0 && amount > (res[name].maxValue - res[name].value)) {amount = res[name].maxValue - res[name].value;}
+			let maxValue = resMap[name].maxValue;
+			let value = resMap[name].value;
+			if (maxValue > 0 && amount > (maxValue - value)) {amount = maxValue - value;}
 
 			if (limited && !force && (!aboveTrigger || aboveTrigger == 'noRequire')) {
 				amount *= Math.max(Math.min(Math.log(ratio - 1), 1), 0.2);
@@ -3992,7 +3995,7 @@ var run = function() {
 			return output;
 		},
 		getResource: function (name) {
-			var res = game.resPool.resourceMap[name];
+			var res = resMap[name];
 			if (res) {return res;}
 			warning('unable to find resource ' + name);
 			return null;
@@ -4051,7 +4054,6 @@ var run = function() {
 			return value;
 		},
 		getLimRat: function (name, limited, limRat) {
-			let resMap = game.resPool.resourceMap;
 			let res = resMap[name];
 			let shipValue = resMap['ship'].value;
 			let renaissance = game.prestige.getPerk('renaissance').researched;
@@ -5977,7 +5979,7 @@ var run = function() {
 				imessage('craft.limited', [iname]);
 			} else if ((!input.is(':checked')) && option.limited == true) {
 				option.limited = false;
-				let require = (option.require) ? game.resPool.resourceMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
+				let require = (option.require) ? resMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
 				imessage('craft.unlimited', [iname, require]);
 			}
 			kittenStorage.items[input.attr('id')] = option.limited;
