@@ -2471,12 +2471,12 @@ var run = function() {
 					msg('tradepost', true);
 				}
 
-				// 煅烧炉 
+				// 煅烧炉
 				let calciner = copyItem['calciner'];
 				if (!orbitalGeodesy) {
 					if (resMap['science'] .value > 150000 && resMap['alloy'].value > 1000 && resMap['oil'].maxValue > 35000) {
 						calciner.max = 55;
-					} 
+					}
 				} else if (!spaceManufacturing) {
 					calciner.max = 77;
 				}
@@ -2485,7 +2485,7 @@ var run = function() {
 				let solarFarm = copyItem['solarFarm'];
 				let winterProd = (game.calendar.season == 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 && winterProd > game.resPool.energyCons) {
-					solarFarm.enabled = false; 
+					solarFarm.enabled = false;
 				}
 
 				// 广播塔 宅邸
@@ -3593,6 +3593,7 @@ var run = function() {
 				case 'pasture':
 				case 'barn':
 					if (id == 'barn' && resMap['minerals'].maxValue < 1200) {break;}
+					// falls through
 				case 'workshop':
 					if (id == 'workshop' && writing.researched) {break;}
 					// falls through
@@ -3623,19 +3624,20 @@ var run = function() {
 					}
 					break;
 				case 'accelerator':
+					if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 && !TitaniumCap) {
+						halfCount = true;
+						break;
+					}
+					// falls through
 				case 'factory':
 				case 'mansion':
 					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1 && !TitaniumCap) {
 						halfCount = true;
 					}
-					if (!game.space.getBuilding('researchVessel').val && id == 'mansion' && !TitaniumCap) {
+					if (game.getEffect('starchartPerTickBaseSpace') < 0.9 && id == 'mansion' && !TitaniumCap) {
 						halfCount = true;
 					}
 					break;
-				case 'accelerator':
-					if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 && !TitaniumCap) {
-						halfCount = true;
-					}
 			}
 			if (halfCount) {
 				count = Math.floor(count * 0.5);
@@ -3968,7 +3970,7 @@ var run = function() {
 					if (amt > 0 && this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt) {
 						amount = amt;
 					}
-				}
+				};
 				if (calciner.val) {
 					if (!calciner.isAutomationEnabled) {
 						let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
@@ -4140,9 +4142,10 @@ var run = function() {
 			if (name === 'ship' && limited) {
 				let shipLimit = 5 * game.bld.get("reactor").on + 225;
 				let titaniumMax = resMap['titanium'].maxValue;
-				let solar = !game.space.getBuilding('sattelite').val && game.religion.getSolarRevolutionRatio() > 7.5;
+				let space = (!game.space.getBuilding('researchVessel').val && game.space.getBuilding('sattelite').val < 9);
+				space = space && game.religion.getSolarRevolutionRatio() > 7.5;
 				limRat = (shipValue > shipLimit * 5) ? 0.01 + 0.39 * (Math.log(shipLimit) / Math.log(shipValue)) : limRat;
-				limRat = (0.03 * shipValue > titaniumMax || solar) ? 0.01 : limRat;
+				limRat = (0.03 * shipValue > titaniumMax || space) ? 0.01 : limRat;
 			}
 
 			if (name === 'plate' && limited) {
