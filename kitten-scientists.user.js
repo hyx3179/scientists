@@ -242,7 +242,7 @@ var run = function() {
 			'option.observe': '观测天文现象',
 			'option.festival': '举办节日',
 			'option.praise': '赞美太阳',
-			'option.shipOverride': '无视贸易船限制',
+			'option.shipOverride': '无视贸易船平衡',
 			'option.autofeed': '献祭死灵兽',
 			'option.hunt': '派出猎人',
 			'option.crypto': '黑币交易',
@@ -308,7 +308,7 @@ var run = function() {
 			'ui.limit': '限制',
 			'ui.craftLimit': 'AI平衡',
 			'ui.upgradesLimit': '优选',
-			'ui.trigger.shipOverride.set': '输入一个新的 强制贸易船 触发值，\n贸易船数量低于触发条件时会无视工艺的贸易船限制启用。',
+			'ui.trigger.shipOverride.set': '输入一个新的 强制贸易船 触发值，\n即贸易船数量低于触发条件时，相当于未勾选贸易船AI平衡。',
 			'ui.trigger.missions.set': '输入一个新的 探索星球 触发值,取值范围为 0 到 13 的整数。\n分别对应13颗星球。',
 			'ui.trigger.crypto.set': '输入一个新的 {0} 触发值，\n支持3个参数：-符号隔开数字参数\n第一个数字：当遗物数量大于触发值才会进行黑币交易\n第二个数字：买入的最高价（超过这价格就不会买了）\n第三个数字：卖出最低的价格。（低于这价格就不会卖出）\n默认10000-881-1060',
 			'ui.engine': '启用小猫珂学家',
@@ -723,7 +723,7 @@ var run = function() {
 				enabled: false,
 				// The functionality of the space section is identical to the build section. It just needs to be treated
 				// seperately, because the game internals are slightly different.
-				trigger: 0,
+				trigger: 0.98,
 				items: {
 					// Cath
 					spaceElevator:  {require: 'unobtainium', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
@@ -2237,9 +2237,9 @@ var run = function() {
 					}
 					Btn.controller.build(Btn.model, 1);
 					if (i === 7 || i === 12) {
-						iactivity('upgrade.space.mission', [missions[i].label], 'ks-upgrade');
+						iactivity(i18n('upgrade.space.mission', [missions[i].label]));
 					} else {
-						iactivity('upgrade.space', [missions[i].label], 'ks-upgrade');
+						iactivity(i18n('upgrade.space', [missions[i].label]));
 					}
 				}
 			}
@@ -2257,7 +2257,7 @@ var run = function() {
 						if (manpower >= 1000) {
 							game.resPool.get('manpower').value -= 1000;
 							refreshRequired += 2;
-							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-upgrade');
+							activity(i18n('upgrade.race', [game.diplomacy.unlockRandomRace().title]));
 						}
 					};
 					unlockRace('lizards');
@@ -2290,7 +2290,7 @@ var run = function() {
 						meta.stage = 1;
 						meta.on = 1;
 						meta.val = 1;
-						iactivity('summary.upgrade.building.' + name, [], 'ks-upgrade');
+						activity(i18n('summary.upgrade.building.' + name));
 						storeForSummary('upgrade.building.' + name);
 						return 2;
 					}
@@ -3805,7 +3805,7 @@ var run = function() {
 			let cache = options.auto.cache;
 			let msgScience = (name) => {
 				let scienceName = (cache.science) ? cache.science : "科学";
-				iactivity("craft.force", [resMap[name].title, scienceName], 'ks-craft');
+				activity(i18n("craft.force", [resMap[name].title, scienceName]));
 				storeForSummary('craft' + ucfirst(name), 1);
 				force = true;
 			};
