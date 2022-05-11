@@ -263,7 +263,7 @@ var run = function() {
 			'filter.faith': '太阳教团',
 			'filter.festival': '举办节日',
 			'filter.star': '天文现象',
-			'filter.misc': '杂项',
+			'filter.misc': '喵喵喵',
 
 			'dispose.necrocorn': '小猫帮你处理掉了影响效率的多余死灵兽',
 			'act.feed': '小猫向上古神献上祭品。上古神很高兴',
@@ -1930,11 +1930,11 @@ var run = function() {
 			var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep) {
 				// 30秒一次
-				if (option.autoPraise.subTrigger == 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 3e4) {
+				if (option.autoPraise.subTrigger == 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 2e5) {
 					//option.autoPraise.msg += 1;
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio) + "%";
-					iactivity('act.praise.msg', [expectSolar], 'ks-praise');
+					activity(i18n('act.praise.msg', [expectSolar]));
 				}
 				if (!game.religion.getFaithBonus) {
 					var apocryphaBonus = game.religion.getApocryphaBonus();
@@ -2469,7 +2469,10 @@ var run = function() {
 					if (solarUnlocked && options.auto.faith.items.solarRevolution.enabled && faithMeta.maxValue > 750 ) {
 						if (game.science.get('philosophy').researched) {
 							msg('temple');
-							temple.enabled = false;
+							temple.max =  Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
+							if (resMap['gold'].value > 560) {
+								temple.max = game.bld.getBuildingExt('temple').meta.val + 1;
+							}
 						}
 					}
 					tradepost.max = 12;
@@ -2700,8 +2703,9 @@ var run = function() {
 			// 铸币厂前加速打猎
 			let aveOutput = this.craftManager.getAverageHunt();
 			let huntCount = Math.floor(manpower.value / 100);
-			let architecture = !game.science.get('architecture').researched && game.science.get('writing').researched;
-			let totalFur = 153125 / Math.pow(game.getCraftRatio(), 2);
+			let architecture = !game.science.get('architecture').researched && game.science.get('writing').researched && !game.science.get('theology').researched;
+			let needParchment = (35 - resMap['parchment'].value) * 4375;
+			let totalFur = needParchment / Math.pow(game.getCraftRatio(), 2);
 			let parchment = resMap['parchment'].value < Math.ceil(25 / game.getCraftRatio()) * 100;
 			let preCount = Math.ceil(totalFur / aveOutput.furs) + 2;
 			let mint = (architecture && huntCount > preCount && parchment);
@@ -3603,7 +3607,7 @@ var run = function() {
 			let writing = game.science.get('writing');
 			switch (id) {
 				case 'aqueduct':
-					if (game.calendar.year > 3 || game.challenges.isActive('winterIsComing')) {break;}
+					if (this.crafts.getPotentialCatnip(false) < 2 || game.challenges.isActive('winterIsComing')) {break;}
 					// falls through
 				case 'smelter':
 					if (id == 'smelter' && game.science.get('theology').researched) {break;}
@@ -3623,12 +3627,12 @@ var run = function() {
 					if (mineralsCap && woodCap) {break;}
 					// falls through
 				case 'lumberMill':
-					if (id == 'lumberMill' && game.bld.getBuildingExt('lumberMill').meta.on < 50) {
-						if (resMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.3) {
-							break;
-						}
+					if (id == 'lumberMill' && game.bld.getBuildingExt('lumberMill').meta.on < 45) {
 						if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.2 && resMap['iron'].maxValue > 1200) {
 							count = 0;
+						}
+						if (resMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.3) {
+							break;
 						}
 					}
 					// falls through
@@ -3653,6 +3657,7 @@ var run = function() {
 						count = 0;
 						break;
 					}
+					// falls through
 				case 'accelerator':
 					if (!spaceManufacturing && resMap['titanium'].maxValue > 1.3e5) {
 						count = 0;
@@ -3908,7 +3913,7 @@ var run = function() {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript > 0) {
-						price = (resMap['faith'].maxValue > 750) ? price : 10 * priceRatio + resValue;
+						price = (resMap['faith'].maxValue > 750) ? price : 10 * priceRatio;
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
 						autoMax = Math.ceil((price - resValue) / ratio);
 						let resVal = this.getValueAvailable('parchment', true);
@@ -4056,6 +4061,7 @@ var run = function() {
 				forceSteel('steelArmor');
 			}
 
+			if (amount <= 0) {return 0;}
 			// If we have a maximum value, ensure that we don't produce more than
 			// this value. This should currently only impact wood crafting, but is
 			// written generically to ensure it works for any craft that produces a
