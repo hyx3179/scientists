@@ -2139,6 +2139,10 @@ var run = function() {
 					if (resMap['science'].maxValue > 5e5 && resMap['starchart'].value < 2075) {
 						noup = noup.concat(['astrolabe']);
 					}
+					//无政府挑战
+					if (game.challenges.isActive("anarchy")) {
+						noup = noup.concat(['logistics', 'augumentation', 'internet', 'neuralNetworks']);
+					}
 				}
 
 				workLoop:
