@@ -665,15 +665,13 @@ var run = function() {
 				items: {
 					// production
 					field:          {require: 'catnip',      enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+					// craft bonuses
+					workshop:       {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+					factory:        {require: 'titanium',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					// housing
 					hut:            {require: 'wood',        enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					logHouse:       {require: 'minerals',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					mansion:        {require: 'titanium',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
-
-					// craft bonuses
-					workshop:       {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-					factory:        {require: 'titanium',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-
 					// conversion
 					steamworks:     {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					magneto:        {require: false,         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
@@ -2599,7 +2597,7 @@ var run = function() {
 			var trigger = options.auto.space.trigger;
 			let blackSky = game.challenges.isActive("blackSky");
 			let solarRevolution = game.religion.getSolarRevolutionRatio();
-			let spaceStation = options.auto.space.spaceStation;
+			let spaceStation = options.auto.space.items.spaceStation;
 			if (blackSky) {
 				builds['researchVessel'].enabled = false;
 				if (spaceStation.max == -1) {
@@ -3710,7 +3708,7 @@ var run = function() {
 					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1 && !TitaniumCap) {
 						halfCount = true;
 					}
-					if (game.getEffect('starchartPerTickBaseSpace') < 0.05 && id == 'mansion' && !TitaniumCap) {
+					if (resMap['starchart'].perTickCached < 4 && id == 'mansion' && !TitaniumCap) {
 						halfCount = true;
 					}
 					break;
@@ -4052,9 +4050,9 @@ var run = function() {
 			if (name === 'steel' && limited && options.auto.craft.items['plate'].enabled) {
 				let calciner = game.bld.getBuildingExt('calciner').meta;
 				var plateRatio = game.getResCraftRatio("plate");
-				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
-					amount = 0;
-				}
+				//if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
+				//	amount = 0;
+				//}
 				let forceSteel = (name, prices) => {
 					let workshopMeta;
 					if (name) {
