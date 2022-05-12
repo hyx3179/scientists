@@ -3631,7 +3631,7 @@ var run = function() {
 					if (mineralsCap && woodCap) {break;}
 					// falls through
 				case 'lumberMill':
-					if (id == 'lumberMill' && game.bld.getBuildingExt('lumberMill').meta.on < 45) {
+					if (id == 'lumberMill' && game.bld.getBuildingExt(id).meta.val < 45) {
 						if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.2 && resMap['iron'].maxValue > 1200) {
 							count = 0;
 						}
@@ -3643,7 +3643,7 @@ var run = function() {
 				case 'harbor':
 				case 'oilWell':
 				case 'chapel':
-					if (id == 'chapel' && game.calendar.festivalDays) {break;}
+					if (id == 'chapel' && game.bld.getBuildingExt(id).meta.val < 15) {break;}
 					// falls through
 				case 'quarry' :
 					if (vitruvianFeline) {
@@ -3745,7 +3745,8 @@ var run = function() {
 			var amountTemp = amount;
 			var label = build.label;
 			amount = this.bulkManager.construct(button.model, button, amount);
-			if (amount !== amountTemp) {
+			if (amount === 0) {
+				return;
 				//warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);
 			}
 			storeForSummary(label, amount, 'build');
