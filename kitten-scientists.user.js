@@ -339,7 +339,7 @@ var run = function() {
 
 			'ui.faith.addtion': '附加选项',
 			'option.faith.best.unicorn': '自动最效率独角兽建筑',
-			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会建造最佳独角兽建筑',
+			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽性价比使用来决定建造独角兽牧场~太阳尖顶，具体哪个可以参考概览',
 			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
@@ -468,9 +468,9 @@ var run = function() {
 			'summary.auto.steamworks': '有磁电机后才会建造蒸汽工房',
 			'summary.auto.temple': '祷告了太阳革命才会建造神殿',
 			'summary.auto.tradepost': '祷告太阳革命前最多建造12个交易所',
-			'summary.auto.mansion': '测地学解锁后建造宅邸',
-			'summary.auto.broadcastTower': '太空制造解锁后建造广播塔',
-			'summary.auto.biolab': '太空制造解锁后建造生物实验室',
+			'summary.auto.mansion': '为了节省钛，故测地学解锁后建造宅邸',
+			'summary.auto.broadcastTower': '为了节省钛，太空制造解锁后建造更多的广播塔',
+			'summary.auto.biolab': '为了节省合金，太空制造解锁后建造生物实验室',
 
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
 			'summary.upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
@@ -2136,12 +2136,18 @@ var run = function() {
 						noup = noup.concat(['thoriumReactors']);
 					}
 					//天体观测仪
-					if (resMap['science'].maxValue > 5e5 && resMap['starchart'].value < 2075) {
+					if (resMap['science'].maxValue > 3e5 && resMap['starchart'].value < 2075) {
 						noup = noup.concat(['astrolabe']);
 					}
 					//无政府挑战
 					if (game.challenges.isActive("anarchy")) {
 						noup = noup.concat(['logistics', 'augumentation', 'internet', 'neuralNetworks']);
+					}
+					// 钢铁意志
+					if (game.ironWill) {
+						noup = noup.concat(['logistics','augumentation','internet','neuralNetworks','mineralHoes','ironHoes','miningDrill',
+						'mineralAxes','ironAxes','steelAxe','titaniumAxe','alloyAxe','ironwood','concreteHuts','unobtainiumHuts','eludiumHuts',
+						'geodesy','register','unobtainiumDrill','assistance','astrophysicists']);
 					}
 				}
 
@@ -2424,7 +2430,7 @@ var run = function() {
 				let msg = (build, clean)=> {
 					if (!clean) {
 						if (!activitySummary.other['auto.' + build]) {
-							iactivity('summary.auto.' + build, [], 'ks-build');
+							activity(i18n('summary.auto.' + build));
 							storeForSummary('auto.' + build);
 						}
 					} else {
@@ -2737,6 +2743,7 @@ var run = function() {
 					iactivity('act.hunt.trade', '', 'ks-hunt');
 				}
 
+				if (huntCount <= 0) {return;}
 				let hunter = (game.ironWill) ? resMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
 				game.resPool.addResEvent("manpower", -huntCount * 100);
 				this.setTrait('manager');
@@ -2997,7 +3004,7 @@ var run = function() {
 			}
 			
 			let msg = (name, number) => {
-				iactivity('summary.' + name, [number]);
+				activity(i18n('summary.' + name, [number]));
 				storeForSummary(name, number);
 			};
 			if (game.bld.getBuildingExt('mint').meta.on && resMap['manpower'].maxValue < 2e4 && !gamePage.opts.enableRedshift) {
@@ -3643,14 +3650,21 @@ var run = function() {
 				case 'harbor':
 				case 'oilWell':
 				case 'chapel':
-					if (id == 'chapel' && game.bld.getBuildingExt(id).meta.val < 15) {break;}
+					if (id == 'chapel') {
+						if (game.bld.getBuildingExt(id).meta.val < 25) {
+							break;
+						} else if (!game.calendar.festivalDays) {
+							count = 0;
+							break;
+						}
+					}
 					// falls through
 				case 'quarry' :
 					if (vitruvianFeline) {
 						if (!orbitalGeodesy && game.bld.get(id).val) {
 							halfCount = true;
 							if (!activitySummary.other['build.lower']) {
-								iactivity('summary.build.lower', [], 'ks-build');
+								activity(i18n('summary.build.lower'));
 								storeForSummary('build.lower');
 							}
 						}
@@ -3950,6 +3964,7 @@ var run = function() {
 							if (resVal > autoMax * 50 && autoMax >= 1 && scienceCheck) {
 								cache.science = (cacheCompedium > 0) ? cache.science : meta.label;
 								msgScience('compedium');
+								cache.resources['manuscript'] = 0;
 								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 1) {
 								cache.resources['manuscript'] = autoMax * 50;
@@ -3978,6 +3993,8 @@ var run = function() {
 							if (resVal > autoMax * 25 && autoMax >= 1 && scienceCheck) {
 								cache.science = meta.label;
 								msgScience('blueprint');
+								cache.resources['manuscript'] = 0;
+								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 1) {
 								cache.resources['compedium'] = autoMax * 25;
 								cache.science = meta.label;
@@ -4038,8 +4055,9 @@ var run = function() {
 								}
 							}
 						}
-						if (amt > 0 && resMap['iron'].value > 100 * amt && resMap['coal'].value > 100 * amt) {
+						if (amt > 0 && this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt) {
 							amount = amt;
+							force = true;
 							if (name) {
 								iactivity("craft.forceSteel", [workshopMeta.label]);
 								if (name === 'oxidation' && options.auto.craft.oxidation) {
@@ -4183,7 +4201,7 @@ var run = function() {
 				if (resPerTick < 0 && catnipTick) {
 					stock -= resPerTick * 1000 * 5;
 					if (options.catnipMsg) {
-						iactivity('craft.winterCatnip');
+						activity(i18n('craft.winterCatnip'));
 						options.catnipMsg = false;
 					}
 				}
@@ -5405,12 +5423,10 @@ var run = function() {
 						//	building.trigger('change');
 						//}
 						imessage('status.sub.enable', [i18n('option.faith.best.unicorn')]);
-
+						imessage('option.faith.best.unicorn.desc');
 					} else if ((!input.is(':checked')) && bub.enabled) {
-
 						bub.enabled = false;
 						imessage('status.sub.disable', [i18n('option.faith.best.unicorn')]);
-
 					}
 					kittenStorage.items[input.attr('id')] = bub.enabled;
 					saveToKittenStorage();
