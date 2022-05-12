@@ -2718,7 +2718,7 @@ var run = function() {
 			let totalFur = needParchment / Math.pow(game.getCraftRatio(), 2);
 			let parchment = resMap['parchment'].value < Math.ceil(25 / game.getCraftRatio()) * 100;
 			let preCount = Math.ceil(totalFur / aveOutput.furs) + 2;
-			let mint = (architecture && huntCount > preCount && parchment);
+			let mint = (architecture && huntCount > preCount && parchment && preCount > 0);
 
 			let manpowerBoolean = options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue;
 			let tradeCache = !manpowerBoolean && options.auto.trade.cache;
@@ -3653,8 +3653,10 @@ var run = function() {
 					if (id == 'chapel') {
 						if (game.bld.getBuildingExt(id).meta.val < 25) {
 							break;
-						} else if (!game.calendar.festivalDays) {
-							count = 0;
+						} else {
+							if (!game.calendar.festivalDays) {
+								count = 0;
+							}
 							break;
 						}
 					}
