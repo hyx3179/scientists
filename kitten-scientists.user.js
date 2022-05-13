@@ -255,6 +255,7 @@ var run = function() {
 			'filter.craft': '工艺制作',
 			'filter.upgrade': '工坊升级',
 			'filter.research': '科学研究',
+			'filter.policy': '政策',
 			'filter.trade': '贸易',
 			'filter.embassy': '大使馆',
 			'filter.hunt': '狩猎',
@@ -947,6 +948,7 @@ var run = function() {
 					craftFilter:     {enabled: false, filter: true, label: i18n('filter.craft'),      variant: "ks-activity type_ks-craft"},
 					upgradeFilter:   {enabled: false, filter: true, label: i18n('filter.upgrade'),    variant: "ks-activity type_ks-upgrade"},
 					researchFilter:  {enabled: false, filter: true, label: i18n('filter.research'),   variant: "ks-activity type_ks-research"},
+					policyFilter:    {enabled: false, filter: true, label: i18n('filter.policy'),     variant: "ks-activity type_ks-policy"},
 					tradeFilter:     {enabled: false, filter: true, label: i18n('filter.trade'),      variant: "ks-activity type_ks-trade"},
 					embassyFilter:   {enabled: false, filter: true, label: i18n('filter.embassy'),    variant: "ks-activity type_ks-embassy"},
 					huntFilter:      {enabled: false, filter: true, label: i18n('filter.hunt'),       variant: "ks-activity type_ks-hunt"},
@@ -3569,7 +3571,7 @@ var run = function() {
 				storeForSummary(label, scientist, 'research');
 				iactivity('upgrade.tech', [label, leader], 'ks-research');
 			} else if (variant === 'policy') {
-				iactivity('upgrade.policy', [label]);
+				iactivity('upgrade.policy', [label], 'ks-policy');
 			}
 		},
 		getBuildButton: function (upgrade, variant) {
