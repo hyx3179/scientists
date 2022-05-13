@@ -501,6 +501,9 @@ var run = function() {
 			'summary.chronocontrolOn': '小猫开启了时间操纵延长时间悖论的持续天数',
 			'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
 			'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
+
+			'summary.marker': '没有黑金字塔小猫拒绝了神印的建造',
+
 			'summary.festival': '举办了 {0} 次节日',
 			'summary.stars': '观测了 {0} 次天文事件',
 			'summary.praise': '通过赞美太阳积累了 {0} 虔诚',
@@ -1964,14 +1967,14 @@ var run = function() {
 			var buildManager = this.religionManager;
 			//var craftManager = this.craftManager;
 			var bulkManager = this.bulkManager;
+			let gReligion = game.religion;
 
 			this.setTrait('wise');
-
-			let solarMeta = game.religion.getRU('solarRevolution');
+			let solarMeta = gReligion.getRU('solarRevolution');
 			let leaderRatio = 1 - game.getLimitedDR(0.09 + 0.01 * (1 + game.prestige.getBurnedParagonRatio()), 1.0);
 			let faithMeta = resMap['faith'];
-			let unlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched) && faithMeta.maxValue > 750 && resMap['gold'].maxValue > 500;
-			let trigger = (!solarMeta.on && unlocked && game.religion.getRU('solarchant').on && game.religion.transcendenceTier) ? 1.1 : options.auto.faith.trigger;
+			let unlocked = (gReligion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched) && faithMeta.maxValue > 750 && resMap['gold'].maxValue > 500;
+			let trigger = (!solarMeta.on && unlocked && gReligion.getRU('solarchant').on && gReligion.transcendenceTier) ? 1.1 : options.auto.faith.trigger;
 			if (!solarMeta.on && unlocked && options.auto.faith.items.solarRevolution.enabled) {
 				buildManager.build("solarRevolution", "s", 1);
 			}
@@ -1996,7 +1999,7 @@ var run = function() {
 				} else {
 					var model = buildManager.getBuildButton(name, build.variant).model;
 					var panel = (build.variant === 'c') ? game.science.get('cryptotheology').researched : true;
-					let visible = (build.variant === 's') ? game.religion.faith >= metabuild.faith : model.visible;
+					let visible = (build.variant === 's') ? gReligion.faith >= metabuild.faith : model.visible;
 					if (visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable === true && model.metadata.on == 0)) {
 						buildManager.getBuildButton(name, build.variant).controller.updateEnabled(model);
 					}
@@ -2012,12 +2015,16 @@ var run = function() {
 				if (buildList[entry].count > 0) {
 					// 无金字塔过滤神印
 					if (buildList[entry].id === 'marker') {
-						if (!game.religion.getZU("blackPyramid").getEffectiveValue(game)) {
+						if (!gReligion.getZU("blackPyramid").getEffectiveValue(game)) {
+							if (!activitySummary.other['marker'] ) {
+								activity(i18n('summary.marker'));
+								storeForSummary('marker');
+							}
 							continue;
 						}
 					}
 	
-					count = (game.religion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
+					count = (gReligion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
 
 					buildManager.build(buildList[entry].id, buildList[entry].variant, count);
 					refreshRequired += 1;
