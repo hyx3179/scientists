@@ -466,6 +466,8 @@ var run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
+			'summary.oxidation': '小猫为了工坊升级氧化反应，把钢存起来了',
+
 			'summary.auto.steamworks': '有磁电机后才会建造蒸汽工房',
 			'summary.auto.temple': '祷告了太阳革命才会建造神殿',
 			'summary.auto.tradepost': '祷告太阳革命前最多建造12个交易所',
@@ -489,7 +491,7 @@ var run = function() {
 			'summary.build.lower': '未研究轨道测地学，降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
 			'summary.calciner': '小猫因为你工坊升级了钢铁工厂（其效果铁和煤转化钢没有100%~具体右下角参考百科），故关闭了煅烧炉自动化',
-			'summary.mint': '小猫因为你建造了铸币厂（其转化效果与喵力上限有关~具体右下角参考百科），故关闭了铸币厂',
+			'summary.mint': '小猫因为你建造了铸币厂（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关你喵力上限较低），故关闭了铸币厂',
 			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
 			'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
 			'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
@@ -2416,7 +2418,7 @@ var run = function() {
 					steamworks:items['steamworks'],
 				};
 				items = Object.assign(important, items);
-				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel', 'lumberMill','factory','biolab'];
+				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel', 'lumberMill','factory','biolab','calciner'];
 				for (var item in items) {
 					if (optimize.indexOf(item) == -1) {
 						copyItem[item] = items[item];
@@ -2426,22 +2428,22 @@ var run = function() {
 				}
 				copyItem = JSON.parse(JSON.stringify(copyItem));
 				build2 = JSON.parse(JSON.stringify(build2));
-				//天文台
 				let scienceMap = resMap['science'];
 				let scienceTrigger = scienceMap.value / scienceMap.maxValue;
-				let observatory = copyItem['observatory'];
-				if (scienceTrigger <= 0.96 && observatory) {
-					observatory.max = Math.max(500, observatory.max);
-				}
-				//研究院
-				let academy = copyItem['academy'] || build2['academy'];
-				if (academy) {
-					if (scienceTrigger <= 0.98) {
-						academy.max = -Math.min(-100, -academy.max);
-					} else {
-						academy.max = game.bld.getBuildingExt('academy').meta.val + 1;
+				let scienceBuild = (name, max, trigger) => {
+					let bld = copyItem[name] || build2[name];
+					if (name) {
+						if (scienceTrigger < trigger) {
+							bld.max = (bld.max === -1) ? max : Math.min(max, bld.max);
+						} else {
+							bld.max = game.bld.getBuildingExt('academy').meta.val + 1;
+						}
 					}
-				}
+				};
+				// 天文台
+				scienceBuild('observatory', 500, 0.96);
+				scienceBuild('academy', 100, 0.98);
+				scienceBuild('biolab', 200, 1);
 				// 生物实验室
 				let biolab = copyItem['biolab'] || build2['biolab'];
 				if (!orbitalGeodesy && biolab) {
@@ -2526,13 +2528,14 @@ var run = function() {
 				}
 
 				// 煅烧炉
-				let calciner = copyItem['calciner'];
+				let calciner = copyItem['calciner'] || build2['calciner'];
+				let calcinerMax = calciner.max;
 				if (!orbitalGeodesy) {
 					if (scienceMap.value > 150000 && resMap['alloy'].value > 1000 && resMap['oil'].maxValue > 35000) {
-						calciner.max = -Math.min(-55, -calciner.max)
+						calciner.max = (calcinerMax === -1) ? 55 : Math.min(55, calcinerMax);
 					}
 				} else if (!spaceManufacturing) {
-					calciner.max = -Math.min(-90, -calciner.max)
+					calciner.max = (calcinerMax === -1) ? 55 : Math.min(90, calcinerMax);
 				}
 				
 				// 太阳能
@@ -2572,8 +2575,6 @@ var run = function() {
 					}
 					if (!spaceManufacturing) {
 						biolab.max = 10;
-					} else if (scienceTrigger < 1) {
-						biolab.max = -Math.min(-200, -biolab.max);
 					}
 				}
 			}
@@ -4102,12 +4103,12 @@ var run = function() {
 								//options.auto.resources['coal'] = {enabled: true,  stock: amt * 100};
 								options.auto.resources['steel'] = {enabled: true,  stock: 5000};
 								options.auto.craft.oxidation = true;
+								if (!activitySummary.other['oxidation']) {
+									activity(i18n("summary.oxidation"));
+								}
 							}
 							if (options.auto.craft.oxidation && resMap['iron'].value > 100 * amt && resMap['coal'].value > 100 * amt) {
 								options.auto.craft.oxidation = null;
-								delete options.auto.resources['iron'];
-								delete options.auto.resources['coal'];
-								delete options.auto.resources['steel'];
 								steelPrice = true;
 							}
 						}
@@ -4121,6 +4122,15 @@ var run = function() {
 						}
 					}
 				};
+				if (options.auto.resources['steel'] && options.auto.resources['steel'].checkForReset === undefined) {
+					let oxidation = game.workshop.get('oxidation');
+					if (!oxidation.unlocked || oxidation.researched) {
+						delete options.auto.resources['steel'];
+						delete options.auto.resources['iron'];
+						delete options.auto.resources['coal'];
+						saveToKittenStorage();
+					}
+				}
 				forceSteel('steelSaw');
 				forceSteel('steelAxe');
 				forceSteel('steelArmor');
