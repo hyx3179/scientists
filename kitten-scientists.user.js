@@ -689,7 +689,7 @@ var run = function() {
 					dataCenter:     {require: false,         enabled: true, max:150, stage: 1, name: 'library', checkForReset: true, triggerForReset: -1},
 					academy:        {require: 'wood',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					observatory:    {require: 'iron',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-					biolab:         {require: 'science',     enabled: true, max:100,checkForReset: true, triggerForReset: -1},
+					biolab:         {require: 'science',     enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
 					pasture:        {require: 'catnip',      enabled: true, max:150, stage: 0, checkForReset: true, triggerForReset: -1},
 					solarFarm:      {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'pasture', checkForReset: true, triggerForReset: -1},
@@ -702,7 +702,7 @@ var run = function() {
 					tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					chapel:         {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-					mint:           {require: 'gold',        enabled: true, max:100,checkForReset: true, triggerForReset: -1},
+					mint:           {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					// unicornPasture: {require: false,         enabled: true},
 					ziggurat:       {require: false,         enabled: true, max:110, checkForReset: true, triggerForReset: -1},
 					chronosphere:   {require: 'unobtainium', enabled: true, max:-1,  checkForReset: true, triggerForReset: -1},
@@ -1098,6 +1098,7 @@ var run = function() {
 		huntID: undefined,
 		renderID: undefined,
 		worker: undefined,
+		resUpdate: undefined,
 		start: function (msg = true) {
 			options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
 			if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
@@ -1133,6 +1134,7 @@ var run = function() {
 		iterate: async function () {
 			if (!game.mobileSaveOnPause)                                                    {return;}
 			clearTimeout(this.renderID);
+			this.beforeInterval();
 			var subOptions = options.auto.options;
 			let refresh = 0;
 			if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
@@ -1153,9 +1155,17 @@ var run = function() {
 			if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
 			if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
 			if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
-			if (refresh)                                                                    {game.resPool.update();}
+			if (refresh)                                                                    {this.beforeInterval(true);}
 			if (refresh > 1)                                                                {this.delay('render');}
 			//if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
+		},
+		beforeInterval: function (update) {
+			if (update) {
+				this.resUpdate = true;
+			} else if (this.resUpdate) {
+				game.resPool.update();
+				this.resUpdate = null;
+			}
 		},
 		delay: function (render) {
 			if (render) {
@@ -1961,7 +1971,7 @@ var run = function() {
 			let leaderRatio = 1 - game.getLimitedDR(0.09 + 0.01 * (1 + game.prestige.getBurnedParagonRatio()), 1.0);
 			let faithMeta = resMap['faith'];
 			let unlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched) && faithMeta.maxValue > 750 && resMap['gold'].maxValue > 500;
-			let trigger = (!solarMeta.on && unlocked && game.religion.getRU('solarchant').on) ? 1.1 : options.auto.faith.trigger;
+			let trigger = (!solarMeta.on && unlocked && game.religion.getRU('solarchant').on && game.religion.transcendenceTier) ? 1.1 : options.auto.faith.trigger;
 			if (!solarMeta.on && unlocked && options.auto.faith.items.solarRevolution.enabled) {
 				buildManager.build("solarRevolution", "s", 1);
 			}
@@ -2132,7 +2142,7 @@ var run = function() {
 						noup = noup.concat(['geodesy']);
 					}
 					//钍反应堆
-					if (resMap['thorium'].value > 1e4) {
+					if (resMap['thorium'].value < 1e4) {
 						noup = noup.concat(['thoriumReactors']);
 					}
 					//天体观测仪
@@ -2540,6 +2550,7 @@ var run = function() {
 					msg('broadcastTower', true);
 					msg('biolab', true);
 				}
+				// 宅邸生物实验室
 				if (!geodesy && !orbitalGeodesy) {
 					if (!blackSky && archeology && mansion.max) {
 						msg('mansion');
@@ -2740,7 +2751,7 @@ var run = function() {
 			let totalFur = needParchment / Math.pow(game.getCraftRatio(), 2);
 			let parchment = resMap['parchment'].value < Math.ceil(25 / game.getCraftRatio()) * 100;
 			let preCount = Math.ceil(totalFur / aveOutput.furs) + 2;
-			let mint = (architecture && huntCount > preCount && parchment && preCount > 0);
+			let mint = (architecture && huntCount > preCount && parchment && preCount > 1);
 
 			let manpowerBoolean = options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue;
 			let tradeCache = !manpowerBoolean && options.auto.trade.cache;
@@ -4273,6 +4284,9 @@ var run = function() {
 
 			if (name === 'alloy' && limited) {
 				limRat = (game.bld.get("steamworks").on < game.bld.get("magneto").on - 2) ? limRat : 0.75;
+				let magneto = game.bld.get('magneto');
+				let priceRatio = Math.pow(magneto.priceRatio + game.getEffect("priceRatio"), magneto.val);
+				limRat = (res.value > Math.max(1250, 10 * priceRatio) && options.auto.build.items.magneto.enabled) ? 0.01 : limRat;
 			}
 
 			// 减少E合金的合成
