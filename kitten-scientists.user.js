@@ -428,7 +428,7 @@ var run = function() {
 			'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
-			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n上限为每次燃烧水晶最大年数，根据时计炉数量，\n周期默认全勾就行，珂学家会自动判断是否停在红月\n故长挂推荐：触发条件500，上限1，周期全勾',
+			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意珂学家会计算时间水晶库存\n上限为每次燃烧水晶最大年数，根据时计炉数量，\n周期默认全勾就行，珂学家会自动判断是否停在红月\n故长挂推荐：触发条件500，上限1，周期全勾',
 			'summary.time.skip': '跳过 {0} 年',
 			'filter.time.skip': '时间跳转',
 
@@ -472,6 +472,7 @@ var run = function() {
 			'summary.auto.mansion': '为了节省钛发展，故测地学解锁后建造宅邸',
 			'summary.auto.broadcastTower': '为了节省钛发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.biolab': '为了节省合金发展，太空制造解锁后建造生物实验室',
+			'summary.auto.workshop': '研究完写作后，工坊优先度恢复正常',
 
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
 			'summary.upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
@@ -485,7 +486,7 @@ var run = function() {
 			'summary.blackcoin.buy': '小猫出售遗物并买入 {0} 次黑币',
 			'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
-			'summary.build.lower': '未研究轨道测地学，降低牧场、图书馆、研究院、熔炉、粮仓、港口、油井、仓库、广播塔的优先度',
+			'summary.build.lower': '未研究轨道测地学，降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
 			'summary.calciner': '小猫因为你工坊升级了钢铁工厂（其效果铁和煤转化钢没有100%~具体右下角参考百科），故关闭了煅烧炉自动化',
 			'summary.mint': '小猫因为你建造了铸币厂（其转化效果与喵力上限有关~具体右下角参考百科），故关闭了铸币厂',
@@ -1633,7 +1634,7 @@ var run = function() {
 					maxKS = (game.village.maxKittens > 10) ? 2 : 0;
 				}
 				maxKS = (name == 'hunter' && game.getEffect('manpowerJobRatio') < 0.75) ? Math.round(maxKS * 0.38) : maxKS;
-				if (name == 'geologist' && !game.workshop.get("geodesy").researched && resMap['iron'].perTickCached > 50) {
+				if (name == 'geologist' && !game.workshop.get("geodesy").researched && resMap['iron'].perTickCached < 50) {
 					maxKS = Math.round(maxKS * 0.5);
 				}
 				var limited = options.auto.distribute.items[name].limited;
@@ -1932,7 +1933,7 @@ var run = function() {
 			// 太阳革命加速恢复到期望值
 			var transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
 			let solarLimmit = 3.75 * game.getEffect('solarRevolutionLimit') * game.religion.transcendenceTier + 750;
-			var expectSolarRevolutionRatio = Math.min(0.5 * Math.pow(Math.E, 0.66 * transformTier), solarLimmit);
+			let expectSolarRevolutionRatio = Math.min(0.35 * Math.pow(Math.E, 0.66 * transformTier), solarLimmit);
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
 			if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio * 0.01) {
 				PraiseSubTrigger = 0;
@@ -2430,12 +2431,12 @@ var run = function() {
 				let scienceTrigger = scienceMap.value / scienceMap.maxValue;
 				let observatory = copyItem['observatory'];
 				if (scienceTrigger <= 0.96 && observatory) {
-					observatory.max = -Math.min(-500, -observatory.max);
+					observatory.max = Math.max(500, observatory.max);
 				}
 				//研究院
 				let academy = copyItem['academy'] || build2['academy'];
 				if (academy) {
-					if (scienceTrigger <= 0.98 ) {
+					if (scienceTrigger <= 0.98) {
 						academy.max = -Math.min(-100, -academy.max);
 					} else {
 						academy.max = game.bld.getBuildingExt('academy').meta.val + 1;
@@ -2528,10 +2529,10 @@ var run = function() {
 				let calciner = copyItem['calciner'];
 				if (!orbitalGeodesy) {
 					if (scienceMap.value > 150000 && resMap['alloy'].value > 1000 && resMap['oil'].maxValue > 35000) {
-						calciner.max = 55;
+						calciner.max = -Math.min(-55, -calciner.max)
 					}
 				} else if (!spaceManufacturing) {
-					calciner.max = 90;
+					calciner.max = -Math.min(-90, -calciner.max)
 				}
 				
 				// 太阳能
@@ -2674,7 +2675,7 @@ var run = function() {
 			var crafts = options.auto.craft.items;
 			var manager = this.craftManager;
 			var trigger = options.auto.craft.trigger;
-			var craftsItem = ['ship','beam','wood','slab','alloy','gear','concrate','steel','plate','scaffold','tanker','parchment','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
+			var craftsItem = ['ship','beam','wood','slab','alloy','gear','concrate','plate','steel','scaffold','tanker','parchment','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
 
 			this.setTrait('engineer');
 
@@ -3672,7 +3673,14 @@ var run = function() {
 					if (id == 'barn' && resMap['minerals'].maxValue < 1200) {break;}
 					// falls through
 				case 'workshop':
-					if (id == 'workshop' && writing.researched) {break;}
+					if (id == 'workshop') {
+						if (writing.researched) {
+							break;
+						} else if (!activitySummary.other['auto.workshop']){
+							activity(i18n('summary.auto.workshop'));
+							storeForSummary('auto.workshop');
+						}
+					}
 					// falls through
 				case 'warehouse':
 					if (mineralsCap && woodCap) {break;}
@@ -3949,7 +3957,7 @@ var run = function() {
 
 			if (name === 'plate' && limited && options.auto.craft.items['steel'].enabled) {
 				var steelRatio = game.getResCraftRatio("steel");
-				if (game.getResourcePerTick('coal', true) > 0) {
+				if (game.getResourcePerTick('coal', true) > 0 && resMap['iron'].value != resMap['iron'].maxValue) {
 					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > (ratio / 125) / ((steelRatio + 1) / 100)) {
 						var ironInTime = ((this.getResource('coal').maxValue * trigger - this.getValue('coal')) / game.getResourcePerTick('coal', true)) * Math.max(game.getResourcePerTick('iron', true), 0);
 						autoMax = (this.getValueAvailable('iron') - Math.max(this.getResource('coal').maxValue * trigger - ironInTime,0)) / 125;
@@ -4070,9 +4078,9 @@ var run = function() {
 			if (name === 'steel' && limited && options.auto.craft.items['plate'].enabled) {
 				let calciner = game.bld.getBuildingExt('calciner').meta;
 				var plateRatio = game.getResCraftRatio("plate");
-				//if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
-				//	amount = 0;
-				//}
+				if (this.getValueAvailable('plate') / this.getValueAvailable('steel') < ((plateRatio + 1) / 125) / (ratio / 100)) {
+					amount = 0;
+				}
 				let forceSteel = (name, prices) => {
 					let workshopMeta;
 					if (name) {
@@ -4089,20 +4097,18 @@ var run = function() {
 						}
 						let amt = Math.ceil((steelPrice - resValue) / ratio);
 						if (name === 'oxidation' && amt > 0) {
-							if (resMap['iron'].maxValue > amt * 100 && resMap['coal'].maxValue > amt * 100) {
-								if (amt / Math.min(resMap['iron'].perTickCached, resMap['coal'].perTickCached) < 12) {
-									options.auto.resources['iron'] = {enabled: true,  stock: amt * 100};
-									options.auto.resources['coal'] = {enabled: true,  stock: amt * 100};
-									options.auto.resources['steel'] = {enabled: true,  stock: 5000};
-									options.auto.craft.oxidation = true;
-								}
-								if (options.auto.craft.oxidation && resMap['iron'].value > 100 * amt && resMap['coal'].value > 100 * amt) {
-									options.auto.craft.oxidation = null;
-									delete options.auto.resources['iron'];
-									delete options.auto.resources['coal'];
-									delete options.auto.resources['steel'];
-									steelPrice = true;
-								}
+							if (amt / Math.min(resMap['iron'].perTickCached, resMap['coal'].perTickCached) < 12) {
+								//options.auto.resources['iron'] = {enabled: true,  stock: amt * 100};
+								//options.auto.resources['coal'] = {enabled: true,  stock: amt * 100};
+								options.auto.resources['steel'] = {enabled: true,  stock: 5000};
+								options.auto.craft.oxidation = true;
+							}
+							if (options.auto.craft.oxidation && resMap['iron'].value > 100 * amt && resMap['coal'].value > 100 * amt) {
+								options.auto.craft.oxidation = null;
+								delete options.auto.resources['iron'];
+								delete options.auto.resources['coal'];
+								delete options.auto.resources['steel'];
+								steelPrice = true;
 							}
 						}
 						let checkRes = this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt || steelPrice === true;
@@ -4115,6 +4121,9 @@ var run = function() {
 						}
 					}
 				};
+				forceSteel('steelSaw');
+				forceSteel('steelAxe');
+				forceSteel('steelArmor');
 				if (calciner.val) {
 					if (!calciner.isAutomationEnabled) {
 						let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
@@ -4124,9 +4133,6 @@ var run = function() {
 				} else {
 					forceSteel('', [{name: 'steel', val: 100}]);
 				}
-				forceSteel('steelSaw');
-				forceSteel('steelAxe');
-				forceSteel('steelArmor');
 			}
 
 			if (amount <= 0) {return 0;}
@@ -4338,6 +4344,10 @@ var run = function() {
 
 			if (name === 'blueprint' && limited) {
 				limRat = (game.science.get('industrialization').unlocked) ? limRat : 0;
+			}
+
+			if (name === 'scaffold' && limited) {
+				limRat = (game.science.get('navigation').researched) ? limRat : 0;
 			}
 
 			return limRat;
