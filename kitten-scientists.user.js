@@ -466,10 +466,10 @@ var run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
-			'summary.oxidation': '小猫为了工坊升级氧化反应，把钢存起来了',
+			'summary.auto.oxidation': '小猫为了工坊升级氧化反应，把钢存起来了',
 
 			'summary.auto.steamworks': '有磁电机后才会建造蒸汽工房',
-			'summary.auto.temple': '祷告了太阳革命才会建造神殿',
+			'summary.auto.temple': '祷告太阳革命后才会建造神殿',
 			'summary.auto.tradepost': '祷告太阳革命前最多建造12个交易所',
 			'summary.auto.mansion': '为了节省钛发展，故测地学解锁后建造宅邸',
 			'summary.auto.broadcastTower': '为了节省钛发展，太空制造解锁后建造更多的广播塔',
@@ -2462,26 +2462,15 @@ var run = function() {
 						mint.enabled = false;
 					}
 				}
-				//日志函数
-				let msg = (build, clean)=> {
-					if (!clean) {
-						if (!activitySummary.other['auto.' + build]) {
-							activity(i18n('summary.auto.' + build));
-							storeForSummary('auto.' + build);
-						}
-					} else {
-						activitySummary.other['auto.' + build] = null;
-					}
-				};
 				// 解锁磁电机才会造蒸汽工房
 				var steamW = copyItem['steamworks'];
 				if (!game.challenges.isActive("pacifism") && !game.bld.get('magneto').val) {
 					if (game.bld.get('steamworks').unlocked && steamW.enabled) {
-						msg('steamworks');
+						msgSummary('steamworks');
 						steamW.enabled = false;
 					}
 				} else {
-					msg('steamworks', true);
+					msgSummary('steamworks', true);
 				}
 
 				// 没铀不造反应堆
@@ -2507,14 +2496,14 @@ var run = function() {
 				if (!theology && game.science.get('philosophy').researched && renaissance) {
 					temple.max =  Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
 					tradepost.max = 12;
-					msg('tradepost');
+					msgSummary('tradepost');
 				}
 
 				// 太阳革命前不造交易所和神殿
-				if (!solarMeta.on && !atheism) {
-					if (solarUnlocked && options.auto.faith.items.solarRevolution.enabled && faithMeta.maxValue > 750 ) {
+				if (!solarMeta.on && !atheism && solarUnlocked) {
+					if (options.auto.faith.items.solarRevolution.enabled && faithMeta.maxValue > 750 ) {
 						if (game.science.get('philosophy').researched) {
-							msg('temple');
+							msgSummary('temple');
 							temple.max =  Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
 							if (resMap['gold'].value > 560) {
 								temple.max = game.bld.getBuildingExt('temple').meta.val + 1;
@@ -2522,9 +2511,10 @@ var run = function() {
 						}
 					}
 					tradepost.max = 12;
+					msgSummary('tradepost');
 				} else if (theology) {
-					msg('temple', true);
-					msg('tradepost', true);
+					msgSummary('temple', true);
+					msgSummary('tradepost', true);
 				}
 
 				// 煅烧炉
@@ -2552,26 +2542,26 @@ var run = function() {
 				let shipVal = resMap['ship'].value;
 				let titaniumMore = (orbitalGeodesy || shipVal > 600);
 				if (game.science.get('superconductors').researched && !spaceManufacturing) {
-					msg('broadcastTower');
-					msg('biolab');
+					msgSummary('broadcastTower');
+					msgSummary('biolab');
 					broadcastTower.max = 8;
 					biolab.max = 0;
 					mansion.max = 80;
 				} else {
-					msg('broadcastTower', true);
-					msg('biolab', true);
+					msgSummary('broadcastTower', true);
+					msgSummary('biolab', true);
 				}
 				// 宅邸生物实验室
 				if (!geodesy && !orbitalGeodesy) {
 					if (!blackSky && archeology && mansion.max) {
-						msg('mansion');
+						msgSummary('mansion');
 						mansion.max = 1;
 					}
 				} else {
 					if (titaniumMore && !mansion.max) {
 						mansion.max = 45;
 					} else {
-						msg('mansion', true);
+						msgSummary('mansion', true);
 					}
 					if (!spaceManufacturing) {
 						biolab.max = 10;
@@ -3049,7 +3039,7 @@ var run = function() {
 				activity(i18n('summary.' + name, [number]));
 				storeForSummary(name, number);
 			};
-			if (game.bld.getBuildingExt('mint').meta.on && resMap['manpower'].maxValue < 2e4 && !gamePage.opts.enableRedshift) {
+			if (game.bld.getBuildingExt('mint').meta.on && resMap['manpower'].maxValue < 2e4 && !game.opts.enableRedshift) {
 				game.bld.getBuildingExt('mint').meta.on = 0;
 				msg('mint');
 			}
@@ -3104,7 +3094,7 @@ var run = function() {
 					conditionOn: game.calendar.festivalDays,
 					conditionOff: game.bld.get('brewery').on,
 				}];
-				if (!gamePage.opts.enableRedshift) {
+				if (!game.opts.enableRedshift) {
 					// 开启离线进度时不调整时间操纵
 					list.push({
 						name: 'chronocontrol',
@@ -3367,17 +3357,17 @@ var run = function() {
 
 	var ReligionManager = function () {
 		this.manager = new TabManager('Religion');
-		this.crafts = new CraftManager();
+		//this.crafts = new CraftManager();
 		this.bulkManager = new BulkManager();
 	};
 
 	ReligionManager.prototype = {
-		manager: undefined,
-		crafts: undefined,
+		//manager: undefined,
+		//crafts: undefined,
 		bulkManager: undefined,
 		build: function (name, variant, amount) {
-			var build = this.getBuild(name, variant);
-			var button = this.getBuildButton(name, variant);
+			let build = this.getBuild(name, variant);
+			let button = this.getBuildButton(name, variant);
 
 			if (!button || !button.model.metadata) {return game.religionTab.render();}
 
@@ -3390,7 +3380,6 @@ var run = function() {
 			}
 
 			//var amountTemp = amount;
-			var label = build.label;
 			amount = this.bulkManager.construct(button.model, button, amount);
 			//if (amount !== amountTemp) {
 			//    warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);
@@ -3399,6 +3388,8 @@ var run = function() {
 			if (amount === 0) {return;}
 			game.stats.getStat("totalClicks").val += 1;
 
+
+			let label = build.label;
 			if (variant === "s") {
 				if (options.auto.cache.trait['wise']) {
 					storeForSummary('哲学家小猫祷告了 ' + label, amount, 'faith');
@@ -3657,16 +3648,23 @@ var run = function() {
 			let mineralsCap = (resMap['minerals'].value > resMap['minerals'].maxValue * 0.94);
 			let woodCap = (resMap['wood'].value > resMap['wood'].maxValue * 0.94);
 			let TitaniumCap = (resMap['titanium'].value >= 0.95 * resMap['titanium'].maxValue);
-			let writing = game.science.get('writing');
+			let scienceMetaCache = game.science.metaCache;
 			switch (id) {
 				case 'aqueduct':
 					if (this.crafts.getPotentialCatnip(false) < 2 || game.challenges.isActive('winterIsComing')) {break;}
 					// falls through
 				case 'smelter':
-					if (id == 'smelter' && game.science.get('theology').researched) {break;}
+					//if (id == 'smelter') {
+					//	console.log(count)
+					//	if (scienceMetaCache['theology'].researched) {
+					//		break;
+					//	} else {
+					//		msgSummary(id);
+					//	}
+					//}
 					// falls through
 				case 'library':
-					if (id == 'library' && !writing.unlocked) {break;}
+					if (id == 'library' && !scienceMetaCache['writing'].unlocked) {break;}
 					// falls through
 				case 'academy':
 				case 'pasture':
@@ -3675,11 +3673,10 @@ var run = function() {
 					// falls through
 				case 'workshop':
 					if (id == 'workshop') {
-						if (writing.researched) {
+						if (scienceMetaCache['writing'].researched) {
 							break;
-						} else if (!activitySummary.other['auto.workshop']){
-							activity(i18n('summary.auto.workshop'));
-							storeForSummary('auto.workshop');
+						} else {
+							msgSummary(id);
 						}
 					}
 					// falls through
@@ -4103,9 +4100,7 @@ var run = function() {
 								//options.auto.resources['coal'] = {enabled: true,  stock: amt * 100};
 								options.auto.resources['steel'] = {enabled: true,  stock: 5000};
 								options.auto.craft.oxidation = true;
-								if (!activitySummary.other['oxidation']) {
-									activity(i18n("summary.oxidation"));
-								}
+								msgSummary('oxidation');
 							}
 							if (options.auto.craft.oxidation && resMap['iron'].value > 100 * amt && resMap['coal'].value > 100 * amt) {
 								options.auto.craft.oxidation = null;
@@ -4292,6 +4287,10 @@ var run = function() {
 			//if (limited) {
 			//	switch (name) {
 			//}
+			if (name === 'slab' && limited) {
+				limRat = (resMap['beam'].value) ? limRat : 0;
+			}
+
 			if (name === 'ship' && limited) {
 				let shipLimit = 5 * game.bld.get("reactor").on + 225;
 				let titaniumMax = resMap['titanium'].maxValue;
@@ -6983,6 +6982,19 @@ var run = function() {
 	var activitySummary = {
 		other: {},
 	};
+
+	//建筑日志提示
+	let msgSummary = (build, clean)=> {
+		if (!clean) {
+			if (!activitySummary.other['auto.' + build]) {
+				activity(i18n('summary.auto.' + build));
+				storeForSummary('auto.' + build);
+			}
+		} else {
+			activitySummary.other['auto.' + build] = null;
+		}
+	};
+
 	var resetActivitySummary = function () {
 		activitySummary = {
 			lastyear: game.calendar.year,
