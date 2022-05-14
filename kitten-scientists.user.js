@@ -256,6 +256,7 @@ var run = function() {
 			'filter.upgrade': '工坊升级',
 			'filter.research': '科学研究',
 			'filter.policy': '政策',
+			'filter.upgBld': '营火建筑升级',
 			'filter.trade': '贸易',
 			'filter.embassy': '大使馆',
 			'filter.hunt': '狩猎',
@@ -955,6 +956,7 @@ var run = function() {
 					upgradeFilter:   {enabled: false, filter: true, label: i18n('filter.upgrade'),    variant: "ks-activity type_ks-upgrade"},
 					researchFilter:  {enabled: false, filter: true, label: i18n('filter.research'),   variant: "ks-activity type_ks-research"},
 					policyFilter:    {enabled: false, filter: true, label: i18n('filter.policy'),     variant: "ks-activity type_ks-policy"},
+					upgBldFilter:    {enabled: false, filter: true, label: i18n('filter.upgBld'),     variant: "ks-activity type_ks-upgBld"},
 					tradeFilter:     {enabled: false, filter: true, label: i18n('filter.trade'),      variant: "ks-activity type_ks-trade"},
 					embassyFilter:   {enabled: false, filter: true, label: i18n('filter.embassy'),    variant: "ks-activity type_ks-embassy"},
 					huntFilter:      {enabled: false, filter: true, label: i18n('filter.hunt'),       variant: "ks-activity type_ks-hunt"},
@@ -2335,7 +2337,7 @@ var run = function() {
 						meta.stage = 1;
 						meta.on = 1;
 						meta.val = 1;
-						activity(i18n('summary.upgrade.building.' + name));
+						iactivity('summary.upgrade.building.' + name, [] , 'ks-upgBld');
 						storeForSummary('upgrade.building.' + name);
 						return 2;
 					}
@@ -3387,7 +3389,6 @@ var run = function() {
 
 			if (amount === 0) {return;}
 			game.stats.getStat("totalClicks").val += 1;
-
 
 			let label = build.label;
 			if (variant === "s") {
