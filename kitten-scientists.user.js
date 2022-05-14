@@ -898,8 +898,8 @@ var run = function() {
 				//Should KS automatically upgrade?
 				enabled: false,
 				items: {
-					upgrades:  {enabled: true, limited: true},
 					techs:     {enabled: true, limited: true},
+					upgrades:  {enabled: true, limited: true},
 					policies:  {enabled: false},
 					races:     {enabled: true},
 					missions:  {enabled: true, subTrigger: 4},
@@ -952,9 +952,9 @@ var run = function() {
 				enabled: false,
 				items: {
 					buildFilter:     {enabled: false, filter: true, label: i18n('filter.build'),      variant: "ks-activity type_ks-build"},
-					craftFilter:     {enabled: false, filter: true, label: i18n('filter.craft'),      variant: "ks-activity type_ks-craft"},
-					upgradeFilter:   {enabled: false, filter: true, label: i18n('filter.upgrade'),    variant: "ks-activity type_ks-upgrade"},
 					researchFilter:  {enabled: false, filter: true, label: i18n('filter.research'),   variant: "ks-activity type_ks-research"},
+					upgradeFilter:   {enabled: false, filter: true, label: i18n('filter.upgrade'),    variant: "ks-activity type_ks-upgrade"},
+					craftFilter:     {enabled: false, filter: true, label: i18n('filter.craft'),      variant: "ks-activity type_ks-craft"},
 					policyFilter:    {enabled: false, filter: true, label: i18n('filter.policy'),     variant: "ks-activity type_ks-policy"},
 					upgBldFilter:    {enabled: false, filter: true, label: i18n('filter.upgBld'),     variant: "ks-activity type_ks-upgBld"},
 					tradeFilter:     {enabled: false, filter: true, label: i18n('filter.trade'),      variant: "ks-activity type_ks-trade"},
@@ -2093,6 +2093,31 @@ var run = function() {
 			this.setTrait('scientist');
 			//upgradeManager.workManager.render();
 			//upgradeManager.sciManager.render();
+			if (upgrades.techs.enabled && game.libraryTab.visible) {
+				var tech = game.science.techs;
+				techLoop:
+				for (let upg of tech) {
+					if (upg.researched || !upg.unlocked) {continue;}
+					if (upgrades.techs.limited) {
+						if (upg.name == 'biology' && resMap['compedium'].value < 750) {continue;}
+						if (upg.name == 'ecology' && resMap['titanium'].value < 6000) {continue;}
+						if (upg.name == 'particlePhysics' && resMap['titanium'].value < 10000) {continue;}
+						if (upg.name == 'ai' && resMap['titanium'].value < 10000) {continue;}
+					}
+			
+					let prices = dojo.clone(upg.prices);
+					prices = game.village.getEffectLeader("scientist", prices);
+					for (var resource of prices) {
+						let name = resource.name;
+						if (craftManager.getValueAvailable(resource.name, true) < resource.val) {
+							continue techLoop;
+						}
+					}
+					refreshRequired = 1;
+					upgradeManager.build(upg, 'science');
+				}
+			}
+
 			if (upgrades.upgrades.enabled && game.bld.getBuildingExt('workshop').meta.on) {
 				if (!game.workshopTab.domNode) {game.workshopTab.updateTab();}
 				var work = game.workshop.upgrades;
@@ -2188,31 +2213,6 @@ var run = function() {
 					}
 					refreshRequired = 1;
 					upgradeManager.build(upg, 'workshop');
-				}
-			}
-
-			if (upgrades.techs.enabled && game.libraryTab.visible) {
-				var tech = game.science.techs;
-				techLoop:
-				for (let upg of tech) {
-					if (upg.researched || !upg.unlocked) {continue;}
-					if (upgrades.techs.limited) {
-						if (upg.name == 'biology' && resMap['compedium'].value < 750) {continue;}
-						if (upg.name == 'ecology' && resMap['titanium'].value < 6000) {continue;}
-						if (upg.name == 'particlePhysics' && resMap['titanium'].value < 10000) {continue;}
-						if (upg.name == 'ai' && resMap['titanium'].value < 10000) {continue;}
-					}
-
-					let prices = dojo.clone(upg.prices);
-					prices = game.village.getEffectLeader("scientist", prices);
-					for (var resource of prices) {
-						let name = resource.name;
-						if (craftManager.getValueAvailable(resource.name, true) < resource.val) {
-							continue techLoop;
-						}
-					}
-					refreshRequired = 1;
-					upgradeManager.build(upg, 'science');
 				}
 			}
 
