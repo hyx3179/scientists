@@ -406,11 +406,11 @@ var run = function() {
 			'ui.max.set': '设置 {0} 的最大值',
 			'summary.distribute': '帮助 {0} 只猫猫找到工作',
 			'filter.distribute': '猫口分配',
-			'set.leader': '{0}，喵喵喵！',
+			'set.leader': '{0}，喵喵喵！（具体可以看百科游戏标签村庄猫口普查）',
 
 			'option.promote': '提拔领袖',
 			'act.promote': '领袖被提拔到 {0} 级',
-			'filter.promote': '提拔领袖',
+			'filter.leader': '领袖相关',
 			'summary.promote': '提拔领袖 {0} 次',
 
 			'ui.trigger.useWorkers.alert': '比如天文事件没观测、烧水晶慢，因为后台慢速运行\n勾选将会在后台满速运行，注意会导致使用内存增多。\n电脑不好、内存≤ 8G的建议禁用\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
@@ -429,7 +429,7 @@ var run = function() {
 			'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
-			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意珂学家会计算时间水晶库存\n上限为每次燃烧水晶最大年数，根据时计炉数量，\n周期默认全勾就行，珂学家会自动判断是否停在红月\n故长挂推荐：触发条件500，上限1，周期全勾',
+			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n上限为每次燃烧水晶最大年数，根据时计炉数量，\n周期默认全勾就行，珂学家会自动判断是否停在红月\n故长挂推荐：触发条件500，上限1，周期全勾',
 			'summary.time.skip': '跳过 {0} 年',
 			'filter.time.skip': '时间跳转',
 
@@ -491,13 +491,14 @@ var run = function() {
 
 			'summary.build.lower': '未研究轨道测地学，降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
-			'summary.calciner': '小猫因为你工坊升级了钢铁工厂（其效果铁和煤转化钢没有100%~具体右下角参考百科），故关闭了煅烧炉自动化',
-			'summary.mint': '小猫因为你建造了铸币厂（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关你喵力上限较低），故关闭了铸币厂',
+			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）',
+			'summary.mint': '小猫因为你建造了铸币厂，故关闭了铸币厂（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关你喵力上限较低）',
 			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
 			'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
 			'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
 			'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
 			'summary.reactor': '小猫向反应堆投入了铀开始发光呐',
+			'summary.factory': '小猫为了空间的发展，把工厂全部启用呐',
 			'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐',
 			'summary.breweryOn': '小猫开启了酿酒厂庆祝节日',
 			'summary.breweryOff': '小猫关闭了酿酒厂节省资源',
@@ -872,7 +873,7 @@ var run = function() {
 					dragons:    {enabled: false,  require: 'titanium',    allowcapped: false,    limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true},
 
-					zebras:     {enabled: true,  require: false,          allowcapped: false,    limited: true,
+					zebras:     {enabled: true,   require: false,         allowcapped: false,    limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true},
 
 					lizards:    {enabled: false,  require: 'minerals',    allowcapped: false,    limited: true,
@@ -884,7 +885,7 @@ var run = function() {
 					griffins:   {enabled: false,  require: 'wood',        allowcapped: false,    limited: true,
 						summer:  false, autumn:  true,  winter:  false,         spring:      false},
 
-					nagas:      {enabled: false,  require: false,         allowcapped: false,    limited: true,
+					nagas:      {enabled: true,   require: false,         allowcapped: false,    limited: true,
 						summer:  false, autumn:  false, winter:  false,         spring:      true},
 
 					spiders:    {enabled: false,  require: false,         allowcapped: false,    limited: true,
@@ -970,7 +971,7 @@ var run = function() {
 					festivalFilter:  {enabled: false, filter: true, label: i18n('filter.festival'),   variant: "ks-activity type_ks-festival"},
 					starFilter:      {enabled: false, filter: true, label: i18n('filter.star'),       variant: "ks-activity type_ks-star"},
 					distributeFilter:{enabled: false, filter: true, label: i18n('filter.distribute'), variant: "ks-activity type_ks-distribute"},
-					promoteFilter:   {enabled: false, filter: true, label: i18n('filter.promote'),    variant: "ks-activity type_ks-promote"},
+					leaderFilter:    {enabled: false, filter: true, label: i18n('filter.leader'),     variant: "ks-activity type_ks-leader"},
 					miscFilter:      {enabled: false, filter: true, label: i18n('filter.misc'),       variant: "ks-activity"}
 				}
 			},
@@ -1431,10 +1432,10 @@ var run = function() {
 			// Combust time crystal
 			TimeSkip:
 			if (optionVals.timeSkip.enabled && game.workshop.get('chronoforge').researched) {
-				var timeCrystalValue = this.craftManager.getValueAvailable('timeCrystal', true);
+				let timeCrystalValue = resMap['timeCrystal'].value;
 				var timeSkipMaximum = optionVals.timeSkip.maximum;
 				var subTrigger = optionVals.timeSkip.subTrigger;
-				let cost = Math.max(subTrigger, timeSkipMaximum);
+				let cost = Math.max(subTrigger, timeSkipMaximum, this.craftManager.getStock('timeCrystal'));
 
 				var currentCycle = game.calendar.cycle;
 				var currentYear = game.calendar.year;
@@ -1552,7 +1553,7 @@ var run = function() {
 				// game.village.sim.goldToPromote will check gold
 				// game.village.sim.promote check both gold and exp
 				if (game.village.sim.goldToPromote(rank, rank + 1, gold)[0] && game.village.sim.promote(leader, rank + 1) == 1) {
-					iactivity('act.promote', [rank + 1], 'ks-promote');
+					iactivity('act.promote', [rank + 1], 'ks-leader');
 					game.tabs[1].censusPanel.census.renderGovernment(game.tabs[1].censusPanel.census);
 					game.tabs[1].censusPanel.census.update();
 					storeForSummary('promote', 1);
@@ -1566,6 +1567,9 @@ var run = function() {
 			if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy") && !options.copyTrait) {
 				var leaderJobName = leaderVals.leaderJob;
 				var traitName = leaderVals.leaderTrait;
+				if (game.village.leader === null && game.village.sim.kittens.length) {
+					game.villageTab.censusPanel.census.makeLeader(game.village.sim.kittens[0]);
+				}
 				var optionsTheocracy = false;
 				if (options.auto.upgrade.items.policies.enabled) {
 					optionsTheocracy = (options.policies ===  undefined) ? false : options.policies.some(obj => obj === 'theocracy');
@@ -2438,7 +2442,7 @@ var run = function() {
 						if (scienceTrigger < trigger) {
 							bld.max = (bld.max === -1) ? max : Math.min(max, bld.max);
 						} else {
-							bld.max = game.bld.getBuildingExt('academy').meta.val + 1;
+							bld.max = game.bld.getBuildingExt(name).meta.val + 1;
 						}
 					}
 				};
@@ -2490,7 +2494,7 @@ var run = function() {
 				}
 
 				// 神学前最多只造 1个神殿
-				let theology = game.science.get('theology').researched;
+				let theology = game.science.get('theology').unlocked && game.science.get('theology').researched;
 				let temple = copyItem['temple'];
 				let tradepost = copyItem['tradepost'];
 				let solarUnlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched);
@@ -2502,7 +2506,7 @@ var run = function() {
 				}
 
 				// 太阳革命前不造交易所和神殿
-				if (!solarMeta.on && !atheism && solarUnlocked) {
+				if (!solarMeta.on && !atheism && theology) {
 					if (options.auto.faith.items.solarRevolution.enabled && faithMeta.maxValue > 750 ) {
 						if (game.science.get('philosophy').researched) {
 							msgSummary('temple');
@@ -2857,12 +2861,21 @@ var run = function() {
 				let transcendence = (game.religion.getRU("transcendence").on || !options.auto.faith.items.transcendence.enabled);
 				let apocripha = (game.religion.getRU('apocripha').on || !options.auto.faith.items.apocripha.enabled);
 				let miningDrillMoon = (transcendence && apocripha) || !game.space.meta[0].meta[1].on || !game.workshop.meta[0].meta[58].researched;
+				miningDrillMoon &= (name != 'nagas' || race.sells.length > 2);
 				if (trade.limited && prof && solar && miningDrillMoon) {
 					trades.push(name);
 					isLimited = true;
 				} else if ((!require || requireTrigger <= require.value / require.maxValue) && goldTrigger) {
 					trades.push(name);
 				}
+			}
+
+			var catnipNow = game.resPool.get('catnip').value + 40 * game.getResourcePerTick("catnip", true);
+			if (catnipNow < 0 && options.auto.trade.items['sharks'].enabled) {
+				var sharks = game.diplomacy.get('sharks');
+				var catnip = tradeManager.getAverageTrade(sharks).catnip;
+				tradeManager.trade(name, Math.ceil(catnipNow / -catnip));
+				iactivity('trade.catnip');
 			}
 
 			if (trades.length === 0) {return;}
@@ -2874,14 +2887,6 @@ var run = function() {
 			// Distribute max trades without starving any race
 
 			if (maxTrades < 1) {return;}
-
-			var catnipNow = game.resPool.get('catnip').value + 40 * game.getResourcePerTick("catnip", true);
-			if (catnipNow < 0 && options.auto.trade.items['sharks'].enabled) {
-				var sharks = game.diplomacy.get('sharks');
-				var catnip = tradeManager.getAverageTrade(sharks).catnip;
-				tradeManager.trade(name, Math.ceil(catnipNow / -catnip));
-				iactivity('trade.catnip');
-			}
 
 			var maxByRace = [];
 			for (var i = 0; i < trades.length; i++) {
@@ -3050,7 +3055,7 @@ var run = function() {
 				// 自动打开蒸汽工房
 				var st = game.bld.getBuildingExt('steamworks').meta;
 				var ma = game.bld.getBuildingExt('magneto').meta;
-				if (st.val && st.on !== st.val && ma.on > 7) {
+				if (st.val && st.on !== st.val && ma.on > 8) {
 					var stButton = buildManager.getBuildButton('steamworks');
 					stButton.controller.onAll(stButton.model);
 					msg('steamworks');
@@ -3062,6 +3067,13 @@ var run = function() {
 					var reButton = buildManager.getBuildButton('reactor');
 					reButton.controller.onAll(reButton.model);
 					msg('reactor');
+				}
+				// 自动打开工厂
+				let fa = game.bld.getBuildingExt('factory').meta;
+				if (fa.val && fa.on !== fa.val && game.workshop.get('spaceManufacturing').researched) {
+					var reButton = buildManager.getBuildButton('factory');
+					reButton.controller.onAll(reButton.model);
+					msg('factory');
 				}
 				// 自动打开时空加速器自动化
 				var timeA = game.time.getCFU("temporalAccelerator");
@@ -3153,7 +3165,7 @@ var run = function() {
 							cache.trait[trait] = true;
 							let traitDesc = $I('village.bonus.desc.' + trait);
 							let leaderMsg = ['当' + traitDesc.slice(0,2) + "项目时" + $I('village.trait.' + trait) + "猫猫自觉顶替当前领袖，其效果为" + traitDesc];
-							activity(i18n('set.leader', leaderMsg));
+							iactivity('set.leader', [leaderMsg], 'ks-leader');
 						}
 					}
 					if (!options.copyTrait) {
@@ -3364,7 +3376,7 @@ var run = function() {
 	};
 
 	ReligionManager.prototype = {
-		//manager: undefined,
+		manager: undefined,
 		//crafts: undefined,
 		bulkManager: undefined,
 		build: function (name, variant, amount) {
@@ -4108,7 +4120,7 @@ var run = function() {
 								steelPrice = true;
 							}
 						}
-						let checkRes = this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt || steelPrice === true;
+						let checkRes = (this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt) || steelPrice === true;
 						if (amt > 0 && checkRes) {
 							amount = amt;
 							force = true;
@@ -4135,9 +4147,11 @@ var run = function() {
 						let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
 						amount = Math.max(0, amount) + calcinerAmount;
 					}
-					forceSteel('oxidation');
+					if (calciner.val > 7) {
+						forceSteel('oxidation');
+					}
 				} else {
-					forceSteel('', [{name: 'steel', val: 100}]);
+					//forceSteel('', [{name: 'steel', val: 100}]);
 				}
 			}
 
@@ -4326,7 +4340,7 @@ var run = function() {
 				}
 				let ziggurat = game.bld.get('ziggurat');
 				let priceRatio = Math.pow(ziggurat.priceRatio + game.getEffect("priceRatio"), ziggurat.val);
-				limRat = (res.value > Math.max(100, 50 * priceRatio)) ? 0.01 : limRat;
+				limRat = (res.value > Math.max(100, 50 * priceRatio)) ? 5e-3 : limRat;
 			}
 
 			if (name === 'concrate' && limited) {
