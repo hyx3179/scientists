@@ -936,11 +936,11 @@ var run = function() {
 				items: {
 					// dynamic priority. distribute to the job which have lowest (job.val / job.max) value.
 					// if all jobs reach the max, then distribute kittens to unlimited job.
-					woodcutter: {enabled: true, max: 28, limited: true},
+					woodcutter: {enabled: true, max: 29, limited: true},
 					farmer:     {enabled: true, max: 1, limited: true},
 					scholar:    {enabled: true, max: 9, limited: true},
 					hunter:     {enabled: true, max: 24, limited: true},
-					miner:      {enabled: true, max: 25, limited: true},
+					miner:      {enabled: true, max: 24, limited: true},
 					priest:     {enabled: true, max: 3, limited: false},
 					geologist:  {enabled: true, max: 40, limited: true},
 					engineer:   {enabled: false, max: 1, limited: false},
@@ -1670,7 +1670,7 @@ var run = function() {
 			if (nCorn.value >= 1) {
 				if (levi.energy < game.diplomacy.getMarkerCap()) {
 					game.diplomacy.feedElders();
-					iactivity('act.feed');
+					iactivity('act.feed', [] , 'ks-sacrifice');
 					storeForSummary('feed', 1);
 				}
 			} else {
@@ -2127,7 +2127,7 @@ var run = function() {
 				var work = game.workshop.upgrades;
 				let noup = [];
 				if (upgrades.upgrades.limited) {
-					noup = ['factoryOptimization','factoryRobotics','spaceEngineers','aiEngineers','chronoEngineers','steelPlants','amFission','biofuel','gmo','invisibleBlackHand'];
+					noup = ['biofuel','gmo','invisibleBlackHand'];
 					if (!game.bld.getBuildingExt('pasture').meta.on || game.bld.getBuildingExt('pasture').meta.stage === 0) {
 						noup = noup.concat(['photovoltaic', 'thinFilm', 'qdot']);
 					}
@@ -2144,10 +2144,17 @@ var run = function() {
 						}
 					}
 
+					if (game.village.getJob('engineer').value < 5 && !game.workshop.getCraft('eludium').value) {
+						noup = noup.concat(['spaceEngineers','aiEngineers','chronoEngineers','amFission','factoryRobotics','factoryOptimization']);
+					}
+					// 钢铁工厂
+					if (game.time.getCFU("ressourceRetrieval").val < 8) {
+						noup = noup.concat(['steelPlants']);
+					}
+					// 太阳革命
 					if (!game.religion.getRU('solarRevolution').on && resMap['faith'].value >= 750 && game.religion.faith > 1000) {
 						noup = noup.concat(['caravanserai']);
 					}
-
 					// 缺电过滤抽油机 和 碳封存
 					if (game.resPool.energyProd - game.resPool.energyCons - 100 <= 0) {
 						noup = noup.concat(['carbonSequestration']);
@@ -2672,7 +2679,7 @@ var run = function() {
 			var crafts = options.auto.craft.items;
 			var manager = this.craftManager;
 			var trigger = options.auto.craft.trigger;
-			var craftsItem = ['ship','beam','wood','slab','alloy','gear','concrate','plate','steel','scaffold','tanker','parchment','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
+			var craftsItem = ['ship','beam','wood','slab','alloy','gear','concrate','steel','plate','scaffold','tanker','parchment','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
 
 			this.setTrait('engineer');
 
@@ -3993,7 +4000,7 @@ var run = function() {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript > 0) {
-						price = (resMap['faith'].maxValue > 750) ? price : 10 * priceRatio;
+						price = (resMap['faith'].maxValue > 750 || resMap['gold'].value < 50) ? price : 10 * priceRatio;
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
 						autoMax = Math.ceil((price - resValue) / ratio);
 						let resVal = this.getValueAvailable('parchment', true);
@@ -4145,13 +4152,11 @@ var run = function() {
 				if (calciner.val) {
 					if (!calciner.isAutomationEnabled) {
 						let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
-						amount = Math.max(0, amount) + calcinerAmount;
+						amount = (amount <= 0) ? calcinerAmount : Math.min(amount + calcinerAmount, resMap['coal'].value / 100);
 					}
 					if (calciner.val > 7) {
 						forceSteel('oxidation');
 					}
-				} else {
-					//forceSteel('', [{name: 'steel', val: 100}]);
 				}
 			}
 
@@ -4355,7 +4360,7 @@ var run = function() {
 				let steamworks = game.bld.get('steamworks');
 				let priceRatio = Math.pow(steamworks.priceRatio + game.getEffect("priceRatio"), steamworks.val);
 				limRat = (renaissance) ? 0.35 : limRat;
-				limRat = (res.value > Math.max(500, 20 * priceRatio)) ? 0.01 : limRat;
+				limRat = (res.value > Math.max(500, 20 * priceRatio)) ? 5e-3 : limRat;
 			}
 
 			if (name === 'kerosene' && limited) {
