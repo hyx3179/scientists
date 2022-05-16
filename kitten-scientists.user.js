@@ -387,8 +387,8 @@ var run = function() {
 			'filter.enable': '过滤 {0}',
 			'filter.disable': '取消过滤 {0}',
 
-			'craft.force': '小猫为了研究{1}，偷偷使用了材料合成了{0}',
-			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷使用了材料合成了钢',
+			'craft.force': '小猫为了研究{1}，偷偷使用了一些库存资源合成了{0}',
+			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷多使用了一些材料合成了钢',
 			'craft.limited': '限制{0}（理解为该资源触发条件、消耗率都为AI自动设置。',
 			//'craft.limited.parchment': '小猫贴心地帮你关闭了{0}的限制',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
@@ -472,9 +472,9 @@ var run = function() {
 			'summary.auto.steamworks': '有磁电机后才会建造蒸汽工房',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿',
 			'summary.auto.tradepost': '祷告太阳革命前最多建造12个交易所',
-			'summary.auto.mansion': '为了节省钛发展，故测地学解锁后建造宅邸',
-			'summary.auto.broadcastTower': '为了节省钛发展，太空制造解锁后建造更多的广播塔',
-			'summary.auto.biolab': '为了节省合金发展，太空制造解锁后建造生物实验室',
+			'summary.auto.mansion': '为了节省钛发展，太空制造前宅邸优先级降低',
+			'summary.auto.broadcastTower': '为了节省钛发展，太空制造前广播塔优先级降低',
+			'summary.auto.biolab': '为了节省合金发展，轨道测地学前不建筑，太空制造前生物实验室优先级降低',
 			'summary.auto.workshop': '研究完写作后，工坊优先度恢复正常',
 
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
@@ -489,7 +489,7 @@ var run = function() {
 			'summary.blackcoin.buy': '小猫出售遗物并买入 {0} 次黑币',
 			'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
-			'summary.build.lower': '未研究轨道测地学，降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
+			'summary.build.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
 			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）',
 			'summary.mint': '小猫因为你建造了铸币厂，故关闭了铸币厂（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关你喵力上限较低）',
@@ -886,7 +886,7 @@ var run = function() {
 						summer:  false, autumn:  true,  winter:  false,         spring:      false},
 
 					nagas:      {enabled: true,   require: false,         allowcapped: false,    limited: true,
-						summer:  false, autumn:  false, winter:  false,         spring:      true},
+						summer:  true,  autumn:  false, winter:  false,         spring:      true},
 
 					spiders:    {enabled: false,  require: false,         allowcapped: false,    limited: true,
 						summer:  false, autumn:  true,  winter:  false,         spring:      false},
@@ -1565,8 +1565,10 @@ var run = function() {
 			var leaderVals = distributeItem.leader;
 			var refreshRequired = 0;
 			if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy") && !options.copyTrait) {
-				var leaderJobName = leaderVals.leaderJob;
 				var traitName = leaderVals.leaderTrait;
+				let renaissance = game.prestige.getPerk('renaissance').researched;
+				let leaderJobName = leaderVals.leaderJob;
+				leaderJobName = (leaderJobName == 'farmer' && renaissance && traitName == 'manager') ? 'woodcutter' : leaderJobName;
 				if (game.village.leader === null && game.village.sim.kittens.length) {
 					game.villageTab.censusPanel.census.makeLeader(game.village.sim.kittens[0]);
 				}
@@ -2159,12 +2161,20 @@ var run = function() {
 					if (game.resPool.energyProd - game.resPool.energyCons - 100 <= 0) {
 						noup = noup.concat(['carbonSequestration']);
 					}
+					// 过滤钛升级
+					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.002 && resMap['ship'].value < 50){
+						noup = noup.concat(['titaniumAxe']);
+					}
+					//过滤测地学
+					if (game.religion.getSolarRevolutionRatio() > 8 && !game.space.meta[0].meta[3].val) {
+						noup = noup.concat(['geodesy']);
+					}
 					// 没测地学过滤 地外计划
 					if (!game.workshop.get('geodesy').researched) {
 						noup = noup.concat(['seti']);
 					}
 					// 微型亚空间
-					if (!game.workshop.meta[0].meta[125].researched) {
+					if (!game.workshop.get('mWReactor').researched) {
 						noup = noup.concat(['eludiumReflectors', 'amBases', 'coldFusion', 'amReactors']);
 					}
 					// 星链 上行
@@ -2282,7 +2292,7 @@ var run = function() {
 						continue;
 					}
 
-					if (!missions[3].val && i == 2 && subTrigger != 3) {continue;}
+					if (!missions[3].val && i == 2 && subTrigger != 3 && !game.challenges.isActive('blackSky')) {continue;}
 
 					if (Btn.model.metadata.val || Btn.model.metadata.on) {continue;}
 					var prices = Btn.model.prices;
@@ -2392,7 +2402,7 @@ var run = function() {
 				var amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
 				if (amphitheatreMeta.stage === 0) {
 					if (amphitheatreMeta.stages[1].stageUnlocked) {
-						if (game.getResourcePerTick('titanium', true) > 1 || resMap['ship'].value > 200) {
+						if (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 200) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
 						}
 					}
@@ -2431,7 +2441,7 @@ var run = function() {
 					steamworks:items['steamworks'],
 				};
 				items = Object.assign(important, items);
-				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel', 'lumberMill','factory','biolab','calciner'];
+				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel', 'lumberMill','factory','biolab'];
 				for (var item in items) {
 					if (optimize.indexOf(item) == -1) {
 						copyItem[item] = items[item];
@@ -2453,14 +2463,12 @@ var run = function() {
 						}
 					}
 				};
-				// 天文台
-				scienceBuild('observatory', 500, 0.96);
+				scienceBuild('observatory', 300, 0.96);
 				scienceBuild('academy', 100, 0.98);
 				scienceBuild('biolab', 200, 1);
-				// 生物实验室
-				let biolab = copyItem['biolab'] || build2['biolab'];
-				if (!orbitalGeodesy && biolab) {
-					biolab.enabled = false;
+				// 天文台
+				if (blackSky && resMap['science'].maxValue > 3e5 && !orbitalGeodesy) {
+					copyItem['observatory'].max = 0;
 				}
 				//铸币厂
 				if (!game.challenges.isActive("pacifism")) {
@@ -2534,11 +2542,11 @@ var run = function() {
 				let calciner = copyItem['calciner'] || build2['calciner'];
 				let calcinerMax = calciner.max;
 				if (!orbitalGeodesy) {
-					if (scienceMap.value > 150000 && resMap['alloy'].value > 1000 && resMap['oil'].maxValue > 35000) {
+					if (scienceMap.value > 150000 && resMap['alloy'].value > 500 && resMap['oil'].maxValue > 35000) {
 						calciner.max = (calcinerMax === -1) ? 55 : Math.min(55, calcinerMax);
 					}
-				} else if (!spaceManufacturing) {
-					calciner.max = (calcinerMax === -1) ? 55 : Math.min(90, calcinerMax);
+				} else if (!spaceManufacturing || !game.space.meta[0].meta[0].on) {
+					calciner.max = (calcinerMax === -1) ? 85 : Math.min(85, calcinerMax);
 				}
 				
 				// 太阳能
@@ -2548,13 +2556,19 @@ var run = function() {
 					solarFarm.enabled = false;
 				}
 
+				// 生物实验室
+				let biolab = copyItem['biolab'] || build2['biolab'];
+				if (orbitalGeodesy && !geodesy && biolab && resMap['alloy'].value > 20) {
+					biolab.enabled = false;
+					msgSummary('biolab');
+				}
 				// 广播塔 宅邸
 				let mansion = copyItem['mansion'] || build2['mansion'];
 				let broadcastTower = copyItem['broadcastTower'] || build2['broadcastTower'];
 				let archeology = game.science.get('archeology').researched;
 				let shipVal = resMap['ship'].value;
 				let titaniumMore = (orbitalGeodesy || shipVal > 600);
-				if (game.science.get('superconductors').researched && !spaceManufacturing) {
+				if (game.science.get('superconductors').unlocked && !spaceManufacturing && renaissance) {
 					msgSummary('broadcastTower');
 					msgSummary('biolab');
 					broadcastTower.max = 8;
@@ -2565,10 +2579,10 @@ var run = function() {
 					msgSummary('biolab', true);
 				}
 				// 宅邸生物实验室
-				if (!geodesy && !orbitalGeodesy) {
-					if (!blackSky && archeology && mansion.max) {
+				if (!geodesy && !orbitalGeodesy && renaissance) {
+					if (!blackSky && resMap['titanium'].value > 1 && mansion.max) {
 						msgSummary('mansion');
-						mansion.max = 1;
+						mansion.max = 2;
 					}
 				} else {
 					if (titaniumMore && !mansion.max) {
@@ -3670,18 +3684,16 @@ var run = function() {
 			let TitaniumCap = (resMap['titanium'].value >= 0.95 * resMap['titanium'].maxValue);
 			let scienceMetaCache = game.science.metaCache;
 			switch (id) {
+				//case 'observatory':
+				//	if (id == 'observatory' && game.challenges.isActive("blackSky") && resMap['science'].maxValue > 5e5 && !spaceManufacturing) {
+				//		count = 0;
+				//	}
+				//	break;
 				case 'aqueduct':
 					if (this.crafts.getPotentialCatnip(false) < 2 || game.challenges.isActive('winterIsComing')) {break;}
 					// falls through
 				case 'smelter':
-					//if (id == 'smelter') {
-					//	console.log(count)
-					//	if (scienceMetaCache['theology'].researched) {
-					//		break;
-					//	} else {
-					//		msgSummary(id);
-					//	}
-					//}
+					if (id == 'smelter' && scienceMetaCache['theology'].unlocked) {break;}
 					// falls through
 				case 'library':
 					if (id == 'library' && !scienceMetaCache['writing'].unlocked) {break;}
@@ -3704,12 +3716,14 @@ var run = function() {
 					if (mineralsCap && woodCap) {break;}
 					// falls through
 				case 'lumberMill':
-					if (id == 'lumberMill' && game.bld.getBuildingExt(id).meta.val < 45) {
-						if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.2 && resMap['iron'].maxValue > 1200) {
-							count = 0;
-						}
-						if (resMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.3) {
-							break;
+					if (id == 'lumberMill') {
+						if (game.bld.getBuildingExt(id).meta.val < 45) {
+							if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.2 && resMap['iron'].maxValue > 1200) {
+								count = 0;
+							}
+							if (resMap['gold'].value || game.getEffect('ironPerTickAutoprod') < 0.3) {
+								break;
+							}
 						}
 					}
 					// falls through
@@ -3739,9 +3753,12 @@ var run = function() {
 					}
 					break;
 				case 'factory':
-					if (!spaceManufacturing && game.bld.get(id).val > 20 && !TitaniumCap) {
+					if (!spaceManufacturing) {
+						if (game.bld.get(id).val > 20 && !TitaniumCap) {
+							count = 0;
+						}
+					} else if (!game.space.getBuilding('sattelite').val){
 						count = 0;
-						break;
 					}
 					// falls through
 				case 'accelerator':
@@ -3751,6 +3768,9 @@ var run = function() {
 					}
 					// falls through
 				case 'mansion':
+					if (!vitruvianFeline) {
+						return;
+					}
 					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1 && !TitaniumCap) {
 						halfCount = true;
 					}
@@ -4154,9 +4174,11 @@ var run = function() {
 						let calcinerAmount = 0.003 * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
 						amount = (amount <= 0) ? calcinerAmount : Math.min(amount + calcinerAmount, resMap['coal'].value / 100);
 					}
-					if (calciner.val > 7) {
+					if (calciner.val > 1) {
 						forceSteel('oxidation');
 					}
+				} else if (game.challenges.isActive("blackSky")) {
+					forceSteel('', [{name:'steel',val:1100}]);
 				}
 			}
 
@@ -4320,12 +4342,14 @@ var run = function() {
 			}
 
 			if (name === 'plate' && limited) {
+				let ractor = resMap['titanium'].value > 3500 && resMap['uranium'].value > 250 && !game.bld.get('reactor').val;
 				limRat = (game.getEffect('calcinerRatio')) ? limRat : 0.20;
-				limRat = (res.value > 150) ? limRat : 0.75;
+				limRat = (res.value < 150 || ractor) ? 0.75 : limRat;
 			}
 
 			if (name === 'alloy' && limited) {
-				limRat = (game.bld.get("steamworks").on < game.bld.get("magneto").on - 2) ? limRat : 0.75;
+				let titaniumTick = game.globalEffectsCached['titaniumPerTickAutoprod'] == 5e-4;
+				limRat = (game.bld.get("steamworks").on < game.bld.get("magneto").on || titaniumTick) ? limRat : 0.75;
 				let magneto = game.bld.get('magneto');
 				let priceRatio = Math.pow(magneto.priceRatio + game.getEffect("priceRatio"), magneto.val);
 				limRat = (res.value > Math.max(1250, 10 * priceRatio) && options.auto.build.items.magneto.enabled) ? 0.01 : limRat;
