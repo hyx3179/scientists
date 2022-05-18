@@ -2126,7 +2126,7 @@ var run = function() {
 			}
 
 			if (upgrades.upgrades.enabled && game.bld.getBuildingExt('workshop').meta.on) {
-				if (!game.workshopTab.domNode) {game.workshopTab.updateTab();}
+				if (!game.workshopTab.domNode) {refreshRequired = 2;}
 				var work = game.workshop.upgrades;
 				let noup = [];
 				if (upgrades.upgrades.limited) {
@@ -4199,7 +4199,7 @@ var run = function() {
 				let forceAlloy = (name, price) => {
 					let workshopMeta = game.workshop.get(name);
 					if (workshopMeta.researched || !workshopMeta.unlocked) {return;}
-					let amt = Math.ceil((price - resMap['alloy'].value) / ratio);
+					let amt = Math.ceil((price - resMap['alloy'].vlaue) / ratio);
 					if (amt > 1 && resMap['steel'].value > amt * 75 && resMap['titanium/*  */'].value > amt * 10) {
 						amount = amt;
 						force = true;
@@ -4363,7 +4363,7 @@ var run = function() {
 				limRat = (0.09 + res.perTickCached < resMap['catnip'].perTickCached / game.workshop.getCraft("wood").prices[0].val && this.getPotentialCatnip()) ? 1 : limRat;
 			}
 			if (name === 'beam' && limited) {
-				limRat = (resMap['scaffold'].value) ? limRat : 0.25;
+				limRat = (resMap['scaffold'].value || res.maxValue < 2000) ? limRat : 0.3;
 			}
 			if (name === 'slab' && limited) {
 				limRat = (resMap['beam'].value > 50) ? limRat : 0.12;
