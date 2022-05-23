@@ -4457,7 +4457,7 @@ var run = function() {
 			if (name === 'iron') {
 				let lumberMill = game.bld.get('lumberMill').val > 20 - 40 * game.getEffect("priceRatio");
 				let a = resMap['gold'].value < 50 && lumberMill;
-				if (game.bld.getBuildingExt('temple').meta.on > 2 || resMap['faith'].maxValue > 749 || a) {
+				if (game.bld.getBuildingExt('temple').meta.on > 2 || resMap['faith'].maxValue > 749 || a || resMap['plate'].value > 18) {
 					let reinforcedSaw = unResearched('reinforcedSaw') && resMap[name].value > 200 && resMap[name].maxValue > 1000;
 					if (reinforcedSaw) {
 						stock += 1000;
