@@ -1838,6 +1838,7 @@ var run = function() {
 			var epiphanyAfterAdore = epiphany + epiphanyInc;
 			var worshipAfterAdore = 0.01 + resourceFaith.value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
 			var solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, maxSolarRevolution);
+			let solarLimmit = 75 * game.getEffect('solarRevolutionLimit') + 750;
 
 			// boolean
 			var forceStep = false;
@@ -1931,10 +1932,9 @@ var run = function() {
 				let booleanForAdore = worship >= 1e5 && moonBoolean;
 				booleanForAdore = (booleanForAdore && autoAdoreEnabled && apocripha && tier && this.catnipForReligion() > 0);
 				// 期望太阳革命加成赞美群星
-				let transformTier = Math.max(0.52 * Math.log(game.religion.faithRatio) + 3.45, tt);
-				let solarLimmit = 3.75 * game.getEffect('solarRevolutionLimit') * game.religion.transcendenceTier + 900;
-				let expectSolarRevolutionRatio = Math.min(1.3 * Math.pow(Math.E, 0.65 * transformTier), solarLimmit);
-				if (booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 > expectSolarRevolutionRatio && tt) {
+				let transformTier = 0.52 * Math.log(game.religion.faithRatio) + 3.45;
+				let expectSolarRevolutionRatio = Math.min(1.3 * Math.pow(Math.E, 0.65 * transformTier), solarLimmit + 100);
+				if (booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
 					booleanForAdore = false;
 					activity(i18n('summary.adore.solar', [Math.floor(expectSolarRevolutionRatio * 1e2) / 100]));
 					activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
@@ -1953,7 +1953,6 @@ var run = function() {
 
 			// 太阳革命加速恢复到期望值
 			let transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
-			let solarLimmit = 75 * game.getEffect('solarRevolutionLimit') + 750;
 			let voidOrder = game.prestige.getPerk("voidOrder").researched;
 			let expectSolarRevolutionRatio = Math.min(0.3 * Math.pow(Math.E, 0.65 * transformTier) * ((voidOrder) ? 1 : 0.3), solarLimmit);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
