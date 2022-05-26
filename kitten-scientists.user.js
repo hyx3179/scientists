@@ -469,8 +469,10 @@ var run = function() {
 
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
+			'summary.auto.harbor': '港口需要太多的金属板，资源达到价格2倍后继续建造',
 			'summary.auto.hunter': '未发明弩，小猫当猎人欲望降低',
 			'summary.auto.leader': '会自动根据特质分配领袖，领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查',
+			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
 			'summary.auto.oxidation': '小猫为了工坊升级氧化反应，把钢存起来了',
 			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成对',
@@ -491,7 +493,6 @@ var run = function() {
 			'summary.blackcoin.buy': '小猫出售遗物并买入 {0} 次黑币',
 			'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
-			'summary.build.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
 			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）（她真的好温柔，😭）',
 			'summary.mint': '小猫因为你建造了铸币厂，故关闭了铸币厂（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关你喵力上限较低）',
@@ -1832,13 +1833,12 @@ var run = function() {
 			var worship = game.religion.faith;
 			var epiphany = game.religion.faithRatio;
 			var maxSolarRevolution = 10 + game.getEffect("solarRevolutionLimit");
-			var adoreTrigger = (option.adore.subTrigger == 0.001) ? Math.min(0.0007 * Math.pow(Math.E, 0.65 * tt), 0.375) : option.adore.subTrigger;
+			var adoreTrigger = option.adore.subTrigger;
 			var triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
 			var epiphanyInc = worship / 1000000 * (tt + 1) * (tt + 1) * 1.01;
 			var epiphanyAfterAdore = epiphany + epiphanyInc;
 			var worshipAfterAdore = 0.01 + resourceFaith.value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
 			var solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, maxSolarRevolution);
-			let solarLimmit = 75 * game.getEffect('solarRevolutionLimit') + 750;
 
 			// boolean
 			var forceStep = false;
@@ -1932,13 +1932,15 @@ var run = function() {
 				let booleanForAdore = worship >= 1e5 && moonBoolean;
 				booleanForAdore = (booleanForAdore && autoAdoreEnabled && apocripha && tier && this.catnipForReligion() > 0);
 				// 期望太阳革命加成赞美群星
-				let transformTier = 0.52 * Math.log(game.religion.faithRatio) + 3.45;
-				let expectSolarRevolutionRatio = Math.min(1.3 * Math.pow(Math.E, 0.65 * transformTier), solarLimmit + 100);
-				if (booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
+				let transformTier = 0.5 * Math.log(game.religion.faithRatio) + 3.45;
+				let expectSolarRevolutionRatio = Math.min(1.3 * Math.pow(Math.E, 0.65 * transformTier), maxSolarRevolution * 75 + 100);
+				let adoreTri = option.adore.subTrigger;
+				if (adoreTri == 0.001 && booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
 					booleanForAdore = false;
 					activity(i18n('summary.adore.solar', [Math.floor(expectSolarRevolutionRatio * 1e2) / 100]));
 					activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
 				}
+				booleanForAdore &= ((adoreTri == 0.001) ? booleanForAdore : adoreTri * 10 < solarRevolutionAdterAdore);
 				if (booleanForAdore || forceStep) {
 					if (doAdoreAfterTimeSkip) {
 						options.auto.timeCtrl.items.timeSkip.adore = false;
@@ -1954,7 +1956,7 @@ var run = function() {
 			// 太阳革命加速恢复到期望值
 			let transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
 			let voidOrder = game.prestige.getPerk("voidOrder").researched;
-			let expectSolarRevolutionRatio = Math.min(0.3 * Math.pow(Math.E, 0.65 * transformTier) * ((voidOrder) ? 1 : 0.3), solarLimmit);
+			let expectSolarRevolutionRatio = Math.min(0.3 * Math.pow(Math.E, 0.65 * transformTier) * ((voidOrder) ? 1 : 0.3), maxSolarRevolution * 75);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
 			if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio * 0.01) {
@@ -3844,16 +3846,16 @@ var run = function() {
 					if (vitruvianFeline) {
 						if (!orbitalGeodesy && game.bld.get(id).val) {
 							halfCount = true;
-							if (!activitySummary.other['build.lower']) {
-								activity(i18n('summary.build.lower'));
-								storeForSummary('build.lower');
-							}
+							msgSummary('lower');
 						}
 					}
 					break;
 				case 'harbor':
 					if (id == 'harbor') {
-						if (game.bld.getBuildingExt(id).meta.val < 8){halfCount = true;}
+						if (game.bld.getBuildingExt(id).meta.val < 8){
+							msgSummary('harbor');
+							halfCount = true;
+						}
 						else if (!orbitalGeodesy && !game.workshop.get('geodesy').researched) {halfCount = true;}
 					}
 					break;
@@ -5302,7 +5304,7 @@ var run = function() {
 		saveToKittenStorage();
 	};
 
-	var saveToKittenStorage = function () {
+	var saveToKittenStorage = function (session) {
 		kittenStorage.toggles = {
 			build: options.auto.build.enabled,
 			space: options.auto.space.enabled,
@@ -5327,7 +5329,8 @@ var run = function() {
 		};
 		kittenStorage.policies = options.policies;
 
-		localStorage['cbc.kitten-scientists'] = JSON.stringify(kittenStorage);
+		if (session) {sessionStorage.setItem('cbc',JSON.stringify(kittenStorage));}
+		else {localStorage['cbc.kitten-scientists'] = JSON.stringify(kittenStorage);}
 	};
 
 	var loadFromKittenStorage = function () {
@@ -6807,10 +6810,10 @@ var run = function() {
 		if (name == 'style') {
 			var input = element.children('input');
 			input.unbind('change');
-			input.on('change', function () {
+			input.on('change', function (e) {
 				option.enabled = input.prop('checked');
 				kittenStorage.items[input.attr('id')] = option.enabled;
-				saveToKittenStorage();
+				if (e.isTrusted) {saveToKittenStorage();}
 				let style = document.getElementById('toggleCenter').style;
 				if (option.enabled) {
 					document.body.setAttribute('data-ks-style', '');
@@ -6904,9 +6907,15 @@ var run = function() {
 			ressetKS.on('click', function () {
 				if (confirm('确定要初始化珂学家配置吗，注意点击确认后会刷新页面')){
 					engine.stop(false);
-					delete localStorage['cbc.kitten-scientists'];
-					game.save();
-					window.location.reload();
+					let cbc = sessionStorage.getItem('cbc');
+					if (cbc) {
+						window.localStorage['cbc.kitten-scientists'] = cbc;
+						loadFromKittenStorage();
+					} else {
+						delete localStorage['cbc.kitten-scientists'];
+						game.save();
+						window.location.reload();
+					}
 				}
 			});
 			
@@ -6917,10 +6926,10 @@ var run = function() {
 		if (name == 'donate') {
 			var input = element.children('input');
 			input.unbind('change');
-			input.on('change', function () {
+			input.on('change', function (e) {
 				option.enabled = input.prop('checked');
 				kittenStorage.items[input.attr('id')] = option.enabled;
-				saveToKittenStorage();
+				if (e.isTrusted) {saveToKittenStorage();}
 				var style = document.getElementById('ks-donate').style;
 				if (!option.enabled) {
 					style.display = 'none';
@@ -7469,6 +7478,7 @@ var run = function() {
 		}
 	});
 
+	saveToKittenStorage('sessionStorage');
 	loadFromKittenStorage();
 
 	// hack for style.
