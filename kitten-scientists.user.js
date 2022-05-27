@@ -1639,14 +1639,14 @@ var run = function() {
 				if (!unlocked) {continue;}
 
 				var name = game.village.jobs[i].name;
-				var enabled = distributeItem[name].enabled;
-				if (!enabled) {continue;}
+				let jobItem = distributeItem[name];
+				if (!jobItem.enabled) {continue;}
 
 				var maxGame = game.village.getJobLimit(name);
 				var val = game.village.jobs[i].value;
 				if (val >= maxGame) {continue;}
 
-				var maxKS = (options.auto.distribute.items[name].max === -1) ? Number.MAX_VALUE : options.auto.distribute.items[name].max;
+				var maxKS = jobItem.max;
 				if (name === 'hunter') {
 					let manpowerJobRatio = game.getEffect('manpowerJobRatio');
 					if (manpowerJobRatio < 0.5) {
@@ -1663,7 +1663,8 @@ var run = function() {
 					if (!game.science.get('electricity').researched ) {maxKS = 0;}
 				}
 				if (name == 'scholar' && val === 1) {maxKS = 2000;}
-				var limited = options.auto.distribute.items[name].limited;
+				if (name == 'miner' && !game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.5);}
+				var limited = jobItem.limited;
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
 					if (currentRatio < minRatio) {
@@ -1933,7 +1934,7 @@ var run = function() {
 				booleanForAdore = (booleanForAdore && autoAdoreEnabled && apocripha && tier && this.catnipForReligion() > 0);
 				// 期望太阳革命加成赞美群星
 				let transformTier = 0.5 * Math.log(game.religion.faithRatio) + 3.45;
-				let expectSolarRevolutionRatio = Math.min(1.3 * Math.pow(Math.E, 0.65 * transformTier), maxSolarRevolution * 75 + 100);
+				let expectSolarRevolutionRatio = game.getLimitedDR(1.3 * Math.pow(Math.E, 0.65 * transformTier) , 96 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				if (adoreTri == 0.001 && booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
 					booleanForAdore = false;
@@ -2697,7 +2698,7 @@ var run = function() {
 				for (var i = 0; i < buildList.length; i++) {
 					let count = buildList[i].count;
 					let id = buildList[i].id;
-					count = buildManager.count(id,count);
+					count = buildManager.count(id, count);
 					if (count > 0) {
 						buildManager.build(buildList[i].name || id, buildList[i].stage, count);
 						refreshRequired += 1;
@@ -2754,8 +2755,9 @@ var run = function() {
 			var refreshRequired = 0;
 
 			for (var entry in buildList) {
-				if (buildList[entry].count > 0) {
-					if (buildList[entry].id == 'containmentChamber') {
+				let item = buildList[entry];
+				if (item.count > 0) {
+					if (item.id == 'containmentChamber') {
 						let antimatter = resMap['antimatter'];
 						let perYear = game.getEffect('antimatterProduction');
 						let energyExtra = (game.resPool.energyProd < game.resPool.energyCons);
@@ -2763,8 +2765,9 @@ var run = function() {
 							continue;
 						}
 					}
+					if (item.id == 'spaceStation') {item.count = Math.floor(item.count * 0.5);}
 
-					buildManager.build(buildList[entry].id, buildList[entry].count);
+					buildManager.build(item.id, item.count);
 					refreshRequired = 1;
 				}
 			}
@@ -3455,10 +3458,9 @@ var run = function() {
 	TabManager.prototype = {
 		tab: undefined,
 		render: function () {
-			if (this.tab && game.ui.activeTabId !== this.tab.tabId) {
+			if (this.tab && game.ui.activeTabId !== this.tab.tabId && !this.tab._inherited) {
 				this.tab.render();
 			}
-
 			return this;
 		},
 		setTab: function (name) {
@@ -4225,8 +4227,9 @@ var run = function() {
 
 			let useRatio = this.getLimRat(name, limited, limRat);
 
-			if (name === 'parchment' && ratio < 2.2) {
-				limited = true;
+			if (name === 'parchment') {
+				limited = false;
+				if (ratio < 2.2) {limited = true;}
 			}
 
 			for (i in materials) {
@@ -4558,11 +4561,11 @@ var run = function() {
 				limRat = (0.09 + res.perTickCached < resMap['catnip'].perTickCached / game.workshop.getCraft("wood").prices[0].val && this.getPotentialCatnip()) ? 1 : limRat;
 			}
 			if (name === 'beam') {
-				limRat = (resMap['scaffold'].value || res.maxValue < 4000) ? limRat : 0.005;
+				limRat = (resMap['scaffold'].value || resMap['wood'].maxValue < 4000) ? limRat : 0.005;
 			}
 			if (name === 'slab') {
 				let a = resMap['faith'].maxValue < 750 && res.value < 51;
-				limRat = (resMap['scaffold'].value || res.value < 51) ? limRat : 0.005;
+				limRat = (resMap['scaffold'].value || a) ? limRat : 5e-4;
 			}
 
 			if (name === 'ship') {
@@ -5296,12 +5299,12 @@ var run = function() {
 		policies: []
 	};
 
-	var initializeKittenStorage = function () {
+	var initializeKittenStorage = function (see) {
 		$("#items-list-build, #items-list-craft, #items-list-trade").find("input[id^='toggle-']").each(function () {
 			kittenStorage.items[$(this).attr("id")] = $(this).prop("checked");
 		});
 
-		saveToKittenStorage();
+		saveToKittenStorage(see);
 	};
 
 	var saveToKittenStorage = function (session) {
@@ -5408,11 +5411,6 @@ var run = function() {
 				} else {
 					if (name[1] == 'limited') {
 						option.limited = value;
-
-						// 羊皮纸限制默认关闭
-						if (name[2] == 'parchment' && value) {
-							$('#toggle-limited-parchment').click();
-						}
 					} else if (name[1] == 'leaderJob') {
 						option[name[1]] = name[2];
 					} else if (name[1] == 'leaderTrait') {
@@ -6945,7 +6943,7 @@ var run = function() {
 			input.on('click', function () {
 				var tempwindow = window.open();
 				tempwindow.location = 'https://petercheney.gitee.io/baike/?file=004-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7/02-%E5%B0%8F%E7%8C%AB%E7%A7%91%E5%AD%A6%E5%AE%B6';
-				printoutput(['如果还有问题可以在猫国询问，有BUG或意见可以联系Cheney','ks-default', options.activitycolor]);
+				printoutput(['如果还有问题可以在猫国群询问，有BUG或意见可以联系Cheney。默认配置即推荐配置：文艺复兴玄学下默认配置能2小时冲出轨道。','ks-default', options.activitycolor]);
 			});
 		}
 
@@ -7050,7 +7048,7 @@ var run = function() {
 				}
 
 				if (value !== null) {
-					option.max = parseInt(value);
+					option.max = Math.min(0, parseInt(value));
 					kittenStorage.items[maxButton.attr('id')] = option.max;
 					saveToKittenStorage();
 					maxButton[0].title = option.max;
@@ -7478,7 +7476,7 @@ var run = function() {
 		}
 	});
 
-	saveToKittenStorage('sessionStorage');
+	initializeKittenStorage('session');
 	loadFromKittenStorage();
 
 	// hack for style.
@@ -7515,7 +7513,6 @@ var run = function() {
 		};
 	}
 	saveToKittenStorage();
-
 
 	var autoOpen = function() {
 		if (!options.auto.engine.enabled && options.auto.options.items.autoScientists.enabled) {
@@ -7559,4 +7556,6 @@ var loadTest = function() {
 	}
 };
 
-loadTest();
+setTimeout(function(){
+	loadTest();
+}, 204);
