@@ -470,12 +470,13 @@ var run = function() {
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.harbor': '港口需要太多的金属板，资源达到价格2倍后继续建造',
-			'summary.auto.hunter': '未发明弩，小猫当猎人欲望降低',
+			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
 			'summary.auto.leader': '会自动根据特质分配领袖，领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查',
-			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、熔炉、粮仓、港口、油井、仓库的优先度',
+			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
 			'summary.auto.oxidation': '小猫为了工坊升级氧化反应，把钢存起来了',
-			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成对',
+			'summary.auto.pasture': '小猫为了发展神学后才会继续建造牧场',
+			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成双成对',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿',
 			'summary.auto.tradepost': '祷告太阳革命前，根据黄金会减少交易所的建造',
 			'summary.auto.workshop': '羊皮纸需写作研究完才会运用，小猫现在不需要更多的工坊',
@@ -1663,7 +1664,8 @@ var run = function() {
 					if (!game.science.get('electricity').researched ) {maxKS = 0;}
 				}
 				if (name == 'scholar' && val === 1) {maxKS = 2000;}
-				if (name == 'miner' && !game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.5);}
+				if (name == 'miner' && !game.science.get('machinery').researched) {maxKS = Math.round(maxKS * 0.5);}
+				if (name == 'priest' && !game.religion.getSolarRevolutionRatio()) {maxKS = 10;}
 				var limited = jobItem.limited;
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
@@ -1852,7 +1854,7 @@ var run = function() {
 
 			// enough faith, and then TAP
 			if (Math.min(0.999, Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
-				var moonBoolean = game.space.meta[0].meta[1].on;
+				var moonBoolean = game.space.meta[2].meta[0].val;
 
 				// Transcend
 				if (option.transcend.enabled && transcendenceReached) {
@@ -2013,6 +2015,7 @@ var run = function() {
 				}
 				if (game.religion.faith > 1e4) {copyBuilds['sunAltar'].enabled = false;}
 			}
+			if (!game.ironWill && resMap['manpower'].maxValue < 15e3) {copyBuilds['goldenSpire'].enabled = false;}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 			//buildManager.manager.render();
@@ -2132,6 +2135,7 @@ var run = function() {
 						if (upg.name == 'biology' && resMap['compedium'].value < 750) {continue;}
 						if (upg.name == 'ecology' && resMap['titanium'].value < 6000) {continue;}
 						if (upg.name == 'ai' && resMap['titanium'].value < 10000) {continue;}
+						if (upg.name == 'oilProcessing' && !game.science.get('nanotechnology').researched) {continue;}
 						if (upg.name == 'drama' && 8 * craftManager.getTickVal(craftManager.getResource('parchment'), true) < 5) {continue;}
 					}
 
@@ -2340,7 +2344,6 @@ var run = function() {
 			}
 
 			if (upgrades.races.enabled && game.diplomacy.hasUnlockedRaces()) {
-				if (!game.diplomacyTab.racePanels.length) {game.diplomacyTab.render();}
 				var maxRaces = (game.diplomacy.get('leviathans').unlocked) ? 8 : 7;
 				if (game.diplomacyTab.racePanels.length < maxRaces) {
 					let unlockRace = function (race) {
@@ -2348,7 +2351,7 @@ var run = function() {
 						let manpower = craftManager.getValueAvailable('manpower', true);
 						if (manpower >= 1000) {
 							game.resPool.get('manpower').value -= 1000;
-							refreshRequired += 2;
+							maxRaces = 'render';
 							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-trade');
 						}
 					};
@@ -2357,18 +2360,11 @@ var run = function() {
 						unlockRace('sharks');
 						unlockRace('griffins');
 					}
-					if (game.resPool.get("culture").value >= 1500) {
-						unlockRace('nagas');
-					}
-					if (game.resPool.get("ship").value >= 1) {
-						unlockRace('zebras');
-					}
-					if (game.resPool.get("ship").value >= 100 && game.resPool.get("science").maxValue > 125000) {
-						unlockRace('spiders');
-					}
-					if (game.science.get("nuclearFission").researched) {
-						unlockRace('dragons');
-					}
+					if (game.resPool.get("culture").value >= 1500) {unlockRace('nagas');}
+					if (game.resPool.get("ship").value >= 1) {unlockRace('zebras');}
+					if (game.resPool.get("ship").value >= 100 && game.resPool.get("science").maxValue > 125000) {unlockRace('spiders');}
+					if (game.science.get("nuclearFission").researched) {unlockRace('dragons');}
+					if (!game.diplomacyTab.racePanels.length || maxRaces === 'render') {game.diplomacyTab.render();}
 				}
 			}
 
@@ -2508,6 +2504,7 @@ var run = function() {
 					items['library'].max = (hutVal > 0) ? Math.floor(hutVal * 11) : items['library'].max;
 				} else {
 					msgSummary('smelter', true);
+					msgSummary('pasture', true);
 				}
 				// 工坊
 				if (!game.science.get('writing').researched && resMap['minerals'].value) {
@@ -2518,16 +2515,17 @@ var run = function() {
 				}
 
 				//熔炉
-				if (!game.workshopTab.visible && !game.challenges.isActive('winterIsComing')) {
+				if (!game.workshopTab.visible && !game.challenges.isActive('winterIsComing') && game.science.get('animal').researched) {
 					items['smelter'].max = 0;
 					items['pasture'].enabled = false;
+					msgSummary('pasture');
 				}
 				// 没铀不造反应堆
 				let reactor = items['reactor'];
 				if (resMap['uranium'].value < 100) {
 					reactor.max = 0;
 				} else if (!spaceManufacturing && resMap['titanium'].maxValue > 125000) {
-					reactor.max = 35;
+					reactor.max = 25;
 				}
 
 				// 天文台
@@ -2779,6 +2777,7 @@ var run = function() {
 			var manager = this.craftManager;
 			var trigger = options.auto.craft.trigger;
 			var craftsItem = ['ship','beam','wood','slab','alloy','gear','concrate','steel','plate','scaffold','tanker','parchment','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
+			let craftUnlock = !game.science.get("construction").researched || !game.bld.getBuildingExt('workshop').meta.on;
 
 			this.setTrait('engineer');
 
@@ -2788,7 +2787,7 @@ var run = function() {
 				var require = !craft.require ? 'noRequire' : manager.getResource(craft.require);
 				var amount = 0;
 				if (!craft.enabled) {continue;}
-				if (!game.bld.getBuildingExt('workshop').meta.on && name !== "wood") {continue;}
+				if (craftUnlock && name !== "wood") {continue;}
 				// Ensure that we have reached our cap
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.getCraft(name).unlocked) {continue;}
@@ -2982,7 +2981,7 @@ var run = function() {
 
 			if (trades.length === 0) {return;}
 
-			isLimited = (isLimited && !goldTrigger) ? 0.2 : 1;
+			isLimited = (isLimited && !goldTrigger) ? 0.3 : 1;
 			// Figure out how much we can currently trade
 			var maxTrades = Math.floor(tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited);
 
@@ -3037,7 +3036,7 @@ var run = function() {
 			var tradeNet = {};
 			for (var name in tradesDone) {
 				var race = tradeManager.getRace(name);
-				let amt = (goldTrigger) ? tradesDone[name] : 1;
+				let amt = goldTrigger ? 1 : tradesDone[name] * 0.6;
 
 				var materials = tradeManager.getMaterials(name);
 				for (var mat in materials) {
@@ -3717,13 +3716,15 @@ var run = function() {
 		},
 		getValue: function (name, upgrade) {
 			let res = options.auto.resources[name];
-			
 			switch(upgrade) {
 				case 'oxidation':
 				res = null;
 				break;
 			}
 			let stock = (res && res.enabled) ? res.stock : 0;
+			if (name == 'titanium' && upgrade != 'rotaryKiln') {
+				if (!game.workshop.metaCache['rotaryKiln'].researched && game.workshop.get('orbitalGeodesy').researched) {stock += 5000;}
+			}
 			let value = Math.max(resMap[name].value - stock, 0);
 			return value;
 		},
@@ -3800,9 +3801,6 @@ var run = function() {
 				case 'aqueduct':
 					if (this.crafts.getPotentialCatnip(false) < 2 || game.challenges.isActive('winterIsComing')) {break;}
 					// falls through
-				//case 'smelter':
-				//	if (id == 'smelter' && game.globalEffectsCached['culturePerTickBase'] > 0.1) {break;}
-				//	// falls through
 				case 'library':
 					if (id == 'library' && !scienceMetaCache['writing'].unlocked) {break;}
 					// falls through
@@ -3813,7 +3811,7 @@ var run = function() {
 					if (mineralsCap && woodCap) {break;}
 					// falls through
 				case 'warehouse':
-					if (id == 'warehouse' && resMap['minerals'].maxValue < 1e4) {break;}
+					if (id == 'warehouse' && resMap['minerals'].maxValue < 1e5) {break;}
 					// falls through
 				case 'lumberMill':
 					if (id == 'lumberMill') {
@@ -3857,7 +3855,7 @@ var run = function() {
 						if (game.bld.getBuildingExt(id).meta.val < 8){
 							msgSummary('harbor');
 							halfCount = true;
-						}
+						} else if (game.space.getBuilding('sattelite').val < 3 && game.religion.getSolarRevolutionRatio() > 7.5) {halfCount = true;}
 						else if (!orbitalGeodesy && !game.workshop.get('geodesy').researched) {halfCount = true;}
 					}
 					break;
@@ -4561,7 +4559,7 @@ var run = function() {
 				limRat = (0.09 + res.perTickCached < resMap['catnip'].perTickCached / game.workshop.getCraft("wood").prices[0].val && this.getPotentialCatnip()) ? 1 : limRat;
 			}
 			if (name === 'beam') {
-				limRat = (resMap['scaffold'].value || resMap['wood'].maxValue < 4000) ? limRat : 0.005;
+				limRat = (game.science.get('navigation').unlocked || resMap['gold'].maxValue < 500) ? limRat : 0.005;
 			}
 			if (name === 'slab') {
 				let a = resMap['faith'].maxValue < 750 && res.value < 51;
@@ -4579,7 +4577,7 @@ var run = function() {
 			if (name === 'plate') {
 				let ractor = resMap['titanium'].value > 3500 && resMap['uranium'].value > 250 && !game.bld.get('reactor').val;
 				limRat = (game.getEffect('calcinerRatio')) ? limRat : 0.3;
-				limRat = ((res.value < 150 && game.science.get('navigation').researched && resMap['starchart'].value > 24) || ractor) ? 0.9 : limRat;
+				limRat = ((res.value < 150 && game.science.get('navigation').researched && resMap['starchart'].value > 15) || ractor) ? 0.9 : limRat;
 			}
 
 			if (name === 'alloy') {
@@ -7048,7 +7046,7 @@ var run = function() {
 				}
 
 				if (value !== null) {
-					option.max = Math.min(0, parseInt(value));
+					option.max = Math.max(0, parseInt(value));
 					kittenStorage.items[maxButton.attr('id')] = option.max;
 					saveToKittenStorage();
 					maxButton[0].title = option.max;
