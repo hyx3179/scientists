@@ -1663,8 +1663,8 @@ var run = function() {
 					if (!game.workshop.get("geodesy").researched && resMap['iron'].perTickCached < 50) {maxKS = Math.round(maxKS * 0.5);}
 					if (!game.science.get('electricity').researched ) {maxKS = 0;}
 				}
-				if (name == 'scholar' && val === 1) {maxKS = 2000;}
-				if (name == 'miner' && !game.science.get('machinery').researched) {maxKS = Math.round(maxKS * 0.5);}
+				if (name == 'scholar' && !game.getEffect('shatterTCGain') && game.workshop.get('spaceManufacturing').researched) {maxKS = Math.max(maxKS, 18);}
+				if (name == 'miner' && !game.science.get('machinery').researched) {maxKS = Math.round(maxKS * 0.65);}
 				if (name == 'priest' && !game.religion.getSolarRevolutionRatio()) {maxKS = 10;}
 				var limited = jobItem.limited;
 				if (!limited || val < maxKS) {
@@ -1936,7 +1936,7 @@ var run = function() {
 				booleanForAdore = (booleanForAdore && autoAdoreEnabled && apocripha && tier && this.catnipForReligion() > 0);
 				// 期望太阳革命加成赞美群星
 				let transformTier = 0.5 * Math.log(game.religion.faithRatio) + 3.45;
-				let expectSolarRevolutionRatio = game.getLimitedDR(1.3 * Math.pow(Math.E, 0.65 * transformTier) , 96 * maxSolarRevolution);
+				let expectSolarRevolutionRatio = game.getLimitedDR(1.3 * Math.pow(Math.E, 0.65 * transformTier) , 97 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				if (adoreTri == 0.001 && booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
 					booleanForAdore = false;
@@ -1959,7 +1959,7 @@ var run = function() {
 			// 太阳革命加速恢复到期望值
 			let transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
 			let voidOrder = game.prestige.getPerk("voidOrder").researched;
-			let expectSolarRevolutionRatio = Math.min(0.3 * Math.pow(Math.E, 0.65 * transformTier) * ((voidOrder) ? 1 : 0.3), maxSolarRevolution * 75);
+			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, 0.65 * transformTier) * ((voidOrder) ? 1 : 0.3), 80 * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
 			if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio * 0.01) {
@@ -2015,7 +2015,7 @@ var run = function() {
 				}
 				if (game.religion.faith > 1e4) {copyBuilds['sunAltar'].enabled = false;}
 			}
-			if (!game.ironWill && resMap['manpower'].maxValue < 15e3) {copyBuilds['goldenSpire'].enabled = false;}
+			if (!game.ironWill && resMap['manpower'].maxValue < 15e3) {copyBuilds['templars'].enabled = false;}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 			//buildManager.manager.render();
@@ -2435,7 +2435,7 @@ var run = function() {
 		},
 		build: function (builds) {
 			var buildManager = this.buildManager;
-			//var craftManager = this.craftManager;
+			var craftManager = this.craftManager;
 			var bulkManager = this.bulkManager;
 			var trigger = options.auto.build.trigger;
 			var refreshRequired = 0;
@@ -2482,6 +2482,10 @@ var run = function() {
 				scienceBuild('academy', Math.max(22 *(game.prestige.getParagonProductionRatio() + 1), 100), 0.98);
 				scienceBuild('biolab', 200, 1);
 
+				let winterTick = craftManager.getPotentialCatnip(false);
+				if (winterTick < 0.85 && resMap['catnip'].value / winterTick < 1000) {
+					items['hut'].enabled = items['logHouse'].enabled = false;
+				}
 				let machinery = game.science.get('machinery').researched;
 				let astronomy = game.science.get('astronomy');
 				if (scienceTrigger < 0.98 && !astronomy.researched && (!machinery || astronomy.unlocked) && resMap['minerals'].value) {
@@ -2927,21 +2931,22 @@ var run = function() {
 
 			let isLimited;
 			this.setTrait('merchant');
+			let index = 0;
 			// Determine how many races we will trade this cycle
 			for (var name in optionTrade.items) {
 				var trade = optionTrade.items[name];
 
 				// Check if the race is in season, enabled, unlocked, and can actually afford it
-				if (!trade.enabled) {continue;}
-				if (!trade[season]) {continue;}
 				var race = tradeManager.getRace(name);
 				if (!race.unlocked) {continue;}
+				if (!game.diplomacyTab.racePanels[index]) {game.diplomacyTab.render();}
+				index++;
+				if (!trade.enabled) {continue;}
+				if (!trade[season]) {continue;}
 				var button = tradeManager.getTradeButton(race.name);
 
-				if (!button) {tradeManager.manager.render();continue;}
-				if (!tradeManager.singleTradePossible(name)) {continue;}
-
-				if (!button.model.enabled) {button.controller.updateEnabled(button.model);continue;}
+				if (!button || !tradeManager.singleTradePossible(name)) {continue;}
+				if (name == 'nagas' && trade.limited && (game.bld.getBuildingExt('reactor').meta.on || resMap['concrate'].value > 500)) {continue;}
 
 				var require = !trade.require ? false : craftManager.getResource(trade.require);
 
@@ -3792,6 +3797,7 @@ var run = function() {
 			let woodCap = (resMap['wood'].value > resMap['wood'].maxValue * 0.94);
 			let TitaniumCap = (resMap['titanium'].value >= 0.95 * resMap['titanium'].maxValue);
 			let scienceMetaCache = game.science.metaCache;
+			let catnipTick = this.crafts.getPotentialCatnip(false);
 			switch (id) {
 				//case 'observatory':
 				//	if (id == 'observatory' && game.challenges.isActive("blackSky") && resMap['science'].maxValue > 5e5 && !spaceManufacturing) {
@@ -3799,7 +3805,8 @@ var run = function() {
 				//	}
 				//	break;
 				case 'aqueduct':
-					if (this.crafts.getPotentialCatnip(false) < 2 || game.challenges.isActive('winterIsComing')) {break;}
+					if (catnipTick < 2 || game.challenges.isActive('winterIsComing')) {break;}
+					if (game.bld.getBuildingExt(id).meta.val > 50 && !mineralsCap) {count *= 0.4;}
 					// falls through
 				case 'library':
 					if (id == 'library' && !scienceMetaCache['writing'].unlocked) {break;}
