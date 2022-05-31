@@ -582,6 +582,8 @@ var run = function() {
 		catnipMsg: true,
 		//倒计时
 		countdown: 120,
+		// 上次渲染的时间
+		renderTime: 0,
 		// The default consume rate.
 		consume: 0.6,
 		// The default settings for game automation.
@@ -1113,6 +1115,7 @@ var run = function() {
 		renderID: undefined,
 		worker: undefined,
 		resUpdate: undefined,
+		toolText: undefined,
 		start: function (msg = true) {
 			options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
 			if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
@@ -1170,7 +1173,7 @@ var run = function() {
 			if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
 			if (options.auto.distribute.enabled)                                            {refresh += ~~this.distribute();}
 			if (refresh)                                                                    {this.beforeInterval(true);}
-			if (refresh > 1)                                                                {this.delay('render');}
+			if (refresh > 0)                                                                {this.delay('render');}
 			//if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
 		},
 		beforeInterval: function (update) {
@@ -1183,12 +1186,14 @@ var run = function() {
 		},
 		delay: function (render) {
 			if (render) {
-				this.renderID = setTimeout(() => {
-					let kittens = game.resPool.get("kittens");
-					kittens.value = game.village.getKittens();
-					kittens.maxValue = game.village.sim.maxKittens;
-					game.ui.render();
-				}, Math.min(200,200 - Date.now() + game.timer.timestampStart));
+				let tool = $('#tooltip')[0];
+				if (options.renderTime + 6e5 < Date.now() || this.toolText != tool.innerText) {
+					this.renderID = setTimeout(() => {
+						options.renderTime = Date.now();
+						this.toolText = tool.innerText;
+						game.ui.render();
+					}, Math.min(200,200 - Date.now() + game.timer.timestampStart));
+				}
 			} else {
 				this.huntID = setTimeout(() => {
 					this.hunt();
@@ -1664,8 +1669,8 @@ var run = function() {
 					if (!game.science.get('electricity').researched ) {maxKS = 0;}
 				}
 				if (name == 'scholar' && !game.getEffect('shatterTCGain') && game.workshop.get('spaceManufacturing').researched) {maxKS = Math.max(maxKS, 18);}
-				if (name == 'miner' && !game.science.get('machinery').researched) {maxKS = Math.round(maxKS * 0.65);}
-				if (name == 'priest' && !game.religion.getSolarRevolutionRatio()) {maxKS = 10;}
+				if (name == 'miner' && !game.science.get('machinery').researched) {maxKS = Math.round(maxKS * 0.6);}
+				if (name == 'priest' && !game.religion.getSolarRevolutionRatio()) {maxKS = 9;}
 				var limited = jobItem.limited;
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
@@ -1680,7 +1685,7 @@ var run = function() {
 				refreshRequired += 2;
 				iactivity('act.distribute', [i18n('$village.job.' + jobName)], 'ks-distribute');
 				storeForSummary('distribute', 1);
-				//game.villageTab.update()
+				game.villageTab.updateTab();
 			}
 			return refreshRequired;
 		},
@@ -4623,7 +4628,7 @@ var run = function() {
 			if (name === 'gear') {
 				let steamworks = game.bld.get('steamworks');
 				let priceRatio = Math.pow(steamworks.priceRatio + game.getEffect("priceRatio"), steamworks.val);
-				limRat = 0.3;
+				limRat = (res.value > 30) ? 0.3 : limRat;
 				limRat = (res.value > Math.max(500, 20 * priceRatio)) ? 5e-3 : limRat;
 				limRat = (steamworks.val || game.science.get('chemistry').researched) ? limRat : 0;
 			}
@@ -5305,7 +5310,7 @@ var run = function() {
 	};
 
 	var initializeKittenStorage = function (see) {
-		$("#items-list-build, #items-list-craft, #items-list-trade").find("input[id^='toggle-']").each(function () {
+		$("#items-list-build, #items-list-craft, #items-list-trade, #items-list-options, #items-list-filter, #items-list-distribute").find("input[id^='toggle-']").each(function () {
 			kittenStorage.items[$(this).attr("id")] = $(this).prop("checked");
 		});
 
