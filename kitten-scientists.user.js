@@ -307,7 +307,7 @@ var run = function() {
 			'ui.enable.all': '全部启用',
 			'ui.craft.resources': '资源',
 			'ui.trigger': '触发条件',
-			'ui.trigger.set': '输入新的 {0} 触发值，取值范围为 0 到 1 的纯小数。',
+			'ui.trigger.set': '输入新的 {0} 触发值，取值范围为 0 到 1 的纯小数。（参考珂学家说明书）',
 			'ui.trigger.resource': '触发资源为',
 			'ui.none': '无',
 			'ui.limit': '限制',
@@ -390,7 +390,7 @@ var run = function() {
 
 			'craft.force': '小猫为了研究{1}，偷偷使用了一些库存资源合成了{0}',
 			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷多使用了一些材料合成了钢',
-			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率）',
+			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
 			'craft.unlimited': '触发资源：{1}{0}',
 			'craft.winterCatnip': '因寒冬猫薄荷产量低于0，故取消使用猫薄荷',
@@ -469,8 +469,10 @@ var run = function() {
 
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
+			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
 			'summary.auto.harbor': '港口需要太多的金属板，资源达到价格2倍后继续建造',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
+			'summary.auto.ironwood': '喵喵喵存着铁希望住上向往的铁木小屋',
 			'summary.auto.leader': '会自动根据特质分配领袖，领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
@@ -482,6 +484,10 @@ var run = function() {
 			'summary.auto.workshop': '羊皮纸需写作研究完才会运用，小猫现在不需要更多的工坊',
 			'summary.auto.smelter': '神学前，小猫根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.academy': '小猫当科学快满了才会继续建造研究院',
+			'summary.auto.upgPasture': '有足够钛的产量且缺电且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部牧场后，升级太阳能发电站!',
+			'summary.auto.upgAqueduct': '当你升级了太阳能发电站且还缺电且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部水渠后，升级水电站!',
+			'summary.auto.upgLibrary': '当你的概要数量大于 150X图书馆数量时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
+			'summary.auto.upgAmphitheatre': '当有贸易船或者钛产量足够高时，小猫会贴心的帮你卖出全部剧场后，升级广播塔!',
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
 			'summary.upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
 			'summary.upgrade.building.library': '卖出图书馆 并升级为 数据中心!',
@@ -2292,7 +2298,7 @@ var run = function() {
 					var lastIndex = 0;
 					var length = policies.length;
 					var toResearch = [];
-					let ratio = (game.science.get('astronomy').unlocked) ? 1 : 3;
+					let ratio = (game.science.get('astronomy').researched) ? 1 : 3;
 
 					// A **little** more efficient than game.science.getPolicy if options.policies is right order
 					for (var i in options.policies) {
@@ -2329,9 +2335,11 @@ var run = function() {
 				let subTrigger = upgrades.missions.subTrigger;
 				var missionsLength = Math.min(game.space.meta[0].meta.length, subTrigger);
 				var missions = game.space.meta[0].meta;
+				let render = 0;
 				missionLoop:
 				for (var i = 0; i < missionsLength ; i++) {
 					if (!(missions[i].unlocked && missions[i].val < 1)) {continue;}
+					if (game.spaceTab.planetPanels.length < i) {game.spaceTab.render();}
 
 					var Btn = game.spaceTab.GCPanel.children[i];
 					if (!Btn || !Btn.model.metadata) {
@@ -2350,6 +2358,7 @@ var run = function() {
 						Btn.controller.updateEnabled(Btn.model);
 						continue;
 					}
+					//render = 1;
 					Btn.controller.build(Btn.model, 1);
 					if (i === 7 || i === 12) {
 						activity(i18n('upgrade.space.mission', [missions[i].label]));
@@ -2357,6 +2366,7 @@ var run = function() {
 						activity(i18n('upgrade.space', [missions[i].label]));
 					}
 				}
+				//if (render) {game.spaceTab.render();}
 			}
 
 			if (upgrades.races.enabled && game.diplomacy.hasUnlockedRaces()) {
@@ -2410,16 +2420,21 @@ var run = function() {
 						var boolean = (energy && broadcastTower && game.getResourcePerTick('titanium', true) > 25);
 						if (craftManager.getPotentialCatnip(true, 0, aqueducts) > 45 && boolean) {
 							return upgradeBuilding('pasture', pastureMeta);
+						} else {
+							msgSummary('upgPasture');
 						}
 					}
 				}
 
 				var aqueductMeta = game.bld.getBuildingExt('aqueduct').meta;
-				if (aqueductMeta.stage === 0 && options.auto.build.items.hydroPlant.enabled && pastureMeta.stage === 1) {
+				if (aqueductMeta.stage === 0 ) {
 					if (aqueductMeta.stages[1].stageUnlocked) {
 						var energy = (winterProd && winterProd - 1 < game.resPool.energyCons);
-						if (craftManager.getPotentialCatnip(true, pastures, 0) > 90 && energy) {
+						let catnip = craftManager.getPotentialCatnip(true, pastures, 0) > 90;
+						if (catnip && energy && pastureMeta.stage === 1 && options.auto.build.items.hydroPlant.enabled) {
 							return upgradeBuilding('aqueduct', aqueductMeta);
+						} else {
+							msgSummary('upgAqueduct');
 						}
 					}
 				}
@@ -2433,6 +2448,8 @@ var run = function() {
 							if (game.resPool.energyProd >= game.resPool.energyCons + 300) {
 								return upgradeBuilding('library', libraryMeta);
 							}
+						} else {
+							msgSummary('upgLibrary');
 						}
 					}
 				}
@@ -2442,6 +2459,8 @@ var run = function() {
 					if (amphitheatreMeta.stages[1].stageUnlocked) {
 						if (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 200) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
+						} else {
+							msgSummary('upgAmphitheatre');
 						}
 					}
 				}
@@ -2494,8 +2513,8 @@ var run = function() {
 						}
 					}
 				};
-				scienceBuild('observatory', 300, 0.96);
-				scienceBuild('academy', Math.max(22 *(game.prestige.getParagonProductionRatio() + 1), 100), 0.98);
+				scienceBuild('observatory', 300, 0.98);
+				scienceBuild('academy', Math.max(22 *(game.prestige.getParagonProductionRatio() + 1), 100), 0.99);
 				scienceBuild('biolab', 200, 1);
 
 				let winterTick = craftManager.getPotentialCatnip(false);
@@ -2695,7 +2714,7 @@ var run = function() {
 						mint.enabled = false;
 					}
 				}
-				let optimize = ['library','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel', 'lumberMill','factory','biolab'];
+				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel', 'lumberMill','factory','biolab'];
 				for (var item in items) {
 					let a = items[item];
 					if (!a.enabled || !a.max) {continue;}
@@ -2981,10 +3000,13 @@ var run = function() {
 				// If we have enough to trigger the check, then attempt to trade
 				var prof = tradeManager.getProfitability(name);
 				prof = (name == 'leviathans' && game.time.getCFU("ressourceRetrieval").val && resMap['timeCrystal'].value < 500) ? true : prof;
-				prof = (name == 'zebras' && !resMap['spice'].value && game.calendar.festivalDays && game.prestige.getPerk("numeromancy").researched) ? true : prof;
 				if (name == 'griffins' || name == 'nagas') {
 					if (!resMap['ship'].value && race.embassyLevel < 10 && !vitruvianFeline) {prof = false;}
 					if (resMap['ship'].value && (resMap['ship'].value > 200 || vitruvianFeline)) {prof = false;}
+				}
+				if (name == 'zebras') {
+					prof = (!resMap['spice'].value && game.calendar.festivalDays && game.prestige.getPerk("numeromancy").researched) ? true : prof;
+					prof = prof && game.getEffect("standingRatio");
 				}
 				if (!goldTrigger) {
 					if (['sharks'].indexOf(name) > -1 && race.embassyLevel < 10) {continue;}
@@ -3299,11 +3321,12 @@ var run = function() {
 			}
 		},
 		setTrait: function (trait) {
+			let vLeader = game.village.leader;
 			if (trait) {
-				if (game.science.get('civil').researched && game.village.leader && !game.challenges.isActive("anarchy")) {
+				if (game.science.get('civil').researched && vLeader && !game.challenges.isActive("anarchy")) {
 					let cache = options.auto.cache;
+					let hasTrait = game.village.traits.some(obj => obj.name === trait);
 					if (!cache.trait[trait]) {
-						let hasTrait = game.village.traits.some(obj => obj.name === trait);
 						if (hasTrait) {
 							cache.trait[trait] = true;
 							let traitDesc = $I('village.bonus.desc.' + trait);
@@ -3313,16 +3336,17 @@ var run = function() {
 						}
 					}
 					if (!options.copyTrait) {
-						let traitName = game.village.leader.trait.name;
+						let traitName = vLeader.trait.name;
 						options.copyTrait = traitName;
 						cache.trait[traitName] = true;
 					}
-
-					game.village.leader.trait.name = trait;
+					if (hasTrait) {vLeader.trait.name = trait;}
 				}
-			} else if (options.copyTrait && game.village.leader) {
-				game.village.leader.trait.name = options.copyTrait;
-				options.copyTrait = undefined;
+			} else if (options.copyTrait && vLeader) {
+				if ($I('village.trait.' + options.copyTrait) == vLeader.trait.title) {
+					vLeader.trait.name = options.copyTrait;
+					options.copyTrait = undefined;
+				}
 			}
 		},
 		skipCtrlRes: function () {
@@ -3856,7 +3880,7 @@ var run = function() {
 					// falls through
 				case 'lumberMill':
 					if (id == 'lumberMill') {
-						if (game.bld.getBuildingExt(id).meta.val < 40) {
+						if (game.bld.getBuildingExt(id).meta.val < 35) {
 							if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.1 && resMap['iron'].maxValue > 1200) {
 								count = 0;
 							}
@@ -4371,7 +4395,7 @@ var run = function() {
 						let flu = game.workshop.get('fluidizedReactors');
 						if (flu.unlocked && !flu.researched && !cacheUpg.cache) {
 							let a = Math.ceil((200 - alloyVal) / ratio);
-							a = (a > 0 && resMap['titanium'].value > a * 10) || resMap['alloy'].value > 50;
+							a = (a > 0 && resMap['titanium'].value > a * 5) || resMap['alloy'].value > 50;
 							if (a && calVal > 9) {
 								options.auto.cache.resUpg['alloy'] = 200;
 								cacheUpg.cache = 'fluidizedReactors';
@@ -4515,9 +4539,11 @@ var run = function() {
 					if (crossbow) {
 						stock += 1500;
 					}
-					let ironwood = unResearched('ironwood') && resMap[name].value > 900 && resMap[name].maxValue > 3000;
+					let ironwood = unResearched('ironwood') && resMap[name].value > 900 && resMap[name].maxValue > 3000 && resMap['science'].maxValue > 3e4;
+					ironwood &= !game.ironWill;
 					if (ironwood) {
 						stock += 3000;
+						msgSummary('ironwood');
 					}
 				}
 			}
@@ -6388,8 +6414,6 @@ var run = function() {
 			});
 			
 			element.append(showButton, loadButton, list);
-		
-
 		}
 
 		if (option.subTrigger !== undefined && name == 'missions') {
@@ -6565,6 +6589,7 @@ var run = function() {
 			if (input.is(':checked') && option.limited == false) {
 				option.limited = true;
 				imessage('craft.limited', [iname]);
+				msgSummary('craftLimited');
 			} else if ((!input.is(':checked')) && option.limited == true) {
 				option.limited = false;
 				let require = (option.require) ? resMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
