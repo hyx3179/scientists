@@ -314,7 +314,7 @@ var run = function() {
 			'ui.craftLimit': 'AI平衡',
 			'ui.upgradesLimit': '优选',
 			'ui.trigger.shipOverride.set': '输入一个新的 强制贸易船 触发值，\n即贸易船数量低于触发条件时，相当于未勾选贸易船AI平衡。',
-			'ui.trigger.missions.set': '输入一个新的 探索星球 触发值,取值范围为 0 到 13 的整数。\n分别对应13颗星球。',
+			'ui.trigger.missions.set': '输入一个新的 探索星球 触发值,取值范围为 0 到 13 的整数。\n分别对应13颗星球。\n\n默认优先碧池探索，会暂时跳过沙丘',
 			'ui.trigger.crypto.set': '输入一个新的 {0} 触发值，\n支持3个参数：-符号隔开数字参数\n第一个数字：当遗物数量大于触发值才会进行黑币交易\n第二个数字：买入的最高价（超过这价格就不会买了）\n第三个数字：卖出最低的价格。（低于这价格就不会卖出）\n默认10000-881-1060',
 			'ui.engine': '启用小猫珂学家',
 			'ui.build': '营火',
@@ -413,7 +413,7 @@ var run = function() {
 			'filter.leader': '领袖相关',
 			'summary.promote': '提拔领袖 {0} 次',
 
-			'ui.trigger.useWorkers.alert': '比如天文事件没观测、烧水晶慢，珂学家后台大概10才运行1次\n勾选将会在后台满速运行，注意会导致使用内存增多。\n电脑不好、内存< 8G的建议禁用\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
+			'ui.trigger.useWorkers.alert': '比如天文事件没观测、烧水晶慢，珂学家后台大概10才运行1次\n勾选将会在后台满速运行，注意会导致使用内存增多。\n电脑不好、内存< 8G的建议禁用\n推荐过滤全部日志会减少性能的消耗。\n\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
 			'ui.timeCtrl': '时间操纵',
 			'option.accelerate': '光阴似箭',
 			'act.accelerate': '固有时制御，二倍速!',
@@ -2447,7 +2447,7 @@ var run = function() {
 				if (libraryMeta.stage === 0) {
 					if (libraryMeta.stages[1].stageUnlocked) {
 						let ratio = (1 + game.prestige.getParagonProductionRatio()) * (1 + game.bld.get('biolab').val * 0.01);
-						ratio = game.resPool.get('compedium').value > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 1e4 * ratio;
+						ratio = game.resPool.get('compedium').value > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 2e5 * ratio;
 						if (ratio && options.auto.build.items.dataCenter.enabled) {
 							if (game.resPool.energyProd >= game.resPool.energyCons + 300) {
 								return upgradeBuilding('library', libraryMeta);
@@ -4561,7 +4561,7 @@ var run = function() {
 					if (ironwood) {
 						stock += 3000;
 						msgSummary('ironwood');
-					}
+					} else {msgSummary('ironwood', true);}
 				}
 			}
 			let cacheAlloy = options.auto.cache.resUpg[name];
