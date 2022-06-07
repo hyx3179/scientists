@@ -938,7 +938,7 @@ var run = function() {
 					saves:              {enabled: false,                   misc: true, label: '导出配置文件'},
 					donate:             {enabled: false,                   misc: true, label: '显示捐赠原作者图标'},
 					useWorkers:         {enabled: false,                   misc: true, label: i18n('option.useWorkers')},
-					wiki:               {enabled: false,                   misc: true, label: '珂学家使用说明书（百科链接）'},
+					wiki:               {enabled: false,                   misc: true, label: '珂学家使用说明书（百科链接🐱）'},
 					autoScientists:     {enabled: false,                   misc: true, label: '首次自启珂学家'},
 				}
 			},
@@ -1488,7 +1488,7 @@ var run = function() {
 					var calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50 ;
 					let cycleYear = game.calendar.cycleYear;
 					var tradeVal = unobtainiumTick * calendar / (cycleFestival * cycleEffects);
-					if (tradeVal < 1) {
+					if (tradeVal < 1 && timeCrystalValue > 1000) {
 						if (cycleYear != optionVals.timeSkip.moonMsg) {
 							optionVals.timeSkip.moonMsg = cycleYear;
 							iactivity('summary.time.skip.moon', [1]);
@@ -1881,7 +1881,7 @@ var run = function() {
 					var nextLevelCatnip = game.religion._getTranscendTotalPrice(tt + 1) - game.religion._getTranscendTotalPrice(tt);
 					if (tt > 10) {
 						TranscendTimes = 1;
-					} else if (tt < 11 && moonBoolean && game.calendar.season != 2 && worship > 1e5 && apocripha && this.catnipForReligion(nextLevelCatnip) > 0) {
+					} else if (tt < 11 && moonBoolean && worship > 1e5 && apocripha && this.catnipForReligion(nextLevelCatnip) > 0) {
 						TranscendTimes = 4;
 					} else {
 						TranscendTimes = 0;
@@ -2536,6 +2536,7 @@ var run = function() {
 					msgSummary('academy');
 				}
 				//图书馆牧场
+				let pasture = items['pasture'];
 				if (!theology) {
 					let smelter = game.bld.getBuildingExt('smelter').meta;
 					items['smelter'].max = 1;
@@ -2544,9 +2545,9 @@ var run = function() {
 						msgSummary('smelter');
 					}
 					if (machinery) {
-						items['pasture'].enabled = false;
+						pasture.enabled = false;
 					}
-					items['pasture'].max = 20;
+					pasture.max = 20;
 					let hutVal = game.bld.getBuildingExt('hut').meta.val - 2;
 					items['library'].max = (hutVal > 0) ? Math.floor(hutVal * 11) : items['library'].max;
 				} else {
@@ -2564,8 +2565,10 @@ var run = function() {
 				//熔炉
 				if (!game.workshopTab.visible && !game.challenges.isActive('winterIsComing') && game.science.get('animal').researched) {
 					items['smelter'].max = 0;
-					items['pasture'].enabled = false;
-					msgSummary('pasture');
+					if (pasture.max == -1) {
+						items['pasture'].enabled = false;
+						msgSummary('pasture');
+					}
 				}
 				// 没铀不造反应堆
 				let reactor = items['reactor'];
@@ -5393,9 +5396,13 @@ var run = function() {
 
 	var initializeKittenStorage = function (see) {
 		$("#items-list-build, #items-list-craft, #items-list-trade, #items-list-options, #items-list-filter, #items-list-distribute").find("input[id^='toggle-']").each(function () {
-			kittenStorage.items[$(this).attr("id")] = $(this).prop("checked");
+			let dom = $(this);
+			if ($(this).attr("type") != 'radio') {
+				kittenStorage.items[dom.attr("id")] = dom.prop("checked");
+			}
 		});
-
+		kittenStorage.items['toggle-leaderJob-farmer'] = true;
+		kittenStorage.items['toggle-leaderTrait-manager'] = true;
 		saveToKittenStorage(see);
 	};
 
@@ -6994,14 +7001,14 @@ var run = function() {
 			}).data('option', option);
 			
 			ressetKS.on('click', function () {
-				if (confirm('确定要初始化珂学家配置吗，注意点击确认后会刷新页面')){
+				if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置(有可能会刷新页面)')){
 					engine.stop(false);
 					let cbc = sessionStorage.getItem('cbc');
+					delete localStorage['cbc.kitten-scientists'];
 					if (cbc) {
 						window.localStorage['cbc.kitten-scientists'] = cbc;
 						loadFromKittenStorage();
 					} else {
-						delete localStorage['cbc.kitten-scientists'];
 						game.save();
 						window.location.reload();
 					}
