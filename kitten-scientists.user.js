@@ -10548,7 +10548,7 @@ window.run = function() {
 		};
 
 		let right = $('#rightColumn');
-		let optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
+		let optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px', display: 'none'}});
 		let optionsListElement = $('<ul/>');
 		optionsListElement.append(getToggle('engine'));
 		if (options.auto.infinity.allow) { optionsListElement.append(getToggle('infinity')); }
