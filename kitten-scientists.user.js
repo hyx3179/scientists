@@ -7348,8 +7348,7 @@ window.run = function() {
 			let value = this.getValue(name);
 			let stock = this.getStock(name);
 			// 有上限资源可用数量最大为 MAX_VALUE
-			let maxValue = this.getResource(name).maxValue;
-			value = maxValue !== 0 && value == Infinity ? Number.MAX_VALUE : value;
+			value = this.getResource(name).maxValue !== 0 && value == Infinity ? Number.MAX_VALUE : value;
 
 			let trigger;
 			if (!typeTrigger && typeTrigger !== 0) {
