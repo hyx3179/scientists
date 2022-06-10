@@ -356,7 +356,7 @@ var run = function() {
 			'act.adore.last': '下次小猫赞美群星，会等到虔诚大于 {0} ',
 			'summary.adore': '通过赞美群星积累了 {0} 顿悟',
 			'summary.adore.catnip': '赞美群星后每秒猫薄荷产量过低：{0}，故取消赞美群星了(自己补下农民)',
-			'summary.adore.solar': '当太阳革命加成到达：{0}% 后才会赞美群星',
+			'summary.adore.solar': '聪明的小猫已经会算期望了，当太阳革命加成到达：{0}% 后才会赞美群星',
 			'summary.adore.last': '下次赞美群星会等到虔诚大于{0} ',
 			'filter.adore': '赞美群星',
 			'adore.trigger.set': '为赞美群星设定一个新触发值，取值范围为 0 到 1 的小数。（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 赞美群星再赞美太阳后，需太阳革命加成 ≥ 触发值 * 1000%\n2. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n3.探索月球已完成\n4. 次元超越等级低于 11，需赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n5. 次元超越等级低于 12，需当前虔诚＞上次赞美群星时候的虔诚',
@@ -424,12 +424,12 @@ var run = function() {
 			'option.time.skip': '时间跳转',
 			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
 			'ui.cycles': '周期',
-			'ui.maximum': '上限',
+			'ui.maximum': '单次数量',
 			'time.skip.cycle.enable': '启用在 {0} 跳转时间并允许跳过该周期',
 			'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
-			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n上限为每次燃烧水晶最大年数，根据时计炉数量，\n周期默认全勾就行，珂学家会自动判断是否停在红月\n故长挂推荐：触发条件500，上限1，周期全勾',
+			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n\n故长挂推荐：触发条件500，单次数量1，周期全勾',
 			'summary.time.skip': '跳过 {0} 年',
 			'filter.time.skip': '时间跳转',
 
@@ -1967,9 +1967,7 @@ var run = function() {
 					booleanForAdore = false;
 					let adoreSolar = activitySummary.other['adore.solar'];
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 1e2) / 100;
-					if (!adoreSolar || adoreSolar != expectSolarRevolutionRatio) {
-						activity(i18n('summary.adore.solar', [expectSolarRevolutionRatio]));
-					}
+					activity(i18n('summary.adore.solar', [expectSolarRevolutionRatio]));
 					activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
 				}
 				booleanForAdore &= ((adoreTri == 0.001) ? booleanForAdore : adoreTri * 10 < solarRevolutionAdterAdore);
@@ -1988,7 +1986,10 @@ var run = function() {
 			// 太阳革命加速恢复到期望值
 			let transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
 			let voidOrder = game.prestige.getPerk("voidOrder").researched;
-			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, 0.65 * transformTier) * ((voidOrder) ? 1 : 0.3), 80 * maxSolarRevolution);
+			let factor = (voidOrder) ? 1 : 0.3;
+			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5;
+			factor = (game.workshop.get('spaceManufacturing').researched) ? 4 : factor;
+			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, 0.65 * transformTier) * factor, 80 * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
 			if (solarRevolution && PraiseSubTrigger == 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio * 0.01) {
@@ -2046,6 +2047,10 @@ var run = function() {
 				if (game.religion.faith > 1e4) {copyBuilds['sunAltar'].enabled = false;}
 			}
 			if (!game.ironWill && resMap['manpower'].maxValue < 15e3) {copyBuilds['templars'].enabled = false;}
+			if (game.religion.getSolarRevolutionRatio() > 9.5 && game.workshop.get('spaceManufacturing').researched && activitySummary.other.adore) {
+				let noMax = ['scholasticism','goldenSpire','stainedGlass','basilica','templars'];
+				noMax.forEach(index => copyBuilds[index].max = -1);
+			}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 			//buildManager.manager.render();
@@ -2684,7 +2689,7 @@ var run = function() {
 						calciner.max = (calcinerMax === -1) ? a : Math.min(a, calcinerMax);
 					}
 				} else if (!spaceManufacturing || !game.space.meta[0].meta[0].on) {
-					calciner.max = (calcinerMax === -1) ? 50 : Math.min(50, calcinerMax);
+					calciner.max = (calcinerMax === -1) ? 47 * (1 + game.getEffect("productionRatio")) : Math.min(50, calcinerMax);
 				}
 
 				if (game.getResourcePerTick('oil', true) < 0.24 ) {
@@ -5112,11 +5117,10 @@ var run = function() {
 			let prof = true;
 			if (name == 'nagas') {
 				if (!resMap['ship'].value && race.embassyLevel < 10 && !game.ironWill) {prof = false;}
-				if (resMap['ship'].value && (resMap['ship'].value > 240 || game.getEffect("productionRatio"))) {prof = false;}
-				if (game.bld.getBuildingExt('reactor').meta.on > 5 || resMap['concrate'].value > 500) {prof = false;}
+				if (resMap['concrate'].value > 500 || (!resMap['concrate'].unlocked && !game.ironWill)) {prof = false;}
 			}
 			if (name == 'griffins') {
-				if (!resMap['ship'].value && race.embassyLevel < 10) {prof = false;}
+				if (!resMap['ship'].value && race.embassyLevel < 10 && game.prestige.getPerk('renaissance').researched) {prof = false;}
 				if (resMap['ship'].value && game.calendar.season != 2 && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
 			}
 			if (name == 'zebras') {
@@ -6835,7 +6839,7 @@ var run = function() {
 			maximunButton.on('click', function () {
 				var value;
 				engine.stop(false);
-				value = window.prompt(i18n('ui.max.set', ["燃烧时间水晶每次跳转"]), option.maximum);
+				value = window.prompt(i18n('ui.max.set', ["每次燃烧时间水晶"]), option.maximum);
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
