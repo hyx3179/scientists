@@ -477,7 +477,7 @@ let run = function() {
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
 			'summary.auto.oxidation': '小猫为了工坊升级氧化反应，把钢存起来了',
-			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好',
+			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好，真的是最后1个了',
 			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成双成对',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿',
 			'summary.auto.tradepost': '祷告太阳革命前，根据黄金会减少交易所的建造',
@@ -650,18 +650,18 @@ let run = function() {
 					marker:             {require: 'unobtainium', enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
 					unicornGraveyard:   {require: false,         enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
 					unicornNecropolis:  {require: false,         enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
-					blackPyramid:       {require: 'unobtainium', enabled: true, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
+					blackPyramid:       {require: 'unobtainium', enabled: true,  max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
 					// Order of the Sun is variant s.
 					solarchant:         {require: 'faith',       enabled: true, max:-1,  variant: 's', checkForReset: true, triggerForReset: -1},
-					scholasticism:      {require: 'faith',       enabled: true, max:2,  variant: 's', checkForReset: true, triggerForReset: -1},
+					scholasticism:      {require: 'faith',       enabled: true, max:3,   variant: 's', checkForReset: true, triggerForReset: -1},
 					goldenSpire:        {require: 'faith',       enabled: true, max:-1,  variant: 's', checkForReset: true, triggerForReset: -1},
 					sunAltar:           {require: 'faith',       enabled: true, max:-1,  variant: 's', checkForReset: true, triggerForReset: -1},
-					stainedGlass:       {require: 'faith',        enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
-					solarRevolution:    {require: 'faith',        enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
-					basilica:           {require: 'faith',       enabled: true, max:5,  variant: 's', checkForReset: true, triggerForReset: -1},
-					templars:           {require: 'faith',       enabled: true, max:5,  variant: 's', checkForReset: true, triggerForReset: -1},
-					apocripha:          {require: 'faith',       enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
-					transcendence:      {require: 'faith',        enabled: true, max:1,  variant: 's', checkForReset: true, triggerForReset: -1},
+					stainedGlass:       {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
+					solarRevolution:    {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
+					basilica:           {require: 'faith',       enabled: true, max:5,   variant: 's', checkForReset: true, triggerForReset: -1},
+					templars:           {require: 'faith',       enabled: true, max:5,   variant: 's', checkForReset: true, triggerForReset: -1},
+					apocripha:          {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
+					transcendence:      {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
 					// Cryptotheology is variant c.
 					blackObelisk:       {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackNexus:         {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
@@ -806,7 +806,7 @@ let run = function() {
 				items: {
 					// Variants denote whether these buildings fall within the Chronoforge or Void categories.
 					// Chronoforge has variant chrono.
-					temporalBattery:     {require: false,          enabled: false, max:0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+					temporalBattery:     {require: false,          enabled: false, max:0,  variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					blastFurnace:        {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					timeBoiler:          {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalAccelerator: {require: false,          enabled: false, max: 1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
@@ -885,30 +885,30 @@ let run = function() {
 				trigger: 0.98,
 				// Trades can be limited to only happen during specific seasons. This is because trades with certain races
 				// are more effective during specific seasons.
-				// The *allowcapped* property allows us to trade even if the sold resources are at their cap.
+				// The *allowCapped* property allows us to trade even if the sold resources are at their cap.
 				items: {
-					dragons:    {enabled: false,  require: 'titanium',    allowcapped: false,    limited: true,
+					dragons:    {enabled: false,  require: 'titanium',    allowCapped: false,    limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true},
 
-					zebras:     {enabled: true,   require: false,         allowcapped: false,    limited: true,
+					zebras:     {enabled: true,   require: false,         allowCapped: false,    limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true},
 
-					lizards:    {enabled: false,  require: 'minerals',    allowcapped: false,    limited: true,
+					lizards:    {enabled: false,  require: 'minerals',    allowCapped: false,    limited: true,
 						summer:  true,  autumn:  false, winter:  false,         spring:      false},
 
-					sharks:     {enabled: false,  require: 'iron',        allowcapped: false,    limited: true,
+					sharks:     {enabled: false,  require: 'iron',        allowCapped: false,    limited: true,
 						summer:  false, autumn:  false, winter:  true,          spring:      false},
 
-					griffins:   {enabled: true,   require: 'wood',        allowcapped: false,    limited: true,
+					griffins:   {enabled: true,   require: 'wood',        allowCapped: false,    limited: true,
 						summer:  false, autumn:  true,  winter:  false,         spring:      false},
 
-					nagas:      {enabled: true,   require: false,         allowcapped: false,    limited: true,
+					nagas:      {enabled: true,   require: false,         allowCapped: false,    limited: true,
 						summer:  false, autumn:  false, winter:  false,         spring:      true},
 
-					spiders:    {enabled: false,  require: false,         allowcapped: false,    limited: true,
+					spiders:    {enabled: false,  require: false,         allowCapped: false,    limited: true,
 						summer:  false, autumn:  true,  winter:  false,         spring:      false},
 
-					leviathans: {enabled: true,   require: 'unobtainium', allowcapped: true,     limited: true,
+					leviathans: {enabled: true,   require: 'unobtainium', allowCapped: true,     limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true}
 				}
 			},
@@ -1494,17 +1494,17 @@ let run = function() {
 				let prestige = game.prestige.getPerk("numerology").researched;
 				if (currentCycle === 5 && optionVals.timeSkip[currentCycle] && prestige && game["nummon"]){
 					// 概览 算好的当前周期收入
-					var unobtainiumTick = game.nummon['getTradeTC']();
-					var cycleFestival = game.calendar.cycleEffectsFestival({
+					let unobtainiumTick = game["nummon"]['getTradeTC']();
+					let cycleFestival = game.calendar.cycleEffectsFestival({
 						unobtainium: 1
 					})['unobtainium'];
-					var cycleEffects = game.calendar.cycleEffectsBasics({
+					let cycleEffects = game.calendar.cycleEffectsBasics({
 						unobtainiumPerTickSpace: 1
 					}, "moonOutpost")['unobtainiumPerTickSpace'];
 					// 平衡周期
-					var calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50 ;
+					let calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50 ;
 					let cycleYear = game.calendar.cycleYear;
-					var tradeVal = unobtainiumTick * calendar / (cycleFestival * cycleEffects);
+					let tradeVal = unobtainiumTick * calendar / (cycleFestival * cycleEffects);
 					if (tradeVal < 1 && timeCrystalValue > 1000) {
 						if (cycleYear !== optionVals.timeSkip.moonMsg) {
 							optionVals.timeSkip.moonMsg = cycleYear;
@@ -1515,7 +1515,7 @@ let run = function() {
 					}
 				}
 
-				var shatter = game.timeTab.cfPanel.children[0].children[0]; // check?
+				let shatter = game["timeTab"].cfPanel.children[0].children[0]; // check?
 				if (!shatter.model.enabled) {
 					return shatter.controller.updateEnabled(shatter.model);
 				}
@@ -1605,19 +1605,19 @@ let run = function() {
 			let leaderVals = distributeItem.leader;
 			let refreshRequired = 0;
 			if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy") && !options.copyTrait) {
-				var traitName = leaderVals.leaderTrait;
+				let traitName = leaderVals.leaderTrait;
 				let renaissance = game.prestige.getPerk('renaissance').researched;
 				let leaderJobName = leaderVals.leaderJob;
 				leaderJobName = (leaderJobName === 'farmer' && renaissance && traitName === 'manager' && game.village.maxKittens > 10 && game.village.jobs[5].unlocked) ? 'priest' : leaderJobName;
 				if (game.village.leader === null && game.village.sim.kittens.length) {
-					game.villageTab.censusPanel.census.makeLeader(game.village.sim.kittens[0]);
+					game["villageTab"].censusPanel.census.makeLeader(game.village.sim.kittens[0]);
 				}
-				var optionsTheocracy = false;
+				let optionsTheocracy = false;
 				if (options.auto.upgrade.items.policies.enabled) {
 					optionsTheocracy = (options.policies ===  undefined) ? false : options.policies.some(obj => obj === 'theocracy');
 				}
 				if (optionsTheocracy || game.science.getPolicy('theocracy').researched) {leaderJobName = "priest";}
-				var distributeJob = game.village.getJob(leaderJobName);
+				let distributeJob = game.village.getJob(leaderJobName);
 				if (game.village.leader == null || !(game.village.leader.job === leaderJobName && game.village.leader.trait.name === traitName)) {
 					let traitKittens = game.village.sim.kittens.filter(kitten => kitten.trait.name === traitName);
 					if (traitKittens.length !== 0) {
@@ -1629,7 +1629,7 @@ let run = function() {
 							game.village.unassignJob(correctLeaderKitten);
 							correctLeaderKitten.job = leaderJobName;
 							game.village.getJob(leaderJobName).value++;
-							game.villageTab.censusPanel.census.makeLeader(correctLeaderKitten);
+							game["villageTab"].censusPanel.census.makeLeader(correctLeaderKitten);
 							refreshRequired += 1;
 							iactivity('act.distributeLeader', [i18n('$village.trait.' + traitName)], 'ks-distribute');
 							storeForSummary('distribute', 1);
@@ -1641,7 +1641,7 @@ let run = function() {
 			let minerItem = options.auto.distribute.items.miner;
 			let agriculture = game.science.get("agriculture").researched;
 			let happiness = game.village.happiness;
-			let nomalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || (game.village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
+			let normalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || (game.village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
 			let freeKittens = game.village.getFreeKittens();
 			let miner = game.village.jobs[4];
 			if (!freeKittens) {
@@ -1655,7 +1655,7 @@ let run = function() {
 			let resKitten = game.resPool.get("kittens");
 			let catnipValue = (resCatnip.value - (1800 * happiness * resKitten.value) < 0 || resKitten.maxValue - resKitten.value === 1 || freeKittens > 1);
 			let religionCatnip = options.auto.distribute;
-			if (religionCatnip.religion || (nomalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue)) {
+			if (religionCatnip.religion || (normalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue)) {
 				religionCatnip.religion = false;
 				game.village.assignJob(game.village.getJob("farmer"), 1);
 				iactivity('act.distribute.catnip', [], 'ks-distribute');
@@ -1682,7 +1682,7 @@ let run = function() {
 				let val = game.village.jobs[i].value;
 				if (val >= maxGame) {continue;}
 
-				var maxKS = Math.max(0, jobItem.max);
+				let maxKS = Math.max(0, jobItem.max);
 				let limited = jobItem.limited;
 				if (name === 'hunter') {
 					let manpowerJobRatio = game.getEffect('manpowerJobRatio');
@@ -1714,15 +1714,15 @@ let run = function() {
 				refreshRequired += 2;
 				iactivity('act.distribute', [i18n('$village.job.' + jobName)], 'ks-distribute');
 				storeForSummary('distribute', 1);
-				game.villageTab.updateTab();
+				game["villageTab"].updateTab();
 				game.village.updateResourceProduction();
 				game.updateResources();
 			}
 			return refreshRequired;
 		},
 		autofeed: function () {
-			var levi = game.diplomacy.get("leviathans");
-			var nCorn = game.resPool.get("necrocorn");
+			const levi = game.diplomacy.get("leviathans");
+			const nCorn = game.resPool.get("necrocorn");
 			if (!(levi.unlocked && nCorn.value > 0)) {return;}
 			if (nCorn.value >= 1) {
 				if (levi.energy < game.diplomacy.getMarkerCap()) {
@@ -1739,17 +1739,17 @@ let run = function() {
 			}
 		},
 		crypto: function () {
-			var coinPrice = game.calendar.cryptoPrice;
-			var previousRelic = game.resPool.get('relic').value;
-			var previousCoin = game.resPool.get('blackcoin').value;
+			let coinPrice = game.calendar.cryptoPrice;
+			let previousRelic = game.resPool.get('relic').value;
+			let previousCoin = game.resPool.get('blackcoin').value;
 			if ((!game.science.get("blackchain").researched && !previousCoin > 0) || !game.diplomacy.get("leviathans").unlocked) {return;}
-			var crypto = options.auto.options.items.crypto;
-			var subTrigger = (crypto.subTrigger != null) ? options.auto.options.items.crypto.subTrigger.toString().split('-') : "10000-860-1060";
+			let crypto = options.auto.options.items.crypto;
+			let subTrigger = (crypto.subTrigger != null) ? options.auto.options.items.crypto.subTrigger.toString().split('-') : "10000-860-1060";
 			//var isNumber = /^\d+(\.\d+)?$/;
 
-			var relicTrigger = parseFloat(subTrigger[0]);
-			var minCoinPrice = parseFloat(subTrigger[1]);
-			var maxCoinPrice = parseFloat(subTrigger[2]);
+			let relicTrigger = parseFloat(subTrigger[0]);
+			let minCoinPrice = parseFloat(subTrigger[1]);
+			let maxCoinPrice = parseFloat(subTrigger[2]);
 
 			if (subTrigger.length !== 3 || !relicTrigger || !minCoinPrice || !maxCoinPrice) {
 				if (!relicTrigger) {
@@ -1765,36 +1765,36 @@ let run = function() {
 			if (coinPrice < minCoinPrice && previousRelic > relicTrigger) {
 				game.diplomacy.buyBcoin();
 
-				var currentCoin = game.resPool.get('blackcoin').value;
-				var exchangedCoin = game.getDisplayValueExt(currentCoin - previousCoin);
+				let currentCoin = game.resPool.get('blackcoin').value;
+				let exchangedCoin = game.getDisplayValueExt(currentCoin - previousCoin);
 				iactivity('blackcoin.buy', [exchangedCoin, game.getDisplayValueExt(previousRelic)]);
 				storeForSummary('blackcoin.buy', 1);
 			} else if (coinPrice > maxCoinPrice && game.resPool.get('blackcoin').value > 0) {
 				game.diplomacy.sellBcoin();
 
-				var currentRelic = game.resPool.get('relic').value;
-				var exchangedRelic = game.getDisplayValueExt(currentRelic - previousRelic);
+				let currentRelic = game.resPool.get('relic').value;
+				let exchangedRelic = game.getDisplayValueExt(currentRelic - previousRelic);
 
 				iactivity('blackcoin.sell', [exchangedRelic, game.getDisplayValueExt(previousCoin)]);
 				storeForSummary('blackcoin.sell', 1);
 			}
 		},
 		worship: function () {
-			var builds = options.auto.faith.items;
-			//var manager = this.religionManager;
-			var buildManager = this.buildManager;
-			var craftManager = this.craftManager;
-			var option = options.auto.faith.addition;
-			var refreshRequired = 0;
-			let noPastureCopy = false;
+			const builds = options.auto.faith.items;
+			const buildManager = this.buildManager;
+			const craftManager = this.craftManager;
+			const option = options.auto.faith.addition;
+			let refreshRequired = 0;
+			let noPastureCopy, i;
 
 			if (option.bestUnicornBuilding.enabled) {
-				var btn = this.getBestUnicornBuilding();
+				let btn = this.getBestUnicornBuilding();
 				let zigguratOn = game.bld.get('ziggurat').on;
 				let tears = resMap['tears'].value;
 				let unicorns = resMap['unicorns'].value;
 				if (btn) {
 					let oneTear = !tears && unicorns >= 2500 && zigguratOn;
+					let buttonPrices;
 					if (btn.opts && !oneTear) {
 						if (!btn.model.enabled) {
 							btn.controller.updateEnabled(btn.model);
@@ -1806,7 +1806,7 @@ let run = function() {
 						if (oneTear) {
 							tearNeed = 1;
 						} else {
-							var buttonPrices = dojo.clone(btn.prices);
+							buttonPrices = dojo.clone(btn.prices);
 							for (i = 0; i < buttonPrices.length; i++) {
 								if (buttonPrices[i].name === 'tears') {
 									buttonPrices[i].val = buttonPrices[i].val * Math.pow(1.15, btn.on);
@@ -1815,15 +1815,15 @@ let run = function() {
 							}
 							btnButton = religionManager.getBuildButton(btn.name, 'z');
 						}
-						var tearHave = tears - craftManager.getStock('tears');
+						let tearHave = tears - craftManager.getStock('tears');
 						if (tearNeed > tearHave) {
 							// if no ziggurat, getBestUnicornBuilding will return unicornPasture
-							var maxSacrifice = Math.floor((unicorns - craftManager.getStock('unicorns')) / 2500);
-							var needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
+							let maxSacrifice = Math.floor((unicorns - craftManager.getStock('unicorns')) / 2500);
+							let needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
 							if (needSacrifice <= maxSacrifice) {
-								let sacrificeBtn = game.religionTab.sacrificeBtn;
+								let sacrificeBtn = game["religionTab"].sacrificeBtn;
 								if (!sacrificeBtn || !sacrificeBtn.model) {
-									return game.religionTab.render();
+									return game["religionTab"].render();
 								}
 								let unicornTotal = sacrificeBtn.model.prices[0].val * needSacrifice;
 								if (unicorns > unicornTotal) {
@@ -1854,48 +1854,47 @@ let run = function() {
 				if (options.auto.unicorn.items.unicornPasture.enabled) {
 					this.build({unicornPasture: {require: false, enabled: true}});
 				}
-				let noPastureCopy = JSON.parse(JSON.stringify(options.auto.unicorn.items));
+				noPastureCopy = JSON.parse(JSON.stringify(options.auto.unicorn.items));
 				noPastureCopy = Object.assign(noPastureCopy, options.auto.faith.items);
 				noPastureCopy.unicornPasture = null;
 			}
 			// religion build
 			refreshRequired += this._worship(noPastureCopy || builds);
 
-			var resourceFaith = craftManager.getResource('faith');
-			var rate = resPercent('faith');
-
+			let resourceFaith = craftManager.getResource('faith');
+			let rate = resPercent('faith');
 			let transcendenceMeta = game.religion.getRU("transcendence");
-			var transcendenceReached = transcendenceMeta.on;
-			var tt = transcendenceReached ? game.religion.transcendenceTier : 0;
+			let transcendenceReached = transcendenceMeta.on;
+			let tt = transcendenceReached ? game.religion.transcendenceTier : 0;
 
 			// After Adore epiphany
-			var worship = game.religion.faith;
-			var epiphany = game.religion.faithRatio;
-			var maxSolarRevolution = 10 + game.getEffect("solarRevolutionLimit");
-			var adoreTrigger = option.adore.subTrigger;
-			var triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
-			var epiphanyInc = worship / 1000000 * (tt + 1) * (tt + 1) * 1.01;
-			var epiphanyAfterAdore = epiphany + epiphanyInc;
-			var worshipAfterAdore = 0.01 + resourceFaith.value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
-			var solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, maxSolarRevolution);
+			let worship = game.religion.faith;
+			let epiphany = game.religion.faithRatio;
+			let maxSolarRevolution = 10 + game.getEffect("solarRevolutionLimit");
+			let adoreTrigger = option.adore.subTrigger;
+			let triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
+			let epiphanyInc = worship / 1000000 * (tt + 1) * (tt + 1) * 1.01;
+			let epiphanyAfterAdore = epiphany + epiphanyInc;
+			let worshipAfterAdore = 0.01 + resourceFaith.value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
+			let solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, maxSolarRevolution);
 
 			// boolean
-			var forceStep = false;
-			var autoPraiseEnabled = option.autoPraise.enabled;
-			var autoAdoreEnabled = option.adore.enabled;
-			var timeSkipAdore = options.auto.timeCtrl.items.timeSkip.adore;
-			var doAdoreAfterTimeSkip = (timeSkipAdore && autoPraiseEnabled && autoAdoreEnabled);
-			var PraiseSubTrigger = option.autoPraise.subTrigger;
-			var apocripha = game.religion.getRU('apocripha').on;
+			let forceStep = false;
+			let autoPraiseEnabled = option.autoPraise.enabled;
+			let autoAdoreEnabled = option.adore.enabled;
+			let timeSkipAdore = options.auto.timeCtrl.items.timeSkip.adore;
+			let doAdoreAfterTimeSkip = (timeSkipAdore && autoPraiseEnabled && autoAdoreEnabled);
+			let PraiseSubTrigger = option.autoPraise.subTrigger;
+			let apocripha = game.religion.getRU('apocripha').on;
 
 			// enough faith, and then TAP
 			if (Math.min(0.999, Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
-				var moonBoolean = game.space.meta[2].meta[0].val;
+				let moonBoolean = game.space.meta[2].meta[0].val;
 
 				// Transcend
 				if (option.transcend.enabled && transcendenceReached) {
-					var TranscendTimes;
-					var nextLevelCatnip = game.religion._getTranscendTotalPrice(tt + 1) - game.religion._getTranscendTotalPrice(tt);
+					let TranscendTimes;
+					let nextLevelCatnip = game.religion._getTranscendTotalPrice(tt + 1) - game.religion._getTranscendTotalPrice(tt);
 					if (tt > 10) {
 						TranscendTimes = 1;
 					} else if (tt < 11 && moonBoolean && worship > 1e5 && apocripha && this.catnipForReligion(nextLevelCatnip) > 0) {
@@ -1909,18 +1908,18 @@ let run = function() {
 						tt = game.religion.transcendenceTier;
 
 						// Epiphany Recommend
-						var adoreIncreaceRatio = Math.pow((tt + 2) / (tt + 1), 2);
-						var needNextLevel = game.religion._getTranscendTotalPrice(tt + 1) - game.religion._getTranscendTotalPrice(tt);
-						var x = needNextLevel;
-						var blackObelisk = game.religion.getTU("blackObelisk").val;
-						var obeliskRatio = ((tt + 1) * 5 * blackObelisk + 1000) / (tt * 5 * blackObelisk + 1000);
-						var k = adoreIncreaceRatio * obeliskRatio;
-						var epiphanyRecommend = (1 - k + Math.sqrt(80 * (k * k - 1) * x + (k - 1) * (k - 1))) * k / (40 * (k + 1) * (k + 1) * (k - 1)) + x + x / (k * k - 1);
+						let adoreIncreaseRatio = Math.pow((tt + 2) / (tt + 1), 2);
+						let needNextLevel = game.religion._getTranscendTotalPrice(tt + 1) - game.religion._getTranscendTotalPrice(tt);
+						let x = needNextLevel;
+						let blackObelisk = game.religion.getTU("blackObelisk").val;
+						let obeliskRatio = ((tt + 1) * 5 * blackObelisk + 1000) / (tt * 5 * blackObelisk + 1000);
+						let k = adoreIncreaseRatio * obeliskRatio;
+						let epiphanyRecommend = (1 - k + Math.sqrt(80 * (k * k - 1) * x + (k - 1) * (k - 1))) * k / (40 * (k + 1) * (k + 1) * (k - 1)) + x + x / (k * k - 1);
 
 						// Transcend Condition
-						var booleanforEpiphany = (epiphany > epiphanyRecommend && worship > Math.min((tt - 3) * 1e6, 0) + 1e6);
-						var afterAdoreMoreEpiphany = (worship * 2.02 * tt + 3.03 * worship > 1e6 * needNextLevel && epiphany > needNextLevel);
-						if (booleanforEpiphany || afterAdoreMoreEpiphany) {
+						let booleanEpiphany = (epiphany > epiphanyRecommend && worship > Math.min((tt - 3) * 1e6, 0) + 1e6);
+						let afterAdoreMoreEpiphany = (worship * 2.02 * tt + 3.03 * worship > 1e6 * needNextLevel && epiphany > needNextLevel);
+						if (booleanEpiphany || afterAdoreMoreEpiphany) {
 							// code copy from kittens game's religion.js: game.religion.transcend()
 							// game.religion.transcend() need confirm by player
 							// game version: 1.4.8.1
@@ -1930,7 +1929,7 @@ let run = function() {
 							game.religion.faithRatio -= needNextLevel;
 							game.religion.tcratio += needNextLevel;
 							game.religion.transcendenceTier += 1;
-							var atheism = game.challenges.getChallenge("atheism");
+							let atheism = game.challenges.getChallenge("atheism");
 							atheism.calculateEffects(atheism, game);
 							blackObelisk = game.religion.getTU("blackObelisk");
 							blackObelisk.calculateEffects(blackObelisk, game);
@@ -1942,7 +1941,7 @@ let run = function() {
 							if (tt < 8) {
 								forceStep = true;
 							}
-							for (var i = 0; i < game.religion.transcendenceUpgrades.length; i++) {
+							for (let i = 0; i < game.religion.transcendenceUpgrades.length; i++) {
 								let upgrade = game.religion.transcendenceUpgrades[i];
 								if (!upgrade.unlocked && tt >= upgrade.tier && upgrade.name !== 'mausoleum') {
 									upgrade.unlocked = true;
@@ -1961,13 +1960,13 @@ let run = function() {
 				// 打开超越按钮
 				let transcendStorage = (game.resPool.isStorageLimited(transcendenceMeta.prices));
 				let transcendenceOption = options.auto.faith.items.transcendence;
-				if (!transcendenceOption.enabled && game.religion.fiath > transcendenceMeta.faith && autoAdoreEnabled && transcendStorage) {
+				if (!transcendenceOption.enabled && worship > transcendenceMeta.faith && autoAdoreEnabled && transcendStorage) {
 					transcendenceOption.enabled = true;
 					printoutput(['小猫贴心得无视超越按钮禁用','ks-default', options.activitycolor]);
 				}
 
 				// Adore
-				var tier = (!game.religion.faithRatio || tt);
+				let tier = (!game.religion.faithRatio || tt);
 				let booleanForAdore = worship >= 1e5 && moonBoolean;
 				booleanForAdore = (booleanForAdore && autoAdoreEnabled && apocripha && tier && this.catnipForReligion() > 0);
 				// 期望太阳革命加成赞美群星
@@ -2012,8 +2011,8 @@ let run = function() {
 			forceStep = (resourceFaith.value > (1000 - worship) / fR && worship < 1000 && !voidOrder);
 			forceStep = forceStep || (resourceFaith.value > (150 - worship) / fR && worship < 150 && !voidOrder);
 			// Praise
-			var fistReset = (rate < 0.98 || !voidOrder || solarRevolution);
-			var booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
+			let fistReset = (rate < 0.98 || !voidOrder || solarRevolution);
+			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep) {
 				if (option.autoPraise.subTrigger === 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 2e5) {
 					option.autoPraise.time = Date.now();
@@ -2021,8 +2020,8 @@ let run = function() {
 					activity(i18n('summary.praise.msg', [expectSolar]));
 					activitySummary.other['praise.msg'] = expectSolar;
 				}
-				var apocryphaBonus = game.religion.getApocryphaBonus();
-				var worshipInc = resourceFaith.value * (1 + apocryphaBonus);
+				let apocryphaBonus = game.religion.getApocryphaBonus();
+				let worshipInc = resourceFaith.value * (1 + apocryphaBonus);
 				storeForSummary('praise', worshipInc);
 				iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
 				game.religion.praise();
@@ -2033,9 +2032,8 @@ let run = function() {
 		},
 		_worship: function (builds) {
 			let copyBuilds = JSON.parse(JSON.stringify(builds || options.auto.faith.items));
-			var buildManager = this.religionManager;
-			//var craftManager = this.craftManager;
-			var bulkManager = this.bulkManager;
+			const buildManager = this.religionManager;
+			const bulkManager = this.bulkManager;
 			let gReligion = game.religion;
 
 			this.setTrait('wise');
@@ -2059,39 +2057,40 @@ let run = function() {
 				noMax.forEach(index => copyBuilds[index].max = -1);
 			}
 
-			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
+			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
 
-			var metaData = {};
-			for (var name in copyBuilds) {
-				var build = copyBuilds[name];
-				var metabuild = buildManager.getBuild(name, build.variant);
+			let metaData = {};
+			for (let name in copyBuilds) {
+				let build = copyBuilds[name];
+				let metabuild = buildManager.getBuild(name, build.variant);
 				metaData[name] = metabuild;
-				var button = buildManager.getBuildButton(name, build.variant);
+				let button = buildManager.getBuildButton(name, build.variant);
 
 				if (!button || !button.model.metadata) {
 					if (!game.bld.getBuildingExt("ziggurat").on && build.variant === "z") {continue;}
-					game.religionTab.render();
+					game["religionTab"].render();
 					continue;
 				}
 				if (!button) {
 					metaData[name].rHidden = true;
 				} else {
-					var model = buildManager.getBuildButton(name, build.variant).model;
-					var panel = (build.variant === 'c') ? game.science.get('cryptotheology').researched : true;
+					let model = buildManager.getBuildButton(name, build.variant).model;
+					let panel = (build.variant === 'c') ? game.science.get('cryptotheology').researched : true;
 					let visible = (build.variant === 's') ? gReligion.faith >= metabuild.faith : model.visible;
-					if (visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable === true && !model.metadata.on)) {
+					//console.log(model.metadata)
+					if (visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable && !model.metadata.on)) {
 						buildManager.getBuildButton(name, build.variant).controller.updateEnabled(model);
 					}
 					metaData[name].rHidden = (build.variant === 's') ? !visible : !(visible && model.enabled && panel);
 				}
 			}
 
-			var buildList = bulkManager.bulk(copyBuilds, metaData, trigger);
+			const buildList = bulkManager.bulk(copyBuilds, metaData, trigger);
 
-			var refreshRequired = 0;
+			let refreshRequired = 0;
 			let count;
-			for (var entry in buildList) {
+			for (let entry in buildList) {
 				if (buildList[entry].count > 0) {
 					// 无金字塔过滤神印
 					if (buildList[entry].id === 'marker') {
@@ -2115,7 +2114,7 @@ let run = function() {
 		},
 		chrono: function () {
 			let refreshRequired = 0;
-			const {render, visible} = game.timeTab;
+			const {render, visible} = game["timeTab"];
 			if (!visible) {return refreshRequired;}
 			const builds = options.auto.time.items;
 			const buildManager = this.timeManager;
@@ -2123,15 +2122,15 @@ let run = function() {
 			const bulkManager = this.bulkManager;
 			let trigger = options.auto.time.trigger;
 
-			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
+			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
 
 			const metaData = {};
 			for (let name in builds) {
-				var build = builds[name];
+				let build = builds[name];
 				metaData[name] = buildManager.getBuild(name, build.variant);
 
-				var button = buildManager.getBuildButton(name, build.variant);
+				let button = buildManager.getBuildButton(name, build.variant);
 				if (!button || !button.model.metadata) {
 					if (name === "cryochambers") {continue;}
 					render();
@@ -2141,8 +2140,8 @@ let run = function() {
 					button.controller.updateEnabled(button.model);
 					continue;
 				}
-				var model = button.model;
-				var panel = (build.variant === 'chrono') ? buildManager.manager.tab.cfPanel : buildManager.manager.tab.vsPanel;
+				let model = button.model;
+				let panel = (build.variant === 'chrono') ? buildManager.manager.tab.cfPanel : buildManager.manager.tab.vsPanel;
 				metaData[name].tHidden = (!model.visible || !model.enabled || !panel.visible);
 			}
 
@@ -2200,7 +2199,7 @@ let run = function() {
 			}
 
 			if (upgrades.upgrades.enabled && game["workshopTab"].visible) {
-				if (!game.workshopTab.domNode) {refreshRequired = 2;}
+				if (!game["workshopTab"].domNode) {refreshRequired = 2;}
 				const work = game.workshop.upgrades;
 				let noup = [];
 				if (upgrades.upgrades.limited) {
@@ -2261,7 +2260,7 @@ let run = function() {
 							noup = noup.concat(['fuelInjectors','combustionEngine','coalFurnace']);
 						}
 					}
-					if (!game.bld.getBuildingExt('factory').meta.val < 3) {
+					if (game.bld.getBuildingExt('factory').meta.val < 3) {
 						noup = noup.concat(['factoryLogistics']);
 					}
 					// 微型亚空间
@@ -2430,15 +2429,15 @@ let run = function() {
 					if (game.resPool.get("ship").value >= 1) {unlockRace('zebras');}
 					if (game.resPool.get("ship").value >= 100 && game.resPool.get("science").maxValue > 125000) {unlockRace('spiders');}
 					if (game.science.get("nuclearFission").researched) {unlockRace('dragons');}
-					if (!game["diplomacyTab"].racePanels.length || maxRaces === 'render') {game.diplomacyTab.render();}
+					if (!game["diplomacyTab"].racePanels.length || maxRaces === 'render') {game["diplomacyTab"].render();}
 				}
 			}
 
 			if (upgrades.buildings.enabled) {
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let energy = (winterProd && winterProd - 1 < game.resPool.energyCons);
-				var pastures = (game.bld.getBuildingExt('pasture').meta.stage === 0) ? game.bld.getBuildingExt('pasture').meta.val : 0;
-				var aqueducts = (game.bld.getBuildingExt('aqueduct').meta.stage === 0) ? game.bld.getBuildingExt('aqueduct').meta.val : 0;
+				let pastures = (game.bld.getBuildingExt('pasture').meta.stage === 0) ? game.bld.getBuildingExt('pasture').meta.val : 0;
+				let aqueducts = (game.bld.getBuildingExt('aqueduct').meta.stage === 0) ? game.bld.getBuildingExt('aqueduct').meta.val : 0;
 				let upgradeBuilding = (name, meta) => {
 					let prices = meta.stages[1].prices;
 					if (bulkManager.singleBuildPossible(meta, prices, 1 )) {
@@ -2454,11 +2453,11 @@ let run = function() {
 					}
 				};
 
-				var pastureMeta = game.bld.getBuildingExt('pasture').meta;
+				let pastureMeta = game.bld.getBuildingExt('pasture').meta;
 				if (pastureMeta.stage === 0) {
 					if (pastureMeta.stages[1].stageUnlocked) {
-						var broadcastTower = game.bld.getBuildingExt('amphitheatre').meta.stage === 1;
-						var boolean = (energy && broadcastTower && game.getResourcePerTick('titanium', true) > 25);
+						let broadcastTower = game.bld.getBuildingExt('amphitheatre').meta.stage === 1;
+						let boolean = (energy && broadcastTower && game.getResourcePerTick('titanium', true) > 25);
 						if (craftManager.getPotentialCatnip(true, 0, aqueducts) > 45 && boolean && options.auto.build.items.solarFarm.enabled) {
 							return upgradeBuilding('pasture', pastureMeta);
 						} else {
@@ -2467,7 +2466,7 @@ let run = function() {
 					}
 				}
 
-				var aqueductMeta = game.bld.getBuildingExt('aqueduct').meta;
+				let aqueductMeta = game.bld.getBuildingExt('aqueduct').meta;
 				if (aqueductMeta.stage === 0) {
 					if (aqueductMeta.stages[1].stageUnlocked) {
 						let catnip = craftManager.getPotentialCatnip(true, pastures, 0) > 90;
@@ -2479,8 +2478,8 @@ let run = function() {
 					}
 				}
 
-				var libraryMeta = game.bld.getBuildingExt('library').meta;
-				var scienceBldMax = libraryMeta.totalEffectsCached.scienceMax;
+				let libraryMeta = game.bld.getBuildingExt('library').meta;
+				let scienceBldMax = libraryMeta.totalEffectsCached.scienceMax;
 				if (libraryMeta.stage === 0) {
 					if (libraryMeta.stages[1].stageUnlocked) {
 						let ratio = (1 + game.prestige.getParagonProductionRatio()) * (1 + game.bld.get('biolab').val * 0.01);
@@ -2495,7 +2494,7 @@ let run = function() {
 					}
 				}
 
-				var amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
+				let amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
 				if (amphitheatreMeta.stage === 0) {
 					if (amphitheatreMeta.stages[1].stageUnlocked) {
 						if (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 200) {
@@ -2513,9 +2512,9 @@ let run = function() {
 			const buildManager = this.buildManager;
 			const craftManager = this.craftManager;
 			const bulkManager = this.bulkManager;
-			var trigger = options.auto.build.trigger;
-			var refreshRequired = 0;
-			var blackSky = game.challenges.isActive('blackSky');
+			let trigger = options.auto.build.trigger;
+			let refreshRequired = 0;
+			let blackSky = game.challenges.isActive('blackSky');
 			let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
 			let atheism = game.challenges.isActive('atheism');
 			let geodesy = game.workshop.get('geodesy').researched;
@@ -2527,7 +2526,7 @@ let run = function() {
 			let theology = game.science.get('theology').researched;
 			let build2 = {};
 			let copyItem;
-			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
+			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
 
 			// 每次第一次运行builds为空
@@ -2585,7 +2584,8 @@ let run = function() {
 					//if (machinery) {
 					//	items['pasture'].enabled = false;
 					//}
-					if (game.bld.getBuildingExt('pasture').meta.unlocked) {msgSummary('pasture');}
+					let pastureMeta = game.bld.getBuildingExt('pasture').meta;
+					if (pastureMeta.unlocked && pastureMeta.val < 19) {msgSummary('pasture');}
 					if (!winterTick) {items['pasture'].max = 20;}
 					let hutVal = game.bld.getBuildingExt('hut').meta.val - 2;
 					items['library'].max = (hutVal > 0) ? Math.floor(hutVal * 11) : items['library'].max;
@@ -2779,22 +2779,22 @@ let run = function() {
 				}
 			}
 
-			var metaData = {};
+			const metaData = {};
 			builds = copyItem || builds;
-			for (var name in builds) {
-				var build = builds[name];
+			for (let name in builds) {
+				let build = builds[name];
 				metaData[name] = buildManager.getBuild(build.name || name).meta;
 			}
 
-			var buildList = bulkManager.bulk(builds, metaData, trigger, 'bonfire');
+			const buildList = bulkManager.bulk(builds, metaData, trigger, 'bonfire');
 
-			var calcinerMeta = game.bld.getBuildingExt('calciner').meta;
+			let calcinerMeta = game.bld.getBuildingExt('calciner').meta;
 			if (blackSky && options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerMeta.val) {
 				buildManager.build("calciner", undefined, 1);
 			}
 
 			if (buildList) {
-				for (var i = 0; i < buildList.length; i++) {
+				for (let i = 0; i < buildList.length; i++) {
 					let count = buildList[i].count;
 					let id = buildList[i].id;
 					count = buildManager.count(id, count);
@@ -2812,11 +2812,11 @@ let run = function() {
 			return refreshRequired;
 		},
 		space: function () {
-			var builds = JSON.parse(JSON.stringify(options.auto.space.items));
-			var buildManager = this.spaceManager;
-			var craftManager = this.craftManager;
-			var bulkManager = this.bulkManager;
-			var trigger = options.auto.space.trigger;
+			const builds = JSON.parse(JSON.stringify(options.auto.space.items));
+			const buildManager = this.spaceManager;
+			const craftManager = this.craftManager;
+			const bulkManager = this.bulkManager;
+			let trigger = options.auto.space.trigger;
 			let blackSky = game.challenges.isActive("blackSky");
 			let solarRevolution = game.religion.getSolarRevolutionRatio();
 			if (blackSky) {
@@ -2841,20 +2841,20 @@ let run = function() {
 				}
 			}
 
-			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
+			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
 
-			var metaData = {};
-			for (var name in builds) {
+			const metaData = {};
+			for (let name in builds) {
 				//var build = builds[name];
 				metaData[name] = buildManager.getBuild(name);
 			}
 
-			var buildList = bulkManager.bulk(builds, metaData, trigger, 'space');
+			const buildList = bulkManager.bulk(builds, metaData, trigger, 'space');
 
-			var refreshRequired = 0;
+			let refreshRequired = 0;
 
-			for (var entry in buildList) {
+			for (let entry in buildList) {
 				let item = buildList[entry];
 				if (item.count > 0) {
 					if (item.id === 'containmentChamber') {
@@ -2875,19 +2875,20 @@ let run = function() {
 			return refreshRequired;
 		},
 		craft: function () {
-			var crafts = options.auto.craft.items;
-			var manager = this.craftManager;
-			var trigger = options.auto.craft.trigger;
-			var craftsItem = ['ship','beam','wood','slab','alloy','gear','concrate','steel','plate','scaffold','tanker','parchment','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
+			const crafts = options.auto.craft.items;
+			const manager = this.craftManager;
+			const craftsItem = ['ship','beam','wood','slab','alloy','gear','concrate','steel','plate','scaffold','tanker','parchment','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
+			let trigger = options.auto.craft.trigger;
 			let craftUnlock = !game.science.get("construction").researched || !game.bld.getBuildingExt('workshop').meta.on;
+			let amount, craft, require;
 
 			this.setTrait('engineer');
 
-			for (var name of craftsItem) {
-				var craft = crafts[name];
+			for (const name of craftsItem) {
+				craft = crafts[name];
 				//var current = !craft.max ? false : manager.getResource(name);
-				var require = !craft.require ? 'noRequire' : manager.getResource(craft.require);
-				var amount = 0;
+				require = !craft.require ? 'noRequire' : manager.getResource(craft.require);
+				amount = 0;
 				if (!craft.enabled) {continue;}
 				if (craftUnlock && name !== "wood") {continue;}
 				// Ensure that we have reached our cap
@@ -2918,14 +2919,16 @@ let run = function() {
 			if (!(catpowProf && cultureProf && (game.resPool.get('parchment').value >= 7500 || parchProf))) {return;}
 
 			if (game.science.getPolicy('carnivale').researched) {
-				var luxury = (!game.resPool.get("furs").value || !game.resPool.get("ivory").value || !game.resPool.get("spice").value);
+				let luxury = (!game.resPool.get("furs").value || !game.resPool.get("ivory").value || !game.resPool.get("spice").value);
 				if (luxury) {return;}
 			}
 
-			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
-			if (!game.villageTab.festivalBtn && !game.villageTab.festivalBtn.model) {return game.villageTab.render();}
+			let villageTab = game["villageTab"];
+			let festivalBtn = villageTab.festivalBtn;
+			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
+			if (!festivalBtn || !festivalBtn.model) {return villageTab.render();}
 
-			let price = game.villageTab.festivalBtn.model.prices;
+			let price = festivalBtn.model.prices;
 			if (game.resPool.hasRes(price)) {
 				game.resPool.payPrices(price);
 				game.village.holdFestival(1);
@@ -2947,7 +2950,7 @@ let run = function() {
 		},
 		hunt: function () {
 			clearTimeout(this.huntID);
-			var manpower = this.craftManager.getResource('manpower');
+			let manpower = this.craftManager.getResource('manpower');
 			if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 
 			// 无独角兽牧场 强制打猎
@@ -3001,10 +3004,10 @@ let run = function() {
 					iactivity('act.hunt', [huntCount, hunter], 'ks-hunt');
 				}
 
-				var trueOutput = {};
+				const trueOutput = {};
 
-				for (var out in aveOutput) {
-					var res = this.craftManager.getResource(out);
+				for (let out in aveOutput) {
+					const res = this.craftManager.getResource(out);
 					trueOutput[out] = (res.maxValue > 0) ? Math.min(aveOutput[out] * huntCount, Math.max(res.maxValue - res.value, 0)) : aveOutput[out] * huntCount;
 				}
 
@@ -3014,17 +3017,18 @@ let run = function() {
 			}
 		},
 		trade: function () {
-			var craftManager = this.craftManager;
-			var tradeManager = this.tradeManager;
-			var cacheManager = this.cacheManager;
-			var gold = craftManager.getResource('gold');
-			var trades = [];
+			let i;
+			const craftManager = this.craftManager;
+			const tradeManager = this.tradeManager;
+			const cacheManager = this.cacheManager;
+			let gold = craftManager.getResource('gold');
+			let trades = [];
 			let optionTrade = options.auto.trade;
-			var requireTrigger = optionTrade.trigger;
+			let requireTrigger = optionTrade.trigger;
 
 			if (!tradeManager.singleTradePossible(undefined)) {return;}
 
-			var season = game.calendar.getCurSeason().name;
+			let season = game.calendar.getCurSeason().name;
 			let goldTrigger = requireTrigger <= gold.value / gold.maxValue;
 
 			let isLimited;
@@ -3041,18 +3045,18 @@ let run = function() {
 				// Check if the race is in season, enabled, unlocked, and can actually afford it
 				race = tradeManager.getRace(name);
 				if (!race.unlocked) {continue;}
-				if (!game.diplomacyTab.racePanels[index]) {game.diplomacyTab.render();}
+				if (!game["diplomacyTab"].racePanels[index]) {game["diplomacyTab"].render();}
 				index++;
 				if (!trade.enabled) {continue;}
 				if (!trade[season]) {continue;}
-				var button = tradeManager.getTradeButton(race.name);
+				let button = tradeManager.getTradeButton(race.name);
 
 				if (!button || !tradeManager.singleTradePossible(name)) {continue;}
 
 				require = !trade.require ? false : craftManager.getResource(trade.require);
 
 				// If we have enough to trigger the check, then attempt to trade
-				var prof = tradeManager.getProfitability(name);
+				let prof = tradeManager.getProfitability(name);
 				prof = (name === 'leviathans' && game.time.getCFU("ressourceRetrieval").val && resMap['timeCrystal'].value < 500) ? true : prof;
 
 				if (!goldTrigger) {
@@ -3075,10 +3079,10 @@ let run = function() {
 				}
 			}
 
-			var catnipNow = game.resPool.get('catnip').value + 40 * game.getResourcePerTick("catnip", true);
+			let catnipNow = game.resPool.get('catnip').value + 40 * game.getResourcePerTick("catnip", true);
 			if (catnipNow < 0 && options.auto.trade.items['sharks'].enabled) {
-				var sharks = game.diplomacy.get('sharks');
-				var catnip = tradeManager.getAverageTrade(sharks).catnip;
+				let sharks = game.diplomacy.get('sharks');
+				let catnip = tradeManager.getAverageTrade(sharks).catnip;
 				tradeManager.trade(name, Math.ceil(catnipNow / -catnip));
 				iactivity('trade.catnip');
 			}
@@ -3087,19 +3091,19 @@ let run = function() {
 
 			isLimited = (isLimited && !goldTrigger) ? 0.3 : 1;
 			// Figure out how much we can currently trade
-			var maxTrades = Math.floor(tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited);
+			let maxTrades = Math.floor(tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited);
 
 			// Distribute max trades without starving any race
 
 			if (maxTrades < 1) {return;}
 
-			var maxByRace = [];
+			const maxByRace = [];
 			for (i = 0; i < trades.length; i++) {
 				name = trades[i];
 				trade = options.auto.trade.items[name];
 				require = !trade.require ? false : craftManager.getResource(trade.require);
-				var trigConditions = ((!require || requireTrigger <= require.value / require.maxValue) && requireTrigger <= gold.value / gold.maxValue);
-				var tradePos = Math.floor(tradeManager.getLowestTradeAmount(name, trade.limited, trigConditions) * isLimited);
+				let trigConditions = ((!require || requireTrigger <= require.value / require.maxValue) && requireTrigger <= gold.value / gold.maxValue);
+				let tradePos = Math.floor(tradeManager.getLowestTradeAmount(name, trade.limited, trigConditions) * isLimited);
 				if (tradePos < 1) {
 					trades.splice(i, 1);
 					i--;
@@ -3110,10 +3114,10 @@ let run = function() {
 
 			if (trades.length === 0) {return;}
 
-			var tradesDone = {};
+			const tradesDone = {};
 			while (trades.length > 0 && maxTrades >= 1) {
 				if (maxTrades < trades.length) {
-					var j = Math.floor(Math.random() * trades.length);
+					let j = Math.floor(Math.random() * trades.length);
 					if (!tradesDone[trades[j]]) {tradesDone[trades[j]] = 0;}
 					tradesDone[trades[j]] += 1;
 					maxTrades -= 1;
@@ -3121,9 +3125,9 @@ let run = function() {
 					maxByRace.splice(j, 1);
 					continue;
 				}
-				var minTrades = Math.floor(maxTrades / trades.length);
-				var minTradePos = 0;
-				for (var i = 0; i < trades.length; i++) {
+				let minTrades = Math.floor(maxTrades / trades.length);
+				let minTradePos = 0;
+				for (i = 0; i < trades.length; i++) {
 					if (maxByRace[i] < minTrades) {
 						minTrades = maxByRace[i];
 						minTradePos = i;
@@ -3137,20 +3141,20 @@ let run = function() {
 			}
 			if (tradesDone.length === 0) {return;}
 
-			var tradeNet = {};
+			const tradeNet = {};
 			for (name in tradesDone) {
 				race = tradeManager.getRace(name);
 				let amt = goldTrigger ? 1 : tradesDone[name] * 0.6;
 
-				var materials = tradeManager.getMaterials(name);
-				for (var mat in materials) {
+				let materials = tradeManager.getMaterials(name);
+				for (let mat in materials) {
 					if (!tradeNet[mat]) {tradeNet[mat] = 0;}
 					tradeNet[mat] -= materials[mat] * amt;
 				}
 
-				var meanOutput = tradeManager.getAverageTrade(race);
-				for (var out in meanOutput) {
-					var res = craftManager.getResource(out);
+				let meanOutput = tradeManager.getAverageTrade(race);
+				for (let out in meanOutput) {
+					let res = craftManager.getResource(out);
 					if (!tradeNet[out]) {tradeNet[out] = 0;}
 					tradeNet[out] += (res.maxValue > 0) ? Math.min(meanOutput[out] * amt, Math.max(res.maxValue - res.value, 0)) : meanOutput[out] * amt;
 				}
@@ -3158,7 +3162,7 @@ let run = function() {
 
 			cacheManager.pushToCache({'materials': tradeNet, 'timeStamp': game.timer.ticksTotal});
 
-			if (gold.value / gold.maxValue >= 0.98) {
+			if (resPercent('gold') >= 0.98) {
 				optionTrade.cache = true;
 			}
 
@@ -3176,13 +3180,13 @@ let run = function() {
 
 			AutoEmbassy:
 			if (optionVals.buildEmbassies.enabled && !!game.diplomacy.races[0].embassyPrices) {
-				var culture = craftManager.getResource('culture');
+				let culture = craftManager.getResource('culture');
 				let cultureTri = culture.value / culture.maxValue;
 				let subTrigger = optionVals.buildEmbassies.subTrigger;
 				let b = !subTrigger || cultureTri >= 0.98;
 				if (optionVals.buildEmbassies.subTrigger <= cultureTri && cultureTri < 2) {
 					let i, name, race, emBulk;
-					const racePanels = game.diplomacyTab.racePanels;
+					const racePanels = game["diplomacyTab"].racePanels;
 					let cultureVal = craftManager.getValueAvailable('culture', true);
 
 					const embassyBulk = {};
@@ -3248,7 +3252,7 @@ let run = function() {
 			// fix Cryochamber
 			if (optionVals.fixCry.enabled && game.time.getVSU("usedCryochambers").val > 0) {
 				let fixed = 0;
-				const btn = game.timeTab.vsPanel.children[0].children[0]; //check?
+				const btn = game["timeTab"].vsPanel.children[0].children[0]; //check?
 				// buyItem will check resources
 				while (btn.controller.buyItem(btn.model, {}, function() {})) {
 					fixed += 1;
@@ -3343,7 +3347,7 @@ let run = function() {
 					}
 				}
 				for (let index = 0; index < list.length; index++) {
-					var element = list[index];
+					let element = list[index];
 					if (element.metadata.val > 0) {
 						if (element.conditionOn) {
 							let off = element.metadata.val - element.metadata.on;
@@ -3425,25 +3429,25 @@ let run = function() {
 			iactivity('summary.resource', [name]);
 			storeForSummary('resource');
 		},
-		catnipForReligion: function (istranscend) {
-			var value = istranscend || 0;
-			var catnipTick = 1;
-			var transcendenceReached = game.religion.getRU("transcendence").on;
-			var tt = transcendenceReached ? game.religion.transcendenceTier : 0;
+		catnipForReligion: function (isTranscend) {
+			let value = isTranscend || 0;
+			let catnipTick = 1;
+			let transcendenceReached = game.religion.getRU("transcendence").on;
+			let tt = transcendenceReached ? game.religion.transcendenceTier : 0;
 			if (value) {
 				tt += 1;
 			}
-			var epiphany = game.religion.faithRatio;
-			var epiphanyInc = game.religion.faith / 1000000 * (tt + 1) * (tt + 1) * 1.01;
-			var epiphanyAfterAdore = epiphany + epiphanyInc - value;
-			var worshipAfterAdore = 0.01 + game.resPool.get('faith').value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
-			var solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, 10 + game.getEffect("solarRevolutionLimit"));
+			let epiphany = game.religion.faithRatio;
+			let epiphanyInc = game.religion.faith / 1000000 * (tt + 1) * (tt + 1) * 1.01;
+			let epiphanyAfterAdore = epiphany + epiphanyInc - value;
+			let worshipAfterAdore = 0.01 + game.resPool.get('faith').value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
+			let solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, 10 + game.getEffect("solarRevolutionLimit"));
 			if (tt < 10) {
 				catnipTick = game.village.getResConsumption()['catnip'] * (1 + game.getEffect("catnipDemandRatio"));
 				if (game.village.sim.kittens.length > 0 && game.village.happiness > 1) {
 					catnipTick += catnipTick * Math.max(game.village.happiness * (1 + game.getEffect("hapinnessConsumptionRatio")) - 1, 0) * (1 + game.getEffect("catnipDemandWorkerRatioGlobal"));
 				}
-				var solarRevolutionRatio = 1 + game.religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
+				let solarRevolutionRatio = 1 + game.religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
 				catnipTick = ((game.resPool.get('catnip').perTickCached - catnipTick) * (1 + solarRevolutionAdterAdore) / solarRevolutionRatio) + catnipTick + game.globalEffectsCached.catnipPerTickCon;
 			}
 			if (catnipTick < 0) {
@@ -3467,15 +3471,15 @@ let run = function() {
 		},
 		// ref: https://github.com/Bioniclegenius/NummonCalc/blob/112f716e2fde9956dfe520021b0400cba7b7113e/NummonCalc.js#L490
 		getBestUnicornBuilding: function () {
-			var unicornPasture = 'unicornPasture';
-			var pastureButton = buildManager.getBuildButton('unicornPasture');
+			const unicornPasture = 'unicornPasture';
+			const pastureButton = buildManager.getBuildButton('unicornPasture');
 			if (typeof pastureButton === 'undefined') {
 				return;
 			}
 			if (!pastureButton.model.metadata) {
-				return game.bldTab.render();
+				return game["bldTab"].render();
 			}
-			var validBuildings = ['unicornTomb', 'ivoryTower', 'ivoryCitadel', 'skyPalace', 'unicornUtopia','sunspire'];
+			const validBuildings = ['unicornTomb', 'ivoryTower', 'ivoryCitadel', 'skyPalace', 'unicornUtopia','sunspire'];
 			let unicornsPerSecond = game.getEffect('unicornsPerTickBase') * game.getTicksPerSecondUI();
 			let globalRatio = game.getEffect('unicornsGlobalRatio') + 1;
 			let religionRatio = game.getEffect('unicornsRatioReligion') + 1;
@@ -3487,30 +3491,30 @@ let run = function() {
 					cycle = game.calendar.cycles[game.calendar.cycle].festivalEffects['unicorns'];
 				}
 			}
-			var onZig = Math.max(game.bld.getBuildingExt('ziggurat').meta.on, 1);
-			var total = unicornsPerSecond * globalRatio * religionRatio * paragonRatio * faithBonus * cycle;
-			var baseUnicornsPerRift = 500 * (1 + game.getEffect('unicornsRatioReligion') * 0.1);
-			var riftChanceRatio = 1;
+			let onZig = Math.max(game.bld.getBuildingExt('ziggurat').meta.on, 1);
+			let total = unicornsPerSecond * globalRatio * religionRatio * paragonRatio * faithBonus * cycle;
+			let baseUnicornsPerRift = 500 * (1 + game.getEffect('unicornsRatioReligion') * 0.1);
+			let riftChanceRatio = 1;
 			if (game.prestige.getPerk('unicornmancy').researched) {
 				riftChanceRatio *= 1.1;
 			}
-			var baseRift = game.getEffect('riftChance') * riftChanceRatio / (10000 * 2) * baseUnicornsPerRift;
-			var bestAmoritization = Infinity;
-			var bestBuilding = '';
-			var pastureAmor = game.bld.getBuildingExt('unicornPasture').meta.effects['unicornsPerTickBase'] * game.getTicksPerSecondUI();
+			let baseRift = game.getEffect('riftChance') * riftChanceRatio / (10000 * 2) * baseUnicornsPerRift;
+			let bestAmoritization = Infinity;
+			let bestBuilding = '';
+			let pastureAmor = game.bld.getBuildingExt('unicornPasture').meta.effects['unicornsPerTickBase'] * game.getTicksPerSecondUI();
 			pastureAmor = pastureAmor * globalRatio * religionRatio * paragonRatio * faithBonus * cycle;
-			var pastureMeta = game.bld.meta[0].meta[31];
+			let pastureMeta = game.bld.meta[0].meta[31];
 			pastureAmor = pastureMeta.prices[0].val * Math.pow(pastureMeta.priceRatio + game.getEffect("priceRatio"), pastureMeta.on) / pastureAmor;
 			if (pastureAmor < bestAmoritization) {
 				bestAmoritization = pastureAmor;
 				bestBuilding = pastureButton;
 			}
 			for (let i = 0; i < 6; i ++) {
-				var btn = game.religion.meta[0].meta[i];
+				let btn = game.religion.meta[0].meta[i];
 				if (validBuildings.indexOf(btn.name) !== -1) {
 					if (i === 0 || game.religion.meta[0].meta[i - 1].on) {
-						var unicornPrice = 0;
-						var tearsPrices = [5, 25, 50, 500, 5e3, 25e3];
+						let unicornPrice = 0;
+						let tearsPrices = [5, 25, 50, 500, 5e3, 25e3];
 						unicornPrice += tearsPrices[i] * Math.pow(1.15 , btn.on) * 2500 / onZig;
 						//for (var j = 0; j < btn.prices.length; j++) {
 						//    //if (j.name == 'unicorns') {
@@ -3522,10 +3526,9 @@ let run = function() {
 						//    }
 						//}
 						//var bld = game.religion.getZU(btn.name);
-						var relBonus = game.getEffect('unicornsRatioReligion') + 1;
-						var riftChance = game.getEffect('riftChance');
-
-						var ratioEffect = [0.05, 0.1, 0.25, 0.5, 2.5, 5];
+						let relBonus = game.getEffect('unicornsRatioReligion') + 1;
+						let riftChance = game.getEffect('riftChance');
+						let ratioEffect = [0.05, 0.1, 0.25, 0.5, 2.5, 5];
 						relBonus += ratioEffect[i];
 
 						if (btn.effects.riftChance) {
@@ -3539,10 +3542,10 @@ let run = function() {
 								riftChance += bld.effects[j];
 							}
 						}*/
-						var unicornsPerRift = 500 * ((relBonus - 1) * 0.1 + 1);
-						var riftBonus = riftChance * riftChanceRatio / (10000 * 2) * unicornsPerRift;
+						let unicornsPerRift = 500 * ((relBonus - 1) * 0.1 + 1);
+						let riftBonus = riftChance * riftChanceRatio / (10000 * 2) * unicornsPerRift;
 						riftBonus -= baseRift;
-						var amor = unicornsPerSecond * globalRatio * relBonus * paragonRatio * faithBonus * cycle;
+						let amor = unicornsPerSecond * globalRatio * relBonus * paragonRatio * faithBonus * cycle;
 						amor -= total;
 						amor = amor + riftBonus;
 						amor = unicornPrice / amor;
@@ -3551,7 +3554,7 @@ let run = function() {
 								bestAmoritization = amor;
 								bestBuilding = btn;
 							} else {
-								return game.religionTab.render();
+								return game["religionTab"].render();
 							}
 						}
 					}
@@ -3564,7 +3567,7 @@ let run = function() {
 	// Tab Manager
 	// ===========
 
-	var TabManager = function (name) {
+	let TabManager = function (name) {
 		this.setTab(name);
 	};
 
@@ -3577,7 +3580,7 @@ let run = function() {
 			return this;
 		},
 		setTab: function (name) {
-			for (var tab in game.tabs) {
+			for (const tab in game.tabs) {
 				if (game.tabs[tab].tabId === name) {
 					this.tab = game.tabs[tab];
 					break;
@@ -3591,7 +3594,7 @@ let run = function() {
 	// Religion manager
 	// ================
 
-	var ReligionManager = function () {
+	let ReligionManager = function () {
 		this.manager = new TabManager('Religion');
 		//this.crafts = new CraftManager();
 		this.bulkManager = new BulkManager();
@@ -3605,7 +3608,7 @@ let run = function() {
 			let build = this.getBuild(name, variant);
 			let button = this.getBuildButton(name, variant);
 
-			if (!button || !button.model.metadata) {return game.religionTab.render();}
+			if (!button || !button.model.metadata) {return game["religionTab"].render();}
 
 			if (!button.model.enabled) {
 				button.model.prices = button.controller.getPrices(button.model);
@@ -3656,7 +3659,7 @@ let run = function() {
 			}
 		},
 		getBuildButton: function (name, variant) {
-			let buttons;
+			let buttons, i, haystack;
 			switch (variant) {
 				case 'z':
 					buttons = this.manager.tab.zgUpgradeButtons;
@@ -3667,10 +3670,10 @@ let run = function() {
 				case 'c':
 					buttons = this.manager.tab.children[0].children[0].children;
 			}
-			var build = this.getBuild(name, variant);
-			for (var i = 0; i < buttons.length; i++) {
+			let build = this.getBuild(name, variant);
+			for (i = 0; i < buttons.length; i++) {
 				if (!buttons[i]) {continue;}
-				var haystack = buttons[i].model.name;
+				haystack = buttons[i].model.name;
 				if (haystack.indexOf(build.label) !== -1) {
 					return buttons[i];
 				}
@@ -3681,7 +3684,7 @@ let run = function() {
 	// Time manager
 	// ============
 
-	var TimeManager = function () {
+	let TimeManager = function () {
 		this.manager = new TabManager('Time');
 		this.crafts = new CraftManager();
 		this.bulkManager = new BulkManager();
@@ -3692,14 +3695,14 @@ let run = function() {
 		crafts: undefined,
 		bulkManager: undefined,
 		build: function (name, variant, amount) {
-			var build = this.getBuild(name, variant);
-			var button = this.getBuildButton(name, variant);
+			let build = this.getBuild(name, variant);
+			let button = this.getBuildButton(name, variant);
 
-			if (!button || !button.model.metadata) {return game.timeTab.render();}
+			if (!button || !button.model.metadata) {return game["timeTab"].render();}
 			if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
 
-			var amountTemp = amount;
-			var label = build.label;
+			let amountTemp = amount;
+			let label = build.label;
 			amount = this.bulkManager.construct(button.model, button, amount);
 			if (amount !== amountTemp) {warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);}
 			storeForSummary(label, amount, 'build');
@@ -3737,10 +3740,9 @@ let run = function() {
 	// Upgrade manager
 	// ============
 
-	var UpgradeManager = function () {
+	let UpgradeManager = function () {
 		this.workManager = new TabManager('Workshop');
 		this.sciManager = new TabManager('Science');
-		this.spaManager = new TabManager('Space');
 		this.crafts = new CraftManager();
 	};
 
@@ -3749,13 +3751,13 @@ let run = function() {
 		crafts: undefined,
 		build: function (upgrade, variant) {
 			let i;
-			var button = this.getBuildButton(upgrade, variant);
+			const button = this.getBuildButton(upgrade, variant);
 
 			if (!button || !button.model.metadata) {
 				if (variant === 'workshop') {
-					game.workshopTab.render();
+					game[variant].render();
 				} else {
-					game.libraryTab.render();
+					game["libraryTab"].render();
 				}
 				return;
 			}
@@ -3767,7 +3769,7 @@ let run = function() {
 				}
 			}
 			if (game.village.leader && button.model.metadata.requiredLeaderJob && game.village.leader.job !== button.model.metadata.requiredLeaderJob){
-				var jobTitle = game.village.getJob(button.model.metadata.requiredLeaderJob).title;
+				let jobTitle = game.village.getJob(button.model.metadata.requiredLeaderJob).title;
 				game.msg($I("msg.policy.wrongLeaderJobForResearch", [button.model.metadata.label, jobTitle]), "important");
 				return;
 			}else if(button.model.metadata.name === "transkittenism" && game.bld.getBuildingExt("aiCore").meta.effects["aiLevel"] >= 15){
@@ -3796,7 +3798,7 @@ let run = function() {
 			}
 			if (meta.blocks){
 				for (i in meta.blocks){
-					var policy = game.science.getPolicy(meta.blocks[i]);
+					let policy = game.science.getPolicy(meta.blocks[i]);
 					policy.blocked = true;
 				}
 			}
@@ -3809,7 +3811,7 @@ let run = function() {
 
 			game.stats.getStat("totalClicks").val += 1;
 
-			var label = upgrade.label;
+			let label = upgrade.label;
 			let scientist = options.auto.cache.trait['scientist'];
 			let leader = (scientist) ? '科学家小猫' : '小猫';
 			scientist = (scientist) ? 1 : 0;
@@ -3865,7 +3867,7 @@ let run = function() {
 	// Building manager
 	// ================
 
-	var BuildManager = function () {
+	let BuildManager = function () {
 		this.manager = new TabManager('Bonfire');
 		this.crafts = new CraftManager();
 		this.bulkManager = new BulkManager();
@@ -3876,15 +3878,15 @@ let run = function() {
 		crafts: undefined,
 		bulkManager: undefined,
 		build: function (name, stage, amount) {
-			var build = this.getBuild(name);
-			var button = this.getBuildButton(name, stage);
+			let build = this.getBuild(name);
+			let button = this.getBuildButton(name, stage);
 
 			if (!build.meta.unlocked) {return;}
-			if (!button || !button.model.metadata) {return game.bldTab.render();}
+			if (!button || !button.model.metadata) {return game["bldTab"].render();}
 			if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
 
 			//var amountTemp = amount;
-			var label = build.meta.label ? build.meta.label : build.meta.stages[stage].label;
+			let label = build.meta.label ? build.meta.label : build.meta.stages[stage].label;
 			amount = this.bulkManager.construct(button.model, button, amount);
 			//if (amount !== amountTemp) {/*warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);*/}
 			if (amount === 0) {return;}
@@ -4039,30 +4041,30 @@ let run = function() {
 			return game.bld.getBuildingExt(name);
 		},
 		getBuildButton: function (name, stage) {
-			var buttons = this.manager.tab.children;
-			var build = this.getBuild(name);
-			var label = typeof stage !== 'undefined' ? build.meta.stages[stage].label : build.meta.label;
+			let buttons = this.manager.tab.children;
+			let build = this.getBuild(name);
+			let label = typeof stage !== 'undefined' ? build.meta.stages[stage].label : build.meta.label;
 
-			for (var i in buttons) {
-				var haystack = buttons[i].model.name;
+			for (const i in buttons) {
+				let haystack = buttons[i].model.name;
 				if (haystack.indexOf(label) !== -1){
 					return buttons[i];
 				}
 			}
 		},
 		getSumPrices: function (build, price) {
-			var currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
-			var buildRatio = currentRatio + game.getEffect("priceRatio");
+			let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
+			let buildRatio = currentRatio + game.getEffect("priceRatio");
 			return (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
 		},
 		sellBuild: function (name) {
-			var build = this.getBuild(name).meta;
-			var prices = build.stages[build.stage].prices;
-			for(var i = 0; i < prices.length; i++){
-				var price = prices[i];
-				var res = game.resPool.get(price.name);
+			let build = this.getBuild(name).meta;
+			let prices = build.stages[build.stage].prices;
+			for(let i = 0; i < prices.length; i++){
+				let price = prices[i];
+				let res = game.resPool.get(price.name);
 				if (res.isRefundable() && !price.isTemporary && build.val) {
-					var sumPrices = this.getSumPrices(build, price);
+					let sumPrices = this.getSumPrices(build, price);
 					game.resPool.addResEvent(price.name, sumPrices * 0.5);
 				}
 			}
@@ -4074,7 +4076,7 @@ let run = function() {
 	// Space manager
 	// ================
 
-	var SpaceManager = function () {
+	let SpaceManager = function () {
 		this.manager = new TabManager('Space');
 		this.crafts = new CraftManager();
 		this.bulkManager = new BulkManager();
@@ -4085,15 +4087,15 @@ let run = function() {
 		crafts: undefined,
 		bulkManager: undefined,
 		build: function (name, amount) {
-			var build = this.getBuild(name);
-			var button = this.getBuildButton(name);
+			let build = this.getBuild(name);
+			let button = this.getBuildButton(name);
 
 			if (!build.unlocked || !options.auto.space.items[name].enabled) {return;}
-			if (!button || !button.model.metadata) {return game.spaceTab.render();}
+			if (!button || !button.model.metadata) {return game["spaceTab"].render();}
 			if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
 
-			var amountTemp = amount;
-			var label = build.label;
+			let amountTemp = amount;
+			let label = build.label;
 			amount = this.bulkManager.construct(button.model, button, amount);
 			if (amount === 0) {
 				return;
@@ -4112,10 +4114,10 @@ let run = function() {
 			return game.space.getBuilding(name);
 		},
 		getBuildButton: function (name) {
-			var panels = this.manager.tab.planetPanels;
+			const panels = this.manager.tab.planetPanels;
 
-			for (var panel in panels) {
-				for (var child in panels[panel].children) {
+			for (const panel in panels) {
+				for (let child in panels[panel].children) {
 					if (panels[panel].children[child].id === name) {return panels[panel].children[child];}
 				}
 			}
@@ -4125,7 +4127,7 @@ let run = function() {
 	// Crafting Manager
 	// ================
 
-	var CraftManager = function () {
+	let CraftManager = function () {
 		this.cacheManager = new CacheManager();
 	};
 
@@ -4136,16 +4138,16 @@ let run = function() {
 			if (!name || 1 > amount) {return;}
 			if (!this.canCraft(name, amount)) {return;}
 
-			var craft = this.getCraft(name);
-			var ratio = game.getResCraftRatio(craft.name) + 1;
+			let craft = this.getCraft(name);
+			let ratio = game.getResCraftRatio(craft.name) + 1;
 			let trait = options.auto.cache.trait['engineer'] && game.village.leader;
 			let leader = (trait) ? '工匠小猫制作了 ' : '小猫制作了 ';
 
 			//game.workshop.craft(craft.name, amount, true, false);
 			amount = Math.ceil(amount);
-			var craftAmt = amount * ratio;
+			let craftAmt = amount * ratio;
 			let prices = dojo.clone(game.workshop.getCraftPrice(craft));
-			for (var i = prices.length - 1; i >= 0; i--) {
+			for (let i = prices.length - 1; i >= 0; i--) {
 				prices[i].val *= amount;
 			}
 
@@ -4174,7 +4176,7 @@ let run = function() {
 				return;
 			}
 
-			var iname = game.resPool.get(name).title;
+			let iname = game.resPool.get(name).title;
 
 			// determine actual amount after crafting upgrades
 			// amount = (amount * (1 + ratio)).toFixed(2);
@@ -4185,15 +4187,15 @@ let run = function() {
 			iactivity('act.craft', [leader + game.getDisplayValueExt(amount), iname], 'ks-craft');
 		},
 		canCraft: function (name, amount) {
-			var craft = this.getCraft(name);
-			var result = false;
+			let craft = this.getCraft(name);
+			let result = false;
 
 			if (craft.unlocked) {
 				result = true;
 
-				var prices = game.workshop.getCraftPrice(craft);
-				for (var i in prices) {
-					var price = prices[i];
+				let prices = game.workshop.getCraftPrice(craft);
+				for (let i in prices) {
+					let price = prices[i];
 					let value = resMap[price.name].value;
 
 					if (value < price.val * amount) {
@@ -4207,30 +4209,29 @@ let run = function() {
 		getCraft: function (name) {
 			return game.workshop.getCraft(name);
 		},
-		singleCraftPossible: function (name) {
-			var materials = this.getMaterials(name);
-			for (var mat in materials) {
-				if (this.getValueAvailable(mat, true) < materials[mat]) {return false;}
-			}
-			return true;
-		},
+		// singleCraftPossible: function (name) {
+		// 	const materials = this.getMaterials(name);
+		// 	for (const mat in materials) {
+		// 		if (this.getValueAvailable(mat, true) < materials[mat]) {return false;}
+		// 	}
+		// 	return true;
+		// },
 		getLowestCraftAmount: function (name, limited, limRat, aboveTrigger) {
 			//var amount = Number.MAX_VALUE;
-			var autoMax = Number.MAX_VALUE;
-			var materials = this.getMaterials(name);
+			let autoMax = Number.MAX_VALUE;
+			let materials = this.getMaterials(name);
 			// Safeguard if materials for craft cannot be determined.
 			if (!materials) {return 0;}
 
 			let resValue = this.getValueAvailable(name, true);
-			var i;
+			let i, force, delta;
 
 			let temple = game.bld.get('temple');
 			let priceRatio = Math.pow(temple.priceRatio + game.getEffect("priceRatio"), temple.val);
 
-			var craft = this.getCraft(name);
-			var ratio = game.getResCraftRatio(craft.name) + 1;
-			var trigger = options.auto.craft.trigger;
-			let force = false;
+			let craft = this.getCraft(name);
+			let ratio = game.getResCraftRatio(craft.name) + 1;
+			let trigger = options.auto.craft.trigger;
 			let shipValue = resMap['ship'].value;
 			if (name === 'ship') {
 				force = options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
@@ -4243,7 +4244,7 @@ let run = function() {
 			}
 
 			// 默认数量设为可达无限的最小值
-			var amount = Number.MAX_VALUE / ratio + Number.MAX_VALUE / Math.pow(2, 53) / ratio;
+			let amount = Number.MAX_VALUE / ratio + Number.MAX_VALUE / Math.pow(2, 53) / ratio;
 			// 跳过资源达到无限的情况
 			if (resMap[name].value === Infinity) { return 0; }
 
@@ -4264,7 +4265,7 @@ let run = function() {
 				let coalTri = this.getResource('coal').maxValue * trigger;
 				if (coalTick > 0 && resMap['iron'].value !== resMap['iron'].maxValue && resValue > 23) {
 					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > 0.8) {
-						var ironInTime = ((coalTri - this.getValue('coal')) / coalTick) * Math.max(game.getResourcePerTick('iron', true), 0);
+						let ironInTime = ((coalTri - this.getValue('coal')) / coalTick) * Math.max(game.getResourcePerTick('iron', true), 0);
 						autoMax = (this.getValueAvailable('iron') - Math.max(coalTri - ironInTime,0)) / 125;
 					}
 				}
@@ -4346,8 +4347,8 @@ let run = function() {
 					let meta = scienceMeta.meta[i];
 					if (!meta.researched) {
 						let metaName = meta.name;
-						let fitlerName = ['quantumCryptography', 'blackchain', 'ecology', 'ai'];
-						if (fitlerName.indexOf(metaName) > -1) {
+						let filterName = ['quantumCryptography', 'blackchain', 'ecology', 'ai'];
+						if (filterName.indexOf(metaName) > -1) {
 							continue;
 						}
 						if (meta.prices[1].name === name) {
@@ -4376,10 +4377,10 @@ let run = function() {
 			}
 
 			for (i in materials) {
-				var delta = 0;
+				delta = 0;
 				let material = materials[i];
-				let doall = (!limited || force || (resMap[i].maxValue > 0 && aboveTrigger));
-				if (doall) {
+				let craftAll = (!limited || force || (resMap[i].maxValue > 0 && aboveTrigger));
+				if (craftAll) {
 					// If there is a storage limit, we can just use everything returned by getValueAvailable, since the regulation happens there
 					delta = this.getValueAvailable(i, force) / material;
 				} else {
@@ -4395,7 +4396,7 @@ let run = function() {
 
 			if (name === 'steel' && limited && options.auto.craft.items['plate'].enabled) {
 				let calciner = game.bld.getBuildingExt('calciner').meta;
-				var plateRatio = game.getResCraftRatio("plate");
+				let plateRatio = game.getResCraftRatio("plate");
 				let steelValAva = this.getValueAvailable('steel');
 				if (resValue > 500 && this.getValueAvailable('plate') / steelValAva < ((plateRatio + 1) / 125) / (ratio / 100)) {
 					amount = 0;
@@ -4524,16 +4525,16 @@ let run = function() {
 			return amount;
 		},
 		getMaterials: function (name) {
-			var materials = {};
-			var craft = this.getCraft(name);
+			let materials = {};
+			let craft = this.getCraft(name);
 
 			// Safeguard against craft items that aren't actually available yet.
 			if (!craft) {return;}
 
-			var prices = game.workshop.getCraftPrice(craft);
+			let prices = game.workshop.getCraftPrice(craft);
 
-			for (var i in prices) {
-				var price = prices[i];
+			for (const i in prices) {
+				let price = prices[i];
 
 				materials[price.name] = price.val;
 			}
@@ -4541,34 +4542,34 @@ let run = function() {
 			return materials;
 		},
 		getTickVal: function (res, preTrade) {
-			var prod = game.getResourcePerTick(res.name, true);
+			let prod = game.getResourcePerTick(res.name, true);
 			if (res.name === 'timeCrystal') {
-				var aliChance = game.getEffect("alicornChance");
-				var alicornTick = game.getResourcePerTick("alicorn");
-				var tcRefineRatio = 0.04 * (1 + game.getEffect("tcRefineRatio"));
+				let aliChance = game.getEffect("alicornChance");
+				let alicornTick = game.getResourcePerTick("alicorn");
+				let tcRefineRatio = 0.04 * (1 + game.getEffect("tcRefineRatio"));
 				aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
-				var aliChanceTick = Math.min(aliChance, 1) * 0.2 * (1 + game.timeAccelerationRatio());
+				let aliChanceTick = Math.min(aliChance, 1) * 0.2 * (1 + game.timeAccelerationRatio());
 				prod += (aliChanceTick + alicornTick) * tcRefineRatio;
 			}
 			if (res.craftable) {
-				var minProd = Number.MAX_VALUE;
-				var materials = this.getMaterials(res.name);
-				for (var mat in materials) {
-					var rat = (1 + game.getResCraftRatio(res.name)) / materials[mat];
+				let minProd = Number.MAX_VALUE;
+				let materials = this.getMaterials(res.name);
+				for (let mat in materials) {
+					let rat = (1 + game.getResCraftRatio(res.name)) / materials[mat];
 					//Currently preTrade is only true for the festival stuff, so including furs from hunting is ideal.
-					var addProd = this.getTickVal(this.getResource(mat));
+					let addProd = this.getTickVal(this.getResource(mat));
 					minProd = Math.min(addProd * rat, minProd);
 				}
 				prod += (minProd !== Number.MAX_VALUE) ? minProd : 0;
 			}
-			var ignore = (res.name === 'spice' || res.name === 'blueprint');
+			let ignore = (res.name === 'spice' || res.name === 'blueprint');
 			if (prod <= 0 && ignore) {return 'ignore';}
 			if (!preTrade) {prod += this.cacheManager.getResValue(res.name);}
 			return prod;
 		},
 		getAverageHunt: function() {
-			var output = {};
-			var hunterRatio = game.getEffect('hunterRatio') + game.village.getEffectLeader('manager', 0);
+			let output = {};
+			let hunterRatio = game.getEffect('hunterRatio') + game.village.getEffectLeader('manager', 0);
 
 			output['furs'] = 40 + 32.5 * hunterRatio;
 
@@ -4587,7 +4588,7 @@ let run = function() {
 			return output;
 		},
 		getResource: function (name) {
-			var res = resMap[name];
+			let res = resMap[name];
 			if (res) {return res;}
 			warning('unable to find resource ' + name);
 			return null;
@@ -4596,9 +4597,9 @@ let run = function() {
 			return this.getResource(name).value;
 		},
 		getStock: function (name) {
-			var res = options.auto.resources[name];
-			var stock = (res && res.enabled) ? res.stock : 0;
-			var unResearched = (name) => {
+			let res = options.auto.resources[name];
+			let stock = (res && res.enabled) ? res.stock : 0;
+			let unResearched = (name) => {
 				let meta = game.workshop.metaCache[name];
 				return (meta.unlocked && !meta.researched);
 			};
@@ -4656,8 +4657,8 @@ let run = function() {
 			return !stock ? 0 : stock;
 		},
 		getValueAvailable: function (name, all, typeTrigger) {
-			var value = this.getValue(name);
-			var stock = this.getStock(name);
+			let value = this.getValue(name);
+			let stock = this.getStock(name);
 
 			let trigger;
 			if (!typeTrigger && typeTrigger !== 0) {
@@ -4671,8 +4672,8 @@ let run = function() {
 			}
 
 			if ('catnip' === name) {
-				var resPerTick = this.getPotentialCatnip(false);
-				var catnipTick = (game.calendar.season !== 0 || this.getResource(name).maxValue * trigger < value || game.getResourcePerTick("catnip", true) < 0);
+				let resPerTick = this.getPotentialCatnip(false);
+				let catnipTick = (game.calendar.season !== 0 || this.getResource(name).maxValue * trigger < value || game.getResourcePerTick("catnip", true) < 0);
 				if (resPerTick < 0 && catnipTick) {
 					stock -= resPerTick * 1000 * 5;
 					if (options.catnipMsg) {
@@ -4688,8 +4689,8 @@ let run = function() {
 			// consumption rate
 			let maxValue = (typeTrigger && !all && name === 'slab') ? value : this.getResource(name).maxValue;
 			if (!all && maxValue > 0) {
-				var res = options.auto.resources[name];
-				var consume = res && res.enabled && (res.consume !== undefined) ? res.consume : options.consume;
+				let res = options.auto.resources[name];
+				let consume = res && res.enabled && (res.consume !== undefined) ? res.consume : options.consume;
 
 				value -= Math.min(maxValue, value) * (1 - consume);
 
@@ -4730,9 +4731,9 @@ let run = function() {
 			}
 
 			if (name === 'plate') {
-				let ractor = resMap['titanium'].value > 3500 && resMap['uranium'].value > 250 && !game.bld.get('reactor').val;
+				let reactor = resMap['titanium'].value > 3500 && resMap['uranium'].value > 250 && !game.bld.get('reactor').val;
 				limRat = (game.getEffect('calcinerRatio')) ? limRat : 0.3;
-				limRat = ((res.value < 150 && navigation.researched && resMap['starchart'].value > 15 && resMap['scaffold'].value > 50) || ractor) ? 0.9 : limRat;
+				limRat = ((res.value < 150 && navigation.researched && resMap['starchart'].value > 15 && resMap['scaffold'].value > 50) || reactor) ? 0.9 : limRat;
 			}
 
 			if (name === 'alloy') {
@@ -4765,7 +4766,6 @@ let run = function() {
 			if (name === 'concrate') {
 				let reactor = game.bld.get('reactor');
 				let priceRatio = Math.pow(reactor.priceRatio + game.getEffect("priceRatio"), reactor.val);
-				let strenghtenBuild;
 				limRat = (reactor.val) ? limRat : 0.3;
 				limRat = (res.value > Math.max(150, 50 * priceRatio)) ? 0.01 : limRat;
 				limRat = (!res.unlocked && game.diplomacy.get('nagas').embassyLevel > 10 && game.calendar.season === 0 && resMap['titanium'].value > 500) ? 1 : limRat;
@@ -4808,7 +4808,7 @@ let run = function() {
 			return limRat;
 		},
 		getPotentialCatnip: function (worstWeather, pastures, aqueducts) {
-			var fieldProd = game.getEffect('catnipPerTickBase');
+			let fieldProd = game.getEffect('catnipPerTickBase');
 			if (worstWeather) {
 				fieldProd *= 0.1;
 				fieldProd *= 1 + game.getLimitedDR(game.getEffect("coldHarshness"),1);
@@ -4820,18 +4820,18 @@ let run = function() {
 				let calendar = (game.calendar.year < 4) ? 0 : 0.15;
 				fieldProd *= game.calendar.seasons[3].modifiers.catnip - calendar;
 			}
-			var vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
-			var baseProd = fieldProd + vilProd;
+			let vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
+			let baseProd = fieldProd + vilProd;
 
 			if (aqueducts !== undefined) {
-				var hydroponics = game.space.getBuilding('hydroponics');
-				var hydroponicsEffect = hydroponics.effects['catnipRatio'];
+				let hydroponics = game.space.getBuilding('hydroponics');
+				let hydroponicsEffect = hydroponics.effects['catnipRatio'];
 				baseProd *= 1 + game.bld.getBuildingExt('aqueduct').meta.stages[0].effects['catnipRatio'] * aqueducts + hydroponicsEffect * hydroponics.val;
 			} else {
 				baseProd *= 1 + game.getEffect('catnipRatio');
 			}
 
-			var paragonBonus = (game.challenges.isActive("winterIsComing")) ? 0 : game.prestige.getParagonProductionRatio();
+			let paragonBonus = (game.challenges.isActive("winterIsComing")) ? 0 : game.prestige.getParagonProductionRatio();
 			baseProd *= 1 + paragonBonus;
 
 			baseProd *= 1 + game.religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
@@ -4844,8 +4844,8 @@ let run = function() {
 
 			baseProd *= 1 + game.bld.pollutionEffects["catnipPollutionRatio"];
 
-			var baseDemand = game.village.getResConsumption()['catnip'];
-			var uniPastures = game.bld.getBuildingExt('unicornPasture').meta.val;
+			let baseDemand = game.village.getResConsumption()['catnip'];
+			let uniPastures = game.bld.getBuildingExt('unicornPasture').meta.val;
 			if (pastures !== undefined) {
 				baseDemand *= 1 + (game.getLimitedDR(pastures * -0.005 + uniPastures * -0.0015, 1.0));
 			} else {
@@ -4853,7 +4853,7 @@ let run = function() {
 			}
 
 			if (game.village.sim.kittens.length > 0 && game.village.happiness > 1) {
-				var happyCon = Math.max(game.village.happiness * (1 + game.getEffect("hapinnessConsumptionRatio")) - 1, 0);
+				let happyCon = Math.max(game.village.happiness * (1 + game.getEffect("hapinnessConsumptionRatio")) - 1, 0);
 				if (game.challenges.isActive("anarchy")) {
 					baseDemand *= 1 + happyCon * (1 + game.getEffect("catnipDemandWorkerRatioGlobal"));
 				} else {
@@ -4872,7 +4872,7 @@ let run = function() {
 	// Bulk Manager
 	// ============
 
-	var BulkManager = function () {
+	let BulkManager = function () {
 		this.craftManager = new CraftManager();
 	};
 
@@ -4880,7 +4880,7 @@ let run = function() {
 		craftManager: undefined,
 		bulk: function (builds, metaData, trigger, source) {
 			let nextPriceCheck;
-			let data, prices;
+			let data, prices, priceRatio, i;
 			const bList = [];
 			const countList = [];
 			let counter = 0;
@@ -4899,10 +4899,10 @@ let run = function() {
 				if (data.stage !== build.stage) {continue;}
 				let prices = (data.stages) ? data.stages[data.stage].prices : data.prices;
 				if (build.variant === 's') {prices = game.village.getEffectLeader("wise", dojo.clone(data.prices));}
-				let priceRatio = this.getPriceRatio(data, source);
+				priceRatio = this.getPriceRatio(data, source);
 				if (!this.singleBuildPossible(data, prices, priceRatio, source)) {continue;}
 				if (data.almostLimited && !game.workshop.get('geodesy').researched && game.village.leader){continue;}
-				var require = !build.require ? false : this.craftManager.getResource(build.require);
+				let require = !build.require ? false : this.craftManager.getResource(build.require);
 				if (!require || trigger <= require.value / require.maxValue) {
 					if (typeof(build.stage) !== 'undefined' && build.stage !== data.stage) {
 						continue;
@@ -4919,11 +4919,11 @@ let run = function() {
 					countList[counter].count = 0;
 					countList[counter].spot = counter;
 					countList[counter].prices = [];
-					var pricesDiscount = game.getLimitedDR(game.getEffect(name + "CostReduction"), 1);
-					var priceModifier = 1 - pricesDiscount;
-					for (var i in prices) {
-						var resPriceDiscount = game.getLimitedDR(game.getEffect(prices[i].name + "CostReduction"), 1);
-						var resPriceModifier = 1 - resPriceDiscount;
+					let pricesDiscount = game.getLimitedDR(game.getEffect(name + "CostReduction"), 1);
+					let priceModifier = 1 - pricesDiscount;
+					for (i in prices) {
+						let resPriceDiscount = game.getLimitedDR(game.getEffect(prices[i].name + "CostReduction"), 1);
+						let resPriceModifier = 1 - resPriceDiscount;
 						countList[counter].prices.push({
 							val: prices[i].val * priceModifier * resPriceModifier,
 							name: prices[i].name
@@ -4946,24 +4946,23 @@ let run = function() {
 			}
 			for (let res in tempPool) {tempPool[res] = this.craftManager.getValueAvailable(res, true);}
 
-			var k = 0;
+			let k = 0;
 			while (countList.length !== 0) {
 				bulkLoop:
-				for (var j = 0; j < countList.length; j++) {
-					var build = countList[j];
+				for (let j = 0; j < countList.length; j++) {
+					let build = countList[j];
 					data = metaData[build.id];
 					prices = build.prices;
 					priceRatio = build.priceRatio;
 					source = build.source;
-					for (var p = 0; p < prices.length; p++) {
-						let spaceOil = false;
-						let cryoKarma = false;
+					for (let p = 0; p < prices.length; p++) {
+						let spaceOil, cryoKarma, oilPrice, karmaPrice = false;
 						if (source && source === 'space' && prices[p].name === 'oil') {
 							spaceOil = true;
-							var oilPrice = prices[p].val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
+							oilPrice = prices[p].val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
 						} else if (build.id === 'cryochambers' && prices[p].name === 'karma') {
 							cryoKarma = true;
-							var karmaPrice = prices[p].val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
+							karmaPrice = prices[p].val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
 						}
 
 						if (spaceOil) {
@@ -4976,15 +4975,15 @@ let run = function() {
 						}
 						if (nextPriceCheck || (data.noStackable && (k + data.val) >= 1) || (build.id === 'ressourceRetrieval' && k + data.val >= 100)
 						  || (build.id === 'cryochambers' && game.bld.getBuildingExt('chronosphere').meta.val <= k + data.val)) {
-							for (var p2 = 0; p2 < p; p2++) {
+							for (let p2 = 0; p2 < p; p2++) {
 								if (source && source === 'space' && prices[p2].name === 'oil') {
-									var oilPriceRefund = prices[p2].val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
+									let oilPriceRefund = prices[p2].val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
 									tempPool['oil'] += oilPriceRefund * Math.pow(1.05, k + data.val);
 								} else if (build.id === 'cryochambers' && prices[p2].name === 'karma') {
-									var karmaPriceRefund = prices[p2].val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
+									let karmaPriceRefund = prices[p2].val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
 									tempPool['karma'] += karmaPriceRefund * Math.pow(priceRatio, k + data.val);
 								} else {
-									var refundVal = prices[p2].val * Math.pow(priceRatio, k + data.val);
+									let refundVal = prices[p2].val * Math.pow(priceRatio, k + data.val);
 									tempPool[prices[p2].name] += (prices[p2].name === 'void') ? Math.ceil(refundVal) : refundVal;
 								}
 							}
@@ -5001,7 +5000,7 @@ let run = function() {
 						} else if (cryoKarma) {
 							tempPool['karma'] -= karmaPrice * Math.pow(priceRatio, k + data.val);
 						} else {
-							var pVal = prices[p].val * Math.pow(priceRatio, k + data.val);
+							let pVal = prices[p].val * Math.pow(priceRatio, k + data.val);
 							tempPool[prices[p].name] -= (prices[p].name === 'void') ? Math.ceil(pVal) : pVal;
 							// 检查 NaN
 							tempPool[prices[p].name] = tempPool[prices[p].name] ? tempPool[prices[p].name] : 0;
@@ -5014,8 +5013,8 @@ let run = function() {
 			return bList;
 		},
 		construct: function (model, button, amount) {
-			var meta = model.metadata;
-			var counter = 0;
+			const meta = model.metadata;
+			let counter = 0;
 			if (typeof meta.limitBuild == "number" && meta.limitBuild - meta.val < amount) {
 				amount = meta.limitBuild - meta.val;
 			}
@@ -5030,7 +5029,7 @@ let run = function() {
 				}
 				if (meta.breakIronWill) {
 					game.ironWill = false;
-					var liberty = game.science.getPolicy("liberty");
+					let liberty = game.science.getPolicy("liberty");
 					liberty.calculateEffects(liberty, game);
 				}
 				if (meta.unlockScheme && meta.val >= meta.unlockScheme.threshold) {
@@ -5048,9 +5047,9 @@ let run = function() {
 			return counter;
 		},
 		getPriceRatio: function (data, source) {
-			var ratio = (!data.stages) ? data.priceRatio : (data.priceRatio || data.stages[data.stage].priceRatio);
+			let ratio = (!data.stages) ? data.priceRatio : (data.priceRatio || data.stages[data.stage].priceRatio);
 
-			var ratioDiff = 0;
+			let ratioDiff = 0;
 			if (source && source === 'bonfire') {
 				ratioDiff = game.getEffect(data.name + "PriceRatio") +
 					game.getEffect("priceRatio") +
@@ -5061,17 +5060,17 @@ let run = function() {
 			return ratio + ratioDiff;
 		},
 		singleBuildPossible: function (data, prices, priceRatio, source) {
-			var pricesDiscount = game.getLimitedDR(game.getEffect(data.name + "CostReduction"), 1);
-			var priceModifier = 1 - pricesDiscount;
-			for (var price in prices) {
-				var resPriceDiscount = game.getLimitedDR(game.getEffect(prices[price].name + "CostReduction"), 1);
-				var resPriceModifier = 1 - resPriceDiscount;
-				var rightPrice = prices[price].val * priceModifier * resPriceModifier;
+			let pricesDiscount = game.getLimitedDR(game.getEffect(data.name + "CostReduction"), 1);
+			let priceModifier = 1 - pricesDiscount;
+			for (let price in prices) {
+				let resPriceDiscount = game.getLimitedDR(game.getEffect(prices[price].name + "CostReduction"), 1);
+				let resPriceModifier = 1 - resPriceDiscount;
+				let rightPrice = prices[price].val * priceModifier * resPriceModifier;
 				if (source && source === 'space' && prices[price].name === 'oil') {
-					var oilPrice = rightPrice * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
+					let oilPrice = rightPrice * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
 					if (this.craftManager.getValueAvailable('oil', true) < oilPrice * Math.pow(1.05, data.val)) {return false;}
 				} else if (data.name === 'cryochambers' && prices[price].name === 'karma') {
-					var karmaPrice = rightPrice * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
+					let karmaPrice = rightPrice * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
 					if (this.craftManager.getValueAvailable('karma', true) < karmaPrice * Math.pow(priceRatio, data.val)) {return false;}
 				} else {
 					if (this.craftManager.getValueAvailable(prices[price].name, true) < rightPrice * Math.pow(priceRatio, data.val)) {return false;}
@@ -5084,7 +5083,7 @@ let run = function() {
 	// Trading Manager
 	// ===============
 
-	var TradeManager = function () {
+	let TradeManager = function () {
 		this.craftManager = new CraftManager();
 		this.manager = new TabManager('Trade');
 	};
@@ -5096,13 +5095,15 @@ let run = function() {
 
 			if (!name || 1 > amount) {warning('KS trade checks are not functioning properly, please create an issue on the github page.');}
 
-			var race = this.getRace(name);
-
-			var button = this.getTradeButton(race.name);
-
-			if (!button.model.enabled || !options.auto.trade.items[name].enabled) {warning('KS trade checks are not functioning properly, please create an issue on the github page.');}
-
+			let race = this.getRace(name);
+			let button = this.getTradeButton(race.name);
 			let leader = (options.auto.cache.trait['merchant']) ? '商人小猫与' : '小猫与';
+
+			if (!button.model.enabled) {
+				return button.controller.updateEnabled(button.model);
+			}
+			if (name !== 'sharks' && !options.auto.trade.items[name].enabled) {warning('KS trade checks are not functioning properly, please create an issue on the github page.');}
+
 			game.diplomacy.tradeMultiple(race, amount);
 			game.stats.getStat("totalClicks").val += 1;
 			storeForSummary(leader + ' ' + race.title, amount, 'trade');
@@ -5110,22 +5111,22 @@ let run = function() {
 		},
 		getProfitability: function (name) {
 			let tick;
-			var race = this.getRace(name);
+			let race = this.getRace(name);
 
-			var materials = this.getMaterials(name);
-			var cost = 0;
+			let materials = this.getMaterials(name);
+			let cost = 0;
 			if (!game.workshop.get('geodesy').researched && this.craftManager.getResource('gold').perTickCached > 9) {return true;}
-			for (var mat in materials) {
+			for (let mat in materials) {
 				if (mat === 'ivory') {continue;}
 				tick = this.craftManager.getTickVal(this.craftManager.getResource(mat));
 				if (tick <= 0) {return false;}
 				cost += materials[mat] / tick;
 			}
 
-			var output = this.getAverageTrade(race);
-			var profit = 0;
-			for (var prod in output) {
-				var res = this.craftManager.getResource(prod);
+			let output = this.getAverageTrade(race);
+			let profit = 0;
+			for (let prod in output) {
+				let res = this.craftManager.getResource(prod);
 				tick = this.craftManager.getTickVal(res);
 				if (tick === 'ignore') {continue;}
 				if (tick <= 0) {return true;}
@@ -5148,39 +5149,39 @@ let run = function() {
 		},
 		getAverageTrade: function (race) {
 			// standingRatio
-			var standRat = game.getEffect("standingRatio") + game.diplomacy.calculateStandingFromPolicies(race.name, game);
+			let standRat = game.getEffect("standingRatio") + game.diplomacy.calculateStandingFromPolicies(race.name, game);
 			// raceRatio
-			var rRatio = 1 + race.energy * 0.02;
+			let rRatio = 1 + race.energy * 0.02;
 			// tradeRatio
-			var tRatio = 1 + game.diplomacy.getTradeRatio() + game.diplomacy.calculateTradeBonusFromPolicies(race.name, game) + game.challenges.getChallenge("pacifism").getTradeBonusEffect(game);
-			var failedRat = (race.standing < 0) ? (race.standing + standRat) : 0;
-			var successRat = (failedRat < 0) ? (1 + failedRat) : 1;
-			var bonusRat = (race.standing > 0) ? Math.min(race.standing + standRat / 2, 1) : 0;
+			let tRatio = 1 + game.diplomacy.getTradeRatio() + game.diplomacy.calculateTradeBonusFromPolicies(race.name, game) + game.challenges.getChallenge("pacifism").getTradeBonusEffect(game);
+			let failedRat = (race.standing < 0) ? (race.standing + standRat) : 0;
+			let successRat = (failedRat < 0) ? (1 + failedRat) : 1;
+			let bonusRat = (race.standing > 0) ? Math.min(race.standing + standRat / 2, 1) : 0;
 
-			var output = {};
-			for (var item of race.sells) {
+			let output = {};
+			for (let item of race.sells) {
 				//var item = race.sells[s];
 				if (!this.isValidTrade(item, race)) {continue;}
 				//var resource = this.craftManager.getResource(item.name);
-				var mean = 0;
-				var tradeChance = (item.minLevel) ? item.chance * (1 + game.getLimitedDR(0.01 * race.embassyLevel, 0.75)) : item.chance;
-				var sRatio = (!item.seasons) ? 1 : 1 + item.seasons[game.calendar.getCurSeason().name];
-				var normBought = (successRat - bonusRat) * Math.min(tradeChance, 1);
-				var normBonus = bonusRat * Math.min(tradeChance, 1);
+				let mean = 0;
+				let tradeChance = (item.minLevel) ? item.chance * (1 + game.getLimitedDR(0.01 * race.embassyLevel, 0.75)) : item.chance;
+				let sRatio = (!item.seasons) ? 1 : 1 + item.seasons[game.calendar.getCurSeason().name];
+				let normBought = (successRat - bonusRat) * Math.min(tradeChance, 1);
+				let normBonus = bonusRat * Math.min(tradeChance, 1);
 				mean = (normBought + 1.25 * normBonus) * item.value * rRatio * sRatio * tRatio;
 				output[item.name] = mean;
 			}
 			if (race.name === "zebras") {
-				var shipCount = game.resPool.get("ship").value;
-				var zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
-				var titanProb = Math.min(0.15 + shipCount * 0.0035, 1);
+				let shipCount = game.resPool.get("ship").value;
+				let zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
+				let titanProb = Math.min(0.15 + shipCount * 0.0035, 1);
 				//let modifier = (shipCount < 230) ? Math.log(shipCount) * shipCount * 0.00084 - 0.01 : 1;
 				output["titanium"] = (1.5 + shipCount * 0.03) * (1 + zebraRelationModifierTitanium) * titanProb * successRat;
 				if (game.religion.getSolarRevolutionRatio() < 1 && shipCount < 40 && game.getEffect('titaniumPerTickAutoprod') < 0.002) {output["titanium"] = 0;}
 			}
 
-			var spiceChance = (race.embassyPrices) ? 0.35 * (1 + 0.01 * race.embassyLevel) : 0.35;
-			var spiceTradeAmount = successRat * Math.min(spiceChance, 1);
+			let spiceChance = (race.embassyPrices) ? 0.35 * (1 + 0.01 * race.embassyLevel) : 0.35;
+			let spiceTradeAmount = successRat * Math.min(spiceChance, 1);
 			output['spice'] = 25 * spiceTradeAmount + 50 * spiceTradeAmount * tRatio / 2;
 
 			output['blueprint'] = 0.1 * successRat;
@@ -5192,13 +5193,11 @@ let run = function() {
 			&& (game.resPool.get(item.name).unlocked || item.name === 'titanium' || item.name === 'uranium' || race.name === 'leviathans'));
 		},
 		getLowestTradeAmount: function (name, limited, trigConditions) {
-			let total;
-			var amount = undefined;
-			var highestCapacity = undefined;
-			var materials = this.getMaterials(name);
-			var race = this.getRace(name);
+			let total, amount, highestCapacity, i;
+			let materials = this.getMaterials(name);
+			let race = this.getRace(name);
 
-			for (var i in materials) {
+			for (i in materials) {
 				if (i === "manpower") {
 					const manpowerValue = Math.max(this.craftManager.getValueAvailable(i, true) - 100, 0);
 					total = manpowerValue / materials[i];
@@ -5213,31 +5212,31 @@ let run = function() {
 
 			if (amount === 0) {return 0;}
 
-			if (race === null || options.auto.trade.items[name].allowcapped) {return amount;}
+			if (race === null || options.auto.trade.items[name].allowCapped) {return amount;}
 
 			// Loop through the items obtained by the race, and determine
 			// which good has the most space left. Once we've determined this,
 			// reduce the amount by this capacity. This ensures that we continue to trade
 			// as long as at least one resource has capacity, and we never over-trade.
 
-			var tradeOutput = this.getAverageTrade(race);
-			for (var s in race.sells) {
-				var item = race.sells[s];
-				var resource = this.craftManager.getResource(item.name);
-				var max = 0;
+			let tradeOutput = this.getAverageTrade(race);
+			for (let s in race.sells) {
+				let item = race.sells[s];
+				let resource = this.craftManager.getResource(item.name);
+				let max = 0;
 
 				// No need to process resources that don't cap
 				if (!resource.maxValue) {continue;}
 
 				max = tradeOutput[item.name];
 
-				var capacity = Math.max((resource.maxValue - resource.value) / max, 0);
+				let capacity = Math.max((resource.maxValue - resource.value) / max, 0);
 
 				highestCapacity = (capacity < highestCapacity) ? highestCapacity : capacity;
 			}
 
 			// We must take the ceiling of capacity so that we will trade as long
-			// as there is any room, even if it doesn't have exact space. Otherwise
+			// as there is any room, even if it doesn't have exact space. Otherwise,
 			// we seem to starve trading altogether.
 			highestCapacity = Math.ceil(highestCapacity);
 
@@ -5255,17 +5254,17 @@ let run = function() {
 		},
 		getMaterials: function (name) {
 			let modifier = (game.challenges.isActive("postApocalypse")) ? game.bld.getPollutionLevel() : 1;
-			var materials = {
+			let materials = {
 				manpower: modifier * (50 - game.getEffect("tradeCatpowerDiscount")),
 				gold: modifier * (15 - game.getEffect("tradeGoldDiscount"))
 			};
 
 			if (name === undefined) {return materials;}
 
-			var prices = this.getRace(name).buys;
+			let prices = this.getRace(name).buys;
 
-			for (var i in prices) {
-				var price = prices[i];
+			for (const i in prices) {
+				let price = prices[i];
 
 				materials[price.name] = price.val;
 			}
@@ -5276,15 +5275,15 @@ let run = function() {
 			if (name === undefined) {return null;} else {return game.diplomacy.get(name);}
 		},
 		getTradeButton: function (race) {
-			for (var i in this.manager.tab.racePanels) {
-				var panel = this.manager.tab.racePanels[i];
+			for (let i in this.manager.tab.racePanels) {
+				let panel = this.manager.tab.racePanels[i];
 
 				if (panel.race.name === race) {return panel.tradeBtn;}
 			}
 		},
 		singleTradePossible: function (name) {
-			var materials = this.getMaterials(name);
-			for (var mat in materials) {
+			let materials = this.getMaterials(name);
+			for (let mat in materials) {
 				if (this.craftManager.getValueAvailable(mat, true) < materials[mat]) {return false;}
 			}
 			return true;
@@ -5294,15 +5293,15 @@ let run = function() {
 	// Cache Manager
 	// ===============
 
-	var CacheManager = function () {};
+	let CacheManager = function () {};
 
 	CacheManager.prototype = {
 		pushToCache: function (data) {
 			let mat;
-			var cache = options.auto.cache.cache;
-			var cacheSum = options.auto.cache.cacheSum;
-			var materials = data['materials'];
-			var currentTick = game.timer.ticksTotal;
+			let cache = options.auto.cache.cache;
+			let cacheSum = options.auto.cache.cacheSum;
+			let materials = data['materials'];
+			let currentTick = game.timer.ticksTotal;
 
 			cache.push(data);
 			for (mat in materials) {
@@ -5310,10 +5309,10 @@ let run = function() {
 				cacheSum[mat] += materials[mat];
 			}
 
-			for (var i = 0; i < cache.length; i++) {
-				var oldData = cache[i];
+			for (let i = 0; i < cache.length; i++) {
+				let oldData = cache[i];
 				if (cache.length > 999) {
-					var oldMaterials = oldData['materials'];
+					let oldMaterials = oldData['materials'];
 					for (mat in oldMaterials) {
 						if (!cacheSum[mat]) {cacheSum[mat] = 0;}
 						cacheSum[mat] -= oldMaterials[mat];
@@ -5326,12 +5325,12 @@ let run = function() {
 			}
 		},
 		getResValue: function (res) {
-			var cache = options.auto.cache.cache;
+			let cache = options.auto.cache.cache;
 			if (cache.length === 0) {return 0;}
-			var cacheSum = options.auto.cache.cacheSum;
+			let cacheSum = options.auto.cache.cacheSum;
 			if (!cacheSum[res]) {return 0;}
-			var currentTick = game.timer.ticksTotal;
-			var startingTick = cache[0].timeStamp;
+			let currentTick = game.timer.ticksTotal;
+			let startingTick = cache[0].timeStamp;
 
 			return (cacheSum[res] / (currentTick - startingTick));
 		}
@@ -5341,14 +5340,14 @@ let run = function() {
 	// Configure overall page display
 	// ==============================
 
-	var right = $('#rightColumn');
+	let right = $('#rightColumn');
 
-	var addRule = function (rule) {
-		var sheets = document.styleSheets;
+	let addRule = function (rule) {
+		const sheets = document.styleSheets;
 		sheets[0].insertRule(rule, 0);
 	};
 
-	var defaultSelector = 'body[data-ks-style]:not(.scheme_sleek)';
+	let defaultSelector = 'body[data-ks-style]:not(.scheme_sleek)';
 
 	addRule('body {' // low priority. make sure it can be covered by the theme
 		+ 'font-family: inherit;'
@@ -5462,9 +5461,9 @@ let run = function() {
 	// Local Storage
 	// =============
 
-	var kittenStorageVersion = 3;
+	let kittenStorageVersion = 3;
 
-	var kittenStorage = {
+	let kittenStorage = {
 		version: kittenStorageVersion,
 		toggles: {},
 		items: {},
@@ -5474,14 +5473,14 @@ let run = function() {
 			reset: false,
 			times: 0,
 			paragonLastTime: 0,
-			pargonTotal: 0,
+			paragonTotal: 0,
 			karmaLastTime: 0,
 			karmaTotal: 0
 		},
 		policies: []
 	};
 
-	var initializeKittenStorage = function (see) {
+	let initializeKittenStorage = function (see) {
 		$("#items-list-build, #items-list-craft, #items-list-trade, #items-list-options, #items-list-filter, #items-list-distribute").find("input[id^='toggle-']").each(function () {
 			let dom = $(this);
 			if ($(this).attr("type") !== 'radio') {
@@ -5493,7 +5492,7 @@ let run = function() {
 		saveToKittenStorage(see);
 	};
 
-	var saveToKittenStorage = function (session) {
+	let saveToKittenStorage = function (session) {
 		kittenStorage.toggles = {
 			build: options.auto.build.enabled,
 			space: options.auto.space.enabled,
@@ -5522,8 +5521,8 @@ let run = function() {
 		else {localStorage['cbc.kitten-scientists'] = JSON.stringify(kittenStorage);}
 	};
 
-	var loadFromKittenStorage = function () {
-		var saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
+	let loadFromKittenStorage = function () {
+		let saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
 		if (!saved || saved.version > kittenStorageVersion) {
 			initializeKittenStorage();
 			return;
@@ -5535,7 +5534,7 @@ let run = function() {
 				reset: false,
 				times: 0,
 				paragonLastTime: 0,
-				pargonTotal: 0,
+				paragonTotal: 0,
 				karmaLastTime: 0,
 				karmaTotal: 0
 			};
@@ -5550,7 +5549,7 @@ let run = function() {
 			kittenStorage = saved;
 			let el;
 			if (saved.toggles) {
-				for (var toggle in saved.toggles) {
+				for (const toggle in saved.toggles) {
 					if (toggle !== 'engine' && options.auto[toggle]) {
 						options.auto[toggle].enabled = !!saved.toggles[toggle];
 						el = $('#toggle-' + toggle);
@@ -5559,11 +5558,11 @@ let run = function() {
 				}
 			}
 
-			for (var item in kittenStorage.items) {
-				var value = kittenStorage.items[item];
+			for (const item in kittenStorage.items) {
+				let value = kittenStorage.items[item];
 				el = $('#' + item);
-				var option = el.data('option');
-				var name = item.split('-');
+				let option = el.data('option');
+				let name = item.split('-');
 
 				if (option === undefined) {
 					delete kittenStorage.items[item];
@@ -5584,8 +5583,8 @@ let run = function() {
 				if (name.length === 2) {
 					option.enabled = value;
 				} else if (name[1] === 'reset' && name.length >= 4) {
-					var type = name[2];
-					var itemName = name[3];
+					let type = name[2];
+					let itemName = name[3];
 					switch (name[0]) {
 						case 'toggle':
 							options.auto[type].items[itemName].checkForReset = value;
@@ -5607,10 +5606,10 @@ let run = function() {
 				}
 			}
 
-			var resourcesList = $("#toggle-list-resources");
-			var resetList = $("#toggle-reset-list-resources");
-			for (var resource in kittenStorage.resources) {
-				var res = kittenStorage.resources[resource];
+			let resourcesList = $("#toggle-list-resources");
+			let resetList = $("#toggle-reset-list-resources");
+			for (const resource in kittenStorage.resources) {
+				let res = kittenStorage.resources[resource];
 
 				if (res.enabled) {
 					if ($('#resource-' + resource).length === 0) {resourcesList.append(addNewResourceOption(resource));}
@@ -5645,27 +5644,27 @@ let run = function() {
 	// Add options element
 	// ===================
 
-	var ucfirst = function (string) {
+	let ucfirst = function (string) {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	};
 
-	var roundToTwo = function (n) {
-		return +(Math.round(n + "e+2") + "e-2");
+	let roundToTwo = function (n) {
+		return +(Math.round(+(n + "e+2")) + "e-2");
 	};
 
-	var setStockWarning = function(name, value, forReset = false) {
+	let setStockWarning = function(name, value, forReset = false) {
 		// simplest way to ensure it doesn't stick around too often; always do
 		// a remove first then re-add only if needed
-		var path = forReset ? '#resource-reset-' + name : '#resource-' + name;
+		let path = forReset ? '#resource-reset-' + name : '#resource-' + name;
 		$(path).removeClass("stockWarn");
 
-		var maxValue = game.resPool.resources.filter(i => i.name === name)[0].maxValue;
+		let maxValue = game.resPool.resources.filter(i => i.name === name)[0].maxValue;
 		if ((value > maxValue && !(maxValue === 0)) || value === Infinity) {$(path).addClass("stockWarn");}
 	};
 
-	var setStockValue = function (name, value, forReset = false) {
+	let setStockValue = function (name, value, forReset = false) {
 		let path;
-		var n = Number(value);
+		let n = Number(value);
 
 		if (isNaN(n) || n < 0) {
 			warning('ignoring non-numeric or invalid stock value ' + value);
@@ -5688,8 +5687,8 @@ let run = function() {
 		setStockWarning(name, n, forReset);
 	};
 
-	var setConsumeRate = function (name, value) {
-		var n = parseFloat(value);
+	let setConsumeRate = function (name, value) {
+		let n = parseFloat(value);
 
 		if (isNaN(n) || n < 0.0 || n > 1.0) {
 			warning('ignoring non-numeric or invalid consume rate ' + value);
@@ -5701,29 +5700,29 @@ let run = function() {
 		$('#consume-rate-' + name).text(i18n('resources.consume', [n.toFixed(2)]));
 	};
 
-	var removeResourceControl = function (name, forReset = false) {
-		var opt = options.auto.resources[name];
+	let removeResourceControl = function (name, forReset = false) {
+		let opt = options.auto.resources[name];
 		if (forReset) {opt.checkForReset = false;} else {opt.enabled = false;}
 
 		if (!opt.enabled && !opt.checkForReset) {delete options.auto.resources[name];}
 	};
 
-	var addNewResourceOption = function (name, title, forReset = false) {
+	let addNewResourceOption = function (name, title, forReset = false) {
 		let stock;
 		title = title || game.resPool.get(name).title || ucfirst(name);
-		var res = options.auto.resources[name];
+		let res = options.auto.resources[name];
 		if (forReset && res && res.stockForReset) {
 			stock = res.stockForReset;} else if (!forReset && res && res.stock) {
 			stock = res.stock;} else {
 			stock = 0;}
-		var consume = res && (res.consume !== undefined) ? res.consume : options.consume;
+		let consume = res && (res.consume !== undefined) ? res.consume : options.consume;
 
-		var container = $('<div/>', {
+		let container = $('<div/>', {
 			id: (forReset ? 'resource-reset-' : 'resource-') + name,
 			css: {display: 'inline-block', width: '100%'},
 		});
 
-		var label = $('<div/>', {
+		let label = $('<div/>', {
 			id: 'resource-label-' + name,
 			text: title,
 			css: {display: 'inline-block', width: '95px'},
@@ -5741,7 +5740,7 @@ let run = function() {
 			css: {cursor: 'pointer', display: 'inline-block'},
 		});
 
-		var del = $('<div/>', {
+		let del = $('<div/>', {
 			id: 'resource-delete-' + name,
 			text: i18n('resources.del'),
 			css: {cursor: 'pointer',
@@ -5759,7 +5758,7 @@ let run = function() {
 		(function (stock, forReset) {
 			stock.on('click', function () {
 				engine.stop(false);
-				var value = window.prompt(i18n('resources.stock.set', [title]));
+				let value = window.prompt(i18n('resources.stock.set', [title]));
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
@@ -5772,7 +5771,7 @@ let run = function() {
 
 		consume.on('click', function () {
 			engine.stop(false);
-			var value = window.prompt(i18n('resources.consume.set', [title]));
+			let value = window.prompt(i18n('resources.consume.set', [title]));
 			if (options.auto.engine.enabled) {
 				engine.start(false);
 			}
@@ -5795,17 +5794,17 @@ let run = function() {
 		return container;
 	};
 
-	var getAvailableResourceOptions = function (forReset) {
-		var items = [];
-		var idPrefix = forReset ? '#resource-reset-' : '#resource-';
+	let getAvailableResourceOptions = function (forReset) {
+		let items = [];
+		let idPrefix = forReset ? '#resource-reset-' : '#resource-';
 
-		for (var i in game.resPool.resources) {
-			var res = game.resPool.resources[i];
+		for (let i in game.resPool.resources) {
+			let res = game.resPool.resources[i];
 
 			// Show only new resources that we don't have in the list and that are
 			// visible. This helps cut down on total size.
 			if (res.name && $(idPrefix + res.name).length === 0) {
-				var item = $('<div/>', {
+				let item = $('<div/>', {
 					id: 'resource-add-' + res.name,
 					text: ucfirst(res.title ? res.title : res.name),
 					css: {cursor: 'pointer',
@@ -5839,13 +5838,13 @@ let run = function() {
 		return items;
 	};
 
-	var getResourceOptions = function (forReset = false) {
-		var list = $('<ul/>', {
+	let getResourceOptions = function (forReset = false) {
+		let list = $('<ul/>', {
 			id: forReset ? 'toggle-reset-list-resources' : 'toggle-list-resources',
 			css: {display: 'none', paddingLeft: '20px'}
 		});
 
-		var add = $('<div/>', {
+		let add = $('<div/>', {
 			id: 'resources-add',
 			text: i18n('resources.add'),
 			css: {cursor: 'pointer',
@@ -5854,7 +5853,7 @@ let run = function() {
 				borderBottom: '1px solid rgba(185, 185, 185, 0.7)' },
 		});
 
-		var clearunused = $('<div/>', {
+		let clearunused = $('<div/>', {
 			id: 'resources-clear-unused',
 			text: i18n('resources.clear.unused'),
 			css: {cursor: 'pointer',
@@ -5865,7 +5864,7 @@ let run = function() {
 		});
 
 		clearunused.on('click', function () {
-			for (var name in options.auto.resources) {
+			for (let name in options.auto.resources) {
 				// Only delete resources with unmodified values. Require manual
 				// removal of resources with non-standard values.
 				if (!options.auto.resources[name].stock &&
@@ -5876,37 +5875,37 @@ let run = function() {
 			}
 		});
 
-		var allresources = $('<ul/>', {
+		let allResources = $('<ul/>', {
 			id: 'available-resources-list',
 			css: {display: 'none', paddingLeft: '20px'}
 		});
 
 		(function (add, forReset) {
 			add.on('click', function () {
-				allresources.toggle();
-				allresources.empty();
-				allresources.append(getAvailableResourceOptions(forReset));
+				allResources.toggle();
+				allResources.empty();
+				allResources.append(getAvailableResourceOptions(forReset));
 			});
 		})(add, forReset);
 
-		if (forReset) {list.append(add, allresources);} else {list.append(add, clearunused, allresources);}
+		if (forReset) {list.append(add, allResources);} else {list.append(add, clearunused, allResources);}
 
 		// Add all the current resources
-		for (var name in options.auto.resources) {
-			var res = options.auto.resources[name];
+		for (let name in options.auto.resources) {
+			let res = options.auto.resources[name];
 			if ((forReset && res.checkForReset) || (!forReset && res.enabled)) {list.append(addNewResourceOption(name, undefined, forReset));}
 		}
 
 		return list;
 	};
 
-	var getOptionHead = function (toggleName) {
-		var list = $('<ul/>', {
+	let getOptionHead = function (toggleName) {
+		let list = $('<ul/>', {
 			id: 'items-list-' + toggleName,
 			css: {display: 'none', paddingLeft: '20px'}
 		});
 
-		var disableall = $('<div/>', {
+		let disableall = $('<div/>', {
 			id: 'toggle-all-items-' + toggleName,
 			text: i18n('ui.disable.all'),
 			css: {cursor: 'pointer',
@@ -5917,7 +5916,7 @@ let run = function() {
 
 		disableall.on('click', function () {
 			// can't use find as we only want one layer of checkboxes
-			var items = list.children().children(':checkbox');
+			let items = list.children().children(':checkbox');
 			items.prop('checked', false);
 			items.change();
 			list.children().children(':checkbox').change();
@@ -5925,7 +5924,7 @@ let run = function() {
 
 		list.append(disableall);
 
-		var enableall = $('<div/>', {
+		let enableall = $('<div/>', {
 			id: 'toggle-all-items-' + toggleName,
 			text: i18n('ui.enable.all'),
 			css: {cursor: 'pointer',
@@ -5935,7 +5934,7 @@ let run = function() {
 
 		enableall.on('click', function () {
 			// can't use find as we only want one layer of checkboxes
-			var items = list.children().children(':checkbox');
+			let items = list.children().children(':checkbox');
 			items.prop('checked', true);
 			items.change();
 			list.children().children(':checkbox').change();
@@ -5945,13 +5944,13 @@ let run = function() {
 		return list;
 	};
 
-	var getAdditionOptions = function () {
-		var toggleName = 'faith-addition';
-		var list = getOptionHead(toggleName);
+	let getAdditionOptions = function () {
+		let toggleName = 'faith-addition';
+		let list = getOptionHead(toggleName);
 
-		var addi = options.auto.faith.addition;
-		for (var itemName in addi) {
-			var node = getOption(itemName, addi[itemName]);
+		let addi = options.auto.faith.addition;
+		for (let itemName in addi) {
+			let node = getOption(itemName, addi[itemName]);
 
 			if (itemName === 'bestUnicornBuilding') {
 				node.children('label').prop('title', i18n('option.faith.best.unicorn.desc'));
@@ -5980,7 +5979,7 @@ let run = function() {
 
 			if (addi[itemName].subTrigger !== undefined) {
 
-				var triggerButton = $('<div/>', {
+				let triggerButton = $('<div/>', {
 					id: 'set-' + itemName + '-subTrigger',
 					text: i18n('ui.trigger'),
 					title: addi[itemName].subTrigger,
@@ -5994,7 +5993,7 @@ let run = function() {
 				(function (itemName, triggerButton) {
 					if (itemName === 'adore') {
 						triggerButton.on('click', function () {
-							var value;
+							let value;
 							engine.stop(false);
 							value = window.prompt(i18n('adore.trigger.set'), addi[itemName].subTrigger);
 							if (options.auto.engine.enabled) {
@@ -6011,7 +6010,7 @@ let run = function() {
 
 					} else if (itemName === 'autoPraise') {
 						triggerButton.on('click', function () {
-							var value;
+							let value;
 							engine.stop(false);
 							value = window.prompt(i18n('parise.trigger.set', [i18n('option.praise')]), addi[itemName].subTrigger);
 							if (options.auto.engine.enabled) {
@@ -6036,19 +6035,19 @@ let run = function() {
 		return list;
 	};
 
-	var getToggle = function (toggleName) {
-		let itemName;
-		var itext = ucfirst(i18n('ui.' + toggleName));
+	let getToggle = function (toggleName) {
+		let list, itemName, toggle, button;
+		let itext = ucfirst(i18n('ui.' + toggleName));
 
-		var auto = options.auto[toggleName];
-		var element = $('<li/>', {id: 'ks-' + toggleName});
+		let auto = options.auto[toggleName];
+		let element = $('<li/>', {id: 'ks-' + toggleName});
 
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-' + toggleName,
 			text: itext
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-' + toggleName,
 			type: 'checkbox'
 		});
@@ -6086,23 +6085,25 @@ let run = function() {
 			// Add a border on the element
 			element.css('borderBottom', '1px  solid rgba(185, 185, 185, 0.7)');
 
-			var toggle = $('<div/>', {
+			toggle = $('<div/>', {
 				css: {display: 'inline-block', float: 'right'}
 			});
 
-			var button = $('<div/>', {
+			button = $('<div/>', {
 				id: 'toggle-items-' + toggleName,
 				text: i18n('ui.items'),
-				css: {cursor: 'pointer',
+				css: {
+					cursor: 'pointer',
 					display: 'inline-block',
 					float: 'right',
 					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
+					textShadow: '3px 3px 4px gray'
+				}
 			});
 
 			element.append(button);
 
-			var list = getOptionHead(toggleName);
+			list = getOptionHead(toggleName);
 
 			// merge unicorn to faith
 			if (toggleName === 'faith') {
@@ -6151,7 +6152,7 @@ let run = function() {
 		}
 
 		if (auto.trigger !== undefined) {
-			var triggerButton = $('<div/>', {
+			let triggerButton = $('<div/>', {
 				id: 'trigger-' + toggleName,
 				text: i18n('ui.trigger'),
 				title: auto.trigger,
@@ -6163,14 +6164,14 @@ let run = function() {
 			});
 
 			triggerButton.on('click', function () {
-				var value;
+				let value;
 				engine.stop(false);
 				if (toggleName === 'faith') {
-					value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title") + ")"]), auto.trigger);
+					value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title") + ")"]), auto.trigger.toString());
 				} else if (toggleName === 'trade') {
-					value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"] ), auto.trigger);
+					value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"] ), auto.trigger.toString());
 				} else {
-					value = window.prompt(i18n('ui.trigger.set', [itext]), auto.trigger);
+					value = window.prompt(i18n('ui.trigger.set', [itext]), auto.trigger.toString());
 				}
 				if (options.auto.engine.enabled) {
 					engine.start(false);
@@ -6188,17 +6189,19 @@ let run = function() {
 
 		if (toggleName === 'craft') {
 			// Add resource controls for crafting, sort of a hack
-			var resources = $('<div/>', {
+			const resources = $('<div/>', {
 				id: 'toggle-resource-controls',
 				text: i18n('ui.craft.resources'),
-				css: {cursor: 'pointer',
+				css: {
+					cursor: 'pointer',
 					display: 'inline-block',
 					float: 'right',
 					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'},
+					textShadow: '3px 3px 4px gray'
+				},
 			});
 
-			var resourcesList = getResourceOptions();
+			const resourcesList = getResourceOptions();
 
 			// When we click the items button, make sure we clear resources
 			button.on('click', function () {
@@ -6214,19 +6217,20 @@ let run = function() {
 			element.append(resourcesList);
 		} else if (toggleName === 'faith') {
 			// Add additional controls for faith, sort of a hack again
-			var addition = $('<div/>', {
+			const addition = $('<div/>', {
 				id: 'toggle-addition-controls',
 				text: i18n('ui.faith.addtion'),
 				title: "太阳教团的自动化项目",
-				css: {cursor: 'pointer',
+				css: {
+					cursor: 'pointer',
 					display: 'inline-block',
 					float: 'right',
 					paddingRight: '5px',
 					textShadow: '2px 2px 5px gray'
-					},
+				},
 			});
 
-			var additionList = getAdditionOptions();
+			const additionList = getAdditionOptions();
 
 			button.on('click', function () {
 				additionList.toggle(false);
@@ -6240,11 +6244,11 @@ let run = function() {
 			element.append(addition);
 
 			// disable auto best unicorn building when unicorn building was disable
-			for (var unicornName in options.auto.unicorn.items) {
-				var ub = list.children().children('#toggle-' + unicornName);
+			for (const unicornName in options.auto.unicorn.items) {
+				const ub = list.children().children('#toggle-' + unicornName);
 				ub.on('change', function(e) {
 					if (!$(e.target).is(':checked')) {
-						var b = $('#toggle-bestUnicornBuilding');
+						const b = $('#toggle-bestUnicornBuilding');
 						b.prop('checked', false);
 						b.trigger('change');
 					}
@@ -6259,20 +6263,20 @@ let run = function() {
 		return element;
 	};
 
-	var getTradeOption = function (name, option) {
-		var iname = ucfirst(i18n('$trade.race.' + name));
+	let getTradeOption = function (name, option) {
+		let iname = ucfirst(i18n('$trade.race.' + name));
 
-		var element = getOption(name, option, iname);
+		let element = getOption(name, option, iname);
 		element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
 
 		//Limited Trading
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-limited-' + name,
 			title: i18n('trade.limited', [iname]),
 			text: i18n('ui.limit')
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-limited-' + name,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6297,7 +6301,7 @@ let run = function() {
 		element.append(input, label);
 		//Limited Trading End
 
-		var button = $('<div/>', {
+		let button = $('<div/>', {
 			id: 'toggle-seasons-' + name,
 			text: i18n('trade.seasons'),
 			css: {cursor: 'pointer',
@@ -6307,7 +6311,7 @@ let run = function() {
 				textShadow: '3px 3px 4px gray'},
 		});
 
-		var list = $('<ul/>', {
+		let list = $('<ul/>', {
 			id: 'seasons-list-' + name,
 			css: {display: 'none', paddingLeft: '20px'}
 		});
@@ -6327,18 +6331,18 @@ let run = function() {
 		return element;
 	};
 
-	var getSeason = function (name, season, option) {
-		var iname = ucfirst(i18n('$trade.race.' + name));
-		var iseason = ucfirst(i18n('$calendar.season.' + season));
+	let getSeason = function (name, season, option) {
+		let iname = ucfirst(i18n('$trade.race.' + name));
+		let iseason = ucfirst(i18n('$calendar.season.' + season));
 
-		var element = $('<li/>');
+		let element = $('<li/>');
 
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-' + name + '-' + season,
 			text: ucfirst(iseason)
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-' + name + '-' + season,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6364,17 +6368,17 @@ let run = function() {
 		return element;
 	};
 
-	var getSeasonForTimeSkip = function (season, option) {
-		var iseason = ucfirst(i18n('$calendar.season.' + season));
+	let getSeasonForTimeSkip = function (season, option) {
+		let iseason = ucfirst(i18n('$calendar.season.' + season));
 
-		var element = $('<li/>');
+		let element = $('<li/>');
 
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-timeSkip-' + season,
 			text: ucfirst(iseason)
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-timeSkip-' + season,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6400,22 +6404,22 @@ let run = function() {
 		return element;
 	};
 
-	var getOption = function (name, option, iname) {
-		var element = $('<li/>');
-		var elementLabel = iname || option.label || ucfirst(name);
-		var titleName = i18n('ui.trigger.resource') + ": " + ((game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none'));
+	let getOption = function (name, option, iname) {
+		let element = $('<li/>');
+		let elementLabel = iname || option.label || ucfirst(name);
+		let titleName = i18n('ui.trigger.resource') + ": " + ((game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none'));
 		if (option.require === undefined) {
 			titleName = null;
 		}
 
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-' + name,
 			text: elementLabel,
 			title: titleName,
 			css: {display: 'inline-block', minWidth: '80px'}
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-' + name,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6458,11 +6462,11 @@ let run = function() {
 		return element;
 	};
 
-	var getPoliciesOptions = function (forReset) {
-		var items = [];
+	let getPoliciesOptions = function (forReset) {
+		let items = [];
 
-		for (var i in options.policies) {
-			var policy = options.policies[i];
+		for (let i in options.policies) {
+			let policy = options.policies[i];
 			// typo in game code
 			if (policy === 'authocracy') {policy = 'autocracy';}
 			items.push($('<div/>', {
@@ -6475,17 +6479,17 @@ let run = function() {
 		return items;
 	};
 
-	var getUpgradeOption = function (name, option) {
-		var iname = i18n('ui.upgrade.' + name);
-		var element = getOption(name, option, iname);
+	let getUpgradeOption = function (name, option) {
+		let iname = i18n('ui.upgrade.' + name);
+		let element = getOption(name, option, iname);
 
 		if (name === 'policies') {
-			var list = $('<ul/>', {
+			let list = $('<ul/>', {
 				id: 'items-list-policies',
 				css: {display: 'none', paddingLeft: '20px'}
 			});
 
-			var loadButton = $('<div/>', {
+			let loadButton = $('<div/>', {
 				id: 'toggle-upgrade-policies-load',
 				text: i18n('ui.upgrade.policies.load'),
 				css: {
@@ -6497,7 +6501,7 @@ let run = function() {
 			}
 			);
 
-			var showButton = $('<div/>', {
+			let showButton = $('<div/>', {
 				id: 'toggle-upgrade-policies-show',
 				text: i18n('ui.upgrade.policies.show'),
 				css: {
@@ -6511,9 +6515,9 @@ let run = function() {
 			// resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));
 
 			loadButton.on('click', function(){
-				var plist = [];
-				for (var i in game.science.policies) {
-					var policy = game.science.policies[i];
+				const plist = [];
+				for (const i in game.science.policies) {
+					let policy = game.science.policies[i];
 					if (policy.researched) {
 						plist.push(policy.name);
 					}
@@ -6536,7 +6540,7 @@ let run = function() {
 		}
 
 		if (option.subTrigger !== undefined && name === 'missions') {
-			var triggerButton = $('<div/>', {
+			let triggerButton = $('<div/>', {
 				id: 'set-' + name + '-subTrigger',
 				text: i18n('ui.trigger'),
 				title: option.subTrigger,
@@ -6548,9 +6552,9 @@ let run = function() {
 			}).data('option', option);
 
 			triggerButton.on('click', function () {
-				var value;
+				let value;
 				engine.stop(false);
-				if (name === 'missions'){value = window.prompt(i18n('ui.trigger.missions.set'), option.subTrigger);} else{value = window.prompt(i18n('ui.trigger.set'), option.subTrigger);}
+				if (name === 'missions'){value = window.prompt(i18n('ui.trigger.missions.set'), option.subTrigger.toString());} else{value = window.prompt(i18n('ui.trigger.set'), option.subTrigger.toString());}
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
@@ -6567,12 +6571,12 @@ let run = function() {
 		}
 
 		if (name === 'upgrades' || name === 'techs') {
-			var LimitedLabel = $('<label/>', {
+			let LimitedLabel = $('<label/>', {
 				'for': 'toggle-limited-' + name,
 				text: i18n('ui.upgradesLimit')
 			});
 
-			var LimitedInput = $('<input/>', {
+			let LimitedInput = $('<input/>', {
 				id: 'toggle-limited-' + name,
 				type: 'checkbox'
 			}).data('option', option);
@@ -6599,19 +6603,19 @@ let run = function() {
 		return element;
 	};
 
-	var getLimitedOption = function (name, option, iname) {
-		var element = $('<li/>');
-		var elementLabel = iname || option.label || ucfirst(name);
-		var titleName = (game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none');
+	let getLimitedOption = function (name, option, iname) {
+		let element = $('<li/>');
+		let elementLabel = iname || option.label || ucfirst(name);
+		let titleName = (game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none');
 
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-' + name,
 			text: elementLabel,
 			title: i18n('ui.trigger.resource') + ": " + titleName,
 			css: {display: 'inline-block', minWidth: '80px'}
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-' + name,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6647,7 +6651,7 @@ let run = function() {
 			saveToKittenStorage();
 		});
 
-		var maxButton = $('<div/>', {
+		let maxButton = $('<div/>', {
 			id: 'set-' + name + '-max',
 			text: i18n('ui.max', [option.max]),
 			title: option.max,
@@ -6659,9 +6663,9 @@ let run = function() {
 		}).data('option', option);
 
 		maxButton.on('click', function () {
-			var value;
+			let value;
 			engine.stop(false);
-			value = window.prompt(i18n('ui.max.set', [option.label]), option.max);
+			value = window.prompt(i18n('ui.max.set', [option.label]), option.max.toString());
 			if (options.auto.engine.enabled) {
 				engine.start(false);
 			}
@@ -6680,22 +6684,22 @@ let run = function() {
 		return element;
 	};
 
-	var getCraftOption = function (name, option) {
-		var iname = ucfirst(i18n('$resources.' + name + '.title'));
+	let getCraftOption = function (name, option) {
+		let iname = ucfirst(i18n('$resources.' + name + '.title'));
 		if (name === "ship") {
 			iname = ucfirst(i18n('$workshop.crafts.' + name + '.label'));
 		}
 
-		var element = getOption(name, option, iname);
+		let element = getOption(name, option, iname);
 		if (name === 'parchment') {return element;}
 
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-limited-' + name,
 			title: i18n("craft.limitedTitle"),
 			text: i18n('ui.craftLimit')
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-limited-' + name,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6723,18 +6727,16 @@ let run = function() {
 		return element;
 	};
 
-	var getCycle = function (index, option) {
-		var cycle = game.calendar.cycles[index];
+	let getCycle = function (index, option) {
+		let cycle = game.calendar.cycles[index];
+		let element = $('<li/>');
 
-
-		var element = $('<li/>');
-
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-timeSkip-' + index,
 			text: cycle.title
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-timeSkip-' + index,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6760,17 +6762,17 @@ let run = function() {
 		return element;
 	};
 
-	var getResetOption = function (name, type, option) {
-		var element = $('<li/>');
-		var elementLabel = option.label;
+	let getResetOption = function (name, type, option) {
+		let element = $('<li/>');
+		let elementLabel = option.label;
 
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-reset-' + type + '-' + name,
 			text: elementLabel,
 			css: {display: 'inline-block', minWidth: '80px'}
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-reset-' + type + '-' + name,
 			type: 'checkbox'
 		}).data('option', option);
@@ -6791,7 +6793,7 @@ let run = function() {
 			saveToKittenStorage();
 		});
 
-		var minButton = $('<div/>', {
+		let minButton = $('<div/>', {
 			id: 'set-reset-' + type + '-' + name + '-min',
 			text: i18n('ui.min', [option.triggerForReset]),
 			title: option.triggerForReset,
@@ -6804,7 +6806,7 @@ let run = function() {
 
 		minButton.on('click', function () {
 			let value;
-			value = window.prompt(i18n('reset.check.trigger.set', [option.label]), option.triggerForReset);
+			value = window.prompt(i18n('reset.check.trigger.set', [option.label]), option.triggerForReset.toString());
 
 			if (value !== null) {
 				option.triggerForReset = parseInt(value);
@@ -6821,9 +6823,9 @@ let run = function() {
 		return element;
 	};
 
-	var getTimeCtrlOption = function (name, option) {
+	let getTimeCtrlOption = function (name, option) {
 		let triggerButton;
-		var element = getOption(name, option);
+		let element = getOption(name, option);
 
 		if (name === 'timeSkip') {
 			triggerButton = $('<div/>', {
@@ -6837,7 +6839,7 @@ let run = function() {
 					textShadow: '3px 3px 4px gray'}
 			}).data('option', option);
 			triggerButton.on('click', function () {
-				var value;
+				let value;
 				engine.stop(false);
 				value = window.prompt(i18n('time.skip.trigger.set', []), option.subTrigger);
 				if (options.auto.engine.enabled) {
@@ -6852,7 +6854,7 @@ let run = function() {
 				}
 			});
 
-			var maximunButton = $('<div/>', {
+			let maximunButton = $('<div/>', {
 				id: 'set-timeSkip-maximum',
 				text: i18n('ui.maximum'),
 				title: option.max,
@@ -6863,9 +6865,9 @@ let run = function() {
 					textShadow: '3px 3px 4px gray'}
 			}).data('option', option);
 			maximunButton.on('click', function () {
-				var value;
+				let value;
 				engine.stop(false);
-				value = window.prompt(i18n('ui.max.set', ["每次燃烧时间水晶"]), option.maximum);
+				value = window.prompt(i18n('ui.max.set', ["每次燃烧时间水晶"]), option.maximum.toString());
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
@@ -6878,7 +6880,7 @@ let run = function() {
 				}
 			});
 
-			var cyclesButton = $('<div/>', {
+			let cyclesButton = $('<div/>', {
 				id: 'toggle-cycle-' + name,
 				text: i18n('ui.cycles'),
 				css: {cursor: 'pointer',
@@ -6888,15 +6890,15 @@ let run = function() {
 					textShadow: '3px 3px 4px gray'},
 			});
 
-			var cyclesList = $('<ul/>', {
+			let cyclesList = $('<ul/>', {
 				id: 'cycles-list-' + name,
 				css: {display: 'none', paddingLeft: '20px'}
 			});
 
-			for (var i in game.calendar.cycles) {cyclesList.append(getCycle(i, option));}
+			for (let i in game.calendar.cycles) {cyclesList.append(getCycle(i, option));}
 
 
-			var seasonsButton = $('<div/>', {
+			let seasonsButton = $('<div/>', {
 				id: 'toggle-seasons-' + name,
 				text: i18n('trade.seasons'),
 				css: {cursor: 'pointer',
@@ -6907,7 +6909,7 @@ let run = function() {
 			});
 
 
-			var seasonsList = $('<ul/>', {
+			let seasonsList = $('<ul/>', {
 				id: 'seasons-list-' + name,
 				css: {display: 'none', paddingLeft: '20px'}
 			});
@@ -6933,11 +6935,11 @@ let run = function() {
 		} else if (name === 'reset') {
 
 			let item;
-			var resetBuildList     = getOptionHead('reset-build');
-			var resetSpaceList     = getOptionHead('reset-space');
-			var resetResourcesList = getResourceOptions(true);
-			var resetReligionList  = getOptionHead('reset-religion');
-			var resetTimeList      = getOptionHead('reset-time');
+			let resetBuildList     = getOptionHead('reset-build');
+			let resetSpaceList     = getOptionHead('reset-space');
+			let resetResourcesList = getResourceOptions(true);
+			let resetReligionList  = getOptionHead('reset-religion');
+			let resetTimeList      = getOptionHead('reset-time');
 
 			for (item in options.auto.build.items)              {resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));}
 			for (item in options.auto.space.items)              {resetSpaceList.append(getResetOption(item, 'space', options.auto.space.items[item]));}
@@ -6945,15 +6947,15 @@ let run = function() {
 			for (item in options.auto.faith.items)              {resetReligionList.append(getResetOption(item, 'faith', options.auto.faith.items[item]));}
 			for (item in options.auto.time.items)               {resetTimeList.append(getResetOption(item, 'time', options.auto.time.items[item]));}
 
-			var buildButton = $('<div/>', {id: 'toggle-reset-build', text: i18n('ui.build'),
+			let buildButton = $('<div/>', {id: 'toggle-reset-build', text: i18n('ui.build'),
 				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			var spaceButton = $('<div/>', {id: 'toggle-reset-space', text: i18n('ui.space'),
+			let spaceButton = $('<div/>', {id: 'toggle-reset-space', text: i18n('ui.space'),
 				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			var resourcesButton = $('<div/>', {id: 'toggle-reset-resources', text: i18n('ui.craft.resources'),
+			let resourcesButton = $('<div/>', {id: 'toggle-reset-resources', text: i18n('ui.craft.resources'),
 				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			var religionButton = $('<div/>', {id: 'toggle-reset-religion', text: i18n('ui.faith'),
+			let religionButton = $('<div/>', {id: 'toggle-reset-religion', text: i18n('ui.faith'),
 				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			var timeButton = $('<div/>', {id: 'toggle-reset-time', text: i18n('ui.time'),
+			let timeButton = $('<div/>', {id: 'toggle-reset-time', text: i18n('ui.time'),
 				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
 
 			buildButton.on('click', function(){resetBuildList.toggle(); resetSpaceList.toggle(false); resetResourcesList.toggle(false); resetReligionList.toggle(false); resetTimeList.toggle(false);});
@@ -6979,7 +6981,7 @@ let run = function() {
 			}).data('option', option);
 
 			triggerButton.on('click', function () {
-				var value;
+				let value;
 				value = window.prompt(i18n('ui.trigger.set', [option.label]), option.subTrigger);
 
 				if (value !== null) {
@@ -6995,9 +6997,9 @@ let run = function() {
 		return element;
 	};
 
-	var getOptionsOption = function (name, option) {
+	let getOptionsOption = function (name, option) {
 		let input;
-		var element = getOption(name, option);
+		let element = getOption(name, option);
 
 		// hack for style.
 		// If there are more UI options, split it to "getUIOption"
@@ -7024,8 +7026,7 @@ let run = function() {
 		if (name === 'useWorkers') {
 			input = element.children('input');
 			input.on('click', function () {
-				var a = confirm(i18n('ui.trigger.useWorkers.alert'));
-				console.log(a && !option.enabled)
+				let a = confirm(i18n('ui.trigger.useWorkers.alert'));
 				if (a && !option.enabled) {
 					engine.stop();
 					option.enabled = true;
@@ -7048,14 +7049,14 @@ let run = function() {
 			input = element.children('input');
 			input.on('click', function () {
 				engine.stop(false);
-				var confirm = window.confirm("点击确认会导出珂学家的配置.txt文件");
+				let confirm = window.confirm("点击确认会导出珂学家的配置.txt文件");
 				if (confirm) {
-					var $link = $("#download-link");
-					var data = JSON.stringify(window.localStorage['cbc.kitten-scientists']);
-					var b = game.compressLZData(data, false);
-					var blob = new Blob([b], {type: "text/plain"});
+					let $link = $("#download-link");
+					let data = JSON.stringify(window.localStorage['cbc.kitten-scientists']);
+					let b = game.compressLZData(data, false);
+					let blob = new Blob([b], {type: "text/plain"});
 					$link.attr("href", window.URL.createObjectURL(blob));
-					var filename = "小猫珂学家配置" + (game.stats.getStat("totalResets").val + 1) + "周目";
+					let filename = "小猫珂学家配置" + (game.stats.getStat("totalResets").val + 1) + "周目";
 					$link.attr("download", filename + ".txt");
 					$link.get(0).dispatchEvent(new MouseEvent("click"));
 				}
@@ -7064,7 +7065,7 @@ let run = function() {
 				}
 			});
 
-			var loadKS = $('<div/>', {
+			let loadKS = $('<div/>', {
 				id: 'loadKS',
 				text: "导入配置",
 				css: {cursor: 'pointer',
@@ -7076,20 +7077,21 @@ let run = function() {
 
 			loadKS.on('click', function () {
 				engine.stop(false);
-				var b = window.prompt('窗口内填入后你需要导入的珂学家配置，确认后会导入配置', '');
+				let b = window.prompt('窗口内填入后你需要导入的珂学家配置，确认后会导入配置', '');
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
 				if (b && b.length >= 10) {
+					let ksSave;
 					if (b.charAt(0) !== "{") {
-						var ksSave = JSON.parse(LZString.decompressFromBase64(b));
+						ksSave = JSON.parse(LZString.decompressFromBase64(b));
 					}
 					window.localStorage['cbc.kitten-scientists'] = ksSave;
 					loadFromKittenStorage();
 				}
 			});
 
-			var ressetKS = $('<div/>', {
+			let ressetKS = $('<div/>', {
 				id: 'ressetKS',
 				text: "配置初始化",
 				css: {cursor: 'pointer',
@@ -7125,7 +7127,7 @@ let run = function() {
 				option.enabled = input.prop('checked');
 				kittenStorage.items[input.attr('id')] = option.enabled;
 				if (e.isTrusted) {saveToKittenStorage();}
-				var style = document.getElementById('ks-donate').style;
+				let style = document.getElementById('ks-donate').style;
 				if (!option.enabled) {
 					style.display = 'none';
 				} else {
@@ -7138,14 +7140,14 @@ let run = function() {
 		if (name === 'wiki') {
 			input = element.children('input');
 			input.on('click', function () {
-				var tempwindow = window.open();
+				let tempwindow = window.open();
 				tempwindow.location = 'https://petercheney.gitee.io/baike/?file=004-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7/02-%E5%B0%8F%E7%8C%AB%E7%A7%91%E5%AD%A6%E5%AE%B6';
 				printoutput(['如果还有问题可以在猫国群询问，有BUG或意见可以联系Cheney。默认配置即推荐配置：文艺复兴玄学下默认配置能2小时冲出轨道。','ks-default', options.activitycolor]);
 			});
 		}
 
 		if (option.subTrigger !== undefined) {
-			var triggerButton = $('<div/>', {
+			let triggerButton = $('<div/>', {
 				id: 'set-' + name + '-subTrigger',
 				text: i18n('ui.trigger'),
 				title: option.subTrigger,
@@ -7157,7 +7159,7 @@ let run = function() {
 			}).data('option', option);
 
 			triggerButton.on('click', function () {
-				var value;
+				let value;
 				engine.stop(false);
 				if (name === 'crypto') {
 					value = window.prompt(i18n('ui.trigger.crypto.set', [option.label]), option.subTrigger);
@@ -7188,20 +7190,20 @@ let run = function() {
 		return element;
 	};
 
-	var getDistributeOption = function (name, option) {
+	let getDistributeOption = function (name, option) {
 		if (name === "leader") {return getLeader(name, option);}
-		var iname = ucfirst(i18n('$village.job.' + name));
+		let iname = ucfirst(i18n('$village.job.' + name));
 
-		var element = getOption(name, option, iname);
+		let element = getOption(name, option, iname);
 		element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
 
 		//Limited Distribution
-		var label = $('<label/>', {
+		let label = $('<label/>', {
 			'for': 'toggle-limited-' + name,
 			text: i18n('ui.limit')
 		});
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-limited-' + name,
 			type: 'checkbox'
 		}).data('option', option);
@@ -7224,7 +7226,7 @@ let run = function() {
 
 		element.append(input, label);
 
-		var maxButton = $('<div/>', {
+		let maxButton = $('<div/>', {
 			id: 'set-' + name + '-max',
 			text: i18n('ui.max', [option.max]),
 			title: option.max,
@@ -7237,9 +7239,9 @@ let run = function() {
 
 		(function (iname){
 			maxButton.on('click', function () {
-				var value;
+				let value;
 				engine.stop(false);
-				value = window.prompt(i18n('ui.max.set', [iname]), option.max);
+				value = window.prompt(i18n('ui.max.set', [iname]), option.max.toString());
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
@@ -7259,18 +7261,18 @@ let run = function() {
 		return element;
 	};
 
-	var getLeader = function (name, option) {
+	let getLeader = function (name, option) {
 		let i;
-		var iname = ucfirst(i18n('distribute.makeLeader'));
-		var element = getOption(name, option, iname);
+		let iname = ucfirst(i18n('distribute.makeLeader'));
+		let element = getOption(name, option, iname);
 		element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
 
-		var traitList = $('<ul/>', {
+		let traitList = $('<ul/>', {
 			id: 'items-list-traits',
 			css: {display: 'none', paddingLeft: '20px'}
 		});
 
-		var traitShowButton = $('<div/>', {
+		let traitShowButton = $('<div/>', {
 			id: 'toggle-leaderTrait' + name,
 			text: i18n('$village.trait.filter.all'),
 			css: {
@@ -7281,7 +7283,7 @@ let run = function() {
 				textShadow:'3px 3px 4px gray'}
 		});
 
-		for (i in com.nuclearunicorn.game.village.Kitten().traits){
+		for (i in com["nuclearunicorn"].game.village.Kitten().traits){
 			traitList.append(getLeaderTrait(i, option));
 		}
 
@@ -7290,12 +7292,12 @@ let run = function() {
 			traitList.toggle();
 		});
 
-		var jobList = $('<ul/>', {
+		let jobList = $('<ul/>', {
 			id: 'items-list-jobs',
 			css: {display: 'none', paddingLeft: '20px'}
 		});
 
-		var jobShowButton = $('<div/>', {
+		let jobShowButton = $('<div/>', {
 			id: 'toggle-leaderJob' + name,
 			text: i18n('$village.panel.job'),
 			css: {
@@ -7320,19 +7322,19 @@ let run = function() {
 		return element;
 	};
 
-	var getLeaderJob = function (index, option) {
-		var job = game.village.jobs[index];
+	let getLeaderJob = function (index, option) {
+		let job = game.village.jobs[index];
 
-		var element = $('<li/>');
+		let element = $('<li/>');
 
-		var label = ($('<label/>', {
+		let label = ($('<label/>', {
 			'for': 'toggle-leaderJob-' + job.name,
 			text: job.title,
 			css: {cursor: 'pointer',
 				textShadow: '3px 3px 4px gray'}
 		}));
 
-		var input = $('<input/>', {
+		let input = $('<input/>', {
 			id: 'toggle-leaderJob-' + job.name,
 			name: 'leaderJob',
 			value: job.name,
@@ -7344,7 +7346,7 @@ let run = function() {
 		}
 
 		element.on('mouseup', function () {
-			var lastJobName = $("input[name='leaderJob']:checked").val();
+			let lastJobName = $("input[name='leaderJob']:checked").val();
 			delete kittenStorage.items['toggle-leaderJob-' + lastJobName];
 		});
 
@@ -7359,19 +7361,21 @@ let run = function() {
 		return element;
 	};
 
-	var getLeaderTrait = function (index, option) {
-		var trait = com.nuclearunicorn.game.village.Kitten().traits[index];
+	let getLeaderTrait = function (index, option) {
+		const trait = com["nuclearunicorn"].game.village.Kitten().traits[index];
 
-		var element = $('<li/>');
+		const element = $('<li/>');
 
-		var label = ($('<label/>', {
+		const label = ($('<label/>', {
 			'for': 'toggle-leaderTrait-' + trait.name,
 			text: trait.title,
-			css: {cursor: 'pointer',
-				textShadow: '3px 3px 4px gray'}
+			css: {
+				cursor: 'pointer',
+				textShadow: '3px 3px 4px gray'
+			}
 		}));
 
-		var input = $('<input/>', {
+		const input = $('<input/>', {
 			id: 'toggle-leaderTrait-' + trait.name,
 			name: 'leaderTrait',
 			value: trait.name,
@@ -7383,7 +7387,7 @@ let run = function() {
 		}
 
 		element.on('mouseup', function () {
-			var lastTraitName = $("input[name='leaderTrait']:checked").val();
+			let lastTraitName = $("input[name='leaderTrait']:checked").val();
 			delete kittenStorage.items['toggle-leaderTrait-' + lastTraitName];
 		});
 
@@ -7398,9 +7402,9 @@ let run = function() {
 		return element;
 	};
 
-	let buildOption, build, buildItem;
+	let buildOption, spaceOption, build, buildItem;
 	// Grab button labels for religion options
-	var religionManager = new ReligionManager();
+	let religionManager = new ReligionManager();
 	for (buildOption in options.auto.faith.items) {
 		buildItem = options.auto.faith.items[buildOption];
 		build = religionManager.getBuild(buildItem.name || buildOption, buildItem.variant);
@@ -7410,7 +7414,7 @@ let run = function() {
 	}
 
 	// Grab button labels for time options
-	var timeManager = new TimeManager();
+	let timeManager = new TimeManager();
 	for (buildOption in options.auto.time.items) {
 		buildItem = options.auto.time.items[buildOption];
 		build = timeManager.getBuild(buildItem.name || buildOption, buildItem.variant);
@@ -7420,7 +7424,7 @@ let run = function() {
 	}
 
 	// Grab button labels for build options
-	var buildManager = new BuildManager();
+	let buildManager = new BuildManager();
 	for (buildOption in options.auto.build.items) {
 		buildItem = options.auto.build.items[buildOption];
 		build = buildManager.getBuild(buildItem.name || buildOption);
@@ -7434,18 +7438,18 @@ let run = function() {
 	}
 
 	// Grab button labels for space options
-	var spaceManager = new SpaceManager();
-	for (var spaceOption in options.auto.space.items) {
+	let spaceManager = new SpaceManager();
+	for (spaceOption in options.auto.space.items) {
 		build = spaceManager.getBuild(spaceOption);
 		if (build) {
 			// It's changed to label in 1.3.0.0
-			var title = build.title ? build.title : build.label;
+			let title = build.title ? build.title : build.label;
 			options.auto.space.items[spaceOption].label = title;
 		}
 	}
 
-	var optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
-	var optionsListElement = $('<ul/>');
+	let optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
+	let optionsListElement = $('<ul/>');
 	//var optionsTitleElement = $('<div/>', {
 	//	css: { bottomBorder: '1px solid gray', marginBottom: '5px' },
 	//	text: kg_version
@@ -7468,7 +7472,7 @@ let run = function() {
 	// add activity button
 	// ===================
 
-	var activitySummary = {
+	let activitySummary = {
 		other: {},
 	};
 
@@ -7484,7 +7488,7 @@ let run = function() {
 		}
 	};
 
-	var resetActivitySummary = function () {
+	let resetActivitySummary = function () {
 		activitySummary = {
 			lastyear: game.calendar.year,
 			lastday:  game.calendar.day,
@@ -7495,7 +7499,7 @@ let run = function() {
 		};
 	};
 
-	var storeForSummary = function (name, amount, section) {
+	let storeForSummary = function (name, amount, section) {
 		if (amount === undefined) {amount = 1;}
 		if (section === undefined) {section = 'other';}
 
@@ -7508,7 +7512,7 @@ let run = function() {
 		}
 	};
 
-	var displayActivitySummary = function () {
+	let displayActivitySummary = function () {
 		if (game.console.messages.length > 900) {
 			game.clearLog();
 		}
@@ -7519,8 +7523,8 @@ let run = function() {
 
 		// Techs
 		let l,name;
-		for (name in activitySummary.research) {
-			l = activitySummary.research[name];
+		for (name in activitySummary["research"]) {
+			l = activitySummary["research"][name];
 			l = (l) ? '科学家' : '';
 			isummary('summary.tech', [l + '小猫研究了 ' + ucfirst(name)]);
 		}
@@ -7547,8 +7551,8 @@ let run = function() {
 			isummary('summary.craft', [game.getDisplayValueExt(activitySummary.craft[name]), ucfirst(name)]);
 		}
 
-		for (name in activitySummary.craftLeader) {
-			isummary('summary.craftLeader', [game.getDisplayValueExt(activitySummary.craftLeader[name]), ucfirst(name)]);
+		for (name in activitySummary["craftLeader"]) {
+			isummary('summary.craftLeader', [game.getDisplayValueExt(activitySummary["craftLeader"][name]), ucfirst(name)]);
 		}
 
 		// Trading
@@ -7558,15 +7562,15 @@ let run = function() {
 
 		// Show time since last run. Assumes that the day and year are always higher.
 		if (activitySummary.lastyear && activitySummary.lastday) {
-			var years = game.calendar.year - activitySummary.lastyear;
-			var days = game.calendar.day - activitySummary.lastday;
+			let years = game.calendar.year - activitySummary.lastyear;
+			let days = game.calendar.day - activitySummary.lastday;
 
 			if (days < 0) {
 				years -= 1;
 				days += 400;
 			}
 
-			var duration = '';
+			let duration = '';
 			if (years > 0) {
 				duration += years + ' ';
 				duration += (years === 1) ? i18n('summary.year') : i18n('summary.years');
@@ -7587,7 +7591,7 @@ let run = function() {
 
 	resetActivitySummary();
 
-	var activityBox = $('<div/>', {
+	let activityBox = $('<div/>', {
 		id: 'activity-box',
 		css: {
 			display: 'inline-block',
@@ -7595,7 +7599,7 @@ let run = function() {
 		}
 	});
 
-	var showActivity = $('<a/>', {
+	let showActivity = $('<a/>', {
 		id: 'showActivityHref',
 		text: i18n('summary.show'),
 		href: '#',
@@ -7610,7 +7614,7 @@ let run = function() {
 
 	$('#clearLog').append(activityBox);
 
-	var messageBox = $('<div/>', {
+	const messageBox = $('<div/>', {
 		id: 'important-msg-box',
 		class: 'dialog help',
 		css: {
@@ -7619,14 +7623,14 @@ let run = function() {
 			height: 'auto'
 		}
 	});
-	var mbClose = $('<a/>', {text: i18n('ui.close'), href: '#', css: {position: 'absolute', top: '10px', right: '15px'}});
+	let mbClose = $('<a/>', {text: i18n('ui.close'), href: '#', css: {position: 'absolute', top: '10px', right: '15px'}});
 	mbClose.on('click', function () {messageBox.toggle(); });
-	var mbTitle = $('<h1/>', {id: 'mb-title', text: 'test text'});
-	var mbContent = $('<h1/>', {id: 'mb-content', text: 'test text'});
+	let mbTitle = $('<h1/>', {id: 'mb-title', text: 'test text'});
+	let mbContent = $('<h1/>', {id: 'mb-content', text: 'test text'});
 	messageBox.append(mbClose, mbTitle, mbContent);
 	$('#gamePageContainer').append(messageBox);
 
-	var showMessageBox = (title, content) => {
+	let showMessageBox = (title, content) => {
 		mbTitle.html(title);
 		mbContent.html(content);
 		messageBox.toggle();
@@ -7635,8 +7639,8 @@ let run = function() {
 	// Donation Button
 	// ===============
 
-	var showD = function() {
-	var donate = $('<li/>', {id: "ks-donate"}).append($('<a/>', {
+	let showD = function() {
+	let donate = $('<li/>', {id: "ks-donate"}).append($('<a/>', {
 		href: 'bitcoin:' + address + '?amount=0.00048&label=Kittens Donation',
 		target: '_blank',
 		text: address
@@ -7662,8 +7666,8 @@ let run = function() {
 	// Initialize and set toggles for Engine
 	// =====================================
 
-	var engine = new Engine();
-	var toggleEngine = $('#toggle-engine');
+	let engine = new Engine();
+	let toggleEngine = $('#toggle-engine');
 
 	toggleEngine.on('change', function () {
 		if (toggleEngine.is(':checked')) {
@@ -7689,13 +7693,13 @@ let run = function() {
 	if (kittenStorage.reset && kittenStorage.reset.reset) {
 		// calc paragon and karma
 		kittenStorage.reset.karmaTotal += game.resPool.get('karma').value - Number(kittenStorage.reset.karmaLastTime);
-		kittenStorage.reset.pargonTotal += game.resPool.get('paragon').value - Number(kittenStorage.reset.paragonLastTime);
+		kittenStorage.reset.paraonTotal += game.resPool.get('paragon').value - Number(kittenStorage.reset.paragonLastTime);
 		kittenStorage.reset.reset = false;
 
 		// show messagebox
 		showMessageBox(
 			i18n('summary.time.reset.title', [kittenStorage.reset.times]),
-			i18n('summary.time.reset.content', [kittenStorage.reset.karmaTotal, kittenStorage.reset.pargonTotal])
+			i18n('summary.time.reset.content', [kittenStorage.reset.karmaTotal, kittenStorage.reset.paragonTotal])
 		);
 		// auto start
 		toggleEngine.prop('checked', true);
@@ -7706,7 +7710,7 @@ let run = function() {
 			reset: false,
 			times: 0,
 			paragonLastTime: 0,
-			pargonTotal: 0,
+			paragonTotal: 0,
 			karmaLastTime: 0,
 			karmaTotal: 0
 		};
