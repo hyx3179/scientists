@@ -18,7 +18,6 @@
 
 var kg_version = "小猫珂学家版本1.5.0";
 var address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
-// Game will be referenced in loadTest function
 var lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 
 var run = function() {
@@ -1513,7 +1512,7 @@ var run = function() {
 				var season = game.calendar.season;
 				var wait = optionVals.timeSkip.wait;
 				if (!optionVals.timeSkip[game.calendar.seasons[season].name] || (wait !== false && currentCycle === 5)) {
-					if (wait === 1 && currentCycle === 5) {
+					if (wait == 1 && currentCycle === 5) {
 						optionVals.timeSkip.wait = game.calendar.year;
 						break TimeSkip;
 					} else if (wait === false || wait === currentYear || wait === 1) {
@@ -1966,7 +1965,7 @@ var run = function() {
 				let adoreTri = option.adore.subTrigger;
 				if (adoreTri === 0.001 && booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
 					booleanForAdore = false;
-					let adoreSolar = activitySummary.other['adore.solar'];
+					//let adoreSolar = activitySummary.other['adore.solar'];
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 1e2) / 100;
 					activity(i18n('summary.adore.solar', [expectSolarRevolutionRatio]));
 					activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
@@ -2070,7 +2069,7 @@ var run = function() {
 					var model = buildManager.getBuildButton(name, build.variant).model;
 					var panel = (build.variant === 'c') ? game.science.get('cryptotheology').researched : true;
 					let visible = (build.variant === 's') ? gReligion.faith >= metabuild.faith : model.visible;
-					if (visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable === true && model.metadata.on == 0)) {
+					if (visible && !model.enabled && (!model.metadata.noStackable || model.metadata.noStackable === true && !model.metadata.on)) {
 						buildManager.getBuildButton(name, build.variant).controller.updateEnabled(model);
 					}
 					metaData[name].rHidden = (build.variant === 's') ? !visible : !(visible && model.enabled && panel);
@@ -2118,8 +2117,7 @@ var run = function() {
 			var metaData = {};
 			for (var name in builds) {
 				var build = builds[name];
-				var metaBuild = buildManager.getBuild(name, build.variant);
-				metaData[name] = metaBuild;
+				metaData[name] = buildManager.getBuild(name, build.variant);
 				
 				var button = buildManager.getBuildButton(name, build.variant);
 				if (!button || !button.model.metadata) {
@@ -2155,7 +2153,7 @@ var run = function() {
 			var buildManager = this.buildManager;
 			let geodesy = game.workshop.get('geodesy').researched;
 			let revolutionRatio = game.religion.getSolarRevolutionRatio();
-			var refreshRequired = 0;
+			let prices = resource = refreshRequired = 0;
 
 			this.setTrait('scientist');
 			//upgradeManager.workManager.render();
@@ -2179,7 +2177,7 @@ var run = function() {
 					prices = game.village.getEffectLeader("scientist", prices);
 					for (let resource of prices) {
 						let name = resource.name;
-						if (upgradeManager.getValue(resource.name) < resource.val) {
+						if (upgradeManager.getValue(name) < resource.val) {
 							continue techLoop;
 						}
 					}
@@ -2194,7 +2192,7 @@ var run = function() {
 				let noup = [];
 				if (upgrades.upgrades.limited) {
 					let resStarchart = resMap['starchart'];
-					let isFilter = false;
+					let isFilter;
 					noup = ['biofuel','gmo','invisibleBlackHand'];
 					if (!game.bld.getBuildingExt('pasture').meta.on || game.bld.getBuildingExt('pasture').meta.stage === 0) {
 						noup = noup.concat(['photovoltaic', 'thinFilm', 'qdot']);
@@ -2310,7 +2308,7 @@ var run = function() {
 					let upgName = upg.name;
 					if (noup.indexOf(upgName) !== -1) {continue;}
 
-					var prices = dojo.clone(upg.prices); // game.village.getEffectLeader will override its argument
+					prices = dojo.clone(upg.prices); // game.village.getEffectLeader will override its argument
 					prices = game.village.getEffectLeader("scientist", prices);
 					for (var resource of prices) {
 						if (upgradeManager.getValue(resource.name, upgName) < resource.val) {continue workLoop;}
@@ -2331,7 +2329,7 @@ var run = function() {
 					let ratio = (game.science.get('astronomy').researched) ? 1 : 3;
 
 					// A **little** more efficient than game.science.getPolicy if options.policies is right order
-					for (var i in options.policies) {
+					for (let i in options.policies) {
 						var targetName = options.policies[i];
 						for (var j in policies) {
 							j = parseInt(j); // fuck js
@@ -2352,7 +2350,7 @@ var run = function() {
 							}
 						}
 					}
-					for (var i of toResearch) {
+					for (let i of toResearch) {
 						for (var resource of i.prices) {
 							if (craftManager.getValueAvailable(resource.name, true) < resource.val * ratio) {continue;}
 							upgradeManager.build(i, 'policy');
@@ -2380,8 +2378,8 @@ var run = function() {
 					if (!missions[3].val && i === 2 && subTrigger !== 3 && !game.challenges.isActive('blackSky')) {continue;}
 
 					if (Btn.model.metadata.val || Btn.model.metadata.on) {continue;}
-					var prices = Btn.model.prices;
-					for (var resource of prices) {
+					prices = Btn.model.prices;
+					for (resource of prices) {
 						if (craftManager.getValueAvailable(resource.name, true) < resource.val) {continue missionLoop;}
 					}
 					if (!Btn.model.enabled) {
@@ -2424,6 +2422,7 @@ var run = function() {
 			}
 
 			if (upgrades.buildings.enabled) {
+				let energy = (winterProd && winterProd - 1 < game.resPool.energyCons);
 				var pastures = (game.bld.getBuildingExt('pasture').meta.stage === 0) ? game.bld.getBuildingExt('pasture').meta.val : 0;
 				var aqueducts = (game.bld.getBuildingExt('aqueduct').meta.stage === 0) ? game.bld.getBuildingExt('aqueduct').meta.val : 0;
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
@@ -2445,8 +2444,7 @@ var run = function() {
 				var pastureMeta = game.bld.getBuildingExt('pasture').meta;
 				if (pastureMeta.stage === 0) {
 					if (pastureMeta.stages[1].stageUnlocked) {
-						var energy = (winterProd && winterProd - 45 < game.resPool.energyCons);
-						var broadcastTower = game.bld.getBuildingExt('amphitheatre').meta.stage == 1;
+						var broadcastTower = game.bld.getBuildingExt('amphitheatre').meta.stage === 1;
 						var boolean = (energy && broadcastTower && game.getResourcePerTick('titanium', true) > 25);
 						if (craftManager.getPotentialCatnip(true, 0, aqueducts) > 45 && boolean && options.auto.build.items.solarFarm.enabled) {
 							return upgradeBuilding('pasture', pastureMeta);
@@ -2459,7 +2457,6 @@ var run = function() {
 				var aqueductMeta = game.bld.getBuildingExt('aqueduct').meta;
 				if (aqueductMeta.stage === 0) {
 					if (aqueductMeta.stages[1].stageUnlocked) {
-						var energy = (winterProd && winterProd - 1 < game.resPool.energyCons);
 						let catnip = craftManager.getPotentialCatnip(true, pastures, 0) > 90;
 						if (catnip && energy && pastureMeta.stage === 1 && options.auto.build.items.hydroPlant.enabled) {
 							return upgradeBuilding('aqueduct', aqueductMeta);
@@ -2640,7 +2637,7 @@ var run = function() {
 					tradepost.max = 22;
 				}
 				if (!theology && game.science.get('philosophy').researched && goldTri < 0.96) {
-					let one = game.village.happiness < 4 && game.bld.get('temple').val == 1 && game.prestige.getPerk('renaissance').researched;
+					let one = game.village.happiness < 4 && game.bld.get('temple').val === 1 && game.prestige.getPerk('renaissance').researched;
 					temple.max = (one) ? 1 : Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
 					tradepost.max = 12;
 					msgSummary('tradepost');
@@ -2696,7 +2693,7 @@ var run = function() {
 
 				// 太阳能
 				let solarFarm = items['solarFarm'];
-				let winterProd = (game.calendar.season == 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 && winterProd > game.resPool.energyCons) {
 					solarFarm.enabled = false;
 				}
@@ -2727,7 +2724,7 @@ var run = function() {
 						msgSummary('biolab');
 					}
 				} else {
-					if (titaniumMore && !mansion.max && titaniumMap.value / titaniumMap.maxValue == 1) {
+					if (titaniumMore && !mansion.max && resPercent('titanium') === 1) {
 						mansion.max = 45;
 						msgSummary('mansion');
 					}
@@ -3024,7 +3021,7 @@ var run = function() {
 			let atheism = game.challenges.isActive("atheism");
 			let renaissance = game.prestige.getPerk('renaissance').researched;
 			// Determine how many races we will trade this cycl
-			let trade,race,name;
+			let trade,race,name,require;
 			for (name in optionTrade.items) {
 				trade = optionTrade.items[name];
 
@@ -3039,7 +3036,7 @@ var run = function() {
 
 				if (!button || !tradeManager.singleTradePossible(name)) {continue;}
 
-				var require = !trade.require ? false : craftManager.getResource(trade.require);
+				require = !trade.require ? false : craftManager.getResource(trade.require);
 
 				// If we have enough to trigger the check, then attempt to trade
 				var prof = tradeManager.getProfitability(name);
@@ -3087,7 +3084,7 @@ var run = function() {
 			for (i = 0; i < trades.length; i++) {
 				name = trades[i];
 				trade = options.auto.trade.items[name];
-				var require = !trade.require ? false : craftManager.getResource(trade.require);
+				require = !trade.require ? false : craftManager.getResource(trade.require);
 				var trigConditions = ((!require || requireTrigger <= require.value / require.maxValue) && requireTrigger <= gold.value / gold.maxValue);
 				var tradePos = Math.floor(tradeManager.getLowestTradeAmount(name, trade.limited, trigConditions) * isLimited);
 				if (tradePos < 1) {
@@ -3258,27 +3255,28 @@ var run = function() {
 			}
 			// auto turn on steamworks
 			if (game.village.maxKittens > 130 || game.stats.getStat("totalResets").val > 0) {
+				let button;
 				// 自动打开蒸汽工房
 				var st = game.bld.getBuildingExt('steamworks').meta;
 				var ma = game.bld.getBuildingExt('magneto').meta;
 				if (st.val && st.on !== st.val && ma.on > 8) {
-					var stButton = buildManager.getBuildButton('steamworks');
-					stButton.controller.onAll(stButton.model);
+					button = buildManager.getBuildButton('steamworks');
+					button.controller.onAll(stButton.model);
 					msg('steamworks');
 				}
 				// 自动打开反应堆
 				var re = game.bld.getBuildingExt('reactor').meta;
 				var ur = game.getResourcePerTick("uranium",true);
 				if (re.val && re.on !== re.val && ur > 0) {
-					var reButton = buildManager.getBuildButton('reactor');
-					reButton.controller.onAll(reButton.model);
+					button = buildManager.getBuildButton('reactor');
+					button.controller.onAll(reButton.model);
 					msg('reactor');
 				}
 				// 自动打开工厂
 				let fa = game.bld.getBuildingExt('factory').meta;
 				if (fa.val && fa.on !== fa.val && game.workshop.get('spaceManufacturing').researched) {
-					var reButton = buildManager.getBuildButton('factory');
-					reButton.controller.onAll(reButton.model);
+					button = buildManager.getBuildButton('factory');
+					button.controller.onAll(reButton.model);
 					msg('factory');
 				}
 				// 自动打开时空加速器自动化
@@ -3289,7 +3287,7 @@ var run = function() {
 					msg('temporalAccelerator');
 				}
 				// 缺电
-				let winterProd = (game.calendar.season == 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				if (winterProd && winterProd < game.resPool.energyCons) {
 					if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
 						let msg = '冬季产出电:' + game.getDisplayValueExt(winterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
@@ -3828,8 +3826,7 @@ var run = function() {
 			if (name === 'titanium' && upgrade !== 'rotaryKiln') {
 				if (!game.workshop.metaCache['rotaryKiln'].researched && game.workshop.get('orbitalGeodesy').researched) {stock += 5000;}
 			}
-			let value = Math.max(resMap[name].value - stock, 0);
-			return value;
+			return Math.max(resMap[name].value - stock, 0);
 		},
 		getBuildButton: function (upgrade, variant) {
 			if (variant === 'workshop') {
@@ -4039,8 +4036,7 @@ var run = function() {
 		getSumPrices: function (build, price) {
 			var currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
 			var buildRatio = currentRatio + game.getEffect("priceRatio");
-			var sumPrices = (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
-			return sumPrices;
+			return (price.val - price.val * Math.pow(buildRatio, build.val - 1)) / (1 - buildRatio);
 		},
 		sellBuild: function (name) {
 			var build = this.getBuild(name).meta;
@@ -4874,7 +4870,7 @@ var run = function() {
 				var data = metaData[name];
 				if (!build.enabled) {continue;}
 				// 建筑数量大于等于限值时直接下一个
-				if (build.max != -1 && build.max <= data.val) { continue; }
+				if (build.max !== -1 && build.max <= data.val) { continue; }
 				if (data.tHidden === true) {continue;}
 				if (data.rHidden === true) {continue;}
 				if ((data.rHidden === undefined) && !data.unlocked) {continue;}
@@ -5530,12 +5526,12 @@ var run = function() {
 
 		if (saved.version === kittenStorageVersion) {
 			kittenStorage = saved;
-
+			let el;
 			if (saved.toggles) {
 				for (var toggle in saved.toggles) {
 					if (toggle !== 'engine' && options.auto[toggle]) {
 						options.auto[toggle].enabled = !!saved.toggles[toggle];
-						var el = $('#toggle-' + toggle);
+						el = $('#toggle-' + toggle);
 						el.prop('checked', options.auto[toggle].enabled);
 					}
 				}
@@ -5543,7 +5539,7 @@ var run = function() {
 
 			for (var item in kittenStorage.items) {
 				var value = kittenStorage.items[item];
-				var el = $('#' + item);
+				el = $('#' + item);
 				var option = el.data('option');
 				var name = item.split('-');
 
@@ -6756,10 +6752,10 @@ var run = function() {
 		}
 
 		input.on('change', function () {
-			if (input.is(':checked') && option.checkForReset == false) {
+			if (input.is(':checked') && !option.checkForReset) {
 				option.checkForReset = true;
 				imessage('status.reset.check.enable', [elementLabel]);
-			} else if ((!input.is(':checked')) && option.checkForReset == true) {
+			} else if ((!input.is(':checked')) && option.checkForReset) {
 				option.checkForReset = false;
 				imessage('status.reset.check.disable', [elementLabel]);
 			}
@@ -7347,7 +7343,7 @@ var run = function() {
 			type: 'radio'
 		}).data('option', option);
 
-		if (input.prop("value") == option.leaderTrait) {
+		if (input.prop("value") === option.leaderTrait) {
 			input.prop("checked", true);
 		}
 
