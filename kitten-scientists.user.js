@@ -1074,12 +1074,12 @@ var run = function() {
 	//var iwarning = function(key, args, t) { warning(i18n(key, args), t); };
 
 	// 缓存upgrade
-	var cacheUpgrades = (meta) => {
+	const cacheUpgrades = (meta) => {
 		if (!options.auto.cache.upgrade) {
 			options.auto.cache.upgrade = {};
 		}
 		let metaUpgrades = meta.upgrades;
-		for(let i in metaUpgrades) {
+		for (let i in metaUpgrades) {
 			if (!options.auto.cache.upgrade[i]) {
 				options.auto.cache.upgrade[i] = [];
 			}
@@ -2425,10 +2425,10 @@ var run = function() {
 			}
 
 			if (upgrades.buildings.enabled) {
+				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let energy = (winterProd && winterProd - 1 < game.resPool.energyCons);
 				var pastures = (game.bld.getBuildingExt('pasture').meta.stage === 0) ? game.bld.getBuildingExt('pasture').meta.val : 0;
 				var aqueducts = (game.bld.getBuildingExt('aqueduct').meta.stage === 0) ? game.bld.getBuildingExt('aqueduct').meta.val : 0;
-				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let upgradeBuilding = (name, meta) => {
 					let prices = meta.stages[1].prices;
 					if (bulkManager.singleBuildPossible(meta, prices, 1 )) {
@@ -6778,7 +6778,7 @@ var run = function() {
 		}).data('option', option);
 
 		minButton.on('click', function () {
-			var value;
+			let value;
 			value = window.prompt(i18n('reset.check.trigger.set', [option.label]), option.triggerForReset);
 
 			if (value !== null) {
