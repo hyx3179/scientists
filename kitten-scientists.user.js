@@ -19,7 +19,6 @@
 var kg_version = "小猫珂学家版本1.5.0";
 var address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
 var lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
-
 var run = function() {
 
 	var i18nData = {
@@ -112,7 +111,7 @@ var run = function() {
 			'ui.upgrade.policies': 'Policies',
 			'ui.upgrade.policies.load': 'Load',
 			'ui.upgrade.policies.show': 'Show',
-			
+
 			'ui.faith.addtion': 'addition',
 			'option.faith.best.unicorn': 'Build Best Unicorn Building First',
 			'option.faith.best.unicorn.desc': 'Include auto Sacrifice Unicorns if tears are not enough to build the best unicorn building',
@@ -550,10 +549,12 @@ var run = function() {
 		i18nData[lang] = i18nData['en'];
 	}
 
-	var i18n = function(key, args) {
+	const i18n = function (key, args) {
 		// i18n('$xx') mean load string from game
 		// i18n('xx') mean load string from ks
-		if (key[0] === "$") {return $I(key.slice(1));}
+		if (key[0] === "$") {
+			return $I(key.slice(1));
+		}
 		var value = i18nData[lang][key];
 		if (typeof value === 'undefined') {
 			value = i18nData['en'][key];
@@ -564,7 +565,9 @@ var run = function() {
 			console.error('Key "' + key + '" not found in ' + lang);
 		}
 		if (args) {
-			for (var i = 0; i < args.length; i++) {value = value.replace('{' + i + '}', args[i]);}
+			for (var i = 0; i < args.length; i++) {
+				value = value.replace('{' + i + '}', args[i]);
+			}
 		}
 		return value;
 	};
@@ -715,7 +718,7 @@ var run = function() {
 					solarFarm:      {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'pasture', checkForReset: true, triggerForReset: -1},
 					aqueduct:       {require: 'minerals',    enabled: true, max:250, stage: 0, checkForReset: true, triggerForReset: -1},
 					hydroPlant:     {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'aqueduct', checkForReset: true, triggerForReset: -1},
-					
+
 					// other
 					amphitheatre:   {require: 'minerals',    enabled: true, max:60, stage: 0, checkForReset: true, triggerForReset: -1},
 					broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1},
@@ -735,7 +738,7 @@ var run = function() {
 					harbor:         {require: false,         enabled: true, max:200,checkForReset: true, triggerForReset: -1},
 					warehouse:      {require: false,         enabled: true, max:200,checkForReset: true, triggerForReset: -1},
 					accelerator:    {require: 'titanium',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-			
+
 					// zebras
 					zebraOutpost:   {require: 'bloodstone',  enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					zebraWorkshop:  {require: 'bloodstone',  enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
@@ -1017,7 +1020,7 @@ var run = function() {
 		if (game.console.messages.length >= 999) {
 			game.clearLog();
 		}
-		
+
 		if (options.auto.filter.enabled) {
 			for (var filt in options.auto.filter.items) {
 				var filter = options.auto.filter.items[filt];
@@ -1265,7 +1268,7 @@ var run = function() {
 				}
 			}
 			if (check(this.buildManager.manager.tab.buttons) || checkList.length) {return;}
-			
+
 			// check space
 			opt = options.auto.space.items;
 			for (var name in opt) {
@@ -1294,7 +1297,7 @@ var run = function() {
 				}
 			}
 			if (checkList.length) {return;}
-			
+
 			// check religion
 			opt = options.auto.faith.items;
 			for (var name in opt) {
@@ -1324,7 +1327,7 @@ var run = function() {
 				check(this.religionManager.manager.tab.rUpgradeButtons) ||
 				check(this.religionManager.manager.tab.children[0].children[0].children) ||
 				checkList.length) {return;}
-			
+
 			// check time
 			opt = options.auto.time.items;
 			for (var name in opt) {
@@ -1342,7 +1345,7 @@ var run = function() {
 			if (check(this.timeManager.manager.tab.children[2].children[0].children) ||
 				check(this.timeManager.manager.tab.children[3].children[0].children) ||
 				checkList.length) {return;}
-				
+
 			// check resources
 			opt = options.auto.resources;
 			for (var name in opt) {
@@ -1355,7 +1358,7 @@ var run = function() {
 
 			// stop!
 			this.stop(false);
-			
+
 			var sleep = function (time = 1500) {
 				return new Promise(resolve => {
 					if (!(options.auto.engine.enabled && options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled)) {throw 'canceled by player';}
@@ -1369,7 +1372,7 @@ var run = function() {
 					var checked = checkedList[i];
 					imessage('reset.check', [checked.name, game.getDisplayValueExt(checked.trigger), game.getDisplayValueExt(checked.val)]);
 				}
-				
+
 				await sleep(0).then(() => {
 					imessage('reset.checked');
 					return sleep();
@@ -1421,7 +1424,7 @@ var run = function() {
 
 			var kittenStorage;
 			if (typeof kittenStorage.reset === 'undefined') {kittenStorage.reset = {};}
-			
+
 			kittenStorage.reset.karmaLastTime = game.resPool.get('karma').value;
 			kittenStorage.reset.paragonLastTime = game.resPool.get('paragon').value;
 			kittenStorage.reset.times += 1;
@@ -1557,7 +1560,7 @@ var run = function() {
 						optionVals.timeSkip.adore = true;
 						this.skipCtrlRes();
 					}
-					
+
 					var beforeSkipYear = game.calendar.year;
 					shatter.controller.doShatterAmt(shatter.model, willSkip);
 					willSkip = game.calendar.year - beforeSkipYear;
@@ -2092,7 +2095,7 @@ var run = function() {
 							continue;
 						}
 					}
-	
+
 					count = (gReligion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
 
 					buildManager.build(buildList[entry].id, buildList[entry].variant, count);
@@ -2118,7 +2121,7 @@ var run = function() {
 			for (var name in builds) {
 				var build = builds[name];
 				metaData[name] = buildManager.getBuild(name, build.variant);
-				
+
 				var button = buildManager.getBuildButton(name, build.variant);
 				if (!button || !button.model.metadata) {
 					if (name === "cryochambers") {continue;}
@@ -2897,10 +2900,10 @@ var run = function() {
 			if (!game.prestige.getPerk('carnivals').researched && game.calendar.festivalDays > 0) {return;}
 			if (game.village.getKittens() < 5 && game.resPool.get("zebras").value === 0) {return;}
 
-			var craftManager = this.craftManager;
-			var catpowProf = 4000 * craftManager.getTickVal(craftManager.getResource('manpower'), true) > 1500;
-			var cultureProf = 4000 * craftManager.getTickVal(craftManager.getResource('culture'), true) > 5000;
-			var parchProf = 4000 * craftManager.getTickVal(craftManager.getResource('parchment'), true) > 2500;
+			let craftManager = this.craftManager;
+			let catpowProf = 4000 * craftManager.getTickVal(craftManager.getResource('manpower'), true) > 1500;
+			let cultureProf = 4000 * craftManager.getTickVal(craftManager.getResource('culture'), true) > 5000;
+			let parchProf = 4000 * craftManager.getTickVal(craftManager.getResource('parchment'), true) > 2500;
 
 			if (!(catpowProf && cultureProf && (game.resPool.get('parchment').value >= 7500 || parchProf))) {return;}
 
@@ -2911,8 +2914,8 @@ var run = function() {
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise we can't click them.
 			if (!game.villageTab.festivalBtn && !game.villageTab.festivalBtn.model) {return game.villageTab.render();}
-			
-			var price = game.villageTab.festivalBtn.model.prices;
+
+			let price = game.villageTab.festivalBtn.model.prices;
 			if (game.resPool.hasRes(price)) {
 				game.resPool.payPrices(price);
 				game.village.holdFestival(1);
@@ -3244,7 +3247,7 @@ var run = function() {
 					storeForSummary('fix.cry', fixed);
 				}
 			}
-			
+
 			let msg = (name, number) => {
 				activity(i18n('summary.' + name, [number]));
 				storeForSummary(name, number);
@@ -3448,7 +3451,7 @@ var run = function() {
 					activitySummary.other['adore.catnip'] = catnipTick * 5;
 				}
 			}
-			
+
 			return catnipTick;
 		},
 		// ref: https://github.com/Bioniclegenius/NummonCalc/blob/112f716e2fde9956dfe520021b0400cba7b7113e/NummonCalc.js#L490
@@ -3792,7 +3795,7 @@ var run = function() {
 			}
 
 			game.stats.getStat("totalClicks").val += 1;
-			
+
 			var label = upgrade.label;
 			let scientist = options.auto.cache.trait['scientist'];
 			let leader = (scientist) ? '科学家小猫' : '小猫';
@@ -4131,7 +4134,7 @@ var run = function() {
 			for (var i = prices.length - 1; i >= 0; i--) {
 				prices[i].val *= amount;
 			}
-			
+
 			if (game.resPool.hasRes(prices)) {
 				if (trait) {
 					let engineer = game.village.getEffectLeader("engineer", 0);
@@ -4818,7 +4821,7 @@ var run = function() {
 			baseProd *= 1 + paragonBonus;
 
 			baseProd *= 1 + game.religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
-			
+
 			//if (!game.opts.disableCMBR) {baseProd *= (1 + game.getCMBRBonus());}
 
 			baseProd *= 1 + (game.getEffect('blsProductionBonus') * game.resPool.get('sorrow').value);
@@ -5136,7 +5139,7 @@ var run = function() {
 			var failedRat = (race.standing < 0) ? (race.standing + standRat) : 0;
 			var successRat = (failedRat < 0) ? (1 + failedRat) : 1;
 			var bonusRat = (race.standing > 0) ? Math.min(race.standing + standRat / 2, 1) : 0;
-			
+
 			var output = {};
 			for (var item of race.sells) {
 				//var item = race.sells[s];
@@ -5332,7 +5335,7 @@ var run = function() {
 		+ 'font-family: inherit;'
 		+ 'font-size: inherit;'
 		+ '}');
-		
+
 	addRule(defaultSelector + ' #game {'
 		// + 'font-family: monospace;'
 		// + 'font-size: 12px;'
@@ -5432,7 +5435,7 @@ var run = function() {
 		+ '#ks-options #toggle-reset-list-resources .stockWarn * {'
 		+ 'color: ' + options.stockwarncolor + ';'
 		+ '}');
-	
+
 	addRule('.right-tab {'
 		+ 'height: unset !important;'
 		+ '}');
@@ -5600,7 +5603,7 @@ var run = function() {
 					if ('stockForReset' in res) {setStockValue(resource, res.stockForReset ? res.stockForReset : Infinity, true);}
 				}
 			}
-			
+
 			if (saved.triggers) {
 				options.auto.faith.trigger = saved.triggers.faith;
 				options.auto.time.trigger = saved.triggers.time;
@@ -5928,11 +5931,11 @@ var run = function() {
 
 			if (itemName === 'bestUnicornBuilding') {
 				node.children('label').prop('title', i18n('option.faith.best.unicorn.desc'));
-				var input = node.children('input');
+				let input = node.children('input');
 				input.unbind('change');
-				var bub = addi.bestUnicornBuilding;
-				input.on('change', function () {
-					if (input.is(':checked') && !bub.enabled) {
+				input.on('change', (e) => {
+					let bub = addi.bestUnicornBuilding;
+					if (e.target.checked && !bub.enabled) {
 						bub.enabled = true;
 						// enable all unicorn buildings
 						//for (var unicornName in options.auto.unicorn.items) {
@@ -5942,11 +5945,11 @@ var run = function() {
 						//}
 						imessage('status.sub.enable', [i18n('option.faith.best.unicorn')]);
 						imessage('option.faith.best.unicorn.desc');
-					} else if ((!input.is(':checked')) && bub.enabled) {
+					} else if (!e.target.checked && bub.enabled) {
 						bub.enabled = false;
 						imessage('status.sub.disable', [i18n('option.faith.best.unicorn')]);
 					}
-					kittenStorage.items[input.attr('id')] = bub.enabled;
+					kittenStorage.items[e.target.id] = bub.enabled;
 					saveToKittenStorage();
 				});
 			}
@@ -5963,7 +5966,7 @@ var run = function() {
 						paddingRight: '5px',
 						textShadow: '3px 3px 4px gray'}
 				}).data('option', addi[itemName]);
-			
+
 				(function (itemName, triggerButton) {
 					if (itemName === 'adore') {
 						triggerButton.on('click', function () {
@@ -5981,7 +5984,7 @@ var run = function() {
 								triggerButton[0].title = addi[itemName].subTrigger;
 							}
 						});
-		
+
 					} else if (itemName === 'autoPraise') {
 						triggerButton.on('click', function () {
 							var value;
@@ -5990,7 +5993,7 @@ var run = function() {
 							if (options.auto.engine.enabled) {
 								engine.start(false);
 							}
-			
+
 							if (value !== null) {
 								addi[itemName].subTrigger = parseFloat(value);
 								kittenStorage.items[triggerButton[0].id] = addi[itemName].subTrigger;
@@ -6005,7 +6008,7 @@ var run = function() {
 
 			list.append(node);
 		}
-		
+
 		return list;
 	};
 
@@ -6169,19 +6172,19 @@ var run = function() {
 					paddingRight: '5px',
 					textShadow: '3px 3px 4px gray'},
 			});
-						
+
 			var resourcesList = getResourceOptions();
 
 			// When we click the items button, make sure we clear resources
 			button.on('click', function () {
 				resourcesList.toggle(false);
 			});
-						
+
 			resources.on('click', function () {
 				list.toggle(false);
 				resourcesList.toggle();
 			});
-						
+
 			element.append(resources);
 			element.append(resourcesList);
 		} else if (toggleName === 'faith') {
@@ -6197,20 +6200,20 @@ var run = function() {
 					textShadow: '2px 2px 5px gray'
 					},
 			});
-		
+
 			var additionList = getAdditionOptions();
-		
+
 			button.on('click', function () {
 				additionList.toggle(false);
 			});
-		
+
 			addition.on('click', function () {
 				list.toggle(false);
 				additionList.toggle();
 			});
-		
+
 			element.append(addition);
-		
+
 			// disable auto best unicorn building when unicorn building was disable
 			for (var unicornName in options.auto.unicorn.items) {
 				var ub = list.children().children('#toggle-' + unicornName);
@@ -6429,7 +6432,7 @@ var run = function() {
 
 		return element;
 	};
-	
+
 	var getPoliciesOptions = function (forReset) {
 		var items = [];
 
@@ -6490,7 +6493,7 @@ var run = function() {
 						plist.push(policy.name);
 					}
 				}
-		
+
 				options.policies = plist;
 				saveToKittenStorage();
 
@@ -6503,7 +6506,7 @@ var run = function() {
 				list.empty();
 				list.append(getPoliciesOptions());
 			});
-			
+
 			element.append(showButton, loadButton, list);
 		}
 
@@ -6518,7 +6521,7 @@ var run = function() {
 					paddingRight: '5px',
 					textShadow: '3px 3px 4px gray'}
 			}).data('option', option);
-		
+
 			triggerButton.on('click', function () {
 				var value;
 				engine.stop(false);
@@ -6534,7 +6537,7 @@ var run = function() {
 					triggerButton[0].title = option.subTrigger;
 				}
 			});
-		
+
 			element.append(triggerButton);
 		}
 
@@ -6543,7 +6546,7 @@ var run = function() {
 				'for': 'toggle-limited-' + name,
 				text: i18n('ui.upgradesLimit')
 			});
-			
+
 			var LimitedInput = $('<input/>', {
 				id: 'toggle-limited-' + name,
 				type: 'checkbox'
@@ -6552,7 +6555,7 @@ var run = function() {
 			if (option.limited) {
 				LimitedInput.prop('checked', true);
 			}
-			
+
 			LimitedInput.on('change', function () {
 				if (LimitedInput.is(':checked') && !option.limited) {
 					option.limited = true;
@@ -6567,7 +6570,7 @@ var run = function() {
 
 			element.append(LimitedInput, LimitedLabel);
 		}
-		
+
 		return element;
 	};
 
@@ -6762,7 +6765,7 @@ var run = function() {
 			kittenStorage.items[input.attr('id')] = option.checkForReset;
 			saveToKittenStorage();
 		});
-		
+
 		var minButton = $('<div/>', {
 			id: 'set-reset-' + type + '-' + name + '-min',
 			text: i18n('ui.min', [option.triggerForReset]),
@@ -6876,19 +6879,19 @@ var run = function() {
 					paddingRight: '5px',
 					textShadow: '3px 3px 4px gray'},
 			});
-	
+
 
 			var seasonsList = $('<ul/>', {
 				id: 'seasons-list-' + name,
 				css: {display: 'none', paddingLeft: '20px'}
 			});
-	
+
 			// fill out the list with seasons
 			seasonsList.append(getSeasonForTimeSkip('spring', option));
 			seasonsList.append(getSeasonForTimeSkip('summer', option));
 			seasonsList.append(getSeasonForTimeSkip('autumn', option));
 			seasonsList.append(getSeasonForTimeSkip('winter', option));
-	
+
 			cyclesButton.on('click', function () {
 				cyclesList.toggle();
 				seasonsList.toggle(false);
@@ -6908,7 +6911,7 @@ var run = function() {
 			var resetResourcesList = getResourceOptions(true);
 			var resetReligionList  = getOptionHead('reset-religion');
 			var resetTimeList      = getOptionHead('reset-time');
-			
+
 			for (var item in options.auto.build.items)              {resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));}
 			for (var item in options.auto.space.items)              {resetSpaceList.append(getResetOption(item, 'space', options.auto.space.items[item]));}
 			for (var item in options.auto.unicorn.items)            {resetReligionList.append(getResetOption(item, 'unicorn', options.auto.unicorn.items[item]));}
@@ -6945,11 +6948,11 @@ var run = function() {
 					paddingRight: '5px',
 					textShadow: '3px 3px 4px gray'}
 			}).data('option', option);
-	
+
 			triggerButton.on('click', function () {
 				var value;
 				value = window.prompt(i18n('ui.trigger.set', [option.label]), option.subTrigger);
-	
+
 				if (value !== null) {
 					option.subTrigger = parseFloat(value);
 					kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
@@ -7029,7 +7032,7 @@ var run = function() {
 					engine.start(false);
 				}
 			});
-			
+
 			var loadKS = $('<div/>', {
 				id: 'loadKS',
 				text: "导入配置",
@@ -7054,7 +7057,7 @@ var run = function() {
 					loadFromKittenStorage();
 				}
 			});
-			
+
 			var ressetKS = $('<div/>', {
 				id: 'ressetKS',
 				text: "配置初始化",
@@ -7064,7 +7067,7 @@ var run = function() {
 					paddingRight: '5px',
 					textShadow: '3px 3px 4px gray'}
 			}).data('option', option);
-			
+
 			ressetKS.on('click', function () {
 				if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置(有可能会刷新页面)')){
 					engine.stop(false);
@@ -7079,7 +7082,7 @@ var run = function() {
 					}
 				}
 			});
-			
+
 			element.append(loadKS);
 			element.append(ressetKS);
 		}
@@ -7100,7 +7103,7 @@ var run = function() {
 				style = null;
 			});
 		}
-		
+
 		if (name === 'wiki') {
 			var input = element.children('input');
 			input.on('click', function () {
@@ -7125,9 +7128,9 @@ var run = function() {
 			triggerButton.on('click', function () {
 				var value;
 				engine.stop(false);
-				if (name == 'crypto') {
+				if (name === 'crypto') {
 					value = window.prompt(i18n('ui.trigger.crypto.set', [option.label]), option.subTrigger);
-				} else if (name == 'shipOverride') {
+				} else if (name === 'shipOverride') {
 					value = window.prompt(i18n('ui.trigger.shipOverride.set', [option.label]), option.subTrigger);
 				} else {
 					value = window.prompt(i18n('ui.trigger.set', [option.label]), option.subTrigger);
@@ -7137,10 +7140,10 @@ var run = function() {
 				}
 
 				if (value !== null) {
-					if (name != 'crypto') {
-						option.subTrigger = parseFloat(value);
-					} else {
+					if (name === 'crypto') {
 						option.subTrigger = value;
+					} else {
+						option.subTrigger = parseFloat(value);
 					}
 					kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
 					saveToKittenStorage();
@@ -7274,12 +7277,12 @@ var run = function() {
 		for (var i in game.village.jobs){
 			jobList.append(getLeaderJob(i, option));
 		}
-		
+
 		jobShowButton.on('click', function () {
 			traitList.toggle(false);
 			jobList.toggle();
 		});
-		
+
 		element.append(traitShowButton, jobShowButton, traitList, jobList);
 
 		return element;
@@ -7304,7 +7307,7 @@ var run = function() {
 			type: 'radio'
 		}).data('option', option);
 
-		if (input.prop("value") == option.leaderJob) {
+		if (input.prop("value") === option.leaderJob) {
 			input.prop("checked", true);
 		}
 
@@ -7351,7 +7354,7 @@ var run = function() {
 			var lastTraitName = $("input[name='leaderTrait']:checked").val();
 			delete kittenStorage.items['toggle-leaderTrait-' + lastTraitName];
 		});
-		
+
 		input.on('change', function () {
 			imessage('distribute.leaderTrait', [trait.title]);
 			option.leaderTrait = $(this).val();
@@ -7649,7 +7652,7 @@ var run = function() {
 
 	if (console && console.log) {console.log(kg_version + " loaded");}
 	game._publish("kitten_scientists/ready", kg_version);
-	
+
 	if (kittenStorage.reset && kittenStorage.reset.reset) {
 		// calc paragon and karma
 		kittenStorage.reset.karmaTotal += game.resPool.get('karma').value - Number(kittenStorage.reset.karmaLastTime);
