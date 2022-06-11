@@ -125,12 +125,12 @@ let run = function() {
 			'act.adore': 'Adore the galaxy! Accumulated {0} worship to {1} epiphany',
 			'summary.adore': 'Accumulated {0} epiphany by adore the galaxy',
 			'filter.adore': 'Adoring',
-			'adore.trigger.set': 'Enter a new trigger value for AutoAdore. Should be in the range of 0 to 1.\nKS will AutoAdore if the Solor Revolutuin Bonus brought by praising the sun once after adore can reach the trigger of maximum.\n\nNote: The solar revolution bonus will diminish after reaching 75% of the maximum.',
+			'adore.trigger.set': 'Enter a new trigger value for AutoAdore. Should be in the range of 0 to 1.\nKS will AutoAdore if the Solar Revolution Bonus brought by praising the sun once after adore can reach the trigger of maximum.\n\nNote: The solar revolution bonus will diminish after reaching 75% of the maximum.',
 
 			'resources.add': 'add resources',
 			'resources.clear.unused': 'clear unused',
 			'resources.stock': 'Stock: {0}',
-			'resources.consume': 'Comsume: {0}',
+			'resources.consume': 'Consume: {0}',
 			'resources.del': 'del',
 			'resources.stock.set': 'Stock for {0}',
 			'resources.consume.set': 'Consume rate for {0}',
@@ -177,7 +177,7 @@ let run = function() {
 			'filter.accelerate': 'Tempus Fugit',
 			'summary.accelerate': 'Accelerate time {0} times',
 			'option.time.skip': 'Time Skip',
-			'act.time.skip': 'Kittens combuste Time crystal, {0} years skiped!',
+			'act.time.skip': 'Kittens combust Time crystal, {0} years skipped!',
 			'ui.cycles': 'cycles',
 			'ui.maximum': 'Maximum',
 			'time.skip.cycle.enable': 'Enable time skip in cycle {0} and allow skip over this cycle',
@@ -198,7 +198,7 @@ let run = function() {
 			'reset.countdown.10': '10 - Harvesting catnip',
 			'reset.countdown.9': '&nbsp;9 - Sacrificing Unicorns',
 			'reset.countdown.8': '&nbsp;8 - Releasing lizards',
-			'reset.countdown.7': '&nbsp;7 - Disassembling railguns',
+			'reset.countdown.7': '&nbsp;7 - Disassembling rail-guns',
 			'reset.countdown.6': '&nbsp;6 - Starting time engines',
 			'reset.countdown.5': '&nbsp;5 - Melting blackcoins',
 			'reset.countdown.4': '&nbsp;4 - Turning off satellite',
@@ -206,7 +206,7 @@ let run = function() {
 			'reset.countdown.2': '&nbsp;2 - Boosting the chronoforge',
 			'reset.countdown.1': '&nbsp;1 - Time engine start',
 			'reset.countdown.0': '&nbsp;0 - Temporal rifts opened!',
-			'reset.last.message': 'See you next poincaré recurrence',
+			'reset.last.message': 'See you next poinciana recurrence',
 			'reset.after': 'Nice to meet you, the cute Kittens Scientists will serve you',
 			'reset.cancel.message': 'Timeline Reset canceled.',
 			'reset.cancel.activity': 'Meoston, We Have a Problem.',
@@ -2072,9 +2072,7 @@ let run = function() {
 					game["religionTab"].render();
 					continue;
 				}
-				if (!button) {
-					metaData[name].rHidden = true;
-				} else {
+				if (button) {
 					let model = buildManager.getBuildButton(name, build.variant).model;
 					let panel = (build.variant === 'c') ? game.science.get('cryptotheology').researched : true;
 					let visible = (build.variant === 's') ? gReligion.faith >= metabuild.faith : model.visible;
@@ -2083,6 +2081,8 @@ let run = function() {
 						buildManager.getBuildButton(name, build.variant).controller.updateEnabled(model);
 					}
 					metaData[name].rHidden = (build.variant === 's') ? !visible : !(visible && model.enabled && panel);
+				} else {
+					metaData[name].rHidden = true;
 				}
 			}
 
@@ -2288,10 +2288,12 @@ let run = function() {
 						noup = noup.concat(['solarSatellites', 'satelliteRadio']);
 					}
 					// 星图产出
-					if (!resStarchart.perTickCached) {
+					if (resStarchart.perTickCached) {
+						if (game.challenges.isActive('blackSky') && resStarchart.perTickCached < 1) {
+							noup = noup.concat(['geodesy']);
+						}
+					} else {
 						noup = noup.concat(['hubbleTelescope']);
-					} else if (game.challenges.isActive('blackSky') && resStarchart.perTickCached < 1) {
-						noup = noup.concat(['geodesy']);
 					}
 					// 钍反应堆
 					if (resMap['thorium'].value < 3e4) {
@@ -2574,7 +2576,10 @@ let run = function() {
 				}
 				//图书馆牧场
 				let pasture = items['pasture'];
-				if (!theology) {
+				if (theology) {
+					msgSummary('smelter', true);
+					msgSummary('pasture', true);
+				} else {
 					let smelter = game.bld.getBuildingExt('smelter').meta;
 					items['smelter'].max = 1;
 					if (Math.ceil(resMap['wood'].perTickCached * 2) > smelter.val && Math.ceil(resMap['minerals'].perTickCached) > smelter.val) {
@@ -2585,13 +2590,14 @@ let run = function() {
 					//	items['pasture'].enabled = false;
 					//}
 					let pastureMeta = game.bld.getBuildingExt('pasture').meta;
-					if (pastureMeta.unlocked && pastureMeta.val < 19) {msgSummary('pasture');}
-					if (!winterTick) {items['pasture'].max = 20;}
+					if (pastureMeta.unlocked && pastureMeta.val < 19) {
+						msgSummary('pasture');
+					}
+					if (!winterTick) {
+						items['pasture'].max = 20;
+					}
 					let hutVal = game.bld.getBuildingExt('hut').meta.val - 2;
 					items['library'].max = (hutVal > 0) ? Math.floor(hutVal * 11) : items['library'].max;
-				} else {
-					msgSummary('smelter', true);
-					msgSummary('pasture', true);
 				}
 				// 工坊
 				if (!game.science.get('writing').researched && resMap['minerals'].value) {
@@ -2688,15 +2694,17 @@ let run = function() {
 				// 煅烧炉
 				let calciner = items['calciner'];
 				let calcinerMax = calciner.max;
-				if (!orbitalGeodesy) {
+				if (orbitalGeodesy) {
+					if (!spaceManufacturing || !game.space.meta[0].meta[0].on) {
+						calciner.max = (calcinerMax === -1) ? 47 * (1 + game.getEffect("productionRatio")) : Math.min(50, calcinerMax);
+					}
+				} else {
 					if (scienceMap.maxValue > 150000 && resMap['oil'].maxValue > 35000) {
 						calciner.max = (calcinerMax === -1) ? 25 : Math.min(25, calcinerMax);
 					} else {
-						let a = (1 + game.prestige.getParagonProductionRatio() * 10) * (1 + revolutionRatio);
+						let a = (1 + game.prestige.getParagonProductionRatio() * 9) * Math.max(1, Math.log(revolutionRatio));
 						calciner.max = (calcinerMax === -1) ? a : Math.min(a, calcinerMax);
 					}
-				} else if (!spaceManufacturing || !game.space.meta[0].meta[0].on) {
-					calciner.max = (calcinerMax === -1) ? 47 * (1 + game.getEffect("productionRatio")) : Math.min(50, calcinerMax);
 				}
 
 				if (game.getResourcePerTick('oil', true) < 0.24 ) {
@@ -2741,16 +2749,16 @@ let run = function() {
 						mansion.max = 45;
 						msgSummary('mansion');
 					}
-					if (!spaceManufacturing) {
+					if (spaceManufacturing) {
+						msgSummary('biolab', true);
+						msgSummary('mansion', true);
+						msgSummary('scienceBld', true);
+					} else {
 						if (titaniumMap.value / titaniumMap.maxValue <= 0.96) {
 							mansion.max = Math.max(135 - game.village.maxKittens, Math.floor(17 * (game.prestige.getParagonProductionRatio() + 1)));
 							msgSummary('mansion');
 							biolab.max = 10;
 						}
-					} else {
-						msgSummary('biolab', true);
-						msgSummary('mansion', true);
-						msgSummary('scienceBld', true);
 					}
 				}
 
@@ -3240,10 +3248,10 @@ let run = function() {
 						emBulk.race.embassyLevel += emBulk.val;
 						storeForSummary('embassy', emBulk.val);
 						refreshRequired += 1;
-						if (emBulk.val !== 1) {
-							activity(i18n('build.embassies', [emBulk.val, emBulk.race.title]), 'ks-embassy');
-						} else {
+						if (emBulk.val === 1) {
 							activity(i18n('build.embassy', [emBulk.val, emBulk.race.title]), 'ks-embassy');
+						} else {
+							activity(i18n('build.embassies', [emBulk.val, emBulk.race.title]), 'ks-embassy');
 						}
 					}
 				}
@@ -3998,15 +4006,17 @@ let run = function() {
 					break;
 				case 'factory':
 					if (!vitruvianFeline) {break;}
-					if (!spaceManufacturing) {
+					if (spaceManufacturing) {
+						if (!game.space.getBuilding('sattelite').val && game.bld.get(id).val) {
+							count = 0;
+						}
+					} else {
 						if (game.bld.get(id).val > 2 && !TitaniumCap) {
 							count = 0;
 						}
 						if (resMap['titanium'].maxValue < 1.3e5 && game.bld.get(id).val) {
 							count = 0;
 						}
-					} else if (!game.space.getBuilding('sattelite').val && game.bld.get(id).val){
-						count = 0;
 					}
 					break;
 					// falls through
@@ -4823,12 +4833,12 @@ let run = function() {
 			let vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
 			let baseProd = fieldProd + vilProd;
 
-			if (aqueducts !== undefined) {
+			if (aqueducts === undefined) {
+				baseProd *= 1 + game.getEffect('catnipRatio');
+			} else {
 				let hydroponics = game.space.getBuilding('hydroponics');
 				let hydroponicsEffect = hydroponics.effects['catnipRatio'];
 				baseProd *= 1 + game.bld.getBuildingExt('aqueduct').meta.stages[0].effects['catnipRatio'] * aqueducts + hydroponicsEffect * hydroponics.val;
-			} else {
-				baseProd *= 1 + game.getEffect('catnipRatio');
 			}
 
 			let paragonBonus = (game.challenges.isActive("winterIsComing")) ? 0 : game.prestige.getParagonProductionRatio();
@@ -4846,10 +4856,10 @@ let run = function() {
 
 			let baseDemand = game.village.getResConsumption()['catnip'];
 			let uniPastures = game.bld.getBuildingExt('unicornPasture').meta.val;
-			if (pastures !== undefined) {
-				baseDemand *= 1 + (game.getLimitedDR(pastures * -0.005 + uniPastures * -0.0015, 1.0));
-			} else {
+			if (pastures === undefined) {
 				baseDemand *= 1 + game.getEffect("catnipDemandRatio");
+			} else {
+				baseDemand *= 1 + (game.getLimitedDR(pastures * -0.005 + uniPastures * -0.0015, 1.0));
 			}
 
 			if (game.village.sim.kittens.length > 0 && game.village.happiness > 1) {
@@ -5905,7 +5915,7 @@ let run = function() {
 			css: {display: 'none', paddingLeft: '20px'}
 		});
 
-		let disableall = $('<div/>', {
+		let disableAll = $('<div/>', {
 			id: 'toggle-all-items-' + toggleName,
 			text: i18n('ui.disable.all'),
 			css: {cursor: 'pointer',
@@ -5914,7 +5924,7 @@ let run = function() {
 				marginRight: '8px'}
 		});
 
-		disableall.on('click', function () {
+		disableAll.on('click', function () {
 			// can't use find as we only want one layer of checkboxes
 			let items = list.children().children(':checkbox');
 			items.prop('checked', false);
@@ -5922,9 +5932,9 @@ let run = function() {
 			list.children().children(':checkbox').change();
 		});
 
-		list.append(disableall);
+		list.append(disableAll);
 
-		let enableall = $('<div/>', {
+		let enableAll = $('<div/>', {
 			id: 'toggle-all-items-' + toggleName,
 			text: i18n('ui.enable.all'),
 			css: {cursor: 'pointer',
@@ -5932,7 +5942,7 @@ let run = function() {
 				textShadow: '3px 3px 4px gray'}
 		});
 
-		enableall.on('click', function () {
+		enableAll.on('click', function () {
 			// can't use find as we only want one layer of checkboxes
 			let items = list.children().children(':checkbox');
 			items.prop('checked', true);
@@ -5940,7 +5950,7 @@ let run = function() {
 			list.children().children(':checkbox').change();
 		});
 
-		list.append(enableall);
+		list.append(enableAll);
 		return list;
 	};
 
@@ -6188,7 +6198,7 @@ let run = function() {
 		}
 
 		if (toggleName === 'craft') {
-			// Add resource controls for crafting, sort of a hack
+			// Add resource controls for crafting, sort of hack
 			const resources = $('<div/>', {
 				id: 'toggle-resource-controls',
 				text: i18n('ui.craft.resources'),
@@ -6216,7 +6226,7 @@ let run = function() {
 			element.append(resources);
 			element.append(resourcesList);
 		} else if (toggleName === 'faith') {
-			// Add additional controls for faith, sort of a hack again
+			// Add additional controls for faith, sort of hack again
 			const addition = $('<div/>', {
 				id: 'toggle-addition-controls',
 				text: i18n('ui.faith.addtion'),
@@ -6243,7 +6253,7 @@ let run = function() {
 
 			element.append(addition);
 
-			// disable auto best unicorn building when unicorn building was disable
+			// disable auto the best unicorn building when unicorn building was disabled
 			for (const unicornName in options.auto.unicorn.items) {
 				const ub = list.children().children('#toggle-' + unicornName);
 				ub.on('change', function(e) {
@@ -6854,7 +6864,7 @@ let run = function() {
 				}
 			});
 
-			let maximunButton = $('<div/>', {
+			let maximumButton = $('<div/>', {
 				id: 'set-timeSkip-maximum',
 				text: i18n('ui.maximum'),
 				title: option.max,
@@ -6864,7 +6874,7 @@ let run = function() {
 					paddingRight: '5px',
 					textShadow: '3px 3px 4px gray'}
 			}).data('option', option);
-			maximunButton.on('click', function () {
+			maximumButton.on('click', function () {
 				let value;
 				engine.stop(false);
 				value = window.prompt(i18n('ui.max.set', ["每次燃烧时间水晶"]), option.maximum.toString());
@@ -6874,9 +6884,9 @@ let run = function() {
 
 				if (value !== null) {
 					option.maximum = parseFloat(value);
-					kittenStorage.items[maximunButton.attr('id')] = option.maximum;
+					kittenStorage.items[maximumButton.attr('id')] = option.maximum;
 					saveToKittenStorage();
-					maximunButton[0].title = option.maximum;
+					maximumButton[0].title = option.maximum;
 				}
 			});
 
@@ -6930,7 +6940,7 @@ let run = function() {
 				seasonsList.toggle();
 			});
 
-			element.append(cyclesButton, seasonsButton, maximunButton, triggerButton, cyclesList, seasonsList);
+			element.append(cyclesButton, seasonsButton, maximumButton, triggerButton, cyclesList, seasonsList);
 
 		} else if (name === 'reset') {
 
@@ -7128,10 +7138,10 @@ let run = function() {
 				kittenStorage.items[input.attr('id')] = option.enabled;
 				if (e.isTrusted) {saveToKittenStorage();}
 				let style = document.getElementById('ks-donate').style;
-				if (!option.enabled) {
-					style.display = 'none';
-				} else {
+				if (option.enabled) {
 					style.display = 'block';
+				} else {
+					style.display = 'none';
 				}
 				style = null;
 			});
@@ -7140,8 +7150,8 @@ let run = function() {
 		if (name === 'wiki') {
 			input = element.children('input');
 			input.on('click', function () {
-				let tempwindow = window.open();
-				tempwindow.location = 'https://petercheney.gitee.io/baike/?file=004-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7/02-%E5%B0%8F%E7%8C%AB%E7%A7%91%E5%AD%A6%E5%AE%B6';
+				let tempWindow = window.open();
+				tempWindow.location = 'https://petercheney.gitee.io/baike/?file=004-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7/02-%E5%B0%8F%E7%8C%AB%E7%A7%91%E5%AD%A6%E5%AE%B6';
 				printoutput(['如果还有问题可以在猫国群询问，有BUG或意见可以联系Cheney。默认配置即推荐配置：文艺复兴玄学下默认配置能2小时冲出轨道。','ks-default', options.activitycolor]);
 			});
 		}
@@ -7477,14 +7487,14 @@ let run = function() {
 	};
 
 	//建筑日志提示
-	let msgSummary = (build, clean)=> {
-		if (!clean) {
+	let msgSummary = (build, isDelete)=> {
+		if (isDelete) {
+			activitySummary.other['auto.' + build] = null;
+		} else {
 			if (!activitySummary.other['auto.' + build]) {
 				activity(i18n('summary.auto.' + build));
 				storeForSummary('auto.' + build);
 			}
-		} else {
-			activitySummary.other['auto.' + build] = null;
 		}
 	};
 
