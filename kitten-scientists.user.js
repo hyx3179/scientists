@@ -342,7 +342,7 @@ let run = function() {
 
 			'ui.faith.addtion': '附加选项',
 			'option.faith.best.unicorn': '自动最效率独角兽建筑',
-			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽性价比使用来决定建造独角兽牧场~太阳尖顶，具体哪个可以参考概览',
+			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽性价比使用来决定建造独角兽牧场~象牙塔...只到独角兽牧场,太阳尖顶，具体哪个可以参考概览',
 			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
@@ -404,7 +404,7 @@ let run = function() {
 			'act.distribute.catnip': '担心你的猫猫没有猫薄荷吸并强制分配到农民',
 			'act.distributeLeader': '分配一只 {0} 猫猫领袖',
 			'ui.max.set': '设置 {0} 的最大值',
-			'summary.distribute': '帮助 {0} 只猫猫找到工作',
+			'summary.distribute': '帮助 {0} 只偷吃猫薄荷的猫猫找到工作',
 			'filter.distribute': '猫口分配',
 			'set.leader': '{0}，喵喵喵！',
 
@@ -589,8 +589,6 @@ let run = function() {
 		stockwarncolor: '#DD1E00',
 		// 复制的特质
 		copyTrait: false,
-		//猫薄荷日志
-		catnipMsg: true,
 		//倒计时
 		countdown: 120,
 		// 上次渲染的时间
@@ -627,7 +625,7 @@ let run = function() {
 				adoreCatnip: 0,
 				// Additional options
 				addition: {
-					bestUnicornBuilding:    {enabled: true,  misc: true, label: i18n('option.faith.best.unicorn')},
+					bestUnicornBuilding:    {enabled: true,  misc: true, label: i18n('option.faith.best.unicorn'), confirm: 0},
 					autoPraise:             {enabled: true,  misc: true, label: i18n('option.praise'), subTrigger: 0.98,
 						msg: 0, time: 0, expect: 0},
 					// Former [Faith Reset]
@@ -874,7 +872,8 @@ let run = function() {
 					megalith:   {require: false,         max: 0, limited: true,  limRat: 0.5, enabled: true},
 					eludium:    {require: 'unobtainium', max: 0, limited: false, limRat: 0.5, enabled: true},
 					thorium:    {require: 'uranium',     max: 0, limited: false, limRat: 0.5, enabled: true}
-				}
+				},
+				autoConsume : {},
 			},
 			trade: {
 				cache: false,
@@ -925,6 +924,8 @@ let run = function() {
 				}
 			},
 			options: {
+				//猫薄荷日志
+				catnipMsg: true,
 				//Which misc options should be enabled?
 				enabled: true,
 				items: {
@@ -1669,7 +1670,7 @@ let run = function() {
 			let currentRatio = 0;
 			let revolution = game.religion.getSolarRevolutionRatio();
 			let expect = options.auto.faith.addition.autoPraise.expect;
-			expect = expect && expect > 5 && revolution < expect * 0.5 && game.village.jobs[5].unlocked;
+			expect = expect && expect > 5 && revolution < expect * 0.4 && game.village.jobs[5].unlocked;
 			for (let i = game.village.jobs.length - 1; i >= 0; i--) {
 				let unlocked = game.village.jobs[i].unlocked;
 				if (!unlocked) {continue;}
@@ -1793,7 +1794,7 @@ let run = function() {
 				let tears = resMap['tears'].value;
 				let unicorns = resMap['unicorns'].value;
 				if (btn) {
-					let oneTear = !tears && unicorns >= 2500 && zigguratOn;
+					let oneTear = !tears && unicorns >= 1000 && zigguratOn;
 					let buttonPrices;
 					if (btn.opts && !oneTear) {
 						if (!btn.model.enabled) {
@@ -1801,10 +1802,9 @@ let run = function() {
 						}
 						buildManager.build(btn.opts.building, undefined, 1);
 					} else {
-						let tearNeed = 0.01;
-						let btnButton = 0;
+						let tearNeed, btnButton = 0;
 						if (oneTear) {
-							tearNeed = 1;
+							tearNeed = 0.99;
 						} else {
 							buttonPrices = dojo.clone(btn.prices);
 							for (i = 0; i < buttonPrices.length; i++) {
@@ -1816,7 +1816,7 @@ let run = function() {
 							btnButton = religionManager.getBuildButton(btn.name, 'z');
 						}
 						let tearHave = tears - craftManager.getStock('tears');
-						if (tearNeed > tearHave) {
+						if (tearNeed + 0.01 > tearHave) {
 							// if no ziggurat, getBestUnicornBuilding will return unicornPasture
 							let maxSacrifice = Math.floor((unicorns - craftManager.getStock('unicorns')) / 2500);
 							let needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
@@ -1844,19 +1844,23 @@ let run = function() {
 						} else {
 							if (!oneTear && game.resPool.hasRes(buttonPrices)) {
 								religionManager.build(btn.name, 'z', 1);
-								refreshRequired += 1;
+								refreshRequired = 1;
 							}
 						}
 					}
 				}
 			} else {
+				if (resMap['alicorn'].value < 50 || option.bestUnicornBuilding.confirm < 3) {
+					$('#toggle-bestUnicornBuilding').click();
+					option.bestUnicornBuilding.confirm += 1;
+				}
 				//builds = Object.assign({}, builds, Object.fromEntries(Object.entries(options.auto.unicorn.items).filter(([k,v]) => v.variant != 'zp')));
 				if (options.auto.unicorn.items.unicornPasture.enabled) {
 					this.build({unicornPasture: {require: false, enabled: true}});
 				}
 				noPastureCopy = JSON.parse(JSON.stringify(options.auto.unicorn.items));
 				noPastureCopy = Object.assign(noPastureCopy, options.auto.faith.items);
-				noPastureCopy.unicornPasture = null;
+				delete noPastureCopy.unicornPasture;
 			}
 			// religion build
 			refreshRequired += this._worship(noPastureCopy || builds);
@@ -1971,7 +1975,7 @@ let run = function() {
 				booleanForAdore = (booleanForAdore && autoAdoreEnabled && apocripha && tier && this.catnipForReligion() > 0);
 				// 期望太阳革命加成赞美群星
 				let transformTier = 0.5 * Math.log(game.religion.faithRatio) + 3.45;
-				let expectSolarRevolutionRatio = game.getLimitedDR(1.3 * Math.pow(Math.E, 0.65 * transformTier) , 97 * maxSolarRevolution);
+				let expectSolarRevolutionRatio = game.getLimitedDR(1.3 * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				if (adoreTri === 0.001 && booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
 					booleanForAdore = false;
@@ -1998,7 +2002,7 @@ let run = function() {
 			let voidOrder = game.prestige.getPerk("voidOrder").researched;
 			let factor = (voidOrder) ? 1 : 0.3;
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5;
-			factor = (game.workshop.get('spaceManufacturing').researched) ? 4 : factor;
+			factor = (game.workshop.get('spaceManufacturing').researched) ? 5 : factor;
 			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, 0.65 * transformTier) * factor, 80 * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
@@ -2025,7 +2029,7 @@ let run = function() {
 				storeForSummary('praise', worshipInc);
 				iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
 				game.religion.praise();
-				resourceFaith.value += resourceFaith.perTickCached;
+				resourceFaith.value += 2 * resourceFaith.perTickCached;
 				refreshRequired = 1;
 			}
 			return refreshRequired;
@@ -2052,7 +2056,7 @@ let run = function() {
 				if (game.religion.faith > 1e4) {copyBuilds['sunAltar'].enabled = false;}
 			}
 			if (!game.ironWill && resMap['manpower'].maxValue < 15e3) {copyBuilds['templars'].enabled = false;}
-			if (game.religion.getSolarRevolutionRatio() > 9.5 && game.workshop.get('spaceManufacturing').researched && activitySummary.other.adore) {
+			if (game.religion.getSolarRevolutionRatio() > 9.95 + 0.9 * game.getEffect("solarRevolutionLimit") && game.workshop.get('spaceManufacturing').researched && activitySummary.other.adore) {
 				let noMax = ['scholasticism','goldenSpire','stainedGlass','basilica','templars'];
 				noMax.forEach(index => copyBuilds[index].max = -1);
 			}
@@ -2164,6 +2168,7 @@ let run = function() {
 			const bulkManager = this.bulkManager;
 			const buildManager = this.buildManager;
 			let geodesy = game.workshop.get('geodesy').researched;
+			let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
 			let revolutionRatio = game.religion.getSolarRevolutionRatio();
 			let refreshRequired  = 0;
 
@@ -2215,11 +2220,9 @@ let run = function() {
 
 					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
 					if (game.bld.get('steamworks').on < 6) {
-						noup = noup.concat(['printingPress','combustionEngine'], autoM);
-					} else {
-						if (!game.opts.enableRedshift) {
-							noup = noup.concat(autoM);
-						}
+						noup = noup.concat(['printingPress','combustionEngine','offsetPress','photolithography'], autoM);
+					} else if (!game.opts.enableRedshift) {
+						noup = noup.concat(autoM);
 					}
 
 					if (game.village.getJob('engineer').value < 5 && !game.workshop.getCraft('eludium').value) {
@@ -2242,9 +2245,12 @@ let run = function() {
 						noup = noup.concat(['titaniumAxe','silos','combustionEngine','astrolabe']);
 					}
 					// 过滤测地学
-					isFilter = revolutionRatio > 8 || game.workshop.get('orbitalGeodesy').researched;
+					isFilter = revolutionRatio > 8 || orbitalGeodesy;
 					if (isFilter && !game.space.meta[0].meta[3].val && resStarchart.value < 1600 && revolutionRatio > 6) {
 						noup = noup.concat(['geodesy']);
+						if (resPercent('coal') > 0.8 && !orbitalGeodesy) {
+							noup = noup.concat(['fuelInjectors']);
+						}
 					}
 					// 没测地学过滤 地外计划
 					if (revolutionRatio < 7 && !geodesy && resStarchart.value > 400) {
@@ -2257,7 +2263,7 @@ let run = function() {
 					if (resMap['oil'].value < 7.5e4 && !geodesy) {
 						noup = noup.concat(['offsetPress','photolithography']);
 						if (resPercent('coal') > 0.8) {
-							noup = noup.concat(['fuelInjectors','combustionEngine','coalFurnace']);
+							noup = noup.concat(['fuelInjectors','coalFurnace']);
 						}
 					}
 					if (game.bld.getBuildingExt('factory').meta.val < 3) {
@@ -2376,12 +2382,14 @@ let run = function() {
 			if (upgrades.missions.enabled && game["spaceTab"].visible) {
 				let subTrigger = upgrades.missions.subTrigger;
 				let missionsLength = Math.min(game.space.meta[0].meta.length, subTrigger);
+				let index = -1;
 				const missions = game.space.meta[0].meta;
 				missionLoop:
 				for (i = 0; i < missionsLength ; i++) {
-					if (!game.workshop.get('orbitalGeodesy').researched && !game.ironWill && !geodesy) {break;}
 					if (!(missions[i].unlocked && missions[i].val < 1)) {continue;}
-					if (game["spaceTab"].planetPanels.length < i) {game["spaceTab"].render();}
+					index++;
+					if (!orbitalGeodesy && !game.ironWill && !geodesy) {break;}
+					if (!game["spaceTab"].planetPanels.length || !game.space.meta[0].meta[index].val) {game["spaceTab"].render();}
 
 					const Btn = game["spaceTab"].GCPanel.children[i];
 					if (!Btn || !Btn.model.metadata) {
@@ -2564,7 +2572,7 @@ let run = function() {
 				scienceBuild('biolab', 200, 1);
 
 				let winterTick = craftManager.getPotentialCatnip(false);
-				winterTick = winterTick < 0.85 && resMap['catnip'].value / winterTick < 1000;
+				winterTick = winterTick < 0.85 && resMap['catnip'].value / winterTick < 1000 && options.auto.distribute.items.farmer.enabled;
 				if (winterTick) {
 					items['hut'].enabled = items['logHouse'].enabled = false;
 				}
@@ -2590,7 +2598,7 @@ let run = function() {
 					//	items['pasture'].enabled = false;
 					//}
 					let pastureMeta = game.bld.getBuildingExt('pasture').meta;
-					if (pastureMeta.unlocked && pastureMeta.val < 19) {
+					if (pastureMeta.unlocked && pastureMeta.val > 10) {
 						msgSummary('pasture');
 					}
 					if (!winterTick) {
@@ -2652,8 +2660,10 @@ let run = function() {
 				if (!blackSky && resMap['titanium'].value < 25) {
 					temple.max = Math.max(30, 10 * (1 + revolutionRatio));
 				}
-				if (!game.workshop.get('caravanserai').researched) {
-					tradepost.max = 22;
+				// 商队驿站
+				let caravanserai = game.workshop.get('caravanserai');
+				if (caravanserai.unlocked && !caravanserai.researched) {
+					temple.enabled = false;
 				}
 				if (!theology && game.science.get('philosophy').researched && goldTri < 0.96) {
 					let one = game.village.happiness < 4 && game.bld.get('temple').val === 1 && game.prestige.getPerk('renaissance').researched;
@@ -2684,8 +2694,8 @@ let run = function() {
 				let religionRU = game.religion.getRU("stainedGlass").on && game.religion.getRU("basilica").on;
 				let expect = options.auto.faith.addition.autoPraise.expect;
 				if (!religionRU && game.religion.faith > 1e4 && resMap['gold'].maxValue > 780 && revolutionRatio) {
-					if (expect && revolutionRatio > expect) {
-						temple.enabled = false;
+					if (expect && revolutionRatio < expect * 0.5) {
+						temple.max = 10;
 					}
 					tradepost.max = 30 - Math.min(12, revolutionRatio * 10);
 				}
@@ -2702,8 +2712,8 @@ let run = function() {
 					if (scienceMap.maxValue > 150000 && resMap['oil'].maxValue > 35000) {
 						calciner.max = (calcinerMax === -1) ? 25 : Math.min(25, calcinerMax);
 					} else {
-						let a = (1 + game.prestige.getParagonProductionRatio() * 9) * Math.max(1, Math.log(revolutionRatio));
-						calciner.max = (calcinerMax === -1) ? a : Math.min(a, calcinerMax);
+						let amt = (1 + game.prestige.getParagonProductionRatio() * 7) * Math.max(1, Math.log(revolutionRatio));
+						calciner.max = (calcinerMax === -1) ? amt : Math.min(amt, calcinerMax);
 					}
 				}
 
@@ -2776,13 +2786,13 @@ let run = function() {
 					}
 				}
 				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel', 'lumberMill','factory','biolab'];
-				for (let item in items) {
-					let a = items[item];
-					if (!a.enabled || !a.max) {continue;}
-					if (optimize.indexOf(item) === -1) {
-						copyItem[item] = a;
+				for (let name in items) {
+					let item = items[name];
+					if (!item.enabled || !item.max) {continue;}
+					if (optimize.indexOf(name) === -1) {
+						copyItem[name] = item;
 					} else {
-						build2[item] = a;
+						build2[name] = item;
 					}
 				}
 			}
@@ -2913,6 +2923,7 @@ let run = function() {
 				}
 			}
 			this.setTrait('metallurgist');
+			this.setTrait('chemist');
 		},
 		holdFestival: function () {
 			if (!(game.science.get('drama').researched && game.calendar.festivalDays < 400)) {return;}
@@ -3087,11 +3098,12 @@ let run = function() {
 				}
 			}
 
-			let catnipNow = game.resPool.get('catnip').value + 40 * game.getResourcePerTick("catnip", true);
-			if (catnipNow < 0 && options.auto.trade.items['sharks'].enabled) {
+			let catnipNow = game.resPool.get('catnip').value + 100 * game.getResourcePerTick("catnip", true);
+			let sharksAmt = tradeManager.getLowestTradeAmount('sharks');
+			if (catnipNow < 0 && sharksAmt) {
 				let sharks = game.diplomacy.get('sharks');
 				let catnip = tradeManager.getAverageTrade(sharks).catnip;
-				tradeManager.trade(name, Math.ceil(catnipNow / -catnip));
+				tradeManager.trade('sharks', Math.max(Math.ceil(catnipNow / -catnip), sharksAmt));
 				iactivity('trade.catnip');
 			}
 
@@ -3578,14 +3590,12 @@ let run = function() {
 	let TabManager = function (name) {
 		this.setTab(name);
 	};
-
 	TabManager.prototype = {
 		tab: undefined,
 		render: function () {
 			if (this.tab && game.ui.activeTabId !== this.tab.tabId && !this.tab._inherited) {
 				this.tab.render();
 			}
-			return this;
 		},
 		setTab: function (name) {
 			for (const tab in game.tabs) {
@@ -3943,7 +3953,7 @@ let run = function() {
 				case 'warehouse':
 					if (id === 'warehouse') {
 						if (resMap['minerals'].maxValue < 1e5) {break;}
-						else if (vitruvianFeline) {count = Math.floor(count * 0.4);}
+						else if (vitruvianFeline) {count = Math.floor(count * 0.3);}
 					}
 					// falls through
 				case 'lumberMill':
@@ -4270,6 +4280,14 @@ let run = function() {
 				storeForSummary('craft' + ucfirst(name), 1);
 			};
 
+
+			if (name === 'beam' || name === 'slab') {
+				options.auto.craft.autoConsume[Object.keys(materials)[0]] = 0;
+				if (resMap['scaffold'].value > 500 && trigger > 0.9 && limited) {
+					options.auto.craft.autoConsume[Object.keys(materials)[0]] = 1;
+				}
+			}
+
 			if (name === 'plate' && limited && options.auto.craft.items['steel'].enabled) {
 				let coalTick = game.getResourcePerTick('coal', true);
 				let coalTri = this.getResource('coal').maxValue * trigger;
@@ -4386,6 +4404,7 @@ let run = function() {
 				limited = ratio < 2.1;
 			}
 
+			// 计算制作多少
 			for (i in materials) {
 				delta = 0;
 				let material = materials[i];
@@ -4462,12 +4481,21 @@ let run = function() {
 				let calVal = calciner.val;
 				if (calVal) {
 					if (!calciner.isAutomationEnabled) {
-						let calcinerAmount = 0.003 * game.bld.get("reactor").on * ( 1 + game.getEffect("calcinerRatio")) * 0.1 * game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio")) * game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
+						let calcinerAmount = 0.003 * game.bld.get("reactor").on * ( 1 + game.getEffect("calcinerRatio")) * 0.1
+							* game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio"))
+							* game.calendar.cycleEffectsFestival({iron: 1})['iron'] * calciner.val * (1 + game.getEffect("ironPolicyRatio"));
 						amount = (amount <= 0) ? calcinerAmount : Math.min(amount + calcinerAmount, resMap['coal'].value / 100);
 					}
 					if (calVal > 1) {
 						forceSteel('oxidation');
 						let cacheUpg = options.auto.upgrade.items.upgrades;
+						if (game.workshop.get('oxidation').researched && 'oxidation' === cacheUpg.cache) {
+							cacheUpg.cache = false;
+							let Upg = options.auto.cache.resUpg;
+							for (let i in Upg) {
+								delete Upg[i];
+							}
+						}
 						let alloyVal = resMap['alloy'].value;
 						let orb = game.workshop.get('orbitalGeodesy');
 						if (orb.unlocked && !orb.researched && resMap['oil'].value > 1.7e4 && resMap['oil'].maxValue > 3.5e4) {
@@ -4686,7 +4714,7 @@ let run = function() {
 				let catnipTick = (game.calendar.season !== 0 || this.getResource(name).maxValue * trigger < value || game.getResourcePerTick("catnip", true) < 0);
 				if (resPerTick < 0 && catnipTick) {
 					stock -= resPerTick * 1000 * 5;
-					if (options.catnipMsg) {
+					if (options.auto.options.catnipMsg) {
 						activity(i18n('craft.winterCatnip'));
 						options.catnipMsg = false;
 					}
@@ -4701,6 +4729,11 @@ let run = function() {
 			if (!all && maxValue > 0) {
 				let res = options.auto.resources[name];
 				let consume = res && res.enabled && (res.consume !== undefined) ? res.consume : options.consume;
+				let craftItem = options.auto.craft.autoConsume;
+				if (craftItem[name] && !typeTrigger) {
+					consume = 1;
+					craftItem[name] = 0;
+				}
 
 				value -= Math.min(maxValue, value) * (1 - consume);
 
@@ -4724,12 +4757,14 @@ let run = function() {
 				limRat = (0.09 + res.perTickCached < resMap['catnip'].perTickCached / game.workshop.getCraft("wood").prices[0].val && this.getPotentialCatnip()) ? 1 : limRat;
 			}
 			if (name === 'beam') {
-				let craftBeam = navigation.unlocked || resMap['gold'].maxValue < 500 || (resMap['iron'].value > 1200 && !resMap['coal'].value);
-				limRat = (craftBeam) ? limRat : 0.005;
+				let craftBeam = navigation.unlocked || resMap['gold'].maxValue < 500 || (resMap['iron'].value > 1000 && !resMap['coal'].value);
+				limRat = (craftBeam) ? limRat : 5e-3;
+				limRat = (resMap['scaffold'].value < 500) ? limRat : 5e-3;
 			}
 			if (name === 'slab') {
 				let a = resMap['faith'].maxValue < 750 && res.value < 51 && resMap['gold'].value > 35;
 				limRat = (resMap['scaffold'].value || a) ? limRat : 5e-4;
+				limRat = (resMap['scaffold'].value < 500) ? limRat : 5e-3;
 			}
 
 			if (name === 'ship') {
@@ -4762,7 +4797,7 @@ let run = function() {
 			}
 
 			if (name === 'megalith') {
-				if (res.value > 50 || game.bld.metaCache.ziggurat.meta.on || resMap['unicorns'].value < 2500) {
+				if (res.value > 50 || game.bld.metaCache.ziggurat.meta.on || resMap['unicorns'].value < 1000) {
 					if (!game.workshop.get('orbitalGeodesy').researched) {
 						limRat = 0.01;
 					}
@@ -4770,7 +4805,7 @@ let run = function() {
 				let ziggurat = game.bld.get('ziggurat');
 				let priceRatio = Math.pow(ziggurat.priceRatio + game.getEffect("priceRatio"), ziggurat.val);
 				limRat = (res.value > Math.max(100, 50 * priceRatio)) ? 5e-3 : limRat;
-				limRat = (!res.unlocked && game.diplomacy.get('nagas').embassyLevel > 15 && game.calendar.season === 0 && resMap['unicorns'].value > 2e3) ? 1 : limRat;
+				limRat = (!res.unlocked && game.diplomacy.get('nagas').embassyLevel > 15 && game.calendar.season === 0 && resMap['unicorns'].value > 900) ? 1 : limRat;
 			}
 
 			if (name === 'concrate') {
@@ -5102,8 +5137,7 @@ let run = function() {
 		craftManager: undefined,
 		manager: undefined,
 		trade: function (name, amount) {
-
-			if (!name || 1 > amount) {warning('KS trade checks are not functioning properly, please create an issue on the github page.');}
+			if (!name || 1 > amount) {warning(name + '-' + amount + '贸易可能出点问题');}
 
 			let race = this.getRace(name);
 			let button = this.getTradeButton(race.name);
@@ -5112,7 +5146,7 @@ let run = function() {
 			if (!button.model.enabled) {
 				return button.controller.updateEnabled(button.model);
 			}
-			if (name !== 'sharks' && !options.auto.trade.items[name].enabled) {warning('KS trade checks are not functioning properly, please create an issue on the github page.');}
+			if (name !== 'sharks' && !options.auto.trade.items[name].enabled) {warning('贸易可能出点问题');}
 
 			game.diplomacy.tradeMultiple(race, amount);
 			game.stats.getStat("totalClicks").val += 1;
@@ -5359,114 +5393,119 @@ let run = function() {
 
 	let defaultSelector = 'body[data-ks-style]:not(.scheme_sleek)';
 
-	addRule('body {' // low priority. make sure it can be covered by the theme
-		+ 'font-family: inherit;'
-		+ 'font-size: inherit;'
-		+ '}');
+	// 插入cssRule
+	if (addRule) {
+		addRule('body {' // low priority. make sure it can be covered by the theme
+			+ 'font-family: inherit;'
+			+ 'font-size: inherit;'
+			+ '}');
 
-	addRule(defaultSelector + ' #game {'
-		// + 'font-family: monospace;'
-		// + 'font-size: 12px;'
-		+ 'min-width: 1300px;'
-		+ 'top: 32px;'
-		+ '}');
+		addRule(defaultSelector + ' #game {'
+			// + 'font-family: monospace;'
+			// + 'font-size: 12px;'
+			+ 'min-width: 1300px;'
+			+ 'top: 32px;'
+			+ '}');
 
-	// addRule(defaultSelector + ' {'
-	//     + 'font-family: monospace;'
-	//     + 'font-size: 12px;'
-	//     + '}');
+		// addRule(defaultSelector + ' {'
+		//     + 'font-family: monospace;'
+		//     + 'font-size: 12px;'
+		//     + '}');
 
-	addRule(defaultSelector + ' .column {'
-		+ 'min-height: inherit;'
-		+ 'max-width: inherit !important;'
-		+ 'padding: 1%;'
-		+ 'margin: 0;'
-		+ 'overflow-y: auto;'
-		+ '}');
+		addRule(defaultSelector + ' .column {'
+			+ 'min-height: inherit;'
+			+ 'max-width: inherit !important;'
+			+ 'padding: 1%;'
+			+ 'margin: 0;'
+			+ 'overflow-y: auto;'
+			+ '}');
 
-	addRule(defaultSelector + ' #leftColumn {'
-		+ 'height: 92%;'
-		+ 'width: 26%;'
-		+ '}');
+		addRule(defaultSelector + ' #leftColumn {'
+			+ 'height: 92%;'
+			+ 'width: 26%;'
+			+ '}');
 
-	addRule(defaultSelector + ' #midColumn {'
-		+ 'margin-top: 1% !important;'
-		+ 'height: 90%;'
-		+ 'width: 48%;'
-		+ '}');
+		addRule(defaultSelector + ' #midColumn {'
+			+ 'margin-top: 1% !important;'
+			+ 'height: 90%;'
+			+ 'width: 48%;'
+			+ '}');
 
-	addRule(defaultSelector + ' #rightColumn {'
-		+ 'overflow-y: auto;'
-		+ 'height: 92%;'
-		+ 'width: 19%;'
-		+ 'font-size: 12px;'
-		+ 'font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif;'
-		+ '}');
+		addRule(defaultSelector + ' #rightColumn {'
+			+ 'overflow-y: auto;'
+			+ 'height: 92%;'
+			+ 'width: 19%;'
+			+ 'font-size: 12px;'
+			+ 'font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif;'
+			+ '}');
 
-	addRule('body #gamePageContainer #game #rightColumn {'
-		+ 'overflow-y: auto;'
-		+ '}');
+		addRule('body #gamePageContainer #game #rightColumn {'
+			+ 'overflow-y: auto;'
+			+ '}');
 
-	// addRule(defaultSelector + ' #gameLog .msg {'
-	//     + 'display: block;'
-	//     + '}');
+		// addRule(defaultSelector + ' #gameLog .msg {'
+		//     + 'display: block;'
+		//     + '}');
 
-	addRule(defaultSelector + ' #gameLog {'
-		+ 'overflow-y: hidden !important;'
-		+ 'width: 100% !important;'
-		+ 'padding-top: 5px !important;'
-		+ '}');
+		addRule(defaultSelector + ' #gameLog {'
+			+ 'overflow-y: hidden !important;'
+			+ 'width: 100% !important;'
+			+ 'padding-top: 5px !important;'
+			+ '}');
 
-	addRule(defaultSelector + ' #resContainer .maxRes {'
-		+ 'color: #676766;'
-		+ '}');
+		addRule(defaultSelector + ' #resContainer .maxRes {'
+			+ 'color: #676766;'
+			+ '}');
 
-	addRule(defaultSelector + ' #game .btn {'
-		+ 'border-radius: 0px;'
-		+ 'font-family: monospace;'
-		+ 'font-size: 12px !important;'
-		+ 'margin: 0 5px 7px 0;'
-		+ 'width: 290px;'
-		+ '}');
+		addRule(defaultSelector + ' #game .btn {'
+			+ 'border-radius: 0px;'
+			+ 'font-family: monospace;'
+			+ 'font-size: 12px !important;'
+			+ 'margin: 0 5px 7px 0;'
+			+ 'width: 290px;'
+			+ '}');
 
-	addRule(defaultSelector + ' #game .map-viewport {'
-		+ 'height: 340px;'
-		+ 'max-width: 500px;'
-		+ 'overflow: visible;'
-		+ '}');
+		addRule(defaultSelector + ' #game .map-viewport {'
+			+ 'height: 340px;'
+			+ 'max-width: 500px;'
+			+ 'overflow: visible;'
+			+ '}');
 
-	addRule(' #game .map-dashboard {'
-		+ 'height: 120px;'
-		+ 'width: 292px;'
-		+ '}');
+		addRule(' #game .map-dashboard {'
+			+ 'height: 120px;'
+			+ 'width: 292px;'
+			+ '}');
 
-	addRule('#ks-options ul {'
-		+ 'list-style: none;'
-		+ 'margin: 0 0 5px;'
-		+ 'padding: 0;'
-		+ '}');
+		addRule('#ks-options ul {'
+			+ 'list-style: none;'
+			+ 'margin: 0 0 5px;'
+			+ 'padding: 0;'
+			+ '}');
 
-	addRule('#ks-options ul:after {'
-		+ 'clear: both;'
-		+ 'content: " ";'
-		+ 'display: block;'
-		+ 'height: 0;'
-		+ '}');
+		addRule('#ks-options ul:after {'
+			+ 'clear: both;'
+			+ 'content: " ";'
+			+ 'display: block;'
+			+ 'height: 0;'
+			+ '}');
 
-	addRule('#ks-options ul li {'
-		+ 'display: block;'
-		+ 'float: left;'
-		+ 'width: 100%;'
-		+ '}');
+		addRule('#ks-options ul li {'
+			+ 'display: block;'
+			+ 'float: left;'
+			+ 'width: 100%;'
+			+ '}');
 
-	addRule('#ks-options #toggle-list-resources .stockWarn *,'
-		+ '#ks-options #toggle-reset-list-resources .stockWarn * {'
-		+ 'color: ' + options.stockwarncolor + ';'
-		+ '}');
+		addRule('#ks-options #toggle-list-resources .stockWarn *,'
+			+ '#ks-options #toggle-reset-list-resources .stockWarn * {'
+			+ 'color: ' + options.stockwarncolor + ';'
+			+ '}'
+		);
 
-	addRule('.right-tab {'
-		+ 'height: unset !important;'
-		+ '}');
+		addRule('.right-tab {'
+			+ 'height: unset !important;'
+			+ '}'
+		);
+	}
 
 	// Local Storage
 	// =============
@@ -5490,19 +5529,22 @@ let run = function() {
 		policies: []
 	};
 
-	let initializeKittenStorage = function (see) {
-		$("#items-list-build, #items-list-craft, #items-list-trade, #items-list-options, #items-list-filter, #items-list-distribute").find("input[id^='toggle-']").each(function () {
-			let dom = $(this);
-			if ($(this).attr("type") !== 'radio') {
-				kittenStorage.items[dom.attr("id")] = dom.prop("checked");
-			}
+	let toggles = ['build','space','craft','upgrade','trade','faith','time','timeCtrl','distribute','options','filter'];
+	let initializeKittenStorage = function () {
+		toggles.forEach((name) => {
+			$("#items-list-" + name).find("input[id^='toggle-']").each(function () {
+				let dom = $(this);
+				if ($(this).attr("type") !== 'radio') {
+					kittenStorage.items[dom.attr("id")] = dom.prop("checked");
+				}
+			});
 		});
 		kittenStorage.items['toggle-leaderJob-farmer'] = true;
 		kittenStorage.items['toggle-leaderTrait-manager'] = true;
-		saveToKittenStorage(see);
+		saveToKittenStorage();
 	};
 
-	let saveToKittenStorage = function (session) {
+	let saveToKittenStorage = function () {
 		kittenStorage.toggles = {
 			build: options.auto.build.enabled,
 			space: options.auto.space.enabled,
@@ -5527,8 +5569,7 @@ let run = function() {
 		};
 		kittenStorage.policies = options.policies;
 
-		if (session) {sessionStorage.setItem('cbc',JSON.stringify(kittenStorage));}
-		else {localStorage['cbc.kitten-scientists'] = JSON.stringify(kittenStorage);}
+		localStorage['cbc.kitten-scientists'] = JSON.stringify(kittenStorage);
 	};
 
 	let loadFromKittenStorage = function () {
@@ -7113,11 +7154,25 @@ let run = function() {
 
 			ressetKS.on('click', function () {
 				if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置(有可能会刷新页面)')){
-					engine.stop(false);
-					let cbc = sessionStorage.getItem('cbc');
+					engine.stop();
+					let cbc = sessionStorage.getItem('options');
 					delete localStorage['cbc.kitten-scientists'];
 					if (cbc) {
-						window.localStorage['cbc.kitten-scientists'] = cbc;
+						$("#ks-options").remove();
+						options.policies = [];
+						options['auto'] = JSON.parse(cbc).auto;
+						optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
+						optionsListElement = $('<ul/>');
+						optionsListElement.append(getToggle('engine'));
+						if (options.auto.engine.enabled) {
+							engine.start();
+						}
+						toggles.forEach((name) => {
+							optionsListElement.append(getToggle(name));
+						});
+						right.prepend(optionsElement.append(optionsListElement));
+						engineOn();
+						saveToKittenStorage();
 						loadFromKittenStorage();
 					} else {
 						game.save();
@@ -7293,7 +7348,7 @@ let run = function() {
 				textShadow:'3px 3px 4px gray'}
 		});
 
-		for (i in com["nuclearunicorn"].game.village.Kitten().traits){
+		for (i in window["com"]["nuclearunicorn"].game.village.Kitten().traits){
 			traitList.append(getLeaderTrait(i, option));
 		}
 
@@ -7372,7 +7427,7 @@ let run = function() {
 	};
 
 	let getLeaderTrait = function (index, option) {
-		const trait = com["nuclearunicorn"].game.village.Kitten().traits[index];
+		const trait = window["com"]["nuclearunicorn"].game.village.Kitten().traits[index];
 
 		const element = $('<li/>');
 
@@ -7467,17 +7522,9 @@ let run = function() {
 	//optionsElement.append(optionsTitleElement);
 
 	optionsListElement.append(getToggle('engine'));
-	optionsListElement.append(getToggle('build'));
-	optionsListElement.append(getToggle('space'));
-	optionsListElement.append(getToggle('craft'));
-	optionsListElement.append(getToggle('upgrade'));
-	optionsListElement.append(getToggle('trade'));
-	optionsListElement.append(getToggle('faith'));
-	optionsListElement.append(getToggle('time'));
-	optionsListElement.append(getToggle('timeCtrl'));
-	optionsListElement.append(getToggle('distribute'));
-	optionsListElement.append(getToggle('options'));
-	optionsListElement.append(getToggle('filter'));
+	toggles.forEach((name) => {
+		optionsListElement.append(getToggle(name));
+	});
 
 	// add activity button
 	// ===================
@@ -7654,14 +7701,13 @@ let run = function() {
 		href: 'bitcoin:' + address + '?amount=0.00048&label=Kittens Donation',
 		target: '_blank',
 		text: address
-	})).prepend($('<img alt="bit"/>', {
+	})).prepend($('<img alt="bit" src="https://s1.ax1x.com/2022/04/30/OSmUAK.png" height="15px" />', {
 		css: {
 			height: '15px',
 			width: '15px',
 			padding: '3px 4px 0 4px',
 			verticalAlign: 'bottom'
 		},
-		src: 'https://s1.ax1x.com/2022/04/30/OSmUAK.png'
 	}));
 
 	// Add some padding above the donation item
@@ -7677,19 +7723,23 @@ let run = function() {
 	// =====================================
 
 	let engine = new Engine();
-	let toggleEngine = $('#toggle-engine');
 
-	toggleEngine.on('change', function () {
-		if (toggleEngine.is(':checked')) {
-			options.auto.engine.enabled = true;
-			engine.start();
-		} else {
-			options.auto.engine.enabled = false;
-			engine.stop();
-		}
-	});
+	let toggleEngine;
+	let engineOn = () => {
+		toggleEngine = $('#toggle-engine');
+		toggleEngine.on('change', function () {
+			if (toggleEngine.is(':checked')) {
+				options.auto.engine.enabled = true;
+				engine.start();
+			} else {
+				options.auto.engine.enabled = false;
+				engine.stop();
+			}
+		});
+	};
+	engineOn();
 
-	initializeKittenStorage('session');
+	sessionStorage.setItem('options',JSON.stringify(options));
 	loadFromKittenStorage();
 
 	// hack for style.
