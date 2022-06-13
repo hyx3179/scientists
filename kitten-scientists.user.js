@@ -925,7 +925,7 @@ let run = function() {
 			},
 			options: {
 				//猫薄荷日志
-				catnipMsg: true,
+				catnipMsg: 0,
 				//Which misc options should be enabled?
 				enabled: true,
 				items: {
@@ -1594,9 +1594,11 @@ let run = function() {
 				// game.village.sim.goldToPromote will check gold
 				// game.village.sim.promote check both gold and exp
 				if (game.village.sim.goldToPromote(rank, rank + 1, gold)[0] && game.village.sim.promote(leader, rank + 1) === 1) {
+					let villageTab = game['villageTab'];
+					if (!game.villageTab.governmentDiv) {villageTab.render();}
 					iactivity('act.promote', [rank + 1], 'ks-leader');
-					game.tabs[1].censusPanel.census.renderGovernment(game.tabs[1].censusPanel.census);
-					game.tabs[1].censusPanel.census.update();
+					villageTab.censusPanel.census.renderGovernment(villageTab.censusPanel.census);
+					villageTab.censusPanel.census.update();
 					storeForSummary('promote', 1);
 				}
 			}
@@ -2056,9 +2058,9 @@ let run = function() {
 				if (game.religion.faith > 1e4) {copyBuilds['sunAltar'].enabled = false;}
 			}
 			if (!game.ironWill && resMap['manpower'].maxValue < 15e3) {copyBuilds['templars'].enabled = false;}
-			if (game.religion.getSolarRevolutionRatio() > 9.95 + 0.9 * game.getEffect("solarRevolutionLimit") && game.workshop.get('spaceManufacturing').researched && activitySummary.other.adore) {
+			if (game.religion.getSolarRevolutionRatio() > 9.98 + 0.9 * game.getEffect("solarRevolutionLimit") && game.workshop.get('spaceManufacturing').researched && activitySummary.other.adore) {
 				let noMax = ['scholasticism','goldenSpire','stainedGlass','basilica','templars'];
-				noMax.forEach(index => copyBuilds[index].max = -1);
+				noMax.forEach(index => {copyBuilds[index].max = -1});
 			}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
@@ -2262,8 +2264,8 @@ let run = function() {
 					// 印刷机 光刻机
 					if (resMap['oil'].value < 7.5e4 && !geodesy) {
 						noup = noup.concat(['offsetPress','photolithography']);
-						if (resPercent('coal') > 0.8) {
-							noup = noup.concat(['fuelInjectors','coalFurnace']);
+						if (resPercent('coal') > 0.8 && resPercent('oil') < 0.95 && !orbitalGeodesy) {
+							noup = noup.concat(['fuelInjectors',]);
 						}
 					}
 					if (game.bld.getBuildingExt('factory').meta.val < 3) {
@@ -3773,7 +3775,7 @@ let run = function() {
 
 			if (!button || !button.model.metadata) {
 				if (variant === 'workshop') {
-					game[variant].render();
+					game['workshopTab'].render();
 				} else {
 					game["libraryTab"].render();
 				}
@@ -3952,7 +3954,9 @@ let run = function() {
 					// falls through
 				case 'warehouse':
 					if (id === 'warehouse') {
-						if (resMap['minerals'].maxValue < 1e5) {break;}
+						if (resMap['minerals'].maxValue < 5e4) {
+							if (game.workshop.get('deepMining').researched || game.bld.getBuildingExt(id).meta.val < 20) {break;}
+						}
 						else if (vitruvianFeline) {count = Math.floor(count * 0.3);}
 					}
 					// falls through
@@ -3974,6 +3978,7 @@ let run = function() {
 					if (id === 'oilWell') {
 						if (game.bld.getBuildingExt(id).meta.val < 8) {break;}
 						if (resMap['oil'].maxValue > 3e4 && resMap['oil'].value > 1e4) {count = Math.floor(count * 0.4);}
+						if (game.bld.getBuildingExt('calciner').meta.val > 20 && !orbitalGeodesy) {break;}
 					}
 					// falls through
 				case 'chapel':
@@ -4298,8 +4303,8 @@ let run = function() {
 					}
 				}
 				if (resMap['faith'].maxValue < 750 && resMap['gold'].value > 30 && resMap[name].value < 23 && ratio > 3) {force = true;}
-				if (!shipValue && ratio > 3 && resMap['starchart'].value >= 25) {
-					autoMax = Number.MAX_VALUE;
+				if (!shipValue && ratio > 3 && resMap['starchart'].value >= 25 && resValue < 150) {
+					autoMax = 1;
 					force = true;
 				}
 			}
@@ -4654,7 +4659,7 @@ let run = function() {
 					if (crossbow) {
 						stock += 1500;
 					}
-					let ironwood = unResearched('ironwood') && resMap[name].value > 900 && resMap[name].maxValue > 3000 && resMap['science'].maxValue > 3e4;
+					let ironwood = unResearched('ironwood') && resMap[name].value > 800 && resMap[name].maxValue > 3000 && resMap['science'].maxValue > 3e4;
 					ironwood &= !game.ironWill;
 					if (ironwood) {
 						stock += 3000;
@@ -4692,6 +4697,9 @@ let run = function() {
 			if (name === 'gear') {
 				if (unResearched('rotaryKiln') && game.workshop.get('orbitalGeodesy').researched) {stock += 5000;}
 			}
+			if (name === 'beam') {
+				if (unResearched('deepMining') && resMap['iron'].value > 1200) {stock += 5000;}
+			}
 			return !stock ? 0 : stock;
 		},
 		getValueAvailable: function (name, all, typeTrigger) {
@@ -4713,10 +4721,11 @@ let run = function() {
 				let resPerTick = this.getPotentialCatnip(false);
 				let catnipTick = (game.calendar.season !== 0 || this.getResource(name).maxValue * trigger < value || game.getResourcePerTick("catnip", true) < 0);
 				if (resPerTick < 0 && catnipTick) {
-					stock -= resPerTick * 1000 * 5;
-					if (options.auto.options.catnipMsg) {
+					stock -= resPerTick * 1500;
+					// 200秒
+					if (options.auto.options.catnipMsg + 2e5 < Date.now()) {
 						activity(i18n('craft.winterCatnip'));
-						options.catnipMsg = false;
+						options.auto.options.catnipMsg = Date.now();
 					}
 				}
 			}
@@ -5179,17 +5188,17 @@ let run = function() {
 			let prof = true;
 			if (name === 'nagas') {
 				if (!resMap['ship'].value && race.embassyLevel < 10 && !game.ironWill) {prof = false;}
-				if (resMap['concrate'].value > 500 || (!resMap['concrate'].unlocked && !game.ironWill)) {prof = false;}
+				if (resMap['concrate'].value > 1000 || (!resMap['concrate'].unlocked && !game.ironWill)) {prof = false;}
 			}
 			if (name === 'griffins') {
 				if (!resMap['ship'].value && race.embassyLevel < 10 && game.prestige.getPerk('renaissance').researched) {prof = false;}
 				if (resMap['ship'].value && game.calendar.season !== 2 && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
 			}
 			if (name === 'zebras') {
-				prof = (!resMap['spice'].value && game.calendar.festivalDays && game.prestige.getPerk("numeromancy").researched) ? true : prof;
+				tick = (!resMap['spice'].value && game.calendar.festivalDays && game.prestige.getPerk("numeromancy").researched) ? true : prof;
 				prof = prof && game.getEffect("standingRatio") > 0.1;
 			}
-			return (cost <= profit) && prof;
+			return tick === true || (cost <= profit && prof);
 		},
 		getAverageTrade: function (race) {
 			// standingRatio
