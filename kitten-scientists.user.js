@@ -485,6 +485,7 @@ let run = function() {
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造。',
 			'summary.auto.smelter': '神学前，小猫根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.academy': '小猫当科学快满了才会继续建造研究院',
+			'summary.auto.unicorn': '小猫最佳独角兽下个建筑是{0}',
 			'summary.auto.upgPasture': '当勾选太阳能发电站了，并有足够钛的产量、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部牧场后，升级太阳能发电站!',
 			'summary.auto.upgAqueduct': '当勾选水电站了，有太阳能发电站、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部水渠后，升级水电站!',
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
@@ -1873,6 +1874,7 @@ let run = function() {
 			// After Adore epiphany
 			let worship = game.religion.faith;
 			let epiphany = game.religion.faithRatio;
+			let solarRatio = game.religion.getSolarRevolutionRatio();
 			let maxSolarRevolution = 10 + game.getEffect("solarRevolutionLimit");
 			let adoreTrigger = option.adore.subTrigger;
 			let triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
@@ -1976,7 +1978,8 @@ let run = function() {
 				let transformTier = 0.5 * Math.log(game.religion.faithRatio) + 3.45;
 				let expectSolarRevolutionRatio = game.getLimitedDR(1.3 * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
-				if (adoreTri === 0.001 && booleanForAdore && game.religion.getSolarRevolutionRatio() * 1e2 < expectSolarRevolutionRatio && tt) {
+				let rrVal = game.time.getCFU("ressourceRetrieval").val;
+				if (adoreTri === 0.001 && booleanForAdore && solarRatio * 1e2 < expectSolarRevolutionRatio && tt && !rrVal) {
 					booleanForAdore = false;
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 1e2) / 100;
 					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar']) {
@@ -2006,7 +2009,7 @@ let run = function() {
 			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, 0.65 * transformTier) * factor, 80 * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = game.religion.getRU('solarRevolution').on;
-			if (solarRevolution && PraiseSubTrigger === 0.98 && game.religion.getSolarRevolutionRatio() < expectSolarRevolutionRatio * 0.01) {
+			if (solarRevolution && PraiseSubTrigger === 0.98 && solarRatio < expectSolarRevolutionRatio * 0.01) {
 				PraiseSubTrigger = 0;
 			}
 
@@ -2058,7 +2061,7 @@ let run = function() {
 			if (!game.ironWill && resMap['manpower'].maxValue < 15e3) {copyBuilds['templars'].enabled = false;}
 			if (game.religion.getSolarRevolutionRatio() > 9.98 + 0.9 * game.getEffect("solarRevolutionLimit") && game.workshop.get('spaceManufacturing').researched && activitySummary.other.adore) {
 				let noMax = ['scholasticism','goldenSpire','stainedGlass','basilica','templars'];
-				noMax.forEach(index => {copyBuilds[index].max = -1});
+				noMax.forEach(index => {copyBuilds[index].max = -1;});
 			}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
@@ -2360,7 +2363,7 @@ let run = function() {
 									if (policy.blocked) {continue;}
 									if (policy.unlocked) {
 										if (policy.requiredLeaderJob === undefined ||
-											   (game.village.leader != null && game.village.leader.job === policy.requiredLeaderJob)
+											(game.village.leader != null && game.village.leader.job === policy.requiredLeaderJob)
 										){
 											toResearch.push(policy);
 										}
@@ -3505,7 +3508,8 @@ let run = function() {
 					cycle = game.calendar.cycles[game.calendar.cycle].festivalEffects['unicorns'];
 				}
 			}
-			let onZig = Math.max(game.bld.getBuildingExt('ziggurat').meta.on, 1);
+			let zig = game.bld.getBuildingExt('ziggurat').meta.on;
+			let onZig = Math.max(zig, 1);
 			let total = unicornsPerSecond * globalRatio * religionRatio * paragonRatio * faithBonus * cycle;
 			let baseUnicornsPerRift = 500 * (1 + game.getEffect('unicornsRatioReligion') * 0.1);
 			let riftChanceRatio = 1;
@@ -3517,6 +3521,11 @@ let run = function() {
 			pastureAmor = pastureAmor * globalRatio * religionRatio * paragonRatio * faithBonus * cycle;
 			let pastureMeta = game.bld.meta[0].meta[31];
 			pastureAmor = pastureMeta.prices[0].val * Math.pow(pastureMeta.priceRatio + game.getEffect("priceRatio"), pastureMeta.on) / pastureAmor;
+			let factor = 1;
+			let res = 'tears';
+			let ivory = resMap['tears'].value + resMap['unicorns'].value * 2500 / onZig * factor > resMap['ivory'].value;
+			ivory |= resMap['ivory'].perTickCached * 1.5 < resMap['unicorns'].perTickCached && resMap['alicorn'].value > 100;
+			if (ivory) {console.log(1);res = 'ivory';}
 			if (pastureAmor < bestAmoritization) {
 				bestAmoritization = pastureAmor;
 				bestBuilding = pastureButton;
@@ -3526,34 +3535,20 @@ let run = function() {
 				if (validBuildings.indexOf(btn.name) !== -1) {
 					if (i === 0 || game.religion.meta[0].meta[i - 1].on) {
 						let unicornPrice = 0;
-						let tearsPrices = [5, 25, 50, 500, 5e3, 25e3];
-						unicornPrice += tearsPrices[i] * Math.pow(1.15 , btn.on) * 2500 / onZig;
-						//for (var j = 0; j < btn.prices.length; j++) {
-						//    //if (j.name == 'unicorns') {
-						//        //unicornPrice += j.val;
-						//    //}
-						//    if (btn.prices[j].name == 'tears') {
-						//        var tearsPrices = [5, 25, 50, 500, 5e3, 25e3]
-						//        unicornPrice += tearsPrices[i] * Math.pow(1.15 , btn.on) * 2500 / onZig;
-						//    }
-						//}
-						//var bld = game.religion.getZU(btn.name);
-						let relBonus = game.getEffect('unicornsRatioReligion') + 1;
-						let riftChance = game.getEffect('riftChance');
-						let ratioEffect = [0.05, 0.1, 0.25, 0.5, 2.5, 5];
-						relBonus += ratioEffect[i];
+						let relBonus = religionRatio;
+						if (ivory && !btn.effects['alicornChance']) {continue;}
+						for (let j = 0; j < btn.prices.length; j++) {
 
+							if (btn.prices[j].name === res) {
+								unicornPrice += btn.prices[j].val * Math.pow(1.15 , btn.on) * 2500 / onZig;
+								relBonus += btn.effects['unicornsRatioReligion'];
+								break;
+							}
+						}
+						let riftChance = game.getEffect('riftChance');
 						if (btn.effects.riftChance) {
 							riftChance += btn.effects.riftChance;
 						}
-						/*for (var j in bld.effects) {
-							if (j == 'unicornsRatioReligion') {
-								relBonus += bld.effects[j];
-							}
-							if (j == 'riftChance') {
-								riftChance += bld.effects[j];
-							}
-						}*/
 						let unicornsPerRift = 500 * ((relBonus - 1) * 0.1 + 1);
 						let riftBonus = riftChance * riftChanceRatio / (10000 * 2) * unicornsPerRift;
 						riftBonus -= baseRift;
@@ -3570,6 +3565,14 @@ let run = function() {
 							}
 						}
 					}
+				}
+			}
+			if (zig) {
+				let name = bestBuilding.label || "独角兽牧场";
+				if (activitySummary.other['unicornBld'] !== name) {
+					activitySummary.other['unicornBld'] = name;
+					iactivity('summary.auto.unicorn', [name], 'ks-sacrifice');
+					storeForSummary('auto.unicorn');
 				}
 			}
 			return bestBuilding;
@@ -3847,8 +3850,8 @@ let run = function() {
 			let res = options.auto.resources[name];
 			switch(upgrade) {
 				case 'oxidation':
-				res = null;
-				break;
+					res = null;
+					break;
 			}
 			let stock = (res && res.enabled) ? res.stock : 0;
 			if (name === 'titanium' && upgrade !== 'rotaryKiln') {
@@ -3935,16 +3938,16 @@ let run = function() {
 				case 'aqueduct':
 					if (catnipTick < 2 || game.challenges.isActive('winterIsComing')) {break;}
 					else {count = Math.floor(count * 0.4);}
-					// falls through
+				// falls through
 				case 'library':
 					if (id === 'library' && !scienceMetaCache['writing'].unlocked) {break;}
-					// falls through
+				// falls through
 				case 'academy':
 				case 'pasture':
 				case 'barn':
 					if (id === 'barn' && resMap['minerals'].maxValue < 1600) {break;}
 					if (mineralsCap && woodCap) {break;}
-					// falls through
+				// falls through
 				case 'warehouse':
 					if (id === 'warehouse') {
 						if (resMap['minerals'].maxValue < 5e4) {
@@ -3952,7 +3955,7 @@ let run = function() {
 						}
 						else if (vitruvianFeline) {count = Math.floor(count * 0.3);}
 					}
-					// falls through
+				// falls through
 				case 'lumberMill':
 					if (id === 'lumberMill') {
 						if (game.bld.getBuildingExt(id).meta.val < 35) {
@@ -3966,14 +3969,14 @@ let run = function() {
 							halfCount = true;
 						}
 					}
-					// falls through
+				// falls through
 				case 'oilWell':
 					if (id === 'oilWell') {
 						if (game.bld.getBuildingExt(id).meta.val < 8) {break;}
-						if (resMap['oil'].maxValue > 3e4 && resMap['oil'].value > 1e4) {count = Math.floor(count * 0.4);}
+						if (resMap['oil'].maxValue > 55e3 && resMap['oil'].value > 1e4) {count = Math.floor(count * 0.5);}
 						if (game.bld.getBuildingExt('calciner').meta.val > 20 && !orbitalGeodesy) {break;}
 					}
-					// falls through
+				// falls through
 				case 'chapel':
 					if (id === 'chapel') {
 						if (game.bld.getBuildingExt(id).meta.val < 20) {
@@ -3985,7 +3988,7 @@ let run = function() {
 							break;
 						}
 					}
-					// falls through
+				// falls through
 				case 'quarry' :
 					if (vitruvianFeline) {
 						if (!orbitalGeodesy && game.bld.get(id).val) {
@@ -4027,7 +4030,7 @@ let run = function() {
 						}
 					}
 					break;
-					// falls through
+				// falls through
 				case 'accelerator':
 					if (!vitruvianFeline) {break;}
 					if (!game.workshop.get('energyRifts').researched) {
@@ -4037,7 +4040,7 @@ let run = function() {
 						count = 0;
 					}
 					break;
-					// falls through
+				// falls through
 				case 'mansion':
 					vitruvianFeline = (vitruvianFeline || (!vitruvianFeline && game.workshop.get('orbitalGeodesy').researched && id === 'mansion'));
 					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1 && !TitaniumCap && vitruvianFeline) {
@@ -4635,8 +4638,9 @@ let run = function() {
 		getStock: function (name) {
 			let res = options.auto.resources[name];
 			let stock = (res && res.enabled) ? res.stock : 0;
+			let workshop = game.workshop;
 			let unResearched = (name) => {
-				let meta = game.workshop.metaCache[name];
+				let meta = workshop.metaCache[name];
 				return (meta.unlocked && !meta.researched);
 			};
 
@@ -4684,11 +4688,12 @@ let run = function() {
 				}
 			}
 			if (name === 'titanium') {
-				if (unResearched('rotaryKiln') && game.workshop.get('orbitalGeodesy').researched) {stock += 5000;}
+				if (unResearched('rotaryKiln') && workshop.get('orbitalGeodesy').researched) {stock += 5000;}
+				if (unResearched('augumentation') && resMap['uranium'].value > 50 && game.village.leader && workshop.get('rotaryKiln').researched) {stock += 5000;}
 				if (unResearched('spaceManufacturing') && game.bld.get('reactor').val > 24 && resMap['titanium'].maxValue > 125e3) {stock += 13e5;}
 			}
 			if (name === 'gear') {
-				if (unResearched('rotaryKiln') && game.workshop.get('orbitalGeodesy').researched) {stock += 5000;}
+				if (unResearched('rotaryKiln') && workshop.get('orbitalGeodesy').researched) {stock += 5000;}
 			}
 			if (name === 'beam') {
 				if (unResearched('deepMining') && resMap['iron'].value > 1200) {stock += 5000;}
@@ -4999,6 +5004,7 @@ let run = function() {
 				for (let j = 0; j < countList.length; j++) {
 					let build = countList[j];
 					data = metaData[build.id];
+					let dataVal = data.val;
 					prices = build.prices;
 					priceRatio = build.priceRatio;
 					source = build.source;
@@ -5013,24 +5019,24 @@ let run = function() {
 						}
 
 						if (spaceOil) {
-							nextPriceCheck = (tempPool['oil'] < oilPrice * Math.pow(1.05, k + data.val));
+							nextPriceCheck = (tempPool['oil'] < oilPrice * Math.pow(1.05, k + dataVal));
 						} else if (cryoKarma) {
-							nextPriceCheck = (tempPool['karma'] < karmaPrice * Math.pow(priceRatio, k + data.val));
+							nextPriceCheck = (tempPool['karma'] < karmaPrice * Math.pow(priceRatio, k + dataVal));
 						} else {
-							let price = prices[p].val * Math.pow(priceRatio, k + data.val);
+							let price = prices[p].val * Math.pow(priceRatio, k + dataVal);
 							nextPriceCheck = tempPool[prices[p].name] < price;
 						}
-						if (nextPriceCheck || (data.noStackable && (k + data.val) >= 1) || (build.id === 'ressourceRetrieval' && k + data.val >= 100)
-						  || (build.id === 'cryochambers' && game.bld.getBuildingExt('chronosphere').meta.val <= k + data.val)) {
+						if (nextPriceCheck || (data.noStackable && (k + dataVal) >= 1) || (build.id === 'ressourceRetrieval' && k + dataVal >= 100)
+						  || (build.id === 'cryochambers' && game.bld.getBuildingExt('chronosphere').meta.val <= k + dataVal)) {
 							for (let p2 = 0; p2 < p; p2++) {
 								if (source && source === 'space' && prices[p2].name === 'oil') {
 									let oilPriceRefund = prices[p2].val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
-									tempPool['oil'] += oilPriceRefund * Math.pow(1.05, k + data.val);
+									tempPool['oil'] += oilPriceRefund * Math.pow(1.05, k + dataVal);
 								} else if (build.id === 'cryochambers' && prices[p2].name === 'karma') {
 									let karmaPriceRefund = prices[p2].val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
-									tempPool['karma'] += karmaPriceRefund * Math.pow(priceRatio, k + data.val);
+									tempPool['karma'] += karmaPriceRefund * Math.pow(priceRatio, k + dataVal);
 								} else {
-									let refundVal = prices[p2].val * Math.pow(priceRatio, k + data.val);
+									let refundVal = prices[p2].val * Math.pow(priceRatio, k + dataVal);
 									tempPool[prices[p2].name] += (prices[p2].name === 'void') ? Math.ceil(refundVal) : refundVal;
 								}
 							}
@@ -5043,11 +5049,11 @@ let run = function() {
 							continue bulkLoop;
 						}
 						if (spaceOil) {
-							tempPool['oil'] -= oilPrice * Math.pow(1.05, k + data.val);
+							tempPool['oil'] -= oilPrice * Math.pow(1.05, k + dataVal);
 						} else if (cryoKarma) {
-							tempPool['karma'] -= karmaPrice * Math.pow(priceRatio, k + data.val);
+							tempPool['karma'] -= karmaPrice * Math.pow(priceRatio, k + dataVal);
 						} else {
-							let pVal = prices[p].val * Math.pow(priceRatio, k + data.val);
+							let pVal = prices[p].val * Math.pow(priceRatio, k + dataVal);
 							tempPool[prices[p].name] -= (prices[p].name === 'void') ? Math.ceil(pVal) : pVal;
 							// 检查 NaN
 							tempPool[prices[p].name] = tempPool[prices[p].name] ? tempPool[prices[p].name] : 0;
@@ -5236,7 +5242,7 @@ let run = function() {
 		},
 		isValidTrade: function (item, race) {
 			return (!(item.minLevel && race.embassyLevel < item.minLevel)
-			&& (game.resPool.get(item.name).unlocked || item.name === 'titanium' || item.name === 'uranium' || race.name === 'leviathans'));
+				&& (game.resPool.get(item.name).unlocked || item.name === 'titanium' || item.name === 'uranium' || race.name === 'leviathans'));
 		},
 		getLowestTradeAmount: function (name, limited, trigConditions) {
 			let total, amount, highestCapacity, i;
@@ -6543,27 +6549,27 @@ let run = function() {
 			});
 
 			let loadButton = $('<div/>', {
-				id: 'toggle-upgrade-policies-load',
-				text: i18n('ui.upgrade.policies.load'),
-				css: {
-					cursor:'pointer',
-					display:'inline-block',
-					float:'right',
-					paddingRight:'5px',
-					textShadow:'3px 3px 4px gray'}
-			}
+					id: 'toggle-upgrade-policies-load',
+					text: i18n('ui.upgrade.policies.load'),
+					css: {
+						cursor:'pointer',
+						display:'inline-block',
+						float:'right',
+						paddingRight:'5px',
+						textShadow:'3px 3px 4px gray'}
+				}
 			);
 
 			let showButton = $('<div/>', {
-				id: 'toggle-upgrade-policies-show',
-				text: i18n('ui.upgrade.policies.show'),
-				css: {
-					cursor:'pointer',
-					display:'inline-block',
-					float:'right',
-					paddingRight:'5px',
-					textShadow:'3px 3px 4px gray'}
-			}
+					id: 'toggle-upgrade-policies-show',
+					text: i18n('ui.upgrade.policies.show'),
+					css: {
+						cursor:'pointer',
+						display:'inline-block',
+						float:'right',
+						paddingRight:'5px',
+						textShadow:'3px 3px 4px gray'}
+				}
 			);
 			// resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));
 
@@ -7174,7 +7180,6 @@ let run = function() {
 						});
 						right.prepend(optionsElement.append(optionsListElement));
 						engineOn();
-						saveToKittenStorage();
 						loadFromKittenStorage();
 					} else {
 						game.save();
@@ -7699,23 +7704,23 @@ let run = function() {
 	// ===============
 
 	let showD = function() {
-	let donate = $('<li/>', {id: "ks-donate"}).append($('<a/>', {
-		href: 'bitcoin:' + address + '?amount=0.00048&label=Kittens Donation',
-		target: '_blank',
-		text: address
-	})).prepend($('<img alt="bit" src="https://s1.ax1x.com/2022/04/30/OSmUAK.png" height="15px" />', {
-		css: {
-			height: '15px',
-			width: '15px',
-			padding: '3px 4px 0 4px',
-			verticalAlign: 'bottom'
-		},
-	}));
+		let donate = $('<li/>', {id: "ks-donate"}).append($('<a/>', {
+			href: 'bitcoin:' + address + '?amount=0.00048&label=Kittens Donation',
+			target: '_blank',
+			text: address
+		})).prepend($('<img alt="bit" src="https://s1.ax1x.com/2022/04/30/OSmUAK.png" height="15px" />', {
+			css: {
+				height: '15px',
+				width: '15px',
+				padding: '3px 4px 0 4px',
+				verticalAlign: 'bottom'
+			},
+		}));
 
-	// Add some padding above the donation item
-	donate.css('padding', '5px');
+		// Add some padding above the donation item
+		donate.css('padding', '5px');
 
-	optionsListElement.append(donate);
+		optionsListElement.append(donate);
 	};
 	showD();
 	// add the options above the game log
