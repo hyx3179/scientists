@@ -297,7 +297,7 @@ let run = function() {
 
 			'act.praise': '赞美太阳! 转化 {0} 信仰为 {1} 虔诚',
 			'parise.trigger.set': '输入新的赞美太阳的触发值，取值范围为 0 到 1的纯小数\n 当为0.98时且点出太阳革命，若虔诚太少小猫每天赞美太阳',
-			'summary.praise.msg': '因虔诚太低，小猫每天都会赞美太阳，直到太阳革命加成大于 {0} %',
+			'summary.praise.msg': '虔诚的小猫每天都会赞美太阳，直到太阳革命加成大于 {0} % (说你了虔诚太低了!)',
 			'act.sun.discover': '小猫在宗教祷告了 {0} ',
 			'act.sun.discovers': '小猫在宗教祷告了 {0} {1} 次',
 			'act.sun.discovers.leader': '哲学家小猫在宗教祷告了 {0} {1} 次',
@@ -417,7 +417,7 @@ let run = function() {
 			'ui.timeCtrl': '时间操纵',
 			'option.accelerate': '光阴似箭',
 			'act.accelerate': '固有时制御，二倍速!',
-			'act.accelerate.acl': '抓稳了，要加速了!',
+			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
 			'act.accelerate.slow': '不行了，要减速了',
 			'filter.accelerate': '光阴似箭',
 			'summary.accelerate': '小猫加速时间 {0} 次',
@@ -467,6 +467,7 @@ let run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
+			'summary.auto.accelerator': '缺电啦，大概只有加速器能关闭了，不会影响库存',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
@@ -504,7 +505,7 @@ let run = function() {
 
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
 			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）（她真的好温柔，😭）',
-			'summary.mint': '小猫因为你建造了铸币厂，故关闭了铸币厂（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关你喵力上限较低）',
+			'summary.mint': '秋梨膏别开铸币厂了，它现在真的很不行（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关）',
 			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
 			'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
 			'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
@@ -1211,17 +1212,13 @@ let run = function() {
 		},
 		delay: function (render) {
 			if (render) {
-				let tool = $('#tooltip')[0];
-				if (options.renderTime + 6e5 < Date.now() || this.toolText !== tool.innerText) {
-					// 防止猫口闪烁
-					let kittens = game.resPool.get("kittens");
-					game.village.maxKittens = Math.floor(game.getEffect("maxKittens"));
-					kittens.maxValue = game.village.calculateSimMaxKittens();
+				let tool = tooltipElement.innerText;
+				if (options.renderTime + 6e5 < Date.now() || this.toolText !== tool) {
 					this.renderID = setTimeout(() => {
 						let active = game.ui.activeTabId;
 						if (active === 'Village' || active === 'Nummon') {return;}
 						options.renderTime = Date.now();
-						this.toolText = tool.innerText;
+						this.toolText = tool;
 						game.ui.render();
 					}, Math.min(200,200 - Date.now() + game.timer.timestampStart));
 				}
@@ -1808,9 +1805,9 @@ let run = function() {
 						} else {
 							buttonPrices = dojo.clone(btn.prices);
 							for (i = 0; i < buttonPrices.length; i++) {
+								buttonPrices[i].val *= Math.pow(1.15, btn.on);
 								if (buttonPrices[i].name === 'tears') {
-									buttonPrices[i].val *= Math.pow(1.15, btn.on);
-									tearNeed = buttonPrices[i].val;
+									tearNeed = buttonPrices[i].val + craftManager.getStock('tears');
 								}
 							}
 							btnButton = religionManager.getBuildButton(btn.name, 'z');
@@ -1841,11 +1838,9 @@ let run = function() {
 						}
 						if (btnButton === undefined && zigguratOn) {
 							this.religionManager.manager.render();
-						} else {
-							if (!oneTear && game.resPool.hasRes(buttonPrices)) {
-								religionManager.build(btn.name, 'z', 1);
-								refreshRequired = 1;
-							}
+						} else if (!oneTear && game.resPool.hasRes(buttonPrices)) {
+							religionManager.build(btn.name, 'z', 1);
+							refreshRequired = 1;
 						}
 					}
 				}
@@ -3288,9 +3283,13 @@ let run = function() {
 				activity(i18n('summary.' + name, [number]));
 				storeForSummary(name, number);
 			};
-			if (game.bld.getBuildingExt('mint').meta.on && resMap['manpower'].maxValue < 2e4 && !game.opts.enableRedshift && !game.challenges.isActive("pacifism")) {
-				game.bld.getBuildingExt('mint').meta.on = 0;
+			let mint = game.bld.getBuildingExt('mint').meta;
+			if (mint.on && resMap['manpower'].maxValue < 2e4 && !game.opts.enableRedshift && !game.challenges.isActive("pacifism")) {
+				mint.on = 0;
 				msg('mint');
+			}
+			if (mint.on !== mint.val && resMap['manpower'].maxValue > 2e4) {
+				mint.on = mint.val;
 			}
 			// auto turn on steamworks
 			if (game.village.maxKittens > 130 || game.stats.getStat("totalResets").val > 0) {
@@ -3328,19 +3327,25 @@ let run = function() {
 				// 缺电
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				if (winterProd && winterProd < game.resPool.energyCons) {
-					if (game.bld.getBuildingExt('biolab').meta.on && game.workshop.get('biofuel').researched) {
+					let biolab = game.bld.getBuildingExt('biolab').meta;
+					if (biolab.on && game.workshop.get('biofuel').researched) {
 						let msg = '冬季产出电:' + game.getDisplayValueExt(winterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
-						let number = game.bld.getBuildingExt('biolab').meta.on;
 						iactivity('summary.biolab.test', [msg + number]);
-						game.bld.getBuildingExt('biolab').meta.on = 0;
+						biolab.on = 0;
 						storeForSummary('biolab.test', msg + number);
-						return refreshRequired;
+						return 1;
 					}
 					let oilWell = game.bld.getBuildingExt('oilWell').meta;
 					if (oilWell.isAutomationEnabled && game.workshop.get('pumpjack').researched) {
 						oilWell.isAutomationEnabled = false;
 						game.upgrade({buildings: ['oilWell']});
 						msg('pumpjack', 1);
+						return 1;
+					}
+					let accelerator = game.bld.getBuildingExt('accelerator').meta;
+					if (accelerator.on) {
+						accelerator.on = 0
+						msg('accelerator', 1);
 					}
 				}
 				// 自动控制 时间操纵 酿酒厂 开关
@@ -3522,10 +3527,9 @@ let run = function() {
 			let pastureMeta = game.bld.meta[0].meta[31];
 			pastureAmor = pastureMeta.prices[0].val * Math.pow(pastureMeta.priceRatio + game.getEffect("priceRatio"), pastureMeta.on) / pastureAmor;
 			let factor = 1;
-			let res = 'tears';
 			let ivory = resMap['tears'].value + resMap['unicorns'].value * 2500 / onZig * factor > resMap['ivory'].value;
-			ivory |= resMap['ivory'].perTickCached * 1.5 < resMap['unicorns'].perTickCached && resMap['alicorn'].value > 100;
-			if (ivory) {console.log(1);res = 'ivory';}
+			ivory |= resMap['ivory'].perTickCached * 1.5 < resMap['unicorns'].perTickCached && resMap['alicorn'].value;
+			let res = ivory ? 'ivory' : 'tears';
 			if (pastureAmor < bestAmoritization) {
 				bestAmoritization = pastureAmor;
 				bestBuilding = pastureButton;
@@ -3858,6 +3862,10 @@ let run = function() {
 			}
 			if (name === 'iron' && upgrade !== 'ironwood') {
 				if (activitySummary.other['auto.ironwood']) {stock += 3000;}
+			}
+			if (name === 'alloy') {
+				let cache = options.auto.upgrade.items.upgrades.cache;
+				if (cache && cache !== upgrade) {stock += options.auto.cache.resUpg[name];}
 			}
 			return Math.max(resMap[name].value - stock, 0);
 		},
@@ -4688,7 +4696,7 @@ let run = function() {
 			}
 			if (name === 'titanium') {
 				if (unResearched('rotaryKiln') && workshop.get('orbitalGeodesy').researched) {stock += 5000;}
-				if (unResearched('augumentation') && resMap['uranium'].value > 50 && game.village.leader && workshop.get('rotaryKiln').researched) {stock += 5000;}
+				// if (unResearched('augumentation') && resMap['uranium'].value > 50 && game.village.leader && workshop.get('rotaryKiln').researched) {stock += 5000;}
 				if (unResearched('spaceManufacturing') && game.bld.get('reactor').val > 24 && resMap['titanium'].maxValue > 125e3) {stock += 13e5;}
 			}
 			if (name === 'gear') {
