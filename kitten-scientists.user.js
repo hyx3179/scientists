@@ -3569,10 +3569,9 @@ let run = function() {
 			}
 			if (zig) {
 				let name = bestBuilding.label || "独角兽牧场";
-				if (activitySummary.other['unicornBld'] !== name) {
-					activitySummary.other['unicornBld'] = name;
+				if (activitySummary.other['auto.unicorn'] !== name) {
+					activitySummary.other['auto.unicorn'] = name;
 					iactivity('summary.auto.unicorn', [name], 'ks-sacrifice');
-					storeForSummary('auto.unicorn');
 				}
 			}
 			return bestBuilding;
