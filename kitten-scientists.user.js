@@ -1605,31 +1605,32 @@ let run = function() {
 			const distributeItem = options.auto.distribute.items;
 			let leaderVals = distributeItem.leader;
 			let refreshRequired = 0;
+			let village = game.village;
 			if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy") && !options.copyTrait) {
 				let traitName = leaderVals.leaderTrait;
 				let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
 				let leaderJobName = leaderVals.leaderJob;
 				leaderJobName = (leaderJobName === 'farmer' && vitruvianFeline && traitName === 'manager' && !game.challenges.isActive("atheism")) ? 'priest' : leaderJobName;
-				if (game.village.leader === null && game.village.sim.kittens.length) {
-					game["villageTab"].censusPanel.census.makeLeader(game.village.sim.kittens[0]);
+				if (village.leader === null && village.sim.kittens.length) {
+					game["villageTab"].censusPanel.census.makeLeader(village.sim.kittens[0]);
 				}
 				let optionsTheocracy = false;
 				if (options.auto.upgrade.items.policies.enabled) {
 					optionsTheocracy = (options.policies ===  undefined) ? false : options.policies.some(obj => obj === 'theocracy');
 				}
 				if (optionsTheocracy || game.science.getPolicy('theocracy').researched) {leaderJobName = "priest";}
-				let distributeJob = game.village.getJob(leaderJobName);
-				if (game.village.leader == null || !(game.village.leader.job === leaderJobName && game.village.leader.trait.name === traitName)) {
-					let traitKittens = game.village.sim.kittens.filter(kitten => kitten.trait.name === traitName);
+				let distributeJob = village.getJob(leaderJobName);
+				if (village.leader == null || !(village.leader.job === leaderJobName && village.leader.trait.name === traitName)) {
+					let traitKittens = village.sim.kittens.filter(kitten => kitten.trait.name === traitName);
 					if (traitKittens.length !== 0) {
-						if (distributeJob.unlocked && distributeJob.value < game.village.getJobLimit(leaderJobName)) {
+						if (distributeJob.unlocked && distributeJob.value < village.getJobLimit(leaderJobName)) {
 							let correctLeaderKitten = traitKittens.sort(function(a, b) {return b.rank - a.rank === 0 ? b.exp - a.exp : b.rank - a.rank;})[0];
 							if (distributeJob.value >= distributeItem[leaderJobName].max && distributeItem[leaderJobName].limited && distributeJob.value) {
-								game.village.sim.removeJob(leaderJobName, 1);
+								village.sim.removeJob(leaderJobName, 1);
 							}
-							game.village.unassignJob(correctLeaderKitten);
+							village.unassignJob(correctLeaderKitten);
 							correctLeaderKitten.job = leaderJobName;
-							game.village.getJob(leaderJobName).value++;
+							village.getJob(leaderJobName).value++;
 							game["villageTab"].censusPanel.census.makeLeader(correctLeaderKitten);
 							refreshRequired += 1;
 							iactivity('act.distributeLeader', [i18n('$village.trait.' + traitName)], 'ks-distribute');
@@ -1641,13 +1642,13 @@ let run = function() {
 
 			let minerItem = options.auto.distribute.items.miner;
 			let agriculture = game.science.get("agriculture").researched;
-			let happiness = game.village.happiness;
-			let normalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || (game.village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
-			let freeKittens = game.village.getFreeKittens();
-			let miner = game.village.jobs[4];
+			let happiness = village.happiness;
+			let normalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || (village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
+			let freeKittens = village.getFreeKittens();
+			let miner = village.jobs[4];
 			if (!freeKittens) {
-				if (minerItem.enabled && miner.unlocked && !miner.value && game.village.getJob('woodcutter').value && game.village.sim.kittens.length) {
-					game.village.sim.removeJob('woodcutter');
+				if (minerItem.enabled && miner.unlocked && !miner.value && village.getJob('woodcutter').value && village.sim.kittens.length) {
+					village.sim.removeJob('woodcutter');
 				}
 				return refreshRequired;
 			}
@@ -1658,7 +1659,7 @@ let run = function() {
 			let religionCatnip = options.auto.distribute;
 			if (religionCatnip.religion || (normalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue)) {
 				religionCatnip.religion = false;
-				game.village.assignJob(game.village.getJob("farmer"), 1);
+				village.assignJob(village.getJob("farmer"), 1);
 				iactivity('act.distribute.catnip', [], 'ks-distribute');
 				iactivity('act.distribute', [i18n('$village.job.' + "farmer")], 'ks-distribute');
 				storeForSummary('catnip', 1);
@@ -1670,17 +1671,18 @@ let run = function() {
 			let currentRatio = 0;
 			let revolution = game.religion.getSolarRevolutionRatio();
 			let expect = options.auto.faith.addition.autoPraise.expect;
-			expect = expect && expect > 5 && revolution < expect * 0.4 && game.village.jobs[5].unlocked;
-			for (let i = game.village.jobs.length - 1; i >= 0; i--) {
-				let unlocked = game.village.jobs[i].unlocked;
+			expect = expect && expect > 5 && revolution < expect * 0.4 && village.jobs[5].unlocked;
+			for (let i = village.jobs.length - 1; i >= 0; i--) {
+				let job = village.jobs[i];
+				let unlocked = job.unlocked;
 				if (!unlocked) {continue;}
 
-				let name = game.village.jobs[i].name;
+				let name = job.name;
 				let jobItem = distributeItem[name];
 				if (!jobItem.enabled) {continue;}
 
-				let maxGame = game.village.getJobLimit(name);
-				let val = game.village.jobs[i].value;
+				let maxGame = village.getJobLimit(name);
+				let val = job.value;
 				if (val >= maxGame) {continue;}
 
 				let maxKS = Math.max(0, jobItem.max);
@@ -1688,10 +1690,10 @@ let run = function() {
 				if (name === 'hunter') {
 					let manpowerJobRatio = game.getEffect('manpowerJobRatio');
 					if (manpowerJobRatio < 0.5) {
-						maxKS = (game.village.maxKittens > 10) ? 2 : 0;
+						maxKS = (village.maxKittens > 10) ? 2 : 0;
 					} else if ((manpowerJobRatio <= 0.75 && !game.science.get('navigation').researched) || expect) {
 						maxKS = Math.round(maxKS * 0.42);
-						msgSummary('hunter');
+						if (!expect) {msgSummary('hunter');}
 					} else {
 						msgSummary('hunter', true);
 					}
@@ -1711,12 +1713,12 @@ let run = function() {
 				}
 			}
 			if (jobName) {
-				game.village.assignJob(game.village.getJob(jobName), 1);
+				village.assignJob(village.getJob(jobName), 1);
 				refreshRequired += 2;
 				iactivity('act.distribute', [i18n('$village.job.' + jobName)], 'ks-distribute');
 				storeForSummary('distribute', 1);
 				game["villageTab"].updateTab();
-				game.village.updateResourceProduction();
+				village.updateResourceProduction();
 				game.updateResources();
 			}
 			return refreshRequired;
