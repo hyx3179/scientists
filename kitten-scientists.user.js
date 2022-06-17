@@ -474,6 +474,7 @@ let run = function() {
 			'summary.auto.harbor': '港口需要太多的金属板，资源达到价格2倍后继续建造',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
 			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋',
+			'summary.auto.kittens': '计划生育!，猫粮产量不够了',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
@@ -1217,7 +1218,7 @@ let run = function() {
 						options.renderTime = Date.now();
 						this.toolText = tool;
 						game.ui.render();
-					}, Math.min(200,200 - Date.now() + game.timer.timestampStart));
+					}, Math.min(200, 200 - Date.now() + game.timer.timestampStart));
 				}
 			} else {
 				this.huntID = setTimeout(() => {
@@ -1472,7 +1473,7 @@ let run = function() {
 			TimeSkip:
 			if (optionVals.timeSkip.enabled && game.workshop.get('chronoforge').researched) {
 				let timeCrystalValue = resMap['timeCrystal'].value;
-				const timeSkipMaximum = optionVals.timeSkip.maximum;
+				let timeSkipMaximum = Math.max(optionVals.timeSkip.maximum, 5 / game.getTicksPerSecondUI() * Math.ceil(2 * game.getEffect('heatPerTick') - 0.02));
 				const subTrigger = optionVals.timeSkip.subTrigger;
 				let cost = Math.max(subTrigger, timeSkipMaximum, this.craftManager.getStock('timeCrystal'));
 
@@ -2443,8 +2444,10 @@ let run = function() {
 			if (upgrades.buildings.enabled) {
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let energy = (winterProd && winterProd - 1 < game.resPool.energyCons);
-				let pastures = (game.bld.getBuildingExt('pasture').meta.stage === 0) ? game.bld.getBuildingExt('pasture').meta.val : 0;
-				let aqueducts = (game.bld.getBuildingExt('aqueduct').meta.stage === 0) ? game.bld.getBuildingExt('aqueduct').meta.val : 0;
+				let pastureMeta = game.bld.getBuildingExt('pasture').meta;
+				let pastures = (pastureMeta.stage === 0) ? pastureMeta.val : 0;
+				let aqueductMeta = game.bld.getBuildingExt('aqueduct').meta;
+				let aqueducts = (aqueductMeta.stage === 0) ? aqueductMeta.val : 0;
 				let upgradeBuilding = (name, meta) => {
 					let prices = meta.stages[1].prices;
 					if (bulkManager.singleBuildPossible(meta, prices, 1 )) {
@@ -2453,6 +2456,15 @@ let run = function() {
 						meta.stage = 1;
 						meta.on = 1;
 						meta.val = 1;
+						if (meta.upgrades) {
+							if (meta.updateEffects) {
+								meta.updateEffects(meta, game);
+							}
+							cacheUpgrades(meta);
+						}
+						game.bld.getBuildingExt(name)._metaCache = null;
+						game.bld.getBuildingExt(name)._metaCacheStage = 1;
+						buildManager.manager.render();
 						iactivity('summary.upgrade.building.' + name, [] , 'ks-upgBld');
 						storeForSummary('upgrade.building.' + name);
 						msgSummary('upg' + name.charAt(0).toUpperCase() + name.slice(1), true);
@@ -2460,7 +2472,6 @@ let run = function() {
 					}
 				};
 
-				let pastureMeta = game.bld.getBuildingExt('pasture').meta;
 				if (pastureMeta.stage === 0) {
 					if (pastureMeta.stages[1].stageUnlocked) {
 						let broadcastTower = game.bld.getBuildingExt('amphitheatre').meta.stage === 1;
@@ -2473,7 +2484,6 @@ let run = function() {
 					}
 				}
 
-				let aqueductMeta = game.bld.getBuildingExt('aqueduct').meta;
 				if (aqueductMeta.stage === 0) {
 					if (aqueductMeta.stages[1].stageUnlocked) {
 						let catnip = craftManager.getPotentialCatnip(true, pastures, 0) > 90;
@@ -2569,9 +2579,10 @@ let run = function() {
 				scienceBuild('biolab', 200, 1);
 
 				let winterTick = craftManager.getPotentialCatnip(false);
-				winterTick = winterTick < 0.85 && resMap['catnip'].value / winterTick < 1000 && options.auto.distribute.items.farmer.enabled;
+				winterTick = winterTick < 0.85 && resMap['catnip'].value / Math.abs(winterTick) < 1000 && options.auto.distribute.items.farmer.enabled;
 				if (winterTick) {
 					items['hut'].enabled = items['logHouse'].enabled = false;
+					msgSummary('kittens');
 				}
 				let machinery = game.science.get('machinery').researched;
 				let astronomy = game.science.get('astronomy');
@@ -3528,7 +3539,7 @@ let run = function() {
 			let ivory = resMap['tears'].value + unicornsMap.value * 2500 / onZig > resMap['ivory'].value;
 			ivory |= resMap['ivory'].perTickCached * 1.5 < unicornsTick && resMap['alicorn'].value;
 			let res = ivory ? 'ivory' : 'tears';
-			pastureAmor = ivory ? pastureAmor * 500 : pastureAmor;
+			pastureAmor = ivory ? pastureAmor * 3e3 : pastureAmor;
 			if (pastureAmor < bestAmoritization) {
 				bestAmoritization = pastureAmor;
 				bestBuilding = pastureButton;
@@ -7159,7 +7170,7 @@ let run = function() {
 
 			let ressetKS = $('<div/>', {
 				id: 'ressetKS',
-				text: "配置初始化",
+				text: "恢复默认配置",
 				css: {cursor: 'pointer',
 					display: 'inline-block',
 					float: 'right',
