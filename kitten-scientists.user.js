@@ -1001,13 +1001,13 @@ let run = function() {
 			},
 			policies: [],
 			cache: {
-				cache:    [],
-				cacheSum: {},
+				dataTimer: {},
+				cacheSum:  {},
 				resources: {},
-				trait:    {},
-				upgrade:  undefined,
-				science: '',
-				resUpg: {},
+				trait:     {},
+				upgrade:   undefined,
+				science:   '',
+				resUpg:    {},
 			}
 		}
 	};
@@ -1764,7 +1764,7 @@ let run = function() {
 
 				let currentCoin = game.resPool.get('blackcoin').value;
 				let exchangedCoin = game.getDisplayValueExt(currentCoin - previousCoin);
-				iactivity('blackcoin.buy', [exchangedCoin, game.getDisplayValueExt(previousRelic)]);
+				iactivity('blackcoin.buy', [exchangedCoin, game.getDisplayValueExt(previousRelic)], 'ks-trade');
 				storeForSummary('blackcoin.buy', 1);
 			} else if (coinPrice > maxCoinPrice && game.resPool.get('blackcoin').value > 0) {
 				game.diplomacy.sellBcoin();
@@ -1772,7 +1772,7 @@ let run = function() {
 				let currentRelic = game.resPool.get('relic').value;
 				let exchangedRelic = game.getDisplayValueExt(currentRelic - previousRelic);
 
-				iactivity('blackcoin.sell', [exchangedRelic, game.getDisplayValueExt(previousCoin)]);
+				iactivity('blackcoin.sell', [exchangedRelic, game.getDisplayValueExt(previousCoin)], 'ks-trade');
 				storeForSummary('blackcoin.sell', 1);
 			}
 		},
@@ -3026,7 +3026,7 @@ let run = function() {
 					trueOutput[out] = (res.maxValue > 0) ? Math.min(aveOutput[out] * huntCount, Math.max(res.maxValue - res.value, 0)) : aveOutput[out] * huntCount;
 				}
 
-				this.cacheManager.pushToCache({'materials': trueOutput, 'timeStamp': game.timer.ticksTotal});
+				this.cacheManager.pushToCache({'materials': trueOutput});
 
 				//game.village.huntAll();
 			}
@@ -3036,6 +3036,7 @@ let run = function() {
 			const craftManager = this.craftManager;
 			const tradeManager = this.tradeManager;
 			const cacheManager = this.cacheManager;
+			cacheManager.checkForTimer();
 			let gold = craftManager.getResource('gold');
 			let trades = [];
 			let optionTrade = options.auto.trade;
@@ -3176,7 +3177,7 @@ let run = function() {
 				}
 			}
 
-			cacheManager.pushToCache({'materials': tradeNet, 'timeStamp': game.timer.ticksTotal});
+			cacheManager.pushToCache({'materials': tradeNet});
 
 			if (resPercent('gold') >= 0.98) {
 				optionTrade.cache = true;
@@ -3532,6 +3533,7 @@ let run = function() {
 				bestAmoritization = pastureAmor;
 				bestBuilding = pastureButton;
 			}
+			unicorn:
 			for (let i = 0; i < 6; i ++) {
 				let btn = game.religion.meta[0].meta[i];
 				if (btn.unlocked) {
@@ -3545,7 +3547,7 @@ let run = function() {
 							unicornPrice += price.val * Math.pow(1.15, btn.on) * 2500 / onZig;
 							relBonus += btn.effects['unicornsRatioReligion'];
 						}
-						if (price.name === 'gold' && price.val * Math.pow(1.15, btn.on) > resMap['gold'].maxValue) {continue;}
+						if (price.name === 'gold' && price.val * Math.pow(1.15, btn.on) > resMap['gold'].maxValue) {continue unicorn;}
 					}
 					let riftChance = game.getEffect('riftChance');
 					let effects = btn.effects;
@@ -5351,42 +5353,45 @@ let run = function() {
 
 	CacheManager.prototype = {
 		pushToCache: function (data) {
-			let mat;
-			let cache = options.auto.cache.cache;
 			let cacheSum = options.auto.cache.cacheSum;
 			let materials = data['materials'];
-			let currentTick = game.timer.ticksTotal;
-
-			cache.push(data);
-			for (mat in materials) {
+			for (let mat in materials) {
 				if (!cacheSum[mat]) {cacheSum[mat] = 0;}
 				cacheSum[mat] += materials[mat];
 			}
-
-			for (let i = 0; i < cache.length; i++) {
-				let oldData = cache[i];
-				if (cache.length > 999) {
-					let oldMaterials = oldData['materials'];
-					for (mat in oldMaterials) {
-						if (!cacheSum[mat]) {cacheSum[mat] = 0;}
-						cacheSum[mat] -= oldMaterials[mat];
-					}
-					cache.shift();
-					i--;
-				} else {
-					return;
-				}
-			}
 		},
 		getResValue: function (res) {
-			let cache = options.auto.cache.cache;
-			if (cache.length === 0) {return 0;}
-			let cacheSum = options.auto.cache.cacheSum;
+			let cache = options.auto.cache;
+			let dataTimer = cache.dataTimer;
+			let cacheSum = cache.cacheSum;
 			if (!cacheSum[res]) {return 0;}
+			let startingTick = dataTimer.ticksTotal;
 			let currentTick = game.timer.ticksTotal;
-			let startingTick = cache[0].timeStamp;
+			let value = cacheSum[res] / (currentTick - startingTick);
 
-			return (cacheSum[res] / (currentTick - startingTick));
+			return value;
+		},
+		checkForTimer: function () {
+			let cache = options.auto.cache;
+			let dataTimer = cache.dataTimer;
+			let currentTick = game.timer.ticksTotal;
+			let startingTick = dataTimer.ticksTotal;
+			let trueYear = game.calendar.trueYear();
+			let guid = game.telemetry.guid;
+			if (currentTick - startingTick < 0 || dataTimer['trueYear'] + 1 < trueYear || dataTimer['saveId'] !== guid) {
+				cache.dataTimer = null;
+				cache.dataTimer = {};
+				cache.cacheSum = null;
+				cache.cacheSum = {};
+				let dataTimer = cache.dataTimer;
+				dataTimer['saveId'] = guid;
+				dataTimer['ticksTotal'] = currentTick;
+				dataTimer['trueYear'] = trueYear;
+				return 0;
+			}
+			if (currentTick - startingTick > 2e4) {
+				dataTimer.ticksTotal = currentTick;
+			}
 		}
 	};
 
@@ -7747,6 +7752,13 @@ let run = function() {
 		});
 	};
 	engineOn();
+
+	// 记录初始数据
+	let _timer = options.auto.cache.dataTimer;
+	_timer['trueYear'] = game.calendar.trueYear();
+	_timer['ticksTotal'] = game.timer.ticksTotal;
+	_timer['saveId'] = game.telemetry.guid;
+	_timer = null;
 
 	sessionStorage.setItem('options',JSON.stringify(options));
 	loadFromKittenStorage();
