@@ -342,7 +342,7 @@ let run = function() {
 
 			'ui.faith.addtion': '附加选项',
 			'option.faith.best.unicorn': '自动最效率独角兽建筑',
-			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽性价比使用来决定建造独角兽牧场~象牙塔...只到独角兽牧场,太阳尖顶，当象牙不足时会切换成象牙模式具体看小猫总结',
+			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽或象牙来决定建造独角兽牧场~象牙塔...太阳尖顶<br>当象牙不足时会切换成象牙模式具体可以点击小猫总结看到',
 			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
@@ -467,22 +467,23 @@ let run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
+			'summary.auto.bestUnicorn': '最佳象牙性价比模式(跟概览的不同,可以在小猫总结看到下个建筑)',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
-			'summary.auto.harbor': '港口需要太多的金属板，资源达到价格2倍后继续建造',
+			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
 			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋',
-			'summary.auto.kittens': '计划生育!，猫粮产量不够了',
+			'summary.auto.kittens': '计划生育! 猫粮产量不够了',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
-			'summary.auto.oxidation': '小猫为了工坊升级氧化反应，把钢存起来了',
+			'summary.auto.oxidation': '为菈妮氧化反应，小猫把钢全存起来了',
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好，真的是最后1个了',
 			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成双成对',
-			'summary.auto.temple': '祷告太阳革命后才会建造神殿',
+			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
 			'summary.auto.tradepost': '祷告太阳革命前，根据黄金会减少交易所的建造',
-			'summary.auto.workshop': '工坊只是解锁升级的猫玩具罢了，现在小猫只愿意造1个工坊哦',
+			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造。',
 			'summary.auto.smelter': '神学前，小猫根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.academy': '小猫当科学快满了才会继续建造研究院',
@@ -1592,11 +1593,10 @@ let run = function() {
 				// game.village.sim.goldToPromote will check gold
 				// game.village.sim.promote check both gold and exp
 				if (game.village.sim.goldToPromote(rank, rank + 1, gold)[0] && game.village.sim.promote(leader, rank + 1) === 1) {
-					let villageTab = game['villageTab'];
-					if (!villageTab.governmentDiv) {villageTab.render();}
+					let census = game['villageTab'].censusPanel.census;
 					iactivity('act.promote', [rank + 1], 'ks-leader');
-					villageTab.censusPanel.census.renderGovernment(villageTab.censusPanel.census);
-					villageTab.censusPanel.census.update();
+					census.renderGovernment(census.container);
+					census.update();
 					storeForSummary('promote', 1);
 				}
 			}
@@ -1646,17 +1646,20 @@ let run = function() {
 			let normalWinterCatnip = (this.craftManager.getPotentialCatnip(false) <= 0.85 * happiness || (village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
 			let freeKittens = village.getFreeKittens();
 			let miner = village.jobs[4];
+			let religionCatnip = options.auto.distribute;
 			if (!freeKittens) {
-				if (minerItem.enabled && miner.unlocked && !miner.value && village.getJob('woodcutter').value && village.sim.kittens.length) {
+				let woodcutter = village.getJob('woodcutter').value;
+				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && village.sim.kittens.length) {village.sim.removeJob('woodcutter');}
+				if (religionCatnip.religion && woodcutter > 2) {
 					village.sim.removeJob('woodcutter');
+				} else {
+					return refreshRequired;
 				}
-				return refreshRequired;
 			}
 
-			let resCatnip = game.resPool.get("catnip");
-			let resKitten = game.resPool.get("kittens");
+			let resCatnip = resMap["catnip"];
+			let resKitten = resMap["kittens"];
 			let catnipValue = (resCatnip.value - (1800 * happiness * resKitten.value) < 0 || resKitten.maxValue - resKitten.value === 1 || freeKittens > 1);
-			let religionCatnip = options.auto.distribute;
 			if (religionCatnip.religion || (normalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue)) {
 				religionCatnip.religion = false;
 				village.assignJob(village.getJob("farmer"), 1);
@@ -2030,7 +2033,7 @@ let run = function() {
 				iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
 				game.religion.praise();
 				let faithMap = resMap['faith'];
-				faithMap.value = Math.min(resMap['faith'].maxValue, faithMap.value + 2 * Math.max(0, resMap['faith'].perTickCached));
+				faithMap.value = Math.max(Math.min(resMap['faith'].maxValue, faithMap.value + 2 * resMap['faith'].perTickCached), 0);
 			}
 			return refreshRequired;
 		},
@@ -2582,11 +2585,12 @@ let run = function() {
 				scienceBuild('biolab', 200, 1);
 
 				let winterTick = craftManager.getPotentialCatnip(false);
-				winterTick = winterTick < 0.85 && resMap['catnip'].value / Math.abs(winterTick) < 1000 && options.auto.distribute.items.farmer.enabled;
+				winterTick = winterTick < 0.85 && resMap['catnip'].value / Math.abs(winterTick) < 1000;
+				winterTick &= resMap['kittens'].value && options.auto.distribute.items.farmer.enabled;
 				if (winterTick) {
 					items['hut'].enabled = items['logHouse'].enabled = false;
 					msgSummary('kittens');
-				}
+				} else {msgSummary('kittens', true);}
 				let machinery = game.science.get('machinery').researched;
 				let astronomy = game.science.get('astronomy');
 				if (scienceTrigger < 0.98 && !astronomy.researched && (!machinery || astronomy.unlocked) && resMap['minerals'].value) {
@@ -3454,7 +3458,7 @@ let run = function() {
 		skipCtrlRes: function () {
 			let addCraft = options.auto.timeCtrl.items.timeSkip;
 			if (addCraft.craft) {return;}
-			const resList = ['catnip', 'wood', 'minerals', 'coal', 'iron', 'oil', 'uranium', 'science'];
+			const resList = ['catnip', 'coal', 'iron', 'oil', 'uranium', 'science'];
 			let name, i = '';
 			for (i = 0; i < resList.length; i++) {
 				let res = resMap[resList[i]];
@@ -3536,12 +3540,16 @@ let run = function() {
 			})['unicorns'];
 			let total = unicornsMap.perTickCached * game.getTicksPerSecondUI() / festival;
 			if (!total) {return pastureButton;}
-			let pastureAmor = total / Math.min(1, pastureMeta.val);
+			let pastureAmor = total / Math.max(1, pastureMeta.val);
 			pastureAmor = 2 * Math.pow(pastureMeta.priceRatio + game.getEffect("priceRatio"), pastureMeta.val) / pastureAmor;
 
 			let ivory = resMap['tears'].value + unicornsMap.value * 2500 / onZig > resMap['ivory'].value;
-			ivory |= resMap['ivory'].perTickCached * 1.5 < unicornsTick && resMap['alicorn'].value;
-			let res = ivory ? 'ivory' : 'tears';
+			ivory |= resMap['ivory'].perTickCached * 1.5 < unicornsTick;
+			let res = 'tears';
+			if (ivory && resMap['alicorn'].value) {
+				res = 'ivory';
+				msgSummary('bestUnicorn');
+			}
 			pastureAmor = ivory ? pastureAmor * 3e3 : pastureAmor;
 			if (pastureAmor < bestAmoritization) {
 				bestAmoritization = pastureAmor;
@@ -4796,8 +4804,10 @@ let run = function() {
 				let shipLimit = 5 * game.bld.get("reactor").on + 225;
 				let titaniumMax = resMap['titanium'].maxValue;
 				let space = (!game.space.meta[0].meta[3].val && game.space.getBuilding('sattelite').val < 9);
-				space = space && (game.religion.getSolarRevolutionRatio() > 6);
-				limRat = (0.03 * shipValue > titaniumMax || space) ? 0.01 : limRat;
+				space = space && (game.religion.getSolarRevolutionRatio() > 6) && titaniumMax > 125e3;
+				limRat = (shipLimit > shipLimit * 0.75) ? 0.25 : limRat;
+				limRat = (shipLimit > shipLimit * 3 || space) ? 0.1 : limRat;
+				limRat = (0.03 * shipValue > titaniumMax) ? 0 : limRat;
 			}
 
 			if (name === 'plate') {
@@ -5089,7 +5099,7 @@ let run = function() {
 			if (typeof meta.limitBuild == "number" && meta.limitBuild - meta.val < amount) {
 				amount = meta.limitBuild - meta.val;
 			}
-			if (!model.enabled ) {button.controller.updateEnabled(model);}
+			if (!model.enabled) {button.controller.updateEnabled(model);}
 			if (model.enabled && button.controller.hasResources(model) || game.devMode ) {
 				while (button.controller.hasResources(model) && amount > 0) {
 					model.prices = button.controller.getPrices(model);
@@ -5527,13 +5537,11 @@ let run = function() {
 		addRule('#ks-options #toggle-list-resources .stockWarn *,'
 			+ '#ks-options #toggle-reset-list-resources .stockWarn * {'
 			+ 'color: ' + options.stockwarncolor + ';'
-			+ '}'
-		);
+			+ '}');
 
 		addRule('.right-tab {'
 			+ 'height: unset !important;'
-			+ '}'
-		);
+			+ '}');
 	}
 
 	// Local Storage
