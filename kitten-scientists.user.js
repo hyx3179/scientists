@@ -342,7 +342,7 @@ let run = function() {
 
 			'ui.faith.addtion': '附加选项',
 			'option.faith.best.unicorn': '自动最效率独角兽建筑',
-			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽性价比使用来决定建造独角兽牧场~象牙塔...只到独角兽牧场,太阳尖顶，具体哪个可以参考概览',
+			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽性价比使用来决定建造独角兽牧场~象牙塔...只到独角兽牧场,太阳尖顶，当象牙不足时会切换成象牙模式具体看小猫总结',
 			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
@@ -429,7 +429,7 @@ let run = function() {
 			'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
-			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n\n故长挂推荐：触发条件500，单次数量1，周期全勾',
+			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n如果资源回复后资源一直是满的，建议过滤大部分日志\n\n故长挂推荐：触发条件500，单次数量1，周期全勾',
 			'summary.time.skip': '跳过 {0} 年',
 			'filter.time.skip': '时间跳转',
 
@@ -467,7 +467,6 @@ let run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
-			'summary.auto.accelerator': '缺电啦，大概只有加速器能关闭了，不会影响库存',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
@@ -504,6 +503,7 @@ let run = function() {
 			'summary.blackcoin.buy': '小猫出售遗物并买入 {0} 次黑币',
 			'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
+			'summary.accelerator': '缺电啦，大概只有加速器能关闭了，不会影响库存',
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
 			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）（她真的好温柔，😭）',
 			'summary.mint': '秋梨膏别开铸币厂了，它现在真的很不行（具体右下角参考百科 游戏标签-其它建筑-铸币厂，其转化效率与喵力上限有关）',
@@ -1473,9 +1473,11 @@ let run = function() {
 			TimeSkip:
 			if (optionVals.timeSkip.enabled && game.workshop.get('chronoforge').researched) {
 				let timeCrystalValue = resMap['timeCrystal'].value;
-				let timeSkipMaximum = Math.max(optionVals.timeSkip.maximum, 5 / game.getTicksPerSecondUI() * Math.ceil(2 * game.getEffect('heatPerTick') - 0.02));
+				let timeSkipMaximum = optionVals.timeSkip.maximum;
+				if (!timeSkipMaximum) {return 0;}
+				timeSkipMaximum = Math.ceil(Math.max(10 * game.getEffect('heatPerTick') / game.getTicksPerSecondUI(), timeSkipMaximum));
 				const subTrigger = optionVals.timeSkip.subTrigger;
-				let cost = Math.max(subTrigger, timeSkipMaximum, this.craftManager.getStock('timeCrystal'));
+				let cost = Math.max(subTrigger, this.craftManager.getStock('timeCrystal'), timeSkipMaximum);
 
 				const currentCycle = game.calendar.cycle;
 				const currentYear = game.calendar.year;
@@ -2027,7 +2029,8 @@ let run = function() {
 				storeForSummary('praise', worshipInc);
 				iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
 				game.religion.praise();
-				resourceFaith.value += 2 * resourceFaith.perTickCached;
+				let faithMap = resMap['faith'];
+				faithMap.value = Math.min(resMap['faith'].maxValue, faithMap.value + 2 * Math.max(0, resMap['faith'].perTickCached));
 			}
 			return refreshRequired;
 		},
