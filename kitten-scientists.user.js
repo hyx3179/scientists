@@ -1800,11 +1800,8 @@ let run = function() {
 				if (btn) {
 					let oneTear = !tears && unicorns >= 1000 && zigguratOn;
 					let buttonPrices;
-					if (btn.opts && !oneTear) {
-						if (!btn.model.enabled) {
-							btn.controller.updateEnabled(btn.model);
-						}
-						buildManager.build(btn.opts.building, undefined, 1);
+					if (btn.name === "unicornPasture" && !oneTear) {
+						if (unicorns >= Math.pow(btn.priceRatio + game.getEffect("priceRatio"), btn.val) * 2) {buildManager.build(btn.name, undefined, 1);}
 					} else {
 						let tearNeed, btnButton = 0;
 						if (oneTear) {
@@ -2492,7 +2489,7 @@ let run = function() {
 						if (craftManager.getPotentialCatnip(true, 0, aqueducts) > 45 && boolean && options.auto.build.items.solarFarm.enabled) {
 							return upgradeBuilding('pasture', pastureMeta);
 						} else {
-							msgSummary('upgPasture');
+							msgSummary('upgPasture', '', 'ks-upgBld');
 						}
 					}
 				}
@@ -2503,7 +2500,7 @@ let run = function() {
 						if (catnip && energy && pastureMeta.stage === 1 && options.auto.build.items.hydroPlant.enabled) {
 							return upgradeBuilding('aqueduct', aqueductMeta);
 						} else {
-							msgSummary('upgAqueduct');
+							msgSummary('upgAqueduct', '', 'ks-upgBld');
 						}
 					}
 				}
@@ -2519,7 +2516,7 @@ let run = function() {
 								return upgradeBuilding('library', libraryMeta);
 							}
 						} else {
-							msgSummary('upgLibrary');
+							msgSummary('upgLibrary', '', 'ks-upgBld');
 						}
 					}
 				}
@@ -2530,7 +2527,7 @@ let run = function() {
 						if (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 200) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
 						} else {
-							msgSummary('upgAmphitheatre');
+							msgSummary('upgAmphitheatre', '', 'ks-upgBld');
 						}
 					}
 				}
@@ -3439,8 +3436,11 @@ let run = function() {
 							cache.trait[trait] = true;
 							let traitDesc = $I('village.bonus.desc.' + trait);
 							let leaderMsg = ['当' + traitDesc.slice(0,2) + "项目时" + $I('village.trait.' + trait) + "猫猫自觉顶替当前领袖，其效果为" + traitDesc];
-							if (game.ticks > 1e4) {msgSummary('leader',true);
-							} else {msgSummary('leader');}
+							if (game.ticks > 1e4) {
+								msgSummary('leader',true);
+							} else {
+								msgSummary('leader', '', 'ks-leader');
+							}
 							iactivity('set.leader', [leaderMsg], 'ks-leader');
 						}
 					}
@@ -3523,8 +3523,7 @@ let run = function() {
 		// ref: https://github.com/Bioniclegenius/NummonCalc/blob/112f716e2fde9956dfe520021b0400cba7b7113e/NummonCalc.js#L490
 		getBestUnicornBuilding: function () {
 			let pastureMeta = game.bld.getBuildingExt('unicornPasture').meta;
-			const pastureButton = this.buildManager.getBuildButton('unicornPasture');
-			if (pastureMeta.unlocked && !pastureButton) {return game["bldTab"].render();}
+			if (!pastureMeta.unlocked) {return;}
 
 			let bestAmoritization = Infinity;
 			let bestBuilding = '';
@@ -3544,7 +3543,7 @@ let run = function() {
 				unicorns: 1
 			})['unicorns'];
 			let total = unicornsMap.perTickCached * game.getTicksPerSecondUI() / festival;
-			if (!total) {return pastureButton;}
+			if (!total) {return pastureMeta;}
 			let pastureAmor = total / Math.max(1, pastureMeta.val);
 			pastureAmor = 2 * Math.pow(pastureMeta.priceRatio + game.getEffect("priceRatio"), pastureMeta.val) / pastureAmor;
 
@@ -3556,7 +3555,7 @@ let run = function() {
 			pastureAmor = ivory ? pastureAmor * 3e3 : pastureAmor;
 			if (pastureAmor < bestAmoritization) {
 				bestAmoritization = pastureAmor;
-				bestBuilding = pastureButton;
+				bestBuilding = pastureMeta;
 			}
 			unicorn:
 			for (let i = 0; i < 6; i ++) {
@@ -3932,7 +3931,10 @@ let run = function() {
 			let button = this.getBuildButton(name, stage);
 
 			if (!build.meta.unlocked) {return;}
-			if (!button || !button.model.metadata) {return game["bldTab"].render();}
+			if (!button || !button.model.metadata) {
+				game["bldTab"].activeGroup = 'all';
+				return game["bldTab"].render();
+			}
 			if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
 
 			//var amountTemp = amount;
@@ -4489,7 +4491,8 @@ let run = function() {
 						}
 						let amt = Math.ceil((steelPrice - resValue) / ratio);
 						if (name === 'oxidation' && amt > 0) {
-							if (amt / Math.min(resMap['iron'].perTickCached, resMap['coal'].perTickCached) < 20) {
+							// 7分钟
+							if (amt / Math.min(resMap['iron'].perTickCached, resMap['coal'].perTickCached) < 21) {
 								options.auto.resources['steel'] = {enabled: true,  stock: 5000};
 								options.auto.craft.oxidation = true;
 								msgSummary('oxidation');
@@ -7594,12 +7597,12 @@ let run = function() {
 	};
 
 	//建筑日志提示
-	let msgSummary = (build, isDelete)=> {
+	let msgSummary = (build, isDelete, filter)=> {
 		if (isDelete) {
 			activitySummary.other['auto.' + build] = null;
 		} else {
 			if (!activitySummary.other['auto.' + build]) {
-				activity(i18n('summary.auto.' + build));
+				activity(i18n('summary.auto.' + build), filter);
 				storeForSummary('auto.' + build);
 			}
 		}
