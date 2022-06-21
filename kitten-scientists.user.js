@@ -467,7 +467,6 @@ let run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
-			'summary.auto.bestUnicorn': '最佳象牙性价比模式(跟概览的不同,可以在小猫总结看到下个建筑)',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
@@ -487,7 +486,7 @@ let run = function() {
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造。',
 			'summary.auto.smelter': '神学前，小猫根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.academy': '小猫当科学快满了才会继续建造研究院',
-			'summary.auto.unicorn': '小猫最佳独角兽下个建筑是{0}',
+			'summary.auto.unicorn': '最佳独角兽建筑：{0}',
 			'summary.auto.upgPasture': '当勾选太阳能发电站了，并有足够钛的产量、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部牧场后，升级太阳能发电站!',
 			'summary.auto.upgAqueduct': '当勾选水电站了，有太阳能发电站、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部水渠后，升级水电站!',
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
@@ -1992,7 +1991,9 @@ let run = function() {
 						activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
 					}
 				}
-				booleanForAdore &= ((adoreTri === 0.001) ? booleanForAdore : adoreTri * 10 < solarRevolutionAdterAdore);
+				if (booleanForAdore && adoreTri !== 0.001) {
+					booleanForAdore = adoreTri * 10 < solarRevolutionAdterAdore;
+				}
 				if (booleanForAdore || forceStep) {
 					if (doAdoreAfterTimeSkip) {
 						options.auto.timeCtrl.items.timeSkip.adore = false;
@@ -3086,7 +3087,7 @@ let run = function() {
 				let button = tradeManager.getTradeButton(race.name);
 
 				if (!button || !tradeManager.singleTradePossible(name)) {continue;}
-				if (name === 'nagas' && resMap['concrate'].value > 1000) {continue;}
+				if (name === 'nagas' && resMap['concrate'].value > 1000 && !game.ironWill) {continue;}
 
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 
@@ -3347,7 +3348,8 @@ let run = function() {
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let biolab = game.bld.getBuildingExt('biolab').meta;
 				let biofuel = biolab.on && game.workshop.get('biofuel').researched;
-				if (biofuel && options.auto.distribute.religion) {biolab.on = 0;}
+				let catnipTick = options.auto.distribute.religion || craftManager.getPotentialCatnip() < 0;
+				if (biofuel && catnipTick) {biolab.on = 0;}
 				if (winterProd && winterProd < game.resPool.energyCons) {
 					if (biofuel && biolab.on) {
 						let msg = '冬季产出电:' + game.getDisplayValueExt(winterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
@@ -3547,13 +3549,10 @@ let run = function() {
 			pastureAmor = 2 * Math.pow(pastureMeta.priceRatio + game.getEffect("priceRatio"), pastureMeta.val) / pastureAmor;
 
 			let ivory = resMap['tears'].value + unicornsMap.value * 2500 / onZig > resMap['ivory'].value;
-			let fa = Math.max(1.5, game.prestige.getParagonProductionRatio() + 1);
-			ivory |= resMap['ivory'].perTickCached * fa < unicornsTick;
+			let fa = 1.5 * game.prestige.getParagonProductionRatio() + 1.5;
+			ivory |= resMap['ivory'].perTickCached * fa *festival < unicornsTick;
 			let res = 'tears';
-			if (ivory && resMap['alicorn'].value) {
-				res = 'ivory';
-				msgSummary('bestUnicorn');
-			}
+			if (ivory && resMap['alicorn'].value) {res = 'ivory';}
 			pastureAmor = ivory ? pastureAmor * 3e3 : pastureAmor;
 			if (pastureAmor < bestAmoritization) {
 				bestAmoritization = pastureAmor;
@@ -3595,6 +3594,7 @@ let run = function() {
 			}
 			if (zig) {
 				let name = bestBuilding.label || "独角兽牧场";
+				name += '(' + i18n('$resources.' + res + '.title') +  '性价比)';
 				if (activitySummary.other['auto.unicorn'] !== name) {
 					activitySummary.other['auto.unicorn'] = name;
 					iactivity('summary.auto.unicorn', [name], 'ks-sacrifice');
