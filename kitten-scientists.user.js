@@ -2506,15 +2506,14 @@ let run = function() {
 				}
 
 				let libraryMeta = game.bld.getBuildingExt('library').meta;
-				let scienceBldMax = libraryMeta.totalEffectsCached.scienceMax;
+				let scienceBldMax = 0.1 * libraryMeta.totalEffectsCached.scienceMax / (1 + game.prestige.getParagonProductionRatio());
 				if (libraryMeta.stage === 0) {
 					if (libraryMeta.stages[1].stageUnlocked) {
-						let ratio = (1 + game.prestige.getParagonProductionRatio()) * (1 + game.bld.get('biolab').val * 0.01);
+						let ratio = 1 + game.bld.get('biolab').val * 0.01;
 						ratio = game.resPool.get('compedium').value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 2e6;
+						ratio |= craftManager.getTickVal(resMap['concrate']) > 600;
 						if (ratio && options.auto.build.items.dataCenter.enabled) {
-							if (game.resPool.energyProd >= game.resPool.energyCons + 300) {
-								return upgradeBuilding('library', libraryMeta);
-							}
+							if (winterProd >= game.resPool.energyCons + 150) {return upgradeBuilding('library', libraryMeta);}
 						} else {
 							msgSummary('upgLibrary', '', 'ks-upgBld');
 						}
@@ -2647,9 +2646,7 @@ let run = function() {
 				}
 
 				// 天文台
-				if (blackSky && resMap['science'].maxValue > 3e5 && !orbitalGeodesy) {
-					items['observatory'].max = 0;
-				}
+				if (blackSky && resMap['science'].maxValue > 3e5 && !orbitalGeodesy) {items['observatory'].max = 0;}
 
 				// 解锁磁电机才会造蒸汽工房
 				let steamW = items['steamworks'];
@@ -2728,7 +2725,7 @@ let run = function() {
 					}
 				}
 
-				if (game.getResourcePerTick('oil', true) < 0.24 ) {
+				if (game.getResourcePerTick('oil', true) < 0.24) {
 					calciner.max = 0;
 					items['magneto'].max = 0;
 				}
@@ -2886,7 +2883,8 @@ let run = function() {
 			for (let entry in buildList) {
 				let item = buildList[entry];
 				if (item.count > 0) {
-					if (item.id === 'containmentChamber') {
+					let id  = item.id;
+					if (id === 'containmentChamber') {
 						let antimatter = resMap['antimatter'];
 						let perYear = game.getEffect('antimatterProduction');
 						let energyExtra = (game.resPool.energyProd < game.resPool.energyCons);
@@ -2894,7 +2892,13 @@ let run = function() {
 							continue;
 						}
 					}
-					if (item.id === 'spaceStation') {item.count = Math.floor(item.count * 0.4);}
+					if (id === 'spaceStation') {
+						if (game.ironWill) {item.count = 0;}
+						item.count = Math.floor(item.count * 0.4);
+					}
+					if (id === 'idsattelites' && solarRevolution < 5 && !game.space.getProgram('piscineMission').val) {
+						item.count = Math.floor(item.count * 0.2);
+					}
 
 					buildManager.build(item.id, item.count);
 					refreshRequired = 1;
@@ -3414,10 +3418,21 @@ let run = function() {
 			return refreshRequired;
 		},
 		gameUpgrade: function () {
-			if (options.auto.cache.upgrade) {
-				game.upgrade(options.auto.cache.upgrade);
-				for (let i in options.auto.cache.upgrade) {
-					options.auto.cache.upgrade[i] = null;
+			let list = options.auto.cache.upgrade;
+			if (list) {
+				game.upgrade(list);
+				for (let type in list) {
+					if (list[type].length === 0) {continue;}
+					for (let i = list[type].length - 1; i >= 0; i--) {
+						let item = game.getUnlockByName(list[type][i], type);
+						if (item.calculateEffects) {
+							item.calculateEffects(item, game);
+							if (type === "spaceBuilding") {game.calendar.cycleEffectsBasics(item.effects, item.name);}
+						}
+					}
+				}
+				for (let i in list) {
+					list[i] = null;
 				}
 				options.auto.cache.upgrade = null;
 			} else {
@@ -3825,24 +3840,16 @@ let run = function() {
 			//button.controller.onPurchase(button.model, {}, function() {});
 			let meta = button.model.metadata;
 			meta.researched = true;
-			if (meta.handler){
-				meta.handler(game, meta);
-			}
-			if (meta.unlocks) {
-				game.unlock(meta.unlocks);
-			}
-			if (meta.blocks){
-				for (i in meta.blocks){
+			if (meta.handler) {meta.handler(game, meta);}
+			if (meta.unlocks) {game.unlock(meta.unlocks);}
+			if (meta.blocks) {
+				for (i in meta.blocks) {
 					let policy = game.science.getPolicy(meta.blocks[i]);
 					policy.blocked = true;
 				}
 			}
-			if (meta.onResearch) {
-				meta.onResearch(game);
-			}
-			if (meta.upgrades) {
-				cacheUpgrades(meta);
-			}
+			if (meta.onResearch) {meta.onResearch(game);}
+			if (meta.upgrades) {cacheUpgrades(meta);}
 
 			game.stats.getStat("totalClicks").val += 1;
 
@@ -3965,7 +3972,11 @@ let run = function() {
 			let scienceMetaCache = game.science.metaCache;
 			let catnipTick = this.crafts.getPotentialCatnip(false);
 			let amphitheatre = game.bld.getBuildingExt('amphitheatre').meta;
+			let moonM = game.space.getProgram('moonMission');
 			switch (id) {
+				case 'calciner':
+					if (resMap['starchart'].value > 500 && !moonM.val && moonM.unlocked && resMap['titanium'].value > 5e3) {halfCount = true;}
+					break
 				//case 'observatory':
 				//	if (id == 'observatory' && game.challenges.isActive("blackSky") && resMap['science'].maxValue > 5e5 && !spaceManufacturing) {
 				//		count = 0;
