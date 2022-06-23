@@ -1097,8 +1097,9 @@ let run = function() {
 			}
 			let upgrade = options.auto.cache.upgrade[i];
 			for (let j in metaUpgrades[i]) {
-				if (upgrade.indexOf(metaUpgrades[i]) === -1) {
-					upgrade.push(metaUpgrades[i][j]);
+				let metaUpgrade = metaUpgrades[i][j];
+				if (upgrade.indexOf(metaUpgrade) === -1) {
+					upgrade.push(metaUpgrade);
 				}
 			}
 		}
@@ -1220,7 +1221,7 @@ let run = function() {
 						options.renderTime = Date.now();
 						this.toolText = tool;
 						game.ui.render();
-					}, Math.min(200, 200 - Date.now() + game.timer.timestampStart));
+					}, Math.min(197, 197 - Date.now() + game.timer.timestampStart));
 				}
 			} else {
 				this.huntID = setTimeout(() => {
@@ -1867,7 +1868,8 @@ let run = function() {
 			let rate = resPercent('faith');
 			let transcendenceMeta = game.religion.getRU("transcendence");
 			let transcendenceReached = transcendenceMeta.on;
-			let tt = transcendenceReached ? game.religion.transcendenceTier : 0;
+			let transcendenceTier = game.religion.transcendenceTier;
+			let tt = transcendenceReached ? transcendenceTier : 0;
 
 			// After Adore epiphany
 			let worship = game.religion.faith;
@@ -1890,9 +1892,9 @@ let run = function() {
 			let PraiseSubTrigger = option.autoPraise.subTrigger;
 
 			let moonBoolean = game.space.getBuilding('moonOutpost').val;
-			let booleanForAdore = worship >= 1e5 && moonBoolean;
+			let booleanForAdore = moonBoolean && worship >= 1e5;
 			let apocripha = game.religion.getRU('apocripha').on;
-			booleanForAdore &= autoAdoreEnabled && apocripha && tt;
+			booleanForAdore = booleanForAdore && apocripha && tt && autoAdoreEnabled;
 			if (moonBoolean && worship >= 1e5 && booleanForAdore && PraiseSubTrigger < 0.98 && PraiseSubTrigger) {option.autoPraise.subTrigger = 0.98;}
 
 			// enough faith, and then TAP
@@ -1972,15 +1974,15 @@ let run = function() {
 				}
 
 				// Adore
-				let tier = (!game.religion.faithRatio || tt);
-				booleanForAdore &= this.catnipForReligion() > 0;
+				let adoreFactor = (!game.religion.faithRatio || tt);
+				let catnipAdore = transcendenceTier > 9 || this.catnipForReligion() > 0;
 				// 期望太阳革命加成赞美群星
 				let transformTier = 0.5 * Math.log(game.religion.faithRatio) + 3.45;
-				let factor = (tier < 10) ? 1.65 : 1.3;
+				let factor = (adoreFactor < 10) ? 1.65 : 1.3;
 				let expectSolarRevolutionRatio = game.getLimitedDR(factor * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				let rrVal = game.time.getCFU("ressourceRetrieval").val;
-				if (adoreTri === 0.001 && booleanForAdore && solarRatio * 1e2 < expectSolarRevolutionRatio && tt && !rrVal) {
+				if (adoreTri === 0.001 && booleanForAdore && solarRatio * 1e2 < expectSolarRevolutionRatio && tt && !rrVal && catnipAdore) {
 					booleanForAdore = false;
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 1e2) / 100;
 					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar']) {
@@ -2123,9 +2125,9 @@ let run = function() {
 			return refreshRequired;
 		},
 		chrono: function () {
+			if (!game["timeTab"].visible) {return 0;}
+			if (!game.science.get('voidSpace').researched || !game.workshop.get('chronoforge').researched) {return 0;}
 			let refreshRequired = 0;
-			const {render, visible} = game["timeTab"];
-			if (!visible) {return refreshRequired;}
 			const builds = options.auto.time.items;
 			const buildManager = this.timeManager;
 			//var craftManager = this.craftManager;
@@ -2143,7 +2145,7 @@ let run = function() {
 				let button = buildManager.getBuildButton(name, build.variant);
 				if (!button || !button.model.metadata) {
 					if (name === "cryochambers") {continue;}
-					render();
+					game["timeTab"].render();
 					continue;
 				}
 				if (!button.model.enabled) {
@@ -3418,27 +3420,24 @@ let run = function() {
 			return refreshRequired;
 		},
 		gameUpgrade: function () {
-			let list = options.auto.cache.upgrade;
+			let auto = options.auto;
+			let upgrades = auto.upgrade.items.upgrades;
+			let cache = auto.cache;
+			let list = cache.upgrade;
 			if (list) {
 				game.upgrade(list);
-				for (let type in list) {
-					if (list[type].length === 0) {continue;}
-					for (let i = list[type].length - 1; i >= 0; i--) {
-						let item = game.getUnlockByName(list[type][i], type);
-						if (item.calculateEffects) {
-							item.calculateEffects(item, game);
-							if (type === "spaceBuilding") {game.calendar.cycleEffectsBasics(item.effects, item.name);}
-						}
-					}
-				}
 				for (let i in list) {
-					list[i] = null;
+					delete list[i];
 				}
-				options.auto.cache.upgrade = null;
+				cache.upgrade = null;
 			} else {
 				game.updateCaches();
 			}
-			if (game.calendar.day * 10 % 10 < 9) {game.updateResources();}
+			if (upgrades.update) {
+				game.updateCaches();
+				upgrades.update = null;
+			}
+			game.updateResources();
 		},
 		setTrait: function (trait) {
 			let vLeader = game.village.leader;
@@ -3802,7 +3801,6 @@ let run = function() {
 		build: function (upgrade, variant) {
 			let i;
 			const button = this.getBuildButton(upgrade, variant);
-
 			if (!button || !button.model.metadata) {
 				if (variant === 'workshop') {
 					game['workshopTab'].render();
@@ -3818,22 +3816,27 @@ let run = function() {
 					return;
 				}
 			}
-			if (game.village.leader && button.model.metadata.requiredLeaderJob && game.village.leader.job !== button.model.metadata.requiredLeaderJob){
-				let jobTitle = game.village.getJob(button.model.metadata.requiredLeaderJob).title;
-				game.msg($I("msg.policy.wrongLeaderJobForResearch", [button.model.metadata.label, jobTitle]), "important");
-				return;
-			}else if(button.model.metadata.name === "transkittenism" && game.bld.getBuildingExt("aiCore").meta.effects["aiLevel"] >= 15){
-				game.msg($I("msg.policy.aiNotMerges"),"alert", "ai");
-				return;
-			}else if(button.model.metadata.blocked === false) {
-				for(i = 0; i < button.model.metadata.blocks.length; i++){
-					if(game.science.getPolicy(button.model.metadata.blocks[i]).researched){
-						button.model.metadata.blocked = true;
-						return;
+
+			if (variant === 'policy') {
+				let metaData = button.model.metadata;
+				if (game.village.leader && metaData.requiredLeaderJob && game.village.leader.job !== metaData.requiredLeaderJob){
+					let jobTitle = game.village.getJob(metaData.requiredLeaderJob).title;
+					game.msg($I("msg.policy.wrongLeaderJobForResearch", [metaData.label, jobTitle]), "important");
+					return;
+				} else if (metaData.name === "transkittenism" && game.bld.getBuildingExt("aiCore").meta.effects["aiLevel"] >= 15){
+					game.msg($I("msg.policy.aiNotMerges"),"alert", "ai");
+					return;
+				} else if (metaData.blocked === false) {
+					for(i = 0; i < metaData.blocks.length; i++){
+						if(game.science.getPolicy(metaData.blocks[i]).researched){
+							metaData.blocked = true;
+							return;
+						}
 					}
 				}
 			}
 
+			let itemsUpgrades = options.auto.upgrade.items.upgrades;
 			//need to simulate a click so the game updates everything properly
 			button.model.prices = button.controller.getPrices(button.model);
 			button.controller.payPrice(button.model, {}, function() {});
@@ -3849,7 +3852,10 @@ let run = function() {
 				}
 			}
 			if (meta.onResearch) {meta.onResearch(game);}
-			if (meta.upgrades) {cacheUpgrades(meta);}
+			if (meta.upgrades) {
+				if (variant === 'workshop' && !itemsUpgrades.update) {itemsUpgrades.update = true;}
+				cacheUpgrades(meta);
+			}
 
 			game.stats.getStat("totalClicks").val += 1;
 
@@ -3861,8 +3867,8 @@ let run = function() {
 				storeForSummary(label, scientist, 'upgrade');
 				iactivity('upgrade.upgrade', [label, leader], 'ks-upgrade');
 				let name = upgrade.name;
-				if (name === options.auto.upgrade.items.upgrades.cache) {
-					options.auto.upgrade.items.upgrades.cache = false;
+				if (name === itemsUpgrades.cache) {
+					itemsUpgrades.cache = false;
 					let Upg = options.auto.cache.resUpg;
 					for (let i in options.auto.cache.resUpg) {
 						delete Upg[i];
@@ -3940,7 +3946,7 @@ let run = function() {
 			if (!build.meta.unlocked) {return;}
 			if (!button || !button.model.metadata) {
 				game["bldTab"].activeGroup = 'all';
-				return game["bldTab"].render();
+				if (!button || !button.model.metadata) {return game["bldTab"].render();}
 			}
 			if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
 
@@ -4104,7 +4110,7 @@ let run = function() {
 				count = Math.ceil(count * 0.5);
 			}
 			catnipTick = catnipTick < 0.85 && resMap['catnip'].value / Math.abs(catnipTick) < 1000;
-			catnipTick &= resMap['kittens'].value && options.auto.distribute.items.farmer.enabled;
+			catnipTick &= resMap['kittens'].value > 2 && options.auto.distribute.items.farmer.enabled;
 			if ((id === 'hut' || id === 'logHouse') && count) {
 				if (catnipTick) {
 					count = 0;
