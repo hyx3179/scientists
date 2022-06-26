@@ -1210,7 +1210,6 @@ let run = function() {
 		},
 		delay: function (render) {
 			if (render) {
-				game.updateResources();
 				let tooltip = dojo.byId('tooltip');
 				let tool = tooltip.innerText;
 				tooltip = null;
@@ -1566,8 +1565,9 @@ let run = function() {
 				if (willSkip > 0) {
 					willSkip = Math.min(willSkip, Math.max(500 , game.getEffect("temporalPressCap") * 25));
 
-					if (game.time.getCFU("ressourceRetrieval").val > 4) {
+					if (game.time.getCFU("ressourceRetrieval").val) {
 						optionVals.timeSkip.adore = true;
+						options.auto.options.items.hunt.time = true;
 						this.skipCtrlRes();
 					}
 
@@ -1792,6 +1792,7 @@ let run = function() {
 			const option = options.auto.faith.addition;
 			let refreshRequired = 0;
 			let noPastureCopy, i;
+			let voidOrder = game.prestige.getPerk("voidOrder").researched;
 
 			if (option.bestUnicornBuilding.enabled) {
 				let btn = this.getBestUnicornBuilding();
@@ -1804,7 +1805,8 @@ let run = function() {
 					if (btn.name === "unicornPasture" && !oneTear) {
 						if (unicorns >= Math.pow(btn.priceRatio + game.getEffect("priceRatio"), btn.val) * 2) {buildManager.build(btn.name, undefined, 1);}
 					} else {
-						let tearNeed, btnButton = 0;
+						let tearNeed;
+						let btnButton = 0;
 						if (oneTear) {
 							tearNeed = 0.99;
 						} else {
@@ -1840,6 +1842,7 @@ let run = function() {
 								//game.religionTab.sacrificeBtn.controller._transform(game.religionTab.sacrificeBtn.model, needSacrifice);
 							}
 						}
+						// && resMap['tears'].value >= tearNeed
 						if (btnButton === undefined && zigguratOn) {
 							this.religionManager.manager.render();
 						} else if (!oneTear && game.resPool.hasRes(buttonPrices)) {
@@ -1875,7 +1878,8 @@ let run = function() {
 			let worship = game.religion.faith;
 			let epiphany = game.religion.faithRatio;
 			let solarRatio = game.religion.getSolarRevolutionRatio();
-			let maxSolarRevolution = 10 + game.getEffect("solarRevolutionLimit");
+			let solarRLimit = game.getEffect("solarRevolutionLimit");
+			let maxSolarRevolution = 10 + solarRLimit;
 			let adoreTrigger = option.adore.subTrigger;
 			let triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
 			let epiphanyInc = worship / 1000000 * (tt + 1) * (tt + 1) * 1.01;
@@ -1978,14 +1982,16 @@ let run = function() {
 				let catnipAdore = transcendenceTier > 9 || this.catnipForReligion() > 0;
 				// 期望太阳革命加成赞美群星
 				let transformTier = 0.5 * Math.log(game.religion.faithRatio) + 3.45;
-				let factor = (adoreFactor < 10) ? 1.65 : 1.3;
+				let rrVal = game.time.getCFU("ressourceRetrieval").val;
+				let factor = (adoreFactor < 10 || rrVal) ? 1.65 + 2 * Math.log1p(solarRLimit) : 1.3;
 				let expectSolarRevolutionRatio = game.getLimitedDR(factor * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
-				let rrVal = game.time.getCFU("ressourceRetrieval").val;
-				if (adoreTri === 0.001 && booleanForAdore && solarRatio * 1e2 < expectSolarRevolutionRatio && tt && !rrVal && catnipAdore) {
-					booleanForAdore = false;
+				let expect = solarRatio * 1e2 < expectSolarRevolutionRatio;
+				if (adoreTri === 0.001 && booleanForAdore && expect && tt && catnipAdore) {
+					if (solarRevolutionAdterAdore <= Math.max(1, solarRatio - 0.5)) {booleanForAdore = false;}
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 1e2) / 100;
-					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar']) {
+					let filter = !rrVal || !voidOrder;
+					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar'] && filter) {
 						activity(i18n('summary.adore.solar', [expectSolarRevolutionRatio]));
 						activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
 					}
@@ -1998,7 +2004,6 @@ let run = function() {
 						options.auto.timeCtrl.items.timeSkip.adore = false;
 						forceStep = true;
 					}
-
 					game.religion._resetFaithInternal(1.01);
 					iactivity('act.adore', [game.getDisplayValueExt(worship), game.getDisplayValueExt(epiphanyInc)], 'ks-adore');
 					storeForSummary('adore', epiphanyInc);
@@ -2007,7 +2012,6 @@ let run = function() {
 
 			// 太阳革命加速恢复到期望值
 			let transformTier = 0.525 * Math.log(game.religion.faithRatio) + 3.45;
-			let voidOrder = game.prestige.getPerk("voidOrder").researched;
 			let factor = (voidOrder) ? 1 : 0.3;
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5;
 			factor = (game.workshop.get('spaceManufacturing').researched) ? 5 : factor;
@@ -2020,13 +2024,13 @@ let run = function() {
 
 			// 无盛典点出阳光赞歌
 			let fR =  (1 + game.getUnlimitedDR(epiphany, 0.1) * 0.1);
-			forceStep = (resourceFaith.value > (1000 - worship) / fR && worship < 1000 && !voidOrder);
-			forceStep = forceStep || (resourceFaith.value > (150 - worship) / fR && worship < 150 && !voidOrder);
+			let sun = (resourceFaith.value > (1000 - worship) / fR && worship < 1000 && !voidOrder);
+			sun = sun || (resourceFaith.value > (150 - worship) / fR && worship < 150 && !voidOrder);
 			// Praise
 			let fistReset = (rate < 0.98 || !voidOrder || solarRevolution);
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
-			if (booleanForPraise || forceStep) {
-				if (option.autoPraise.subTrigger === 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 2e5) {
+			if (booleanForPraise || forceStep || sun) {
+				if (option.autoPraise.subTrigger === 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 2e5 && !timeSkipAdore) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
 					activity(i18n('summary.praise.msg', [expectSolar]));
@@ -2185,6 +2189,7 @@ let run = function() {
 			//upgradeManager.sciManager.render();
 			if (upgrades.techs.enabled && game["libraryTab"].visible) {
 				const tech = game.science.techs;
+				upgrades.techs.limited = true;
 				techLoop:
 				for (let upg of tech) {
 					if (upg.researched || !upg.unlocked) {continue;}
@@ -2214,6 +2219,7 @@ let run = function() {
 			if (upgrades.upgrades.enabled && game["workshopTab"].visible) {
 				if (!game["workshopTab"].domNode) {refreshRequired = 2;}
 				const work = game.workshop.upgrades;
+				upgrades.upgrades.limited = true;
 				let noup = [];
 				if (upgrades.upgrades.limited) {
 					let resStarchart = resMap['starchart'];
@@ -3001,17 +3007,13 @@ let run = function() {
 			let preCount = (!resMap['furs'].value || resMap['parchment'].value < 25) ? Math.max(30 , Math.floor(0.5 * huntCount)) : 0;
 			let mint = (architecture && huntCount > preCount && preCount > 0);
 
-			let manpowerBoolean = options.auto.options.items.hunt.subTrigger <= manpower.value / manpower.maxValue;
+			let itemHunt = options.auto.options.items.hunt;
+			let manpowerBoolean = itemHunt.subTrigger <= manpower.value / manpower.maxValue;
 			let tradeCache = !manpowerBoolean && options.auto.trade.cache;
-			if (manpowerBoolean || mint || unicornHunt || tradeCache) {
+			if (manpowerBoolean || mint || unicornHunt || tradeCache || itemHunt.time) {
 				// No way to send only some hunters. Thus, we hunt with everything
-				if (manpower.perTickCached < 100 && manpower.value >= 200) {
-					huntCount -= 1;
-				}
-
-				if (mint) {
-					huntCount = preCount;
-				}
+				if (manpower.perTickCached < 100 && manpower.value >= 200) {huntCount -= 1;}
+				if (mint) {huntCount = preCount;}
 
 				if (unicornHunt) {
 					huntCount = 7;
@@ -3022,6 +3024,8 @@ let run = function() {
 					huntCount = Math.min(huntCount, Math.max(Math.floor(manpower.perTickCached / 50), 1));
 					options.auto.trade.cache = false;
 					iactivity('act.hunt.trade', '', 'ks-hunt');
+				} else if (itemHunt.time) {
+					itemHunt.time = false;
 				}
 
 				if (huntCount <= 0) {return;}
@@ -3475,7 +3479,7 @@ let run = function() {
 			let addCraft = options.auto.timeCtrl.items.timeSkip;
 			if (addCraft.craft) {return;}
 			const resList = ['catnip', 'coal', 'iron', 'oil', 'uranium', 'science'];
-			let name, i = '';
+			let i, name = '';
 			for (i = 0; i < resList.length; i++) {
 				let res = resMap[resList[i]];
 				let resource = options.auto.resources[res.name];
@@ -3486,7 +3490,7 @@ let run = function() {
 					$('#toggle-list-resources').append(addNewResourceOption(res.name, res.title, false));
 				}
 				resource.consume = 1;
-				name += res.title + '，';
+				name = name + '' + res.title + '，';
 			}
 			addCraft.craft = true;
 			iactivity('summary.resource', [name]);
@@ -3600,7 +3604,7 @@ let run = function() {
 					amor -= total;
 					amor += riftBonus;
 					amor = unicornPrice / amor;
-					if (effects.tcRefineRatio && ivory) {amor *= 1 - effects.tcRefineRatio;}
+					if (effects.tcRefineRatio && ivory) {amor *= 0.5 - effects.tcRefineRatio;}
 					if (amor < bestAmoritization) {
 						bestAmoritization = amor;
 						bestBuilding = btn;
@@ -4325,8 +4329,8 @@ let run = function() {
 				force = options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
 				let optionShipVal = options.auto.options.items.shipOverride.subTrigger;
 				let geodesy = workshop.get("geodesy").researched;
-				let sloar = game.religion.getSolarRevolutionRatio();
-				geodesy = (geodesy) ? Math.max(243, optionShipVal) : 170 / Math.max(0.9, Math.log(sloar));
+				let solar = game.religion.getSolarRevolutionRatio();
+				geodesy = (geodesy) ? Math.max(243, optionShipVal) : 170 / Math.max(0.9, Math.log(solar));
 				optionShipVal = (optionShipVal > 168) ? geodesy : optionShipVal;
 				force &=  shipValue < optionShipVal;
 				force &= !workshop.get('oxidation').researched && !options.auto.craft.oxidation;
