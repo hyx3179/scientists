@@ -3457,7 +3457,7 @@ let run = function() {
 			if (trait) {
 				if (game.science.get('civil').researched && vLeader && !game.challenges.isActive("anarchy")) {
 					let cache = options.auto.cache;
-					let hasTrait = game.village.traits.some(obj => obj.name === trait);
+					let hasTrait = game.village.traits.some(obj => obj.title === $I("village.trait." + trait));
 					if (!cache.trait[trait]) {
 						if (hasTrait) {
 							cache.trait[trait] = true;
