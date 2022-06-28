@@ -393,7 +393,7 @@ let run = function() {
 			'craft.unlimited': '触发资源：{1}{0}',
 			'craft.winterCatnip': '呐呐呐，你也不想让寒冬时小喵饿死吧？喵粮上交',
 
-			'distribute.limited': '分配 {0} 受限于最大值',
+			'distribute.limited': '分配 {0} 不会超过最大值（Max）',
 			'distribute.leaderJob': '领袖工作为 {0} ',
 			'distribute.leaderTrait': '领袖的特质为 {0} ',
 			'distribute.unlimited': '分配 {0} 不受限',
@@ -451,7 +451,7 @@ let run = function() {
 			'reset.countdown.1': '&nbsp;1 - 时间引擎已启动!',
 			'reset.countdown.0': '&nbsp;0 - 时空裂缝已打开!',
 			'reset.last.message': '我们下个庞加莱回归再见',
-			'reset.after': '初次见面，可爱的猫猫科学家为您服务',
+			'reset.after': '初次见面，可爱的猫猫珂学家为您服务',
 			'reset.cancel.message': '重启时间线计划取消.',
 			'reset.cancel.activity': '喵斯顿，我们有麻烦了.',
 			'summary.time.reset.title': '过去 {0} 个时间线的总结',
@@ -1037,7 +1037,7 @@ let run = function() {
 		args[1] = args[1] || 'ks-default';
 
 		// update the color of the message immediately after adding
-		const msg = game.msg.apply(game, args);
+		let msg = game.msg.apply(game, args);
 		$(msg.span).css('color', color);
 
 		if (options.debug && console) {
@@ -1797,10 +1797,10 @@ let run = function() {
 			if (option.bestUnicornBuilding.enabled) {
 				let btn = this.getBestUnicornBuilding();
 				let zigguratOn = game.bld.get('ziggurat').on;
-				let tears = resMap['tears'].value;
+				let tearHave = resMap['tears'].value;
 				let unicorns = resMap['unicorns'].value;
 				if (btn) {
-					let oneTear = !tears && unicorns >= 1000 && zigguratOn;
+					let oneTear = !tearHave && unicorns >= 1000 && zigguratOn;
 					let buttonPrices;
 					if (btn.name === "unicornPasture" && !oneTear) {
 						if (unicorns >= Math.pow(btn.priceRatio + game.getEffect("priceRatio"), btn.val) * 2) {buildManager.build(btn.name, undefined, 1);}
@@ -1812,22 +1812,23 @@ let run = function() {
 						} else {
 							buttonPrices = dojo.clone(btn.prices);
 							for (i = 0; i < buttonPrices.length; i++) {
-								buttonPrices[i].val *= Math.pow(1.15, btn.on);
-								if (buttonPrices[i].name === 'tears') {tearNeed = buttonPrices[i].val + craftManager.getStock('tears');}
-								if (buttonPrices[i].name === 'gold')  {buttonPrices[i].val *= 1 - game.getEffect('goldCostReduction');}
+								let price = buttonPrices[i];
+								price.val *= Math.pow(1.15, btn.on);
+								if (price.name === 'tears') {
+									price.val += craftManager.getStock('tears');
+									tearNeed = price.val;
+								}
+								if (price.name === 'gold')  {price.val *= 1 - game.getEffect('goldCostReduction');}
 							}
 							btnButton = religionManager.getBuildButton(btn.name, 'z');
 						}
-						let tearHave = tears - craftManager.getStock('tears');
 						if (tearNeed + 0.01 > tearHave) {
 							// if no ziggurat, getBestUnicornBuilding will return unicornPasture
 							let maxSacrifice = Math.floor((unicorns - craftManager.getStock('unicorns')) / 2500);
 							let needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
 							if (needSacrifice <= maxSacrifice) {
 								let sacrificeBtn = game["religionTab"].sacrificeBtn;
-								if (!sacrificeBtn || !sacrificeBtn.model) {
-									return game["religionTab"].render();
-								}
+								if (!sacrificeBtn || !sacrificeBtn.model) {return game["religionTab"].render();}
 								let unicornTotal = sacrificeBtn.model.prices[0].val * needSacrifice;
 								if (unicorns > unicornTotal) {
 									let gainCount = zigguratOn * needSacrifice;
@@ -2862,9 +2863,9 @@ let run = function() {
 			let better = blackSky || solarRevolution > 5;
 			let sattelite = game.space.getBuilding('sattelite').val;
 			if (!trigger) {
-				let sation = game.space.getBuilding('spaceStation').val;
-				let fourSattelite = 3e3 * Math.pow(1.12, sation);
-				if (starchartVal > fourSattelite) {builds['spaceStation'].max = sation + 1;}
+				let station = game.space.getBuilding('spaceStation').val;
+				let fourSattelite = 3e3 * Math.pow(1.12, station);
+				if (starchartVal > fourSattelite) {builds['spaceStation'].max = station + 1;}
 				if (starchartVal < fourSattelite || game.ironWill) {builds['spaceStation'].max = 0;}
 				if (resPercent('unobtainium') < 0.8) {builds['moonBase'].max = 0;}
 				else {builds['moonBase'].max = game.space.getBuilding('moonBase').val + 1;}
@@ -7875,6 +7876,25 @@ let run = function() {
 
 	if (console && console.log) {console.log(kg_version + " loaded");}
 	game._publish("kitten_scientists/ready", kg_version);
+	// 提示库存
+	let msgStock = () => {
+		let resources = options.auto.resources;
+		let filter;
+		for (let i in options.auto.resources) {
+			let res = resources[i];
+			if (res.enabled) {
+				if (i === 'furs' && res.stock === 350) {continue;}
+				filter = true;
+				let msg = game.msg($I("resources." + i +".title") + '库存：' + game.getDisplayValueExt(res.stock), null, null, true);
+				$(msg.span).css('color', "#ff589c");
+			}
+		}
+		if (filter) {
+			activity('小喵的库存：');
+			message('可爱的猫猫珂学家提示挂机请别设置库存');
+		}
+	};
+	msgStock();
 
 	if (kittenStorage.reset && kittenStorage.reset.reset) {
 		// calc paragon and karma
