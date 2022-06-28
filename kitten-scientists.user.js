@@ -259,17 +259,23 @@ let run = function() {
 			'filter.embassy': '大使馆',
 			'filter.hunt': '狩猎',
 			'filter.praise': '赞美太阳',
+			'filter.adore': '赞美群星',
+			'filter.transcend': '次元超越',
 			'filter.sacrifice': '献祭',
 			'filter.faith': '太阳教团',
+			'filter.accelerate': '光阴似箭',
+			'filter.time.skip': '时间跳转',
 			'filter.festival': '举办节日',
 			'filter.star': '天文现象',
+			'filter.distribute': '猫猫分配',
+			'filter.leader': '领袖相关',
 			'filter.misc': '喵喵喵',
 
 			'dispose.necrocorn': '小猫帮你处理掉了影响效率的多余死灵兽',
 			'act.feed': '小猫向上古神献上祭品。上古神很高兴',
 			'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
 			'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
-			'act.observe': '小猫珂学家观测到一次天文现象',
+			'act.observe': '小猫观测了天文现象',
 			'act.hunt': '{0} 波{1}去打猎',
 			'act.hunt.unicorn': '小猫急着派出猎人帮独角兽配种',
 			'act.hunt.trade': '小猫贸易后决定去打猎',
@@ -287,8 +293,8 @@ let run = function() {
 			'upgrade.tech': '{1}研究了 {0}',
 			'upgrade.policy': '小猫通过了 {0} 法案',
 
-			'festival.hold': '小猫开始举办节日',
-			'festival.extend': '小猫延长了节日',
+			'festival.hold': '呜呼，小猫的节日开始了',
+			'festival.extend': '小猫加了一年钟',
 
 			'build.embassy': '在 {1} 设立了 {0} 个大使馆',
 			'build.embassies': '在 {1} 设立了 {0} 个大使馆',
@@ -341,13 +347,12 @@ let run = function() {
 			'ui.faith.addtion': '附加选项',
 			'option.faith.best.unicorn': '自动最效率独角兽建筑',
 			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽或象牙来决定建造独角兽牧场~象牙塔...太阳尖顶<br>当象牙不足时会切换成象牙模式具体可以点击小猫总结看到',
-			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，并获得了 {1} 滴独角兽的眼泪',
+			'unicornSacrifice' : '小猫献祭了 {0} 独角兽，收集了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
 			'summary.transcend.catnip': '喵喵喵，你也不想次元超越再赞美群星后让小喵饿死吧？（猫薄荷产量将是：{0}）',
 			'act.transcend': '消耗 {0} 顿悟，达到次元超越 {1}',
 			'summary.transcend': '次元超越了 {0} 次',
-			'filter.transcend': '次元超越',
 
 			'option.faith.adore': '赞美群星',
 			'act.adore': '赞美群星! 转化 {0} 虔诚为 {1} 顿悟',
@@ -356,7 +361,6 @@ let run = function() {
 			'summary.adore.catnip': '喵喵喵，你也不想赞美群星后让小喵饿死吧？（猫薄荷产量将是：{0}）',
 			'summary.adore.solar': '聪明的小猫已经会算期望了，当太阳革命加成到达：{0}% 后才会赞美群星',
 			'summary.adore.last': '下次赞美群星会等到虔诚大于{0} ',
-			'filter.adore': '赞美群星',
 			'adore.trigger.set': '为赞美群星设定一个新触发值，取值范围为 0 到 1 的小数。（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 赞美群星再赞美太阳后，需太阳革命加成 ≥ 触发值 * 1000%\n2. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n3.探索月球已完成\n4. 次元超越等级低于 11，需赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n5. 次元超越等级低于 12，需当前虔诚＞上次赞美群星时候的虔诚',
 
 			'resources.add': '添加资源',
@@ -393,22 +397,20 @@ let run = function() {
 			'craft.unlimited': '触发资源：{1}{0}',
 			'craft.winterCatnip': '呐呐呐，你也不想让寒冬时小喵饿死吧？喵粮上交',
 
-			'distribute.limited': '分配 {0} 不会超过最大值（Max）',
+			'distribute.limited': '分配 {0} 不会超过Max',
 			'distribute.leaderJob': '领袖工作为 {0} ',
 			'distribute.leaderTrait': '领袖的特质为 {0} ',
-			'distribute.unlimited': '分配 {0} 不受限',
+			'distribute.unlimited': '分配 {0} 允许超过MAX',
 			'distribute.makeLeader': '分配领袖',
 			'act.distribute': '分配一只猫猫成为 {0}',
 			'act.distribute.catnip': '担心你的猫猫没有猫薄荷吸并强制分配到农民',
 			'act.distributeLeader': '分配一只 {0} 猫猫领袖',
 			'ui.max.set': '设置 {0} 的最大值',
 			'summary.distribute': '帮助 {0} 只偷吃猫薄荷的猫猫找到工作',
-			'filter.distribute': '猫口分配',
 			'set.leader': '{0}，喵喵喵！',
 
 			'option.promote': '提拔领袖',
 			'act.promote': '领袖被提拔到 {0} 级',
-			'filter.leader': '领袖相关',
 			'summary.promote': '提拔领袖 {0} 次',
 
 			'ui.trigger.useWorkers.alert': '比如天文事件没观测、烧水晶慢，珂学家后台大概10才运行1次\n勾选将会在后台满速运行，注意会导致使用内存增多。\n电脑不好、内存< 8G的建议禁用\n推荐过滤全部日志会减少性能的消耗。\n\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家',
@@ -417,7 +419,6 @@ let run = function() {
 			'act.accelerate': '固有时制御，二倍速!',
 			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
 			'act.accelerate.slow': '不行了，要减速了',
-			'filter.accelerate': '光阴似箭',
 			'summary.accelerate': '小猫加速时间 {0} 次',
 			'option.time.skip': '时间跳转',
 			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
@@ -429,7 +430,6 @@ let run = function() {
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
 			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n如果资源回复后资源一直是满的，建议过滤大部分日志\n\n故长挂推荐：触发条件500，单次数量1，周期全勾',
 			'summary.time.skip': '跳过 {0} 年',
-			'filter.time.skip': '时间跳转',
 
 			'option.time.reset': '重启时间线 (弃用)',
 			'status.reset.check.enable': '在重启时间线前检查 {0}',
@@ -769,10 +769,10 @@ let run = function() {
 
 					// Piscine
 					researchVessel: {require: 'titanium',    enabled: true,  max:-1, checkForReset: true, triggerForReset: -1},
-					orbitalArray:   {require: 'eludium',     enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
+					orbitalArray:   {require: 'science',     enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 
 					// Helios
-					sunlifter:          {require: 'eludium', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
+					sunlifter:          {require: 'science', enabled: true,  max:-1, checkForReset: true, triggerForReset: -1},
 					containmentChamber: {require: 'science', enabled: false, max:5,  checkForReset: true, triggerForReset: -1},
 					heatsink:           {require: 'thorium', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					sunforge:           {require: false,     enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
@@ -871,7 +871,7 @@ let run = function() {
 					blueprint:  {require: 'science',     max: 0, limited: true,  limRat: 0.5, enabled: true},
 					kerosene:   {require: 'oil',         max: 0, limited: true,  limRat: 0.5, enabled: true},
 					megalith:   {require: false,         max: 0, limited: true,  limRat: 0.5, enabled: true},
-					eludium:    {require: 'unobtainium', max: 0, limited: false, limRat: 0.5, enabled: true},
+					eludium:    {require: 'unobtainium', max: 0, limited: true,  limRat: 0.5, enabled: true},
 					thorium:    {require: 'uranium',     max: 0, limited: false, limRat: 0.5, enabled: true}
 				},
 				autoConsume : {},
@@ -1697,7 +1697,10 @@ let run = function() {
 						maxKS = (village.maxKittens > 10) ? 2 : 0;
 					} else if ((manpowerJobRatio <= 0.75 && !game.science.get('navigation').researched) || expect) {
 						maxKS = Math.round(maxKS * 0.42);
-						if (!expect) {msgSummary('hunter');}
+						if (!expect) {
+							msgSummary('hunter');
+							activity($I("village.job.hunter.flavor"));
+						}
 					} else {
 						msgSummary('hunter', true);
 					}
@@ -4935,6 +4938,7 @@ let run = function() {
 
 			if (name === 'kerosene') {
 				limRat = (space.meta[0].meta[1].val) ? limRat : 0;
+				limRat = (!game.space.getProgram('piscineMission').on && res.value > 250) ? 0 : limRat;
 			}
 
 			if (name === 'manuscript') {
@@ -7880,7 +7884,7 @@ let run = function() {
 	let msgStock = () => {
 		let resources = options.auto.resources;
 		let filter;
-		for (let i in options.auto.resources) {
+		for (let i in resources) {
 			let res = resources[i];
 			if (res.enabled) {
 				if (i === 'furs' && res.stock === 350) {continue;}
@@ -7891,7 +7895,7 @@ let run = function() {
 		}
 		if (filter) {
 			activity('小喵的库存：');
-			message('可爱的猫猫珂学家提示挂机请别设置库存');
+			message('可爱的猫猫珂学家提示挂机尽量别设置库存');
 		}
 	};
 	msgStock();
