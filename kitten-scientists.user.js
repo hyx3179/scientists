@@ -270,6 +270,8 @@ let run = function() {
 			'filter.leader': '领袖相关',
 			'filter.misc': '喵喵喵',
 
+			'time' : '{1}处理用时：{0}ms',
+
 			'dispose.necrocorn': '小猫帮你处理掉了影响效率的多余死灵兽',
 			'act.feed': '小猫向利维坦献上祭品。古神很高兴',
 			'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
@@ -1021,16 +1023,11 @@ let run = function() {
 	let resMap = game.resPool.resourceMap;
 
 	const printoutput = function (args) {
-		if (game.console.messages.length >= 999) {
-			game.clearLog();
-		}
-
 		if (options.auto.filter.enabled) {
-			for (const filt in options.auto.filter.items) {
-				const filter = options.auto.filter.items[filt];
-				if (filter.enabled && filter.variant === args[1]) {
-					return;
-				}
+			let items = options.auto.filter.items;
+			for (const filt in items) {
+				const filter = items[filt];
+				if (filter.enabled && filter.variant === args[1]) {return;}
 			}
 		}
 		const color = args.pop();
@@ -1140,6 +1137,7 @@ let run = function() {
 		timeManager: undefined,
 		villageManager: undefined,
 		cacheManager: undefined,
+		now: undefined,
 		loop: undefined,
 		huntID: undefined,
 		renderID: undefined,
@@ -1908,7 +1906,8 @@ let run = function() {
 			let moonBoolean = game.space.getBuilding('moonOutpost').val;
 			let booleanForAdore = moonBoolean && worship >= 1e5;
 			let apocripha = religion.getRU('apocripha').on;
-			booleanForAdore = booleanForAdore && apocripha && tt && autoAdoreEnabled;
+			let FristAdore = tt || (!epiphany && worship > 200e3);
+			booleanForAdore = booleanForAdore && apocripha && FristAdore && autoAdoreEnabled;
 			if (moonBoolean && worship >= 1e5 && booleanForAdore && PraiseSubTrigger < 0.98 && PraiseSubTrigger) {option.autoPraise.subTrigger = 0.98;}
 
 			// 超越 和 赞美群星
@@ -3083,6 +3082,7 @@ let run = function() {
 			}
 		},
 		trade: function () {
+			// this.now = performance.now();
 			let i;
 			const craftManager = this.craftManager;
 			const tradeManager = this.tradeManager;
@@ -3119,7 +3119,7 @@ let run = function() {
 				let button = tradeManager.getTradeButton(race.name);
 
 				if (!button || !tradeManager.singleTradePossible(name)) {continue;}
-				if (name === 'nagas' && resMap['concrate'].value > 1000 && !game.ironWill) {continue;}
+				if (name === 'nagas' && resMap['concrate'].value > 500 && !game.ironWill) {continue;}
 
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 
@@ -3242,6 +3242,7 @@ let run = function() {
 					tradeManager.trade(name, tradesDone[name]);
 				}
 			}
+			// iactivity('time', [game.getDisplayValueExt(performance.now() - this.now), i18n('ui.trade')], 'ks-trade');
 		},
 		miscOptions: function () {
 			const craftManager = this.craftManager;
@@ -3598,7 +3599,7 @@ let run = function() {
 
 			let ivory = resMap['tears'].value + unicornsMap.value * 2500 / onZig > resMap['ivory'].value;
 			let fa = 1.5 * game.prestige.getParagonProductionRatio() + 1.5;
-			ivory |= resMap['ivory'].perTickCached * fa *festival < unicornsTick;
+			ivory = ivory || (resMap['ivory'].perTickCached * fa * festival < unicornsTick && resMap['ivory'].perTickCached > 0);
 			let res = 'tears';
 			if (ivory && resMap['alicorn'].value) {
 				res = 'ivory';
@@ -3627,9 +3628,7 @@ let run = function() {
 							relBonus += btn.effects['unicornsRatioReligion'];
 						}
 						if (name === 'gold' && val * goldReduce * an > resMap['gold'].maxValue) {continue unicorn;}
-						if (name === 'tears') {
-							totalUnicorn = val * an * 2500 / onZig;
-						}
+						if (name === 'tears') {totalUnicorn = val * an * 2500 / onZig;}
 					}
 					let riftChance = game.getEffect('riftChance');
 					let effects = btn.effects;
