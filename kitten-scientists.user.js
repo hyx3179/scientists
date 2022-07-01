@@ -280,6 +280,7 @@ let run = function() {
 			'act.hunt': '{0} 波{1}去打猎',
 			'act.hunt.unicorn': '小猫急着派出猎人帮独角兽配种',
 			'act.hunt.trade': '小猫贸易后决定去打猎',
+			'act.hunt.mint': '毛皮或羊皮纸处于低储量',
 			'act.build': '小猫建造了一个 {0}',
 			'act.builds': '小猫建造了 {1} 个新的 {0}',
 			'act.craft': ' {0} {1}',
@@ -362,7 +363,7 @@ let run = function() {
 			'summary.adore.catnip': '喵喵喵，你也不想赞美群星后让小喵饿死吧？（猫薄荷产量将是：{0}）',
 			'summary.adore.solar': '聪明的小猫已经会算期望了，当太阳革命加成到达：{0}% 后才会赞美群星',
 			'summary.adore.last': '下次赞美群星会等到虔诚大于{0} ',
-			'adore.trigger.set': '为赞美群星设定一个新触发值，取值范围为 0 到 1 的小数。（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 赞美群星再赞美太阳后，需太阳革命加成 ≥ 触发值 * 1000%\n2. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n3.探索月球已完成\n4. 次元超越等级低于 11，需赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n5. 次元超越等级低于 12，需当前虔诚＞上次赞美群星时候的虔诚',
+			'adore.trigger.set': '赞美群星再赞美太阳后的太阳革命加成 ≥ 触发条件 * 1000%，\n触发条件取值范围为 0 到 1 的小数（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n2.有月球前哨\n3.赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n优先次元超越 => 赞美群星 => 赞美太阳',
 
 			'resources.add': '添加资源',
 			'resources.clear.unused': '清除未使用',
@@ -531,8 +532,8 @@ let run = function() {
 			'summary.feed': '向利维坦献祭 {0} 只死灵兽',
 			'summary.tech': '{0}',
 			'summary.upgrade': '{0}',
-			'summary.building': '建造了 {0} 个 {1}',
-			'summary.sun': '{1} {0} 次',
+			'summary.build': '建造了 {0} 个 {1}',
+			'summary.faith': '{1} {0} 次',
 			'summary.craft': '制作了{0} 个 {1}',
 			'summary.craftLeader': '工匠制作了 {0} 个 {1}',
 			'summary.craftManuscript': '小猫偷偷使用了 {0} 次材料合成手稿，为了科学',
@@ -1009,7 +1010,6 @@ let run = function() {
 				science:   '',
 				resUpg:    {},
 			},
-			summary: {},
 		}
 	};
 
@@ -1574,6 +1574,7 @@ let run = function() {
 
 					let beforeSkipYear = game.calendar.year;
 					shatter.controller.doShatterAmt(shatter.model, willSkip);
+					storeForSummary('timeCrystal', timeCrystalValue, 'resConsume');
 					willSkip = game.calendar.year - beforeSkipYear;
 					if (!willSkip) {return;}
 					refreshRequired = -100;
@@ -1587,6 +1588,7 @@ let run = function() {
 		promote: function () {
 			let leader = game.village.leader;
 			if (game.science.get('civil').researched && leader) {
+				game.village.leader.exp += 5 * game.getEffect("skillXP");
 				let optionDistribute = options.auto.distribute;
 				let optionLeader = optionDistribute.items.leader;
 
@@ -1600,6 +1602,7 @@ let run = function() {
 					iactivity('act.promote', [rank + 1], 'ks-leader');
 					census.renderGovernment(census.container);
 					census.update();
+					storeForSummary('gold', 25 + 25 * rank, 'resConsume');
 					storeForSummary('promote', 1);
 				}
 			}
@@ -1712,7 +1715,10 @@ let run = function() {
 					if (!game.workshop.get("geodesy").researched && resMap['iron'].perTickCached < 50) {maxKS = Math.round(maxKS * 0.5);}
 					if (!game.science.get('mechanization').unlocked && !game.workshop.get("geodesy").researched) {maxKS = 1;}
 				}
-				if (name === 'scholar' && !game.getEffect('shatterTCGain') && scholar && limited) {maxKS = Math.max(maxKS, 18);}
+				if (name === 'scholar' && limited) {
+					if (!game.getEffect('shatterTCGain') && scholar) {maxKS = Math.max(maxKS, 18);}
+					if (resPercent('science') > 0.95) {continue;}
+				}
 				if (name === 'miner' && !game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
 				if (name === 'priest' && resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
 				if (!limited || val < maxKS) {
@@ -1795,6 +1801,7 @@ let run = function() {
 			const builds = options.auto.faith.items;
 			const buildManager = this.buildManager;
 			const craftManager = this.craftManager;
+			let religionManager = this.religionManager;
 			const option = options.auto.faith.addition;
 			let religion = game.religion;
 			let refreshRequired = 0;
@@ -1843,6 +1850,8 @@ let run = function() {
 									game.resPool.addResEvent(sacrificeBtn.model.prices[0].name, -unicornTotal);
 									game.resPool.addResEvent(sacrificeController.gainedResource, gainCount);
 									game.stats.getStat("unicornsSacrificed").val += unicornTotal;
+									storeForSummary('unicorns', unicornTotal, 'resConsume');
+									storeForSummary('tears', gainCount, 'resGain');
 									let displayNumber = [game.getDisplayValueExt(unicornTotal), game.getDisplayValueExt(gainCount)];
 									game.msg($I(sacrificeController.logTextID, displayNumber), "notice", sacrificeController.logfilterID);
 									activity(i18n('unicornSacrifice', displayNumber), 'ks-sacrifice');
@@ -1852,7 +1861,7 @@ let run = function() {
 						}
 						// && resMap['tears'].value >= tearNeed
 						if (btnButton === undefined && zigguratOn) {
-							this.religionManager.manager.render();
+							religionManager.manager.render();
 						} else if (!oneTear && game.resPool.hasRes(buttonPrices)) {
 							religionManager.build(btn.name, 'z', 1);
 							refreshRequired = 1;
@@ -2026,7 +2035,7 @@ let run = function() {
 			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, 0.65 * transformTier) * factor, 80 * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = religion.getRU('solarRevolution').on;
-			let glass = religion.getRU("stainedGlass").on || resMap['value'] < 250;
+			let glass = religion.getRU("stainedGlass").on || resMap['gold'] < 250 || resourceFaith.perTickCached < 2;
 			if (solarRevolution && PraiseSubTrigger === 0.98 && solarRatio < expectSolarRevolutionRatio * 0.01 && glass) {
 				PraiseSubTrigger = 0;
 			}
@@ -2048,8 +2057,10 @@ let run = function() {
 					activitySummary.other['praise.msg'] = expectSolar;
 				}
 				let apocryphaBonus = religion.getApocryphaBonus();
-				let worshipInc = resourceFaith.value * (1 + apocryphaBonus);
+				let val = resourceFaith.value;
+				let worshipInc = val * (1 + apocryphaBonus);
 				storeForSummary('praise', worshipInc);
+				storeForSummary('faith', val, 'resConsume');
 				iactivity('act.praise', [game.getDisplayValueExt(resourceFaith.value), game.getDisplayValueExt(worshipInc)], 'ks-praise');
 				religion.praise();
 				let faithMap = resMap['faith'];
@@ -2431,6 +2442,7 @@ let run = function() {
 					}
 					refreshRequired += 1;
 					Btn.controller.build(Btn.model, 1);
+					storePrices(prices);
 					if (i === 7 || i === 12) {
 						activity(i18n('upgrade.space.mission', [missions[i].label]));
 					} else {
@@ -2449,6 +2461,7 @@ let run = function() {
 							game.resPool.get('manpower').value -= 1000;
 							maxRaces = 'render';
 							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-trade');
+							storeForSummary('manpower', 1000, 'resConsume');
 						}
 					};
 					if (game.challenges.isActive("pacifism") || !game.village.sim.kittens.length || resMap['gold'].value > 15) {
@@ -3004,6 +3017,7 @@ let run = function() {
 				game.village.holdFestival(1);
 
 				storeForSummary('festival', 1);
+				storePrices(price);
 				if (game.calendar.festivalDays > 400) {
 					iactivity('festival.extend', [], 'ks-festival');
 				} else {
@@ -3014,7 +3028,11 @@ let run = function() {
 		observeStars: function () {
 			let calendar = game.calendar;
 			if (calendar.observeBtn != null && !game.workshop.get("seti").researched){
+				let sci = resMap['science'].value;
+				let star = resMap['starchart'].value;
 				calendar.observeHandler();
+				storeForSummary('science', resMap['science'].value - sci, 'resGain');
+				storeForSummary('starchart', resMap['starchart'].value - star, 'resGain');
 				iactivity('act.observe', [], 'ks-star');
 				storeForSummary('stars', 1);
 			}
@@ -3044,7 +3062,10 @@ let run = function() {
 			if (manpowerBoolean || mint || unicornHunt || tradeCache || itemHunt.time) {
 				// No way to send only some hunters. Thus, we hunt with everything
 				if (manpower.perTickCached < 100 && manpower.value >= 200) {huntCount -= 1;}
-				if (mint) {huntCount = preCount;}
+				if (mint) {
+					huntCount = preCount;
+					iactivity('act.hunt.mint', '', 'ks-hunt');
+				}
 
 				if (unicornHunt) {
 					huntCount = 7;
@@ -3062,6 +3083,11 @@ let run = function() {
 				if (huntCount <= 0) {return;}
 				let hunter = (game.ironWill) ? resMap['zebras'].title : $I('effectsMgr.statics.maxKittens.title');
 				game.resPool.addResEvent("manpower", -huntCount * 100);
+				storeForSummary("manpower", huntCount * 100, 'resConsume');
+				let a = {};
+				for (let i in aveOutput) {
+					a[i] = resMap[i].value;
+				}
 				this.setTrait('manager');
 				game.village.gainHuntRes(huntCount);
 				this.setTrait();
@@ -3080,7 +3106,8 @@ let run = function() {
 
 				for (let out in aveOutput) {
 					const res = this.craftManager.getResource(out);
-					trueOutput[out] = (res.maxValue > 0) ? Math.min(aveOutput[out] * huntCount, Math.max(res.maxValue - res.value, 0)) : aveOutput[out] * huntCount;
+					trueOutput[out] = aveOutput[out] * huntCount;
+					storeForSummary(out, resMap[out].value - a[out], 'resGain');
 				}
 
 				this.cacheManager.pushToCache({'materials': trueOutput});
@@ -3089,7 +3116,12 @@ let run = function() {
 			}
 		},
 		trade: function () {
-			// this.now = performance.now();
+			this.now = performance.now();
+			let cacheSummary = {};
+			let resMap = game.resPool.resourceMap;
+			for (let res in resMap) {
+				cacheSummary[res] = resMap[res].value;
+			}
 			let i;
 			const craftManager = this.craftManager;
 			const tradeManager = this.tradeManager;
@@ -3248,7 +3280,12 @@ let run = function() {
 					tradeManager.trade(name, tradesDone[name]);
 				}
 			}
-			// iactivity('time', [game.getDisplayValueExt(performance.now() - this.now), i18n('ui.trade')], 'ks-trade');
+			for (let res in resMap) {
+				let a = resMap[res].value - cacheSummary[res];
+				if (a > 0) {storeForSummary(res, a, 'resGain');}
+				if (a < 0) {storeForSummary(res, -a, 'resConsume');}
+			}
+			//iactivity('time', [game.getDisplayValueExt(performance.now() - this.now), i18n('ui.trade')], 'ks-trade');
 		},
 		miscOptions: function () {
 			const craftManager = this.craftManager;
@@ -3315,7 +3352,8 @@ let run = function() {
 						if (emBulk.val === 0) {continue;}
 						cultureVal = craftManager.getValueAvailable('culture', true);
 						if (emBulk.priceSum > cultureVal) {continue;}
-						game.resPool.resources[13].value -= emBulk.priceSum;
+						resMap['culture'].value -= emBulk.priceSum;
+						storeForSummary('culture', emBulk.priceSum, 'resConsume');
 						emBulk.race.embassyLevel += emBulk.val;
 						storeForSummary('embassy', emBulk.val);
 						refreshRequired += 1;
@@ -3354,107 +3392,104 @@ let run = function() {
 			if (mint.on !== mint.val && resMap['manpower'].maxValue > 2e4) {
 				mint.on = mint.val;
 			}
-			// auto turn on steamworks
-			if (game.village.maxKittens > 130 || game.stats.getStat("totalResets").val) {
-				let button;
-				// 自动打开蒸汽工房
-				let st = game.bld.getBuildingExt('steamworks').meta;
-				let ma = game.bld.getBuildingExt('magneto').meta;
-				if (st.val && st.on !== st.val && ma.on > 8) {
-					button = buildManager.getBuildButton('steamworks');
-					button.controller.onAll(button.model);
-					msg('steamworks');
+			let button;
+			// 自动打开蒸汽工房
+			let st = game.bld.getBuildingExt('steamworks').meta;
+			let ma = game.bld.getBuildingExt('magneto').meta;
+			if (st.val && st.on !== st.val && ma.on > 9) {
+				button = buildManager.getBuildButton('steamworks');
+				button.controller.onAll(button.model);
+				msg('steamworks');
+			}
+			// 自动打开反应堆
+			let re = game.bld.getBuildingExt('reactor').meta;
+			let ur = game.getResourcePerTick("uranium",true);
+			if (re.val && re.on !== re.val && ur > 0) {
+				button = buildManager.getBuildButton('reactor');
+				button.controller.onAll(button.model);
+				msg('reactor');
+			}
+			// 自动打开工厂
+			let fa = game.bld.getBuildingExt('factory').meta;
+			if (fa.val && fa.on !== fa.val && game.workshop.get('spaceManufacturing').researched) {
+				button = buildManager.getBuildButton('factory');
+				button.controller.onAll(button.model);
+				msg('factory');
+			}
+			// 自动打开时空加速器自动化
+			let timeA = game.time.getCFU("temporalAccelerator");
+			if (timeA.on && game.time.testShatter === 0){
+				timeA.isAutomationEnabled = true;
+				game.time.testShatter = 1;
+				msg('temporalAccelerator');
+			}
+			// 缺电
+			let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+			let biolab = game.bld.getBuildingExt('biolab').meta;
+			let biofuel = biolab.on && game.workshop.get('biofuel').researched;
+			let catnipTick = options.auto.distribute.religion || craftManager.getPotentialCatnip() < 0;
+			if (biofuel && catnipTick) {biolab.on = 0;}
+			if (winterProd && winterProd < game.resPool.energyCons) {
+				if (biofuel && biolab.on) {
+					let msg = '冬季产出电:' + game.getDisplayValueExt(winterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
+					let number = biolab.on;
+					iactivity('summary.biolab.test', [msg + number]);
+					biolab.on = 0;
+					storeForSummary('biolab.test', msg + number);
+					return 1;
 				}
-				// 自动打开反应堆
-				let re = game.bld.getBuildingExt('reactor').meta;
-				let ur = game.getResourcePerTick("uranium",true);
-				if (re.val && re.on !== re.val && ur > 0) {
-					button = buildManager.getBuildButton('reactor');
-					button.controller.onAll(button.model);
-					msg('reactor');
+				let oilWell = game.bld.getBuildingExt('oilWell').meta;
+				if (oilWell.isAutomationEnabled && game.workshop.get('pumpjack').researched) {
+					oilWell.isAutomationEnabled = false;
+					game.upgrade({buildings: ['oilWell']});
+					game.resPool.update();
+					msg('pumpjack', 1);
+					return 1;
 				}
-				// 自动打开工厂
-				let fa = game.bld.getBuildingExt('factory').meta;
-				if (fa.val && fa.on !== fa.val && game.workshop.get('spaceManufacturing').researched) {
-					button = buildManager.getBuildButton('factory');
-					button.controller.onAll(button.model);
-					msg('factory');
+				let accelerator = game.bld.getBuildingExt('accelerator').meta;
+				if (accelerator.on) {
+					accelerator.on = 0;
+					msg('accelerator', 1);
 				}
-				// 自动打开时空加速器自动化
-				let timeA = game.time.getCFU("temporalAccelerator");
-				if (timeA.on && game.time.testShatter === 0){
-					timeA.isAutomationEnabled = true;
-					game.time.testShatter = 1;
-					msg('temporalAccelerator');
+			}
+			// 自动控制 时间操纵 酿酒厂 开关
+			const list = [{
+				name: 'brewery',
+				metadata: game.bld.get('brewery'),
+				Button: buildManager.getBuildButton('brewery'),
+				conditionOn: game.calendar.festivalDays,
+				conditionOff: game.bld.get('brewery').on,
+			}];
+			if (!game.opts.enableRedshift) {
+				// 开启离线进度时不调整时间操纵
+				list.push({
+					name: 'chronocontrol',
+					metadata: game.time.getVSU('chronocontrol'),
+					Button: this.timeManager.getBuildButton('chronocontrol'),
+					conditionOn: game.calendar.futureSeasonTemporalParadox < 1 && game.calendar.day > 98,
+					conditionOff: game.time.getVSU('chronocontrol').on && game.calendar.day > 0,
+				});
+				let calciner = game.bld.getBuildingExt('calciner').meta;
+				if (!game.time.getCFU("ressourceRetrieval").on && calciner.isAutomationEnabled) {
+					calciner.isAutomationEnabled = false;
+					game.upgrade({buildings: ['calciner']});
+					msg('calciner');
 				}
-				// 缺电
-				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
-				let biolab = game.bld.getBuildingExt('biolab').meta;
-				let biofuel = biolab.on && game.workshop.get('biofuel').researched;
-				let catnipTick = options.auto.distribute.religion || craftManager.getPotentialCatnip() < 0;
-				if (biofuel && catnipTick) {biolab.on = 0;}
-				if (winterProd && winterProd < game.resPool.energyCons) {
-					if (biofuel && biolab.on) {
-						let msg = '冬季产出电:' + game.getDisplayValueExt(winterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
-						let number = biolab.on;
-						iactivity('summary.biolab.test', [msg + number]);
-						biolab.on = 0;
-						storeForSummary('biolab.test', msg + number);
-						return 1;
-					}
-					let oilWell = game.bld.getBuildingExt('oilWell').meta;
-					if (oilWell.isAutomationEnabled && game.workshop.get('pumpjack').researched) {
-						oilWell.isAutomationEnabled = false;
-						game.upgrade({buildings: ['oilWell']});
-						game.resPool.update();
-						msg('pumpjack', 1);
-						return 1;
-					}
-					let accelerator = game.bld.getBuildingExt('accelerator').meta;
-					if (accelerator.on) {
-						accelerator.on = 0;
-						msg('accelerator', 1);
-					}
-				}
-				// 自动控制 时间操纵 酿酒厂 开关
-				const list = [{
-					name: 'brewery',
-					metadata: game.bld.get('brewery'),
-					Button: buildManager.getBuildButton('brewery'),
-					conditionOn: game.calendar.festivalDays,
-					conditionOff: game.bld.get('brewery').on,
-				}];
-				if (!game.opts.enableRedshift) {
-					// 开启离线进度时不调整时间操纵
-					list.push({
-						name: 'chronocontrol',
-						metadata: game.time.getVSU('chronocontrol'),
-						Button: this.timeManager.getBuildButton('chronocontrol'),
-						conditionOn: game.calendar.futureSeasonTemporalParadox < 1 && game.calendar.day > 98,
-						conditionOff: game.time.getVSU('chronocontrol').on && game.calendar.day > 0,
-					});
-					let calciner = game.bld.getBuildingExt('calciner').meta;
-					if (!game.time.getCFU("ressourceRetrieval").on && calciner.isAutomationEnabled) {
-						calciner.isAutomationEnabled = false;
-						game.upgrade({buildings: ['calciner']});
-						msg('calciner');
-					}
-				}
-				for (let index = 0; index < list.length; index++) {
-					let element = list[index];
-					if (element.metadata.val > 0) {
-						if (element.conditionOn) {
-							let off = element.metadata.val - element.metadata.on;
-							if (off) {
-								element.Button.controller.onAll(element.Button.model);
-								iactivity('summary.' + element.name + 'On');
-								storeForSummary(element.name);
-							}
-						} else if (element.conditionOff) {
-							element.Button.controller.offAll(element.Button.model);
-							iactivity('summary.' + element.name + 'Off');
+			}
+			for (let index = 0; index < list.length; index++) {
+				let element = list[index];
+				if (element.metadata.val > 0) {
+					if (element.conditionOn) {
+						let off = element.metadata.val - element.metadata.on;
+						if (off) {
+							element.Button.controller.onAll(element.Button.model);
+							iactivity('summary.' + element.name + 'On');
 							storeForSummary(element.name);
 						}
+					} else if (element.conditionOff) {
+						element.Button.controller.offAll(element.Button.model);
+						iactivity('summary.' + element.name + 'Off');
+						storeForSummary(element.name);
 					}
 				}
 			}
@@ -3724,6 +3759,7 @@ let run = function() {
 			//}
 
 			if (amount === 0) {return;}
+			storePrices(button.model.prices);
 			game.stats.getStat("totalClicks").val += 1;
 
 			let label = build.label;
@@ -3803,7 +3839,8 @@ let run = function() {
 			let amountTemp = amount;
 			let label = build.label;
 			amount = this.bulkManager.construct(button.model, button, amount);
-			if (amount !== amountTemp) {warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);}
+			if (amount === 0) {return;}
+			storePrices(button.model.prices);
 			storeForSummary(label, amount, 'build');
 
 			if (amount === 1) {
@@ -3888,6 +3925,7 @@ let run = function() {
 			//need to simulate a click so the game updates everything properly
 			button.model.prices = button.controller.getPrices(button.model);
 			button.controller.payPrice(button.model, {}, function() {});
+			storePrices(button.model.prices);
 			//button.controller.onPurchase(button.model, {}, function() {});
 			let meta = button.model.metadata;
 			meta.researched = true;
@@ -4004,6 +4042,7 @@ let run = function() {
 			amount = this.bulkManager.construct(button.model, button, amount);
 			//if (amount !== amountTemp) {/*warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);*/}
 			if (amount === 0) {return;}
+			storePrices(button.model.prices);
 			storeForSummary(label, amount, 'build');
 			game.stats.getStat("totalClicks").val += 1;
 
@@ -4118,7 +4157,7 @@ let run = function() {
 					} else {
 						if (resMap['titanium'].maxValue < 1.3e5 && game.bld.get(id).val && resMap['titanium'].perTickCached < 150) {count = 0;}
 						if (game.bld.get(id).val > 2 && !TitaniumCap && !geodesy) {
-							count = Math.floor(count * 0.5);
+							count = Math.floor(count * 0.4);
 							halfCount = true;
 						}
 					}
@@ -4223,6 +4262,7 @@ let run = function() {
 				return;
 				//warning(label + ' Amount ordered: ' + amountTemp + ' Amount Constructed: ' + amount);
 			}
+			storePrices(button.model.prices);
 			storeForSummary(label, amount, 'build');
 			game.stats.getStat("totalClicks").val += 1;
 
@@ -4270,33 +4310,31 @@ let run = function() {
 			let craftAmt = amount * ratio;
 			let prices = dojo.clone(game.workshop.getCraftPrice(craft));
 			for (let i = prices.length - 1; i >= 0; i--) {
-				prices[i].val *= amount;
+				let price = prices[i];
+				price.val *= amount;
+				storeForSummary(price.name, price.val, 'resConsume');
 			}
 
-			if (game.resPool.hasRes(prices)) {
-				if (trait) {
-					let engineer = game.village.getEffectLeader("engineer", 0);
-					if (trait && resMap[name].tag === "metallurgist" && options.auto.cache.trait['metallurgist']) {
-						craftAmt += amount * engineer;
-						leader = '冶金学家小猫制作了 ';
-					}
-					if (resMap[name].tag === "chemist" && options.auto.cache.trait['chemist']) {
-						craftAmt += 0.5 * amount * engineer;
-						leader = '化学家小猫制作了 ';
-					}
+			if (trait) {
+				let engineer = game.village.getEffectLeader("engineer", 0);
+				if (trait && resMap[name].tag === "metallurgist" && options.auto.cache.trait['metallurgist']) {
+					craftAmt += amount * engineer;
+					leader = '冶金学家小猫制作了 ';
 				}
-				game.resPool.payPrices(prices);
-				game.resPool.addResEvent(craft.name, craftAmt);
-				if (craft.upgrades){
-					cacheUpgrades(craft.upgrades);
+				if (resMap[name].tag === "chemist" && options.auto.cache.trait['chemist']) {
+					craftAmt += 0.5 * amount * engineer;
+					leader = '化学家小猫制作了 ';
 				}
-				game.stats.getStat("totalCrafts").val++;
-				game.stats.getStatCurrent("totalCrafts").val++;
-				game.stats.getStat("totalClicks").val += 1;
-				prices = null;
-			} else {
-				return;
 			}
+			game.resPool.payPrices(prices);
+			game.resPool.addResEvent(craft.name, craftAmt);
+			// storeForSummary(craft.name, craftAmt, 'resGain');
+			if (craft.upgrades){
+				cacheUpgrades(craft.upgrades);
+			}
+			game.stats.getStat("totalCrafts").val++;
+			game.stats.getStatCurrent("totalCrafts").val++;
+			game.stats.getStat("totalClicks").val += 1;
 
 			let iname = game.resPool.get(name).title;
 
@@ -4320,9 +4358,7 @@ let run = function() {
 					let price = prices[i];
 					let value = resMap[price.name].value;
 
-					if (value < price.val * amount) {
-						result = false;
-					}
+					if (value < price.val * amount) {result = false;}
 				}
 			}
 
@@ -5073,7 +5109,7 @@ let run = function() {
 		craftManager: undefined,
 		bulk: function (builds, metaData, trigger, source) {
 			let nextPriceCheck;
-			let data, prices, priceRatio, i;
+			let data, prices, priceRatio, i, build;
 			const bList = [];
 			const countList = [];
 			let counter = 0;
@@ -5549,15 +5585,14 @@ let run = function() {
 
 	let right = $('#rightColumn');
 
+	// 插入cssRule
 	let addRule = function (rule) {
 		const sheets = document.styleSheets;
 		sheets[0].insertRule(rule, 0);
 	};
-
-	let defaultSelector = 'body[data-ks-style]:not(.scheme_sleek)';
-
-	// 插入cssRule
 	if (addRule) {
+		let defaultSelector = 'body[data-ks-style]:not(.scheme_sleek)';
+
 		addRule('body {' // low priority. make sure it can be covered by the theme
 			+ 'font-family: inherit;'
 			+ 'font-size: inherit;'
@@ -5853,9 +5888,6 @@ let run = function() {
 		}
 	};
 
-	// Add options element
-	// ===================
-
 	let ucfirst = function (string) {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	};
@@ -5864,6 +5896,7 @@ let run = function() {
 		return +(Math.round(+(n + "e+2")) + "e-2");
 	};
 
+	// 工艺 资源
 	let setStockWarning = function(name, value, forReset = false) {
 		// simplest way to ensure it doesn't stick around too often; always do
 		// a remove first then re-add only if needed
@@ -6006,1111 +6039,568 @@ let run = function() {
 		return container;
 	};
 
-	let getAvailableResourceOptions = function (forReset) {
-		let items = [];
-		let idPrefix = forReset ? '#resource-reset-' : '#resource-';
-
-		for (let i in game.resPool.resources) {
-			let res = game.resPool.resources[i];
-
-			// Show only new resources that we don't have in the list and that are
-			// visible. This helps cut down on total size.
-			if (res.name && $(idPrefix + res.name).length === 0) {
-				let item = $('<div/>', {
-					id: 'resource-add-' + res.name,
-					text: ucfirst(res.title ? res.title : res.name),
-					css: {cursor: 'pointer',
-						textShadow: '3px 3px 4px gray'},
-				});
-
-				// Wrapper function needed to make closure work
-				(function (res, item, forReset) {
-					item.on('click', function () {
-						item.remove();
-						if (!options.auto.resources[res.name]) {options.auto.resources[res.name] = {};}
-						if (forReset) {
-							options.auto.resources[res.name].checkForReset = true;
-							options.auto.resources[res.name].stockForReset = Infinity;
-							$('#toggle-reset-list-resources').append(addNewResourceOption(res.name, res.title, forReset));
-
-						} else {
-							options.auto.resources[res.name].enabled = true;
-							options.auto.resources[res.name].stock = 0;
-							options.auto.resources[res.name].consume = options.consume;
-							$('#toggle-list-resources').append(addNewResourceOption(res.name, res.title, forReset));
-						}
-						saveToKittenStorage();
-					});
-				})(res, item, forReset);
-
-				items.push(item);
-			}
-		}
-
-		return items;
-	};
-
-	let getResourceOptions = function (forReset = false) {
-		let list = $('<ul/>', {
-			id: forReset ? 'toggle-reset-list-resources' : 'toggle-list-resources',
-			css: {display: 'none', paddingLeft: '20px'}
-		});
-
-		let add = $('<div/>', {
-			id: 'resources-add',
-			text: i18n('resources.add'),
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				textShadow: '3px 3px 4px gray',
-				borderBottom: '1px solid rgba(185, 185, 185, 0.7)' },
-		});
-
-		let clearunused = $('<div/>', {
-			id: 'resources-clear-unused',
-			text: i18n('resources.clear.unused'),
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				float: 'right',
-				paddingRight: '5px',
-				textShadow: '3px 3px 4px gray' },
-		});
-
-		clearunused.on('click', function () {
-			for (let name in options.auto.resources) {
-				// Only delete resources with unmodified values. Require manual
-				// removal of resources with non-standard values.
-				if (!options.auto.resources[name].stock &&
-					options.auto.resources[name].consume === options.consume ||
-					options.auto.resources[name].consume === undefined) {
-					$('#resource-' + name).remove();
+	let ksUi = true;
+	if (ksUi) {
+		let autoI18nLabel = true;
+		if (autoI18nLabel) {
+			let buildOption, spaceOption, build, buildItem;
+			// Grab button labels for religion options
+			let religionM = new ReligionManager();
+			let items = options.auto.faith.items;
+			for (buildOption in items) {
+				buildItem = items[buildOption];
+				build = religionM.getBuild(buildItem.name || buildOption, buildItem.variant);
+				if (build) {
+					items[buildOption].label = build.label;
 				}
 			}
-		});
 
-		let allResources = $('<ul/>', {
-			id: 'available-resources-list',
-			css: {display: 'none', paddingLeft: '20px'}
-		});
+			// Grab button labels for time options
+			let timeM = new TimeManager();
+			items = options.auto.time.items;
+			for (buildOption in items) {
+				buildItem = items[buildOption];
+				build = timeM.getBuild(buildItem.name || buildOption, buildItem.variant);
+				if (build) {
+					items[buildOption].label = build.label;
+				}
+			}
 
-		(function (add, forReset) {
-			add.on('click', function () {
-				allResources.toggle();
-				allResources.empty();
-				allResources.append(getAvailableResourceOptions(forReset));
-			});
-		})(add, forReset);
+			// Grab button labels for build options
+			let buildM = new BuildManager();
+			items = options.auto.build.items;
+			for (buildOption in items) {
+				buildItem = items[buildOption];
+				build = buildM.getBuild(buildItem.name || buildOption);
+				if (build) {
+					if ("stage" in buildItem) {
+						items[buildOption].label = build.meta.stages[buildItem.stage].label;
+					} else {
+						items[buildOption].label = build.meta.label;
+					}
+				}
+			}
 
-		if (forReset) {list.append(add, allResources);} else {list.append(add, clearunused, allResources);}
-
-		// Add all the current resources
-		for (let name in options.auto.resources) {
-			let res = options.auto.resources[name];
-			if ((forReset && res.checkForReset) || (!forReset && res.enabled)) {list.append(addNewResourceOption(name, undefined, forReset));}
+			// Grab button labels for space options
+			let spaceM = new SpaceManager();
+			items = options.auto.space.items;
+			for (spaceOption in items) {
+				build = spaceM.getBuild(spaceOption);
+				if (build) {
+					let title = build.title ? build.title : build.label;
+					items[spaceOption].label = title;
+				}
+			}
 		}
 
-		return list;
-	};
+		let getAvailableResourceOptions = function (forReset) {
+			let items = [];
+			let idPrefix = forReset ? '#resource-reset-' : '#resource-';
 
-	let getOptionHead = function (toggleName) {
-		let list = $('<ul/>', {
-			id: 'items-list-' + toggleName,
-			css: {display: 'none', paddingLeft: '20px'}
-		});
+			for (let i in game.resPool.resources) {
+				let res = game.resPool.resources[i];
 
-		let disableAll = $('<div/>', {
-			id: 'toggle-all-items-' + toggleName,
-			text: i18n('ui.disable.all'),
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				textShadow: '3px 3px 4px gray',
-				marginRight: '8px'}
-		});
+				// Show only new resources that we don't have in the list and that are
+				// visible. This helps cut down on total size.
+				if (res.name && $(idPrefix + res.name).length === 0) {
+					let item = $('<div/>', {
+						id: 'resource-add-' + res.name,
+						text: ucfirst(res.title ? res.title : res.name),
+						css: {cursor: 'pointer',
+							textShadow: '3px 3px 4px gray'},
+					});
 
-		disableAll.on('click', function () {
-			// can't use find as we only want one layer of checkboxes
-			let items = list.children().children(':checkbox');
-			items.prop('checked', false);
-			items.change();
-			list.children().children(':checkbox').change();
-		});
+					// Wrapper function needed to make closure work
+					(function (res, item, forReset) {
+						item.on('click', function () {
+							item.remove();
+							if (!options.auto.resources[res.name]) {options.auto.resources[res.name] = {};}
+							if (forReset) {
+								options.auto.resources[res.name].checkForReset = true;
+								options.auto.resources[res.name].stockForReset = Infinity;
+								$('#toggle-reset-list-resources').append(addNewResourceOption(res.name, res.title, forReset));
 
-		list.append(disableAll);
+							} else {
+								options.auto.resources[res.name].enabled = true;
+								options.auto.resources[res.name].stock = 0;
+								options.auto.resources[res.name].consume = options.consume;
+								$('#toggle-list-resources').append(addNewResourceOption(res.name, res.title, forReset));
+							}
+							saveToKittenStorage();
+						});
+					})(res, item, forReset);
 
-		let enableAll = $('<div/>', {
-			id: 'toggle-all-items-' + toggleName,
-			text: i18n('ui.enable.all'),
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				textShadow: '3px 3px 4px gray'}
-		});
+					items.push(item);
+				}
+			}
 
-		enableAll.on('click', function () {
-			// can't use find as we only want one layer of checkboxes
-			let items = list.children().children(':checkbox');
-			items.prop('checked', true);
-			items.change();
-			list.children().children(':checkbox').change();
-		});
+			return items;
+		};
 
-		list.append(enableAll);
-		return list;
-	};
+		let getResourceOptions = function (forReset = false) {
+			let list = $('<ul/>', {
+				id: forReset ? 'toggle-reset-list-resources' : 'toggle-list-resources',
+				css: {display: 'none', paddingLeft: '20px'}
+			});
 
-	let getAdditionOptions = function () {
-		let toggleName = 'faith-addition';
-		let list = getOptionHead(toggleName);
+			let add = $('<div/>', {
+				id: 'resources-add',
+				text: i18n('resources.add'),
+				css: {cursor: 'pointer',
+					display: 'inline-block',
+					textShadow: '3px 3px 4px gray',
+					borderBottom: '1px solid rgba(185, 185, 185, 0.7)' },
+			});
 
-		let addi = options.auto.faith.addition;
-		for (let itemName in addi) {
-			let node = getOption(itemName, addi[itemName]);
+			let clearunused = $('<div/>', {
+				id: 'resources-clear-unused',
+				text: i18n('resources.clear.unused'),
+				css: {cursor: 'pointer',
+					display: 'inline-block',
+					float: 'right',
+					paddingRight: '5px',
+					textShadow: '3px 3px 4px gray' },
+			});
 
-			if (itemName === 'bestUnicornBuilding') {
-				node.children('label').prop('title', i18n('option.faith.best.unicorn.desc'));
-				let input = node.children('input');
-				input.unbind('change');
-				input.on('change', (e) => {
-					let bub = addi.bestUnicornBuilding;
-					if (e.target.checked && !bub.enabled) {
-						bub.enabled = true;
-						// enable all unicorn buildings
-						//for (var unicornName in options.auto.unicorn.items) {
-						//	var building = $('#toggle-' + unicornName);
-						//	building.prop('checked', true);
-						//	building.trigger('change');
-						//}
-						imessage('status.sub.enable', [i18n('option.faith.best.unicorn')]);
-						imessage('option.faith.best.unicorn.desc');
-					} else if (!e.target.checked && bub.enabled) {
-						bub.enabled = false;
-						imessage('status.sub.disable', [i18n('option.faith.best.unicorn')]);
+			clearunused.on('click', function () {
+				for (let name in options.auto.resources) {
+					// Only delete resources with unmodified values. Require manual
+					// removal of resources with non-standard values.
+					if (!options.auto.resources[name].stock &&
+						options.auto.resources[name].consume === options.consume ||
+						options.auto.resources[name].consume === undefined) {
+						$('#resource-' + name).remove();
 					}
-					kittenStorage.items[e.target.id] = bub.enabled;
-					saveToKittenStorage();
+				}
+			});
+
+			let allResources = $('<ul/>', {
+				id: 'available-resources-list',
+				css: {display: 'none', paddingLeft: '20px'}
+			});
+
+			(function (add, forReset) {
+				add.on('click', function () {
+					allResources.toggle();
+					allResources.empty();
+					allResources.append(getAvailableResourceOptions(forReset));
+				});
+			})(add, forReset);
+
+			if (forReset) {list.append(add, allResources);} else {list.append(add, clearunused, allResources);}
+
+			// Add all the current resources
+			for (let name in options.auto.resources) {
+				let res = options.auto.resources[name];
+				if ((forReset && res.checkForReset) || (!forReset && res.enabled)) {list.append(addNewResourceOption(name, undefined, forReset));}
+			}
+
+			return list;
+		};
+
+		let getOptionHead = function (toggleName) {
+			let list = $('<ul/>', {
+				id: 'items-list-' + toggleName,
+				css: {display: 'none', paddingLeft: '20px'}
+			});
+
+			let disableAll = $('<div/>', {
+				id: 'toggle-all-items-' + toggleName,
+				text: i18n('ui.disable.all'),
+				css: {cursor: 'pointer',
+					display: 'inline-block',
+					textShadow: '3px 3px 4px gray',
+					marginRight: '8px'}
+			});
+
+			disableAll.on('click', function () {
+				// can't use find as we only want one layer of checkboxes
+				let items = list.children().children(':checkbox');
+				items.prop('checked', false);
+				items.change();
+				list.children().children(':checkbox').change();
+			});
+
+			list.append(disableAll);
+
+			let enableAll = $('<div/>', {
+				id: 'toggle-all-items-' + toggleName,
+				text: i18n('ui.enable.all'),
+				css: {cursor: 'pointer',
+					display: 'inline-block',
+					textShadow: '3px 3px 4px gray'}
+			});
+
+			enableAll.on('click', function () {
+				// can't use find as we only want one layer of checkboxes
+				let items = list.children().children(':checkbox');
+				items.prop('checked', true);
+				items.change();
+				list.children().children(':checkbox').change();
+			});
+
+			list.append(enableAll);
+			return list;
+		};
+
+		let getAdditionOptions = function () {
+			let toggleName = 'faith-addition';
+			let list = getOptionHead(toggleName);
+
+			let addi = options.auto.faith.addition;
+			for (let itemName in addi) {
+				let node = getOption(itemName, addi[itemName]);
+
+				if (itemName === 'bestUnicornBuilding') {
+					node.children('label').prop('title', i18n('option.faith.best.unicorn.desc'));
+					let input = node.children('input');
+					input.unbind('change');
+					input.on('change', (e) => {
+						let bub = addi.bestUnicornBuilding;
+						if (e.target.checked && !bub.enabled) {
+							bub.enabled = true;
+							// enable all unicorn buildings
+							//for (var unicornName in options.auto.unicorn.items) {
+							//	var building = $('#toggle-' + unicornName);
+							//	building.prop('checked', true);
+							//	building.trigger('change');
+							//}
+							imessage('status.sub.enable', [i18n('option.faith.best.unicorn')]);
+							imessage('option.faith.best.unicorn.desc');
+						} else if (!e.target.checked && bub.enabled) {
+							bub.enabled = false;
+							imessage('status.sub.disable', [i18n('option.faith.best.unicorn')]);
+						}
+						kittenStorage.items[e.target.id] = bub.enabled;
+						saveToKittenStorage();
+					});
+				}
+
+				if (addi[itemName].subTrigger !== undefined) {
+
+					let triggerButton = $('<div/>', {
+						id: 'set-' + itemName + '-subTrigger',
+						text: i18n('ui.trigger'),
+						title: addi[itemName].subTrigger,
+						css: {cursor: 'pointer',
+							display: 'inline-block',
+							float: 'right',
+							paddingRight: '5px',
+							textShadow: '3px 3px 4px gray'}
+					}).data('option', addi[itemName]);
+
+					(function (itemName, triggerButton) {
+						if (itemName === 'adore') {
+							triggerButton.on('click', function () {
+								let value;
+								engine.stop(false);
+								value = window.prompt(i18n('adore.trigger.set'), addi[itemName].subTrigger);
+								if (options.auto.engine.enabled) {
+									engine.start(false);
+								}
+
+								if (value !== null) {
+									addi[itemName].subTrigger = parseFloat(value);
+									kittenStorage.items[triggerButton[0].id] = addi[itemName].subTrigger;
+									saveToKittenStorage();
+									triggerButton[0].title = addi[itemName].subTrigger;
+								}
+							});
+
+						} else if (itemName === 'autoPraise') {
+							triggerButton.on('click', function () {
+								let value;
+								engine.stop(false);
+								value = window.prompt(i18n('parise.trigger.set', [i18n('option.praise')]), addi[itemName].subTrigger);
+								if (options.auto.engine.enabled) {
+									engine.start(false);
+								}
+
+								if (value !== null) {
+									addi[itemName].subTrigger = parseFloat(value);
+									kittenStorage.items[triggerButton[0].id] = addi[itemName].subTrigger;
+									saveToKittenStorage();
+									triggerButton[0].title = addi[itemName].subTrigger;
+								}
+							});
+						}
+					})(itemName, triggerButton);
+					node.append(triggerButton);
+				}
+
+				list.append(node);
+			}
+
+			return list;
+		};
+
+		let getToggle = function (toggleName) {
+			let list, itemName, toggle, button;
+			let itext = ucfirst(i18n('ui.' + toggleName));
+
+			let auto = options.auto[toggleName];
+			let element = $('<li/>', {id: 'ks-' + toggleName});
+
+			let label = $('<label/>', {
+				'for': 'toggle-' + toggleName,
+				text: itext
+			});
+
+			let input = $('<input/>', {
+				id: 'toggle-' + toggleName,
+				type: 'checkbox'
+			});
+
+			if (auto.enabled) {
+				input.prop('checked', true);
+			}
+
+			// engine needs a custom toggle
+			if (toggleName !== 'engine') {
+				input.on('change', function () {
+					if (input.is(':checked') && !auto.enabled) {
+						auto.enabled = true;
+						if (toggleName === 'filter' || toggleName === 'options') {
+							imessage('status.sub.enable', [itext]);
+						} else {
+							imessage('status.auto.enable', [itext]);
+						}
+						saveToKittenStorage();
+					} else if ((!input.is(':checked')) && auto.enabled) {
+						auto.enabled = false;
+						if (toggleName === 'filter' || toggleName === 'options') {
+							imessage('status.sub.disable', [itext]);
+						} else {
+							imessage('status.auto.disable', [itext]);
+						}
+						saveToKittenStorage();
+					}
 				});
 			}
 
-			if (addi[itemName].subTrigger !== undefined) {
+			element.append(input, label);
 
+			if (auto.items) {
+				// Add a border on the element
+				element.css('borderBottom', '1px  solid rgba(185, 185, 185, 0.7)');
+
+				toggle = $('<div/>', {
+					css: {display: 'inline-block', float: 'right'}
+				});
+
+				button = $('<div/>', {
+					id: 'toggle-items-' + toggleName,
+					text: i18n('ui.items'),
+					css: {
+						cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'
+					}
+				});
+
+				element.append(button);
+
+				list = getOptionHead(toggleName);
+
+				// merge unicorn to faith
+				if (toggleName === 'faith') {
+					for (itemName in options.auto.unicorn.items) {list.append(getOption(itemName, options.auto.unicorn.items[itemName]));}
+				}
+
+				// fill out list with toggle items
+				for (itemName in auto.items) {
+					switch (toggleName) {
+						case 'trade':
+							list.append(getTradeOption(itemName, auto.items[itemName]));
+							break;
+						case 'craft':
+							list.append(getCraftOption(itemName, auto.items[itemName]));
+							break;
+						case 'timeCtrl':
+							list.append(getTimeCtrlOption(itemName, auto.items[itemName]));
+							break;
+						case 'options':
+							list.append(getOptionsOption(itemName, auto.items[itemName]));
+							break;
+						case 'upgrade':
+							list.append(getUpgradeOption(itemName, auto.items[itemName]));
+							break;
+						case 'distribute':
+							list.append(getDistributeOption(itemName, auto.items[itemName]));
+							break;
+						case 'build':
+						case 'faith':
+						case 'space':
+							list.append(getLimitedOption(itemName, auto.items[itemName]));
+							break;
+						case 'time':
+							list.append(getLimitedOption(itemName, auto.items[itemName]));
+							break;
+						default:
+							list.append(getOption(itemName, auto.items[itemName]));
+							break;
+
+					}
+				}
+
+				button.on('click', function () {
+					list.toggle();
+				});
+			}
+
+			if (auto.trigger !== undefined) {
 				let triggerButton = $('<div/>', {
-					id: 'set-' + itemName + '-subTrigger',
+					id: 'trigger-' + toggleName,
 					text: i18n('ui.trigger'),
-					title: addi[itemName].subTrigger,
+					title: auto.trigger,
 					css: {cursor: 'pointer',
 						display: 'inline-block',
 						float: 'right',
 						paddingRight: '5px',
 						textShadow: '3px 3px 4px gray'}
-				}).data('option', addi[itemName]);
+				});
 
-				(function (itemName, triggerButton) {
-					if (itemName === 'adore') {
-						triggerButton.on('click', function () {
-							let value;
-							engine.stop(false);
-							value = window.prompt(i18n('adore.trigger.set'), addi[itemName].subTrigger);
-							if (options.auto.engine.enabled) {
-								engine.start(false);
-							}
-
-							if (value !== null) {
-								addi[itemName].subTrigger = parseFloat(value);
-								kittenStorage.items[triggerButton[0].id] = addi[itemName].subTrigger;
-								saveToKittenStorage();
-								triggerButton[0].title = addi[itemName].subTrigger;
-							}
-						});
-
-					} else if (itemName === 'autoPraise') {
-						triggerButton.on('click', function () {
-							let value;
-							engine.stop(false);
-							value = window.prompt(i18n('parise.trigger.set', [i18n('option.praise')]), addi[itemName].subTrigger);
-							if (options.auto.engine.enabled) {
-								engine.start(false);
-							}
-
-							if (value !== null) {
-								addi[itemName].subTrigger = parseFloat(value);
-								kittenStorage.items[triggerButton[0].id] = addi[itemName].subTrigger;
-								saveToKittenStorage();
-								triggerButton[0].title = addi[itemName].subTrigger;
-							}
-						});
-					}
-				})(itemName, triggerButton);
-				node.append(triggerButton);
-			}
-
-			list.append(node);
-		}
-
-		return list;
-	};
-
-	let getToggle = function (toggleName) {
-		let list, itemName, toggle, button;
-		let itext = ucfirst(i18n('ui.' + toggleName));
-
-		let auto = options.auto[toggleName];
-		let element = $('<li/>', {id: 'ks-' + toggleName});
-
-		let label = $('<label/>', {
-			'for': 'toggle-' + toggleName,
-			text: itext
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-' + toggleName,
-			type: 'checkbox'
-		});
-
-		if (auto.enabled) {
-			input.prop('checked', true);
-		}
-
-		// engine needs a custom toggle
-		if (toggleName !== 'engine') {
-			input.on('change', function () {
-				if (input.is(':checked') && !auto.enabled) {
-					auto.enabled = true;
-					if (toggleName === 'filter' || toggleName === 'options') {
-						imessage('status.sub.enable', [itext]);
+				triggerButton.on('click', function () {
+					let value;
+					engine.stop(false);
+					if (toggleName === 'faith') {
+						value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title") + ")"]), auto.trigger.toString());
+					} else if (toggleName === 'trade') {
+						value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"] ), auto.trigger.toString());
 					} else {
-						imessage('status.auto.enable', [itext]);
+						value = window.prompt(i18n('ui.trigger.set', [itext]), auto.trigger.toString());
 					}
-					saveToKittenStorage();
-				} else if ((!input.is(':checked')) && auto.enabled) {
-					auto.enabled = false;
-					if (toggleName === 'filter' || toggleName === 'options') {
-						imessage('status.sub.disable', [itext]);
-					} else {
-						imessage('status.auto.disable', [itext]);
+					if (options.auto.engine.enabled) {
+						engine.start(false);
 					}
-					saveToKittenStorage();
-				}
-			});
-		}
 
-		element.append(input, label);
-
-		if (auto.items) {
-			// Add a border on the element
-			element.css('borderBottom', '1px  solid rgba(185, 185, 185, 0.7)');
-
-			toggle = $('<div/>', {
-				css: {display: 'inline-block', float: 'right'}
-			});
-
-			button = $('<div/>', {
-				id: 'toggle-items-' + toggleName,
-				text: i18n('ui.items'),
-				css: {
-					cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'
-				}
-			});
-
-			element.append(button);
-
-			list = getOptionHead(toggleName);
-
-			// merge unicorn to faith
-			if (toggleName === 'faith') {
-				for (itemName in options.auto.unicorn.items) {list.append(getOption(itemName, options.auto.unicorn.items[itemName]));}
-			}
-
-			// fill out list with toggle items
-			for (itemName in auto.items) {
-				switch (toggleName) {
-					case 'trade':
-						list.append(getTradeOption(itemName, auto.items[itemName]));
-						break;
-					case 'craft':
-						list.append(getCraftOption(itemName, auto.items[itemName]));
-						break;
-					case 'timeCtrl':
-						list.append(getTimeCtrlOption(itemName, auto.items[itemName]));
-						break;
-					case 'options':
-						list.append(getOptionsOption(itemName, auto.items[itemName]));
-						break;
-					case 'upgrade':
-						list.append(getUpgradeOption(itemName, auto.items[itemName]));
-						break;
-					case 'distribute':
-						list.append(getDistributeOption(itemName, auto.items[itemName]));
-						break;
-					case 'build':
-					case 'faith':
-					case 'space':
-						list.append(getLimitedOption(itemName, auto.items[itemName]));
-						break;
-					case 'time':
-						list.append(getLimitedOption(itemName, auto.items[itemName]));
-						break;
-					default:
-						list.append(getOption(itemName, auto.items[itemName]));
-						break;
-
-				}
-			}
-
-			button.on('click', function () {
-				list.toggle();
-			});
-		}
-
-		if (auto.trigger !== undefined) {
-			let triggerButton = $('<div/>', {
-				id: 'trigger-' + toggleName,
-				text: i18n('ui.trigger'),
-				title: auto.trigger,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
-			});
-
-			triggerButton.on('click', function () {
-				let value;
-				engine.stop(false);
-				if (toggleName === 'faith') {
-					value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title") + ")"]), auto.trigger.toString());
-				} else if (toggleName === 'trade') {
-					value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"] ), auto.trigger.toString());
-				} else {
-					value = window.prompt(i18n('ui.trigger.set', [itext]), auto.trigger.toString());
-				}
-				if (options.auto.engine.enabled) {
-					engine.start(false);
-				}
-
-				if (value !== null) {
-					auto.trigger = parseFloat(value);
-					saveToKittenStorage();
-					triggerButton[0].title = auto.trigger;
-				}
-			});
-
-			element.append(triggerButton);
-		}
-
-		if (toggleName === 'craft') {
-			// Add resource controls for crafting, sort of hack
-			const resources = $('<div/>', {
-				id: 'toggle-resource-controls',
-				text: i18n('ui.craft.resources'),
-				css: {
-					cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'
-				},
-			});
-
-			const resourcesList = getResourceOptions();
-
-			// When we click the items button, make sure we clear resources
-			button.on('click', function () {
-				resourcesList.toggle(false);
-			});
-
-			resources.on('click', function () {
-				list.toggle(false);
-				resourcesList.toggle();
-			});
-
-			element.append(resources);
-			element.append(resourcesList);
-		} else if (toggleName === 'faith') {
-			// Add additional controls for faith, sort of hack again
-			const addition = $('<div/>', {
-				id: 'toggle-addition-controls',
-				text: i18n('ui.faith.addtion'),
-				title: "太阳教团的自动化项目",
-				css: {
-					cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '2px 2px 5px gray'
-				},
-			});
-
-			const additionList = getAdditionOptions();
-
-			button.on('click', function () {
-				additionList.toggle(false);
-			});
-
-			addition.on('click', function () {
-				list.toggle(false);
-				additionList.toggle();
-			});
-
-			element.append(addition);
-
-			// disable auto the best unicorn building when unicorn building was disabled
-			for (const unicornName in options.auto.unicorn.items) {
-				const ub = list.children().children('#toggle-' + unicornName);
-				ub.on('change', function(e) {
-					if (!$(e.target).is(':checked')) {
-						const b = $('#toggle-bestUnicornBuilding');
-						b.prop('checked', false);
-						b.trigger('change');
+					if (value !== null) {
+						auto.trigger = parseFloat(value);
+						saveToKittenStorage();
+						triggerButton[0].title = auto.trigger;
 					}
 				});
+
+				element.append(triggerButton);
 			}
 
-			element.append(additionList);
-		}
-
-		if (auto.items) {element.append(toggle, list);}
-
-		return element;
-	};
-
-	let getTradeOption = function (name, option) {
-		let iname = ucfirst(i18n('$trade.race.' + name));
-
-		let element = getOption(name, option, iname);
-		element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
-
-		//Limited Trading
-		let label = $('<label/>', {
-			'for': 'toggle-limited-' + name,
-			title: i18n('trade.limited', [iname]),
-			text: i18n('ui.limit')
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-limited-' + name,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option.limited) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && option.limited === false) {
-				option.limited = true;
-				imessage('trade.limited', [iname]);
-			} else if ((!input.is(':checked')) && option.limited) {
-				option.limited = false;
-				let require = (option.require === false) ? '资源满足黄金的触发条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
-				imessage('trade.unlimited', [iname, require]);
-			}
-			kittenStorage.items[input.attr('id')] = option.limited;
-			saveToKittenStorage();
-		});
-
-		element.append(input, label);
-		//Limited Trading End
-
-		let button = $('<div/>', {
-			id: 'toggle-seasons-' + name,
-			text: i18n('trade.seasons'),
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				float: 'right',
-				paddingRight: '5px',
-				textShadow: '3px 3px 4px gray'},
-		});
-
-		let list = $('<ul/>', {
-			id: 'seasons-list-' + name,
-			css: {display: 'none', paddingLeft: '20px'}
-		});
-
-		// fill out the list with seasons
-		list.append(getSeason(name, 'spring', option));
-		list.append(getSeason(name, 'summer', option));
-		list.append(getSeason(name, 'autumn', option));
-		list.append(getSeason(name, 'winter', option));
-
-		button.on('click', function () {
-			list.toggle();
-		});
-
-		element.append(button, list);
-
-		return element;
-	};
-
-	let getSeason = function (name, season, option) {
-		let iname = ucfirst(i18n('$trade.race.' + name));
-		let iseason = ucfirst(i18n('$calendar.season.' + season));
-
-		let element = $('<li/>');
-
-		let label = $('<label/>', {
-			'for': 'toggle-' + name + '-' + season,
-			text: ucfirst(iseason)
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-' + name + '-' + season,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option[season]) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option[season]) {
-				option[season] = true;
-				imessage('trade.season.enable', [iname, iseason]);
-			} else if ((!input.is(':checked')) && option[season]) {
-				option[season] = false;
-				imessage('trade.season.disable', [iname, iseason]);
-			}
-			kittenStorage.items[input.attr('id')] = option[season];
-			saveToKittenStorage();
-		});
-
-		element.append(input, label);
-
-		return element;
-	};
-
-	let getSeasonForTimeSkip = function (season, option) {
-		let iseason = ucfirst(i18n('$calendar.season.' + season));
-
-		let element = $('<li/>');
-
-		let label = $('<label/>', {
-			'for': 'toggle-timeSkip-' + season,
-			text: ucfirst(iseason)
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-timeSkip-' + season,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option[season]) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option[season]) {
-				option[season] = true;
-				imessage('time.skip.season.enable', [iseason]);
-			} else if ((!input.is(':checked')) && option[season]) {
-				option[season] = false;
-				imessage('time.skip.season.disable', [iseason]);
-			}
-			kittenStorage.items[input.attr('id')] = option[season];
-			saveToKittenStorage();
-		});
-
-		element.append(input, label);
-
-		return element;
-	};
-
-	let getOption = function (name, option, iname) {
-		let element = $('<li/>');
-		let elementLabel = iname || option.label || ucfirst(name);
-		let titleName = i18n('ui.trigger.resource') + ": " + ((game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none'));
-		if (option.require === undefined) {
-			titleName = null;
-		}
-
-		let label = $('<label/>', {
-			'for': 'toggle-' + name,
-			text: elementLabel,
-			title: titleName,
-			css: {display: 'inline-block', minWidth: '80px'}
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-' + name,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option.enabled) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option.enabled) {
-				option.enabled = true;
-				if (option.filter) {
-					imessage('filter.enable', [elementLabel]);
-				} else if (option.misc) {
-					imessage('status.sub.enable', [elementLabel]);
-				} else {
-					imessage('status.auto.enable', [elementLabel]);
-					if (name === 'wood') {
-						imessage('msg.catnip');
-					}
-				}
-			} else if ((!input.is(':checked')) && option.enabled) {
-				option.enabled = false;
-				if (option.filter) {
-					imessage('filter.disable', [elementLabel]);
-				} else if (option.misc) {
-					imessage('status.sub.disable', [elementLabel]);
-				} else {
-					imessage('status.auto.disable', [elementLabel]);
-				}
-			}
-			kittenStorage.items[input.attr('id')] = option.enabled;
-			if (name !== "saves") {
-				saveToKittenStorage();
-			}
-		});
-
-		element.append(input, label);
-
-		return element;
-	};
-
-	let getPoliciesOptions = function (forReset) {
-		let items = [];
-
-		for (let i in options.policies) {
-			let policy = options.policies[i];
-			// typo in game code
-			if (policy === 'authocracy') {policy = 'autocracy';}
-			items.push($('<div/>', {
-				id: 'policy-' + policy,
-				text: i18n('$policy.' + policy + '.label'),
-				css: {cursor: 'pointer',
-					textShadow: '3px 3px 4px gray'}
-			}));
-		}
-		return items;
-	};
-
-	let getUpgradeOption = function (name, option) {
-		let iname = i18n('ui.upgrade.' + name);
-		let element = getOption(name, option, iname);
-
-		if (name === 'policies') {
-			let list = $('<ul/>', {
-				id: 'items-list-policies',
-				css: {display: 'none', paddingLeft: '20px'}
-			});
-
-			let loadButton = $('<div/>', {
-					id: 'toggle-upgrade-policies-load',
-					text: i18n('ui.upgrade.policies.load'),
+			if (toggleName === 'craft') {
+				// Add resource controls for crafting, sort of hack
+				const resources = $('<div/>', {
+					id: 'toggle-resource-controls',
+					text: i18n('ui.craft.resources'),
 					css: {
-						cursor:'pointer',
-						display:'inline-block',
-						float:'right',
-						paddingRight:'5px',
-						textShadow:'3px 3px 4px gray'}
-				}
-			);
+						cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'
+					},
+				});
 
-			let showButton = $('<div/>', {
-					id: 'toggle-upgrade-policies-show',
-					text: i18n('ui.upgrade.policies.show'),
+				const resourcesList = getResourceOptions();
+
+				// When we click the items button, make sure we clear resources
+				button.on('click', function () {
+					resourcesList.toggle(false);
+				});
+
+				resources.on('click', function () {
+					list.toggle(false);
+					resourcesList.toggle();
+				});
+
+				element.append(resources);
+				element.append(resourcesList);
+			} else if (toggleName === 'faith') {
+				// Add additional controls for faith, sort of hack again
+				const addition = $('<div/>', {
+					id: 'toggle-addition-controls',
+					text: i18n('ui.faith.addtion'),
+					title: "太阳教团的自动化项目",
 					css: {
-						cursor:'pointer',
-						display:'inline-block',
-						float:'right',
-						paddingRight:'5px',
-						textShadow:'3px 3px 4px gray'}
-				}
-			);
-			// resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));
+						cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '2px 2px 5px gray'
+					},
+				});
 
-			loadButton.on('click', function(){
-				const plist = [];
-				for (const i in game.science.policies) {
-					let policy = game.science.policies[i];
-					if (policy.researched) {
-						plist.push(policy.name);
-					}
-				}
+				const additionList = getAdditionOptions();
 
-				options.policies = plist;
-				saveToKittenStorage();
+				button.on('click', function () {
+					additionList.toggle(false);
+				});
 
-				list.empty();
-				list.append(getPoliciesOptions());
-			});
+				addition.on('click', function () {
+					list.toggle(false);
+					additionList.toggle();
+				});
 
-			showButton.on('click', function(){
-				list.toggle();
-				list.empty();
-				list.append(getPoliciesOptions());
-			});
+				element.append(addition);
 
-			element.append(showButton, loadButton, list);
-		}
-
-		if (option.subTrigger !== undefined && name === 'missions') {
-			let triggerButton = $('<div/>', {
-				id: 'set-' + name + '-subTrigger',
-				text: i18n('ui.trigger'),
-				title: option.subTrigger,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
-			}).data('option', option);
-
-			triggerButton.on('click', function () {
-				let value;
-				engine.stop(false);
-				if (name === 'missions'){value = window.prompt(i18n('ui.trigger.missions.set'), option.subTrigger.toString());} else{value = window.prompt(i18n('ui.trigger.set'), option.subTrigger.toString());}
-				if (options.auto.engine.enabled) {
-					engine.start(false);
+				// disable auto the best unicorn building when unicorn building was disabled
+				for (const unicornName in options.auto.unicorn.items) {
+					const ub = list.children().children('#toggle-' + unicornName);
+					ub.on('change', function(e) {
+						if (!$(e.target).is(':checked')) {
+							const b = $('#toggle-bestUnicornBuilding');
+							b.prop('checked', false);
+							b.trigger('change');
+						}
+					});
 				}
 
-				if (value !== null) {
-					option.subTrigger = parseFloat(value);
-					kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
-					saveToKittenStorage();
-					triggerButton[0].title = option.subTrigger;
-				}
-			});
+				element.append(additionList);
+			}
 
-			element.append(triggerButton);
-		}
+			if (auto.items) {element.append(toggle, list);}
 
-		if (name === 'upgrades' || name === 'techs') {
-			let LimitedLabel = $('<label/>', {
+			return element;
+		};
+
+		let getTradeOption = function (name, option) {
+			let iname = ucfirst(i18n('$trade.race.' + name));
+
+			let element = getOption(name, option, iname);
+			element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
+
+			//Limited Trading
+			let label = $('<label/>', {
 				'for': 'toggle-limited-' + name,
-				text: i18n('ui.upgradesLimit')
+				title: i18n('trade.limited', [iname]),
+				text: i18n('ui.limit')
 			});
 
-			let LimitedInput = $('<input/>', {
+			let input = $('<input/>', {
 				id: 'toggle-limited-' + name,
 				type: 'checkbox'
 			}).data('option', option);
 
 			if (option.limited) {
-				LimitedInput.prop('checked', true);
+				input.prop('checked', true);
 			}
 
-			LimitedInput.on('change', function () {
-				if (LimitedInput.is(':checked') && !option.limited) {
+			input.on('change', function () {
+				if (input.is(':checked') && option.limited === false) {
 					option.limited = true;
-					imessage('upgrade.limited', [iname]);
-				} else if ((!LimitedInput.is(':checked')) && option.limited) {
+					imessage('trade.limited', [iname]);
+				} else if ((!input.is(':checked')) && option.limited) {
 					option.limited = false;
-					imessage('upgrade.unlimited', [iname]);
+					let require = (option.require === false) ? '资源满足黄金的触发条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
+					imessage('trade.unlimited', [iname, require]);
 				}
-				kittenStorage.items[LimitedInput.attr('id')] = option.limited;
+				kittenStorage.items[input.attr('id')] = option.limited;
 				saveToKittenStorage();
 			});
 
-			element.append(LimitedInput, LimitedLabel);
-		}
+			element.append(input, label);
+			//Limited Trading End
 
-		return element;
-	};
-
-	let getLimitedOption = function (name, option, iname) {
-		let element = $('<li/>');
-		let elementLabel = iname || option.label || ucfirst(name);
-		let titleName = (game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none');
-
-		let label = $('<label/>', {
-			'for': 'toggle-' + name,
-			text: elementLabel,
-			title: i18n('ui.trigger.resource') + ": " + titleName,
-			css: {display: 'inline-block', minWidth: '80px'}
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-' + name,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option.enabled) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option.enabled) {
-				option.enabled = true;
-				if (option.filter) {
-					imessage('filter.enable', [elementLabel]);
-				} else if (option.misc) {
-					imessage('status.sub.enable', [elementLabel]);
-				} else {
-					imessage('status.auto.enable', [elementLabel]);
-					if (name === 'field') {
-						imessage('msg.catnip');
-					}
-				}
-			} else if ((!input.is(':checked')) && option.enabled) {
-				option.enabled = false;
-				if (option.filter) {
-					imessage('filter.disable', [elementLabel]);
-				} else if (option.misc) {
-					imessage('status.sub.disable', [elementLabel]);
-				} else {
-					imessage('status.auto.disable', [elementLabel]);
-				}
-			}
-			kittenStorage.items[input.attr('id')] = option.enabled;
-			saveToKittenStorage();
-		});
-
-		let maxButton = $('<div/>', {
-			id: 'set-' + name + '-max',
-			text: i18n('ui.max', [option.max]),
-			title: option.max,
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				float: 'right',
-				paddingRight: '5px',
-				textShadow: '3px 3px 4px gray'}
-		}).data('option', option);
-
-		maxButton.on('click', function () {
-			let value;
-			engine.stop(false);
-			value = window.prompt(i18n('ui.max.set', [option.label]), option.max.toString());
-			if (options.auto.engine.enabled) {
-				engine.start(false);
-			}
-
-			if (value !== null) {
-				option.max = parseInt(value);
-				kittenStorage.items[maxButton.attr('id')] = option.max;
-				saveToKittenStorage();
-				maxButton[0].title = option.max;
-				maxButton[0].innerText = i18n('ui.max', [option.max]);
-			}
-		});
-
-		element.append(input, label, maxButton);
-
-		return element;
-	};
-
-	let getCraftOption = function (name, option) {
-		let iname = ucfirst(i18n('$resources.' + name + '.title'));
-		if (name === "ship") {
-			iname = ucfirst(i18n('$workshop.crafts.' + name + '.label'));
-		}
-
-		let element = getOption(name, option, iname);
-		if (name === 'parchment') {return element;}
-
-		let label = $('<label/>', {
-			'for': 'toggle-limited-' + name,
-			title: i18n("craft.limitedTitle"),
-			text: i18n('ui.craftLimit')
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-limited-' + name,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option.limited) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option.limited) {
-				option.limited = true;
-				imessage('craft.limited', [iname]);
-				msgSummary('craftLimited');
-			} else if ((!input.is(':checked')) && option.limited) {
-				option.limited = false;
-				let require = (option.require) ? resMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
-				imessage('craft.unlimited', [iname, require]);
-			}
-			kittenStorage.items[input.attr('id')] = option.limited;
-			saveToKittenStorage();
-		});
-
-		element.append(input, label);
-
-		return element;
-	};
-
-	let getCycle = function (index, option) {
-		let cycle = game.calendar.cycles[index];
-		let element = $('<li/>');
-
-		let label = $('<label/>', {
-			'for': 'toggle-timeSkip-' + index,
-			text: cycle.title
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-timeSkip-' + index,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option[index]) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option[index]) {
-				option[index] = true;
-				imessage('time.skip.cycle.enable', [cycle.title]);
-			} else if ((!input.is(':checked')) && option[index]) {
-				option[index] = false;
-				imessage('time.skip.cycle.disable', [cycle.title]);
-			}
-			kittenStorage.items[input.attr('id')] = option[index];
-			saveToKittenStorage();
-		});
-
-		element.append(input, label);
-
-		return element;
-	};
-
-	let getResetOption = function (name, type, option) {
-		let element = $('<li/>');
-		let elementLabel = option.label;
-
-		let label = $('<label/>', {
-			'for': 'toggle-reset-' + type + '-' + name,
-			text: elementLabel,
-			css: {display: 'inline-block', minWidth: '80px'}
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-reset-' + type + '-' + name,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option.checkForReset) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option.checkForReset) {
-				option.checkForReset = true;
-				imessage('status.reset.check.enable', [elementLabel]);
-			} else if ((!input.is(':checked')) && option.checkForReset) {
-				option.checkForReset = false;
-				imessage('status.reset.check.disable', [elementLabel]);
-			}
-			kittenStorage.items[input.attr('id')] = option.checkForReset;
-			saveToKittenStorage();
-		});
-
-		let minButton = $('<div/>', {
-			id: 'set-reset-' + type + '-' + name + '-min',
-			text: i18n('ui.min', [option.triggerForReset]),
-			title: option.triggerForReset,
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				float: 'right',
-				paddingRight: '5px',
-				textShadow: '3px 3px 4px gray'}
-		}).data('option', option);
-
-		minButton.on('click', function () {
-			let value;
-			value = window.prompt(i18n('reset.check.trigger.set', [option.label]), option.triggerForReset.toString());
-
-			if (value !== null) {
-				option.triggerForReset = parseInt(value);
-				kittenStorage.items[minButton.attr('id')] = option.triggerForReset;
-				saveToKittenStorage();
-				minButton[0].title = option.triggerForReset;
-				minButton[0].innerText = i18n('ui.min', [option.triggerForReset]);
-			}
-		});
-
-
-		element.append(input, label, minButton);
-
-		return element;
-	};
-
-	let getTimeCtrlOption = function (name, option) {
-		let triggerButton;
-		let element = getOption(name, option);
-
-		if (name === 'timeSkip') {
-			triggerButton = $('<div/>', {
-				id: 'set-timeSkip-subTrigger',
-				text: i18n('ui.trigger'),
-				title: option.subTrigger,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
-			}).data('option', option);
-			triggerButton.on('click', function () {
-				let value;
-				engine.stop(false);
-				value = window.prompt(i18n('time.skip.trigger.set', []), option.subTrigger);
-				if (options.auto.engine.enabled) {
-					engine.start(false);
-				}
-
-				if (value !== null) {
-					option.subTrigger = parseFloat(value);
-					kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
-					saveToKittenStorage();
-					triggerButton[0].title = option.subTrigger;
-				}
-			});
-
-			let maximumButton = $('<div/>', {
-				id: 'set-timeSkip-maximum',
-				text: i18n('ui.maximum'),
-				title: option.max,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
-			}).data('option', option);
-			maximumButton.on('click', function () {
-				let value;
-				engine.stop(false);
-				value = window.prompt(i18n('ui.max.set', ["每次燃烧时间水晶"]), option.maximum.toString());
-				if (options.auto.engine.enabled) {
-					engine.start(false);
-				}
-
-				if (value !== null) {
-					option.maximum = parseFloat(value);
-					kittenStorage.items[maximumButton.attr('id')] = option.maximum;
-					saveToKittenStorage();
-					maximumButton[0].title = option.maximum;
-				}
-			});
-
-			let cyclesButton = $('<div/>', {
-				id: 'toggle-cycle-' + name,
-				text: i18n('ui.cycles'),
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'},
-			});
-
-			let cyclesList = $('<ul/>', {
-				id: 'cycles-list-' + name,
-				css: {display: 'none', paddingLeft: '20px'}
-			});
-
-			for (let i in game.calendar.cycles) {cyclesList.append(getCycle(i, option));}
-
-
-			let seasonsButton = $('<div/>', {
+			let button = $('<div/>', {
 				id: 'toggle-seasons-' + name,
 				text: i18n('trade.seasons'),
 				css: {cursor: 'pointer',
@@ -7120,577 +6610,1158 @@ let run = function() {
 					textShadow: '3px 3px 4px gray'},
 			});
 
-
-			let seasonsList = $('<ul/>', {
+			let list = $('<ul/>', {
 				id: 'seasons-list-' + name,
 				css: {display: 'none', paddingLeft: '20px'}
 			});
 
 			// fill out the list with seasons
-			seasonsList.append(getSeasonForTimeSkip('spring', option));
-			seasonsList.append(getSeasonForTimeSkip('summer', option));
-			seasonsList.append(getSeasonForTimeSkip('autumn', option));
-			seasonsList.append(getSeasonForTimeSkip('winter', option));
+			list.append(getSeason(name, 'spring', option));
+			list.append(getSeason(name, 'summer', option));
+			list.append(getSeason(name, 'autumn', option));
+			list.append(getSeason(name, 'winter', option));
 
-			cyclesButton.on('click', function () {
-				cyclesList.toggle();
-				seasonsList.toggle(false);
+			button.on('click', function () {
+				list.toggle();
 			});
 
-			seasonsButton.on('click', function () {
-				cyclesList.toggle(false);
-				seasonsList.toggle();
+			element.append(button, list);
+
+			return element;
+		};
+
+		let getSeason = function (name, season, option) {
+			let iname = ucfirst(i18n('$trade.race.' + name));
+			let iseason = ucfirst(i18n('$calendar.season.' + season));
+
+			let element = $('<li/>');
+
+			let label = $('<label/>', {
+				'for': 'toggle-' + name + '-' + season,
+				text: ucfirst(iseason)
 			});
 
-			element.append(cyclesButton, seasonsButton, maximumButton, triggerButton, cyclesList, seasonsList);
-
-		} else if (name === 'reset') {
-
-			let item;
-			let resetBuildList     = getOptionHead('reset-build');
-			let resetSpaceList     = getOptionHead('reset-space');
-			let resetResourcesList = getResourceOptions(true);
-			let resetReligionList  = getOptionHead('reset-religion');
-			let resetTimeList      = getOptionHead('reset-time');
-
-			for (item in options.auto.build.items)              {resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));}
-			for (item in options.auto.space.items)              {resetSpaceList.append(getResetOption(item, 'space', options.auto.space.items[item]));}
-			for (item in options.auto.unicorn.items)            {resetReligionList.append(getResetOption(item, 'unicorn', options.auto.unicorn.items[item]));}
-			for (item in options.auto.faith.items)              {resetReligionList.append(getResetOption(item, 'faith', options.auto.faith.items[item]));}
-			for (item in options.auto.time.items)               {resetTimeList.append(getResetOption(item, 'time', options.auto.time.items[item]));}
-
-			let buildButton = $('<div/>', {id: 'toggle-reset-build', text: i18n('ui.build'),
-				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			let spaceButton = $('<div/>', {id: 'toggle-reset-space', text: i18n('ui.space'),
-				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			let resourcesButton = $('<div/>', {id: 'toggle-reset-resources', text: i18n('ui.craft.resources'),
-				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			let religionButton = $('<div/>', {id: 'toggle-reset-religion', text: i18n('ui.faith'),
-				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-			let timeButton = $('<div/>', {id: 'toggle-reset-time', text: i18n('ui.time'),
-				css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
-
-			buildButton.on('click', function(){resetBuildList.toggle(); resetSpaceList.toggle(false); resetResourcesList.toggle(false); resetReligionList.toggle(false); resetTimeList.toggle(false);});
-			spaceButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(); resetResourcesList.toggle(false); resetReligionList.toggle(false); resetTimeList.toggle(false);});
-			resourcesButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(false); resetResourcesList.toggle(); resetReligionList.toggle(false); resetTimeList.toggle(false);});
-			religionButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(false); resetResourcesList.toggle(false); resetReligionList.toggle(); resetTimeList.toggle(false);});
-			timeButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(false); resetResourcesList.toggle(false); resetReligionList.toggle(false); resetTimeList.toggle();});
-
-			element.append(buildButton, spaceButton, resourcesButton, religionButton, timeButton,
-				resetBuildList, resetSpaceList, resetResourcesList, resetReligionList, resetTimeList);
-		} else {
-			triggerButton = $('<div/>', {
-				id: 'set-' + name + '-subTrigger',
-				text: i18n('ui.trigger'),
-				title: option.subTrigger,
-				css: {
-					cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'
-				}
+			let input = $('<input/>', {
+				id: 'toggle-' + name + '-' + season,
+				type: 'checkbox'
 			}).data('option', option);
 
-			triggerButton.on('click', function () {
-				let value;
-				value = window.prompt(i18n('ui.trigger.set', [option.label]), option.subTrigger);
-
-				if (value !== null) {
-					option.subTrigger = parseFloat(value);
-					kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
-					saveToKittenStorage();
-					triggerButton[0].title = option.subTrigger;
-				}
-			});
-			element.append(triggerButton);
-		}
-
-		return element;
-	};
-
-	let getOptionsOption = function (name, option) {
-		let input;
-		let element = getOption(name, option);
-
-		// hack for style.
-		// If there are more UI options, split it to "getUIOption"
-		if (name === 'style') {
-			input = element.children('input');
-			input.unbind('change');
-			input.on('change', function (e) {
-				option.enabled = input.prop('checked');
-				kittenStorage.items[input.attr('id')] = option.enabled;
-				if (e.isTrusted) {saveToKittenStorage();}
-				let style = document.getElementById('toggleCenter').style;
-				if (option.enabled) {
-					document.body.setAttribute('data-ks-style', '');
-					if (!game.ui.isCenter) {
-						style.display = 'none';
-					}
-				} else {
-					document.body.removeAttribute('data-ks-style');
-					style.display = '';
-				}
-			});
-		}
-
-		if (name === 'useWorkers') {
-			input = element.children('input');
-			input.on('click', function () {
-				let a = confirm(i18n('ui.trigger.useWorkers.alert'));
-				if (a && !option.enabled) {
-					engine.stop();
-					option.enabled = true;
-					kittenStorage.items[input.attr('id')] = option.enabled;
-					if (options.auto.engine.enabled) {
-						engine.start();
-					}
-				} else if (a && option.enabled) {
-					engine.stop();
-					option.enabled = false;
-					kittenStorage.items[input.attr('id')] = option.enabled;
-					if (options.auto.engine.enabled) {
-						engine.start();
-					}
-				}
-			});
-		}
-
-		if (name === 'saves') {
-			input = element.children('input');
-			input.on('click', function () {
-				engine.stop(false);
-				let confirm = window.confirm("点击确认会导出珂学家的配置.txt文件");
-				if (confirm) {
-					let $link = $("#download-link");
-					let data = JSON.stringify(window.localStorage['cbc.kitten-scientists']);
-					let b = game.compressLZData(data, false);
-					let blob = new Blob([b], {type: "text/plain"});
-					$link.attr("href", window.URL.createObjectURL(blob));
-					let filename = "小猫珂学家配置" + (game.stats.getStat("totalResets").val + 1) + "周目";
-					$link.attr("download", filename + ".txt");
-					$link.get(0).dispatchEvent(new MouseEvent("click"));
-				}
-				if (options.auto.engine.enabled) {
-					engine.start(false);
-				}
-			});
-
-			let loadKS = $('<div/>', {
-				id: 'loadKS',
-				text: "导入配置",
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
-			}).data('option', option);
-
-			loadKS.on('click', function () {
-				engine.stop(false);
-				let b = window.prompt('窗口内填入后你需要导入的珂学家配置，确认后会导入配置', '');
-				if (options.auto.engine.enabled) {
-					engine.start(false);
-				}
-				if (b && b.length >= 10) {
-					let ksSave;
-					if (b.charAt(0) !== "{") {
-						ksSave = JSON.parse(LZString.decompressFromBase64(b));
-					}
-					window.localStorage['cbc.kitten-scientists'] = ksSave;
-					loadFromKittenStorage();
-				}
-			});
-
-			let ressetKS = $('<div/>', {
-				id: 'ressetKS',
-				text: "恢复默认配置",
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
-			}).data('option', option);
-
-			ressetKS.on('click', function () {
-				if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置(有可能会刷新页面)')){
-					engine.stop();
-					let cbc = sessionStorage.getItem('options');
-					delete localStorage['cbc.kitten-scientists'];
-					if (cbc) {
-						$("#ks-options").remove();
-						options.policies = [];
-						options['auto'] = JSON.parse(cbc).auto;
-						optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
-						optionsListElement = $('<ul/>');
-						optionsListElement.append(getToggle('engine'));
-						if (options.auto.engine.enabled) {
-							engine.start();
-						}
-						toggles.forEach((name) => {
-							optionsListElement.append(getToggle(name));
-						});
-						right.prepend(optionsElement.append(optionsListElement));
-						engineOn();
-						loadFromKittenStorage();
-					} else {
-						game.save();
-						window.location.reload();
-					}
-				}
-			});
-
-			element.append(loadKS);
-			element.append(ressetKS);
-		}
-
-		if (name === 'donate') {
-			input = element.children('input');
-			input.unbind('change');
-			input.on('change', function (e) {
-				option.enabled = input.prop('checked');
-				kittenStorage.items[input.attr('id')] = option.enabled;
-				if (e.isTrusted) {saveToKittenStorage();}
-				let style = document.getElementById('ks-donate').style;
-				if (option.enabled) {
-					style.display = 'block';
-				} else {
-					style.display = 'none';
-				}
-				style = null;
-			});
-		}
-
-		if (name === 'wiki') {
-			input = element.children('input');
-			input.on('click', function () {
-				let tempWindow = window.open();
-				tempWindow.location = 'https://petercheney.gitee.io/baike/?file=004-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7/02-%E5%B0%8F%E7%8C%AB%E7%A7%91%E5%AD%A6%E5%AE%B6';
-				printoutput(['如果还有问题可以在猫国群询问，有BUG或意见可以联系Cheney。默认配置即推荐配置：文艺复兴玄学下默认配置能2小时冲出轨道。','ks-default', options.activitycolor]);
-			});
-		}
-
-		if (option.subTrigger !== undefined) {
-			let triggerButton = $('<div/>', {
-				id: 'set-' + name + '-subTrigger',
-				text: i18n('ui.trigger'),
-				title: option.subTrigger,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
-			}).data('option', option);
-
-			triggerButton.on('click', function () {
-				let value;
-				engine.stop(false);
-				if (name === 'crypto') {
-					value = window.prompt(i18n('ui.trigger.crypto.set', [option.label]), option.subTrigger);
-				} else if (name === 'shipOverride') {
-					value = window.prompt(i18n('ui.trigger.shipOverride.set', [option.label]), option.subTrigger);
-				} else {
-					value = window.prompt(i18n('ui.trigger.set', [option.label]), option.subTrigger);
-				}
-				if (options.auto.engine.enabled) {
-					engine.start(false);
-				}
-
-				if (value !== null) {
-					if (name === 'crypto') {
-						option.subTrigger = value;
-					} else {
-						option.subTrigger = parseFloat(value);
-					}
-					kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
-					saveToKittenStorage();
-					triggerButton[0].title = option.subTrigger;
-				}
-			});
-
-			element.append(triggerButton);
-		}
-
-		return element;
-	};
-
-	let getDistributeOption = function (name, option) {
-		if (name === "leader") {return getLeader(name, option);}
-		let iname = ucfirst(i18n('$village.job.' + name));
-
-		let element = getOption(name, option, iname);
-		element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
-
-		//Limited Distribution
-		let label = $('<label/>', {
-			'for': 'toggle-limited-' + name,
-			text: i18n('ui.limit')
-		});
-
-		let input = $('<input/>', {
-			id: 'toggle-limited-' + name,
-			type: 'checkbox'
-		}).data('option', option);
-
-		if (option.limited) {
-			input.prop('checked', true);
-		}
-
-		input.on('change', function () {
-			if (input.is(':checked') && !option.limited) {
-				option.limited = true;
-				imessage('distribute.limited', [iname]);
-			} else if ((!input.is(':checked')) && option.limited) {
-				option.limited = false;
-				imessage('distribute.unlimited', [iname]);
+			if (option[season]) {
+				input.prop('checked', true);
 			}
-			kittenStorage.items[input.attr('id')] = option.limited;
-			saveToKittenStorage();
-		});
 
-		element.append(input, label);
+			input.on('change', function () {
+				if (input.is(':checked') && !option[season]) {
+					option[season] = true;
+					imessage('trade.season.enable', [iname, iseason]);
+				} else if ((!input.is(':checked')) && option[season]) {
+					option[season] = false;
+					imessage('trade.season.disable', [iname, iseason]);
+				}
+				kittenStorage.items[input.attr('id')] = option[season];
+				saveToKittenStorage();
+			});
 
-		let maxButton = $('<div/>', {
-			id: 'set-' + name + '-max',
-			text: i18n('ui.max', [option.max]),
-			title: option.max,
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				float: 'right',
-				paddingRight: '5px',
-				textShadow: '3px 3px 4px gray'}
-		}).data('option', option);
+			element.append(input, label);
 
-		(function (iname){
+			return element;
+		};
+
+		let getSeasonForTimeSkip = function (season, option) {
+			let iseason = ucfirst(i18n('$calendar.season.' + season));
+
+			let element = $('<li/>');
+
+			let label = $('<label/>', {
+				'for': 'toggle-timeSkip-' + season,
+				text: ucfirst(iseason)
+			});
+
+			let input = $('<input/>', {
+				id: 'toggle-timeSkip-' + season,
+				type: 'checkbox'
+			}).data('option', option);
+
+			if (option[season]) {
+				input.prop('checked', true);
+			}
+
+			input.on('change', function () {
+				if (input.is(':checked') && !option[season]) {
+					option[season] = true;
+					imessage('time.skip.season.enable', [iseason]);
+				} else if ((!input.is(':checked')) && option[season]) {
+					option[season] = false;
+					imessage('time.skip.season.disable', [iseason]);
+				}
+				kittenStorage.items[input.attr('id')] = option[season];
+				saveToKittenStorage();
+			});
+
+			element.append(input, label);
+
+			return element;
+		};
+
+		let getOption = function (name, option, iname) {
+			let element = $('<li/>');
+			let elementLabel = iname || option.label || ucfirst(name);
+			let titleName = i18n('ui.trigger.resource') + ": " + ((game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none'));
+			if (option.require === undefined) {
+				titleName = null;
+			}
+
+			let label = $('<label/>', {
+				'for': 'toggle-' + name,
+				text: elementLabel,
+				title: titleName,
+				css: {display: 'inline-block', minWidth: '80px'}
+			});
+
+			let input = $('<input/>', {
+				id: 'toggle-' + name,
+				type: 'checkbox'
+			}).data('option', option);
+
+			if (option.enabled) {
+				input.prop('checked', true);
+			}
+
+			input.on('change', function () {
+				if (input.is(':checked') && !option.enabled) {
+					option.enabled = true;
+					if (option.filter) {
+						imessage('filter.enable', [elementLabel]);
+					} else if (option.misc) {
+						imessage('status.sub.enable', [elementLabel]);
+					} else {
+						imessage('status.auto.enable', [elementLabel]);
+						if (name === 'wood') {
+							imessage('msg.catnip');
+						}
+					}
+				} else if ((!input.is(':checked')) && option.enabled) {
+					option.enabled = false;
+					if (option.filter) {
+						imessage('filter.disable', [elementLabel]);
+					} else if (option.misc) {
+						imessage('status.sub.disable', [elementLabel]);
+					} else {
+						imessage('status.auto.disable', [elementLabel]);
+					}
+				}
+				kittenStorage.items[input.attr('id')] = option.enabled;
+				if (name !== "saves") {
+					saveToKittenStorage();
+				}
+			});
+
+			element.append(input, label);
+
+			return element;
+		};
+
+		let getPoliciesOptions = function (forReset) {
+			let items = [];
+
+			for (let i in options.policies) {
+				let policy = options.policies[i];
+				// typo in game code
+				if (policy === 'authocracy') {policy = 'autocracy';}
+				items.push($('<div/>', {
+					id: 'policy-' + policy,
+					text: i18n('$policy.' + policy + '.label'),
+					css: {cursor: 'pointer',
+						textShadow: '3px 3px 4px gray'}
+				}));
+			}
+			return items;
+		};
+
+		let getUpgradeOption = function (name, option) {
+			let iname = i18n('ui.upgrade.' + name);
+			let element = getOption(name, option, iname);
+
+			if (name === 'policies') {
+				let list = $('<ul/>', {
+					id: 'items-list-policies',
+					css: {display: 'none', paddingLeft: '20px'}
+				});
+
+				let loadButton = $('<div/>', {
+						id: 'toggle-upgrade-policies-load',
+						text: i18n('ui.upgrade.policies.load'),
+						css: {
+							cursor:'pointer',
+							display:'inline-block',
+							float:'right',
+							paddingRight:'5px',
+							textShadow:'3px 3px 4px gray'}
+					}
+				);
+
+				let showButton = $('<div/>', {
+						id: 'toggle-upgrade-policies-show',
+						text: i18n('ui.upgrade.policies.show'),
+						css: {
+							cursor:'pointer',
+							display:'inline-block',
+							float:'right',
+							paddingRight:'5px',
+							textShadow:'3px 3px 4px gray'}
+					}
+				);
+				// resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));
+
+				loadButton.on('click', function(){
+					const plist = [];
+					for (const i in game.science.policies) {
+						let policy = game.science.policies[i];
+						if (policy.researched) {
+							plist.push(policy.name);
+						}
+					}
+
+					options.policies = plist;
+					saveToKittenStorage();
+
+					list.empty();
+					list.append(getPoliciesOptions());
+				});
+
+				showButton.on('click', function(){
+					list.toggle();
+					list.empty();
+					list.append(getPoliciesOptions());
+				});
+
+				element.append(showButton, loadButton, list);
+			}
+
+			if (option.subTrigger !== undefined && name === 'missions') {
+				let triggerButton = $('<div/>', {
+					id: 'set-' + name + '-subTrigger',
+					text: i18n('ui.trigger'),
+					title: option.subTrigger,
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'}
+				}).data('option', option);
+
+				triggerButton.on('click', function () {
+					let value;
+					engine.stop(false);
+					if (name === 'missions'){value = window.prompt(i18n('ui.trigger.missions.set'), option.subTrigger.toString());} else{value = window.prompt(i18n('ui.trigger.set'), option.subTrigger.toString());}
+					if (options.auto.engine.enabled) {
+						engine.start(false);
+					}
+
+					if (value !== null) {
+						option.subTrigger = parseFloat(value);
+						kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
+						saveToKittenStorage();
+						triggerButton[0].title = option.subTrigger;
+					}
+				});
+
+				element.append(triggerButton);
+			}
+
+			if (name === 'upgrades' || name === 'techs') {
+				let LimitedLabel = $('<label/>', {
+					'for': 'toggle-limited-' + name,
+					text: i18n('ui.upgradesLimit')
+				});
+
+				let LimitedInput = $('<input/>', {
+					id: 'toggle-limited-' + name,
+					type: 'checkbox'
+				}).data('option', option);
+
+				if (option.limited) {
+					LimitedInput.prop('checked', true);
+				}
+
+				LimitedInput.on('change', function () {
+					if (LimitedInput.is(':checked') && !option.limited) {
+						option.limited = true;
+						imessage('upgrade.limited', [iname]);
+					} else if ((!LimitedInput.is(':checked')) && option.limited) {
+						option.limited = false;
+						imessage('upgrade.unlimited', [iname]);
+					}
+					kittenStorage.items[LimitedInput.attr('id')] = option.limited;
+					saveToKittenStorage();
+				});
+
+				element.append(LimitedInput, LimitedLabel);
+			}
+
+			return element;
+		};
+
+		let getLimitedOption = function (name, option, iname) {
+			let element = $('<li/>');
+			let elementLabel = iname || option.label || ucfirst(name);
+			let titleName = (game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none');
+
+			let label = $('<label/>', {
+				'for': 'toggle-' + name,
+				text: elementLabel,
+				title: i18n('ui.trigger.resource') + ": " + titleName,
+				css: {display: 'inline-block', minWidth: '80px'}
+			});
+
+			let input = $('<input/>', {
+				id: 'toggle-' + name,
+				type: 'checkbox'
+			}).data('option', option);
+
+			if (option.enabled) {
+				input.prop('checked', true);
+			}
+
+			input.on('change', function () {
+				if (input.is(':checked') && !option.enabled) {
+					option.enabled = true;
+					if (option.filter) {
+						imessage('filter.enable', [elementLabel]);
+					} else if (option.misc) {
+						imessage('status.sub.enable', [elementLabel]);
+					} else {
+						imessage('status.auto.enable', [elementLabel]);
+						if (name === 'field') {
+							imessage('msg.catnip');
+						}
+					}
+				} else if ((!input.is(':checked')) && option.enabled) {
+					option.enabled = false;
+					if (option.filter) {
+						imessage('filter.disable', [elementLabel]);
+					} else if (option.misc) {
+						imessage('status.sub.disable', [elementLabel]);
+					} else {
+						imessage('status.auto.disable', [elementLabel]);
+					}
+				}
+				kittenStorage.items[input.attr('id')] = option.enabled;
+				saveToKittenStorage();
+			});
+
+			let maxButton = $('<div/>', {
+				id: 'set-' + name + '-max',
+				text: i18n('ui.max', [option.max]),
+				title: option.max,
+				css: {cursor: 'pointer',
+					display: 'inline-block',
+					float: 'right',
+					paddingRight: '5px',
+					textShadow: '3px 3px 4px gray'}
+			}).data('option', option);
+
 			maxButton.on('click', function () {
 				let value;
 				engine.stop(false);
-				value = window.prompt(i18n('ui.max.set', [iname]), option.max.toString());
+				value = window.prompt(i18n('ui.max.set', [option.label]), option.max.toString());
 				if (options.auto.engine.enabled) {
 					engine.start(false);
 				}
 
 				if (value !== null) {
-					option.max = Math.max(0, parseInt(value));
+					option.max = parseInt(value);
 					kittenStorage.items[maxButton.attr('id')] = option.max;
 					saveToKittenStorage();
 					maxButton[0].title = option.max;
 					maxButton[0].innerText = i18n('ui.max', [option.max]);
 				}
 			});
-		})(iname);
 
-		element.append(maxButton);
+			element.append(input, label, maxButton);
 
-		return element;
-	};
+			return element;
+		};
 
-	let getLeader = function (name, option) {
-		let i;
-		let iname = ucfirst(i18n('distribute.makeLeader'));
-		let element = getOption(name, option, iname);
-		element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
-
-		let traitList = $('<ul/>', {
-			id: 'items-list-traits',
-			css: {display: 'none', paddingLeft: '20px'}
-		});
-
-		let traitShowButton = $('<div/>', {
-			id: 'toggle-leaderTrait' + name,
-			text: i18n('$village.trait.filter.all'),
-			css: {
-				cursor:'pointer',
-				display:'inline-block',
-				float:'right',
-				paddingRight:'5px',
-				textShadow:'3px 3px 4px gray'}
-		});
-
-		for (i in window["com"]["nuclearunicorn"].game.village.Kitten().traits){
-			traitList.append(getLeaderTrait(i, option));
-		}
-
-		traitShowButton.on('click', function () {
-			jobList.toggle(false);
-			traitList.toggle();
-		});
-
-		let jobList = $('<ul/>', {
-			id: 'items-list-jobs',
-			css: {display: 'none', paddingLeft: '20px'}
-		});
-
-		let jobShowButton = $('<div/>', {
-			id: 'toggle-leaderJob' + name,
-			text: i18n('$village.panel.job'),
-			css: {
-				cursor:'pointer',
-				display:'inline-block',
-				float:'right',
-				paddingRight:'5px',
-				textShadow:'3px 3px 4px gray'}
-		});
-
-		for (i in game.village.jobs){
-			jobList.append(getLeaderJob(i, option));
-		}
-
-		jobShowButton.on('click', function () {
-			traitList.toggle(false);
-			jobList.toggle();
-		});
-
-		element.append(traitShowButton, jobShowButton, traitList, jobList);
-
-		return element;
-	};
-
-	let getLeaderJob = function (index, option) {
-		let job = game.village.jobs[index];
-
-		let element = $('<li/>');
-
-		let label = ($('<label/>', {
-			'for': 'toggle-leaderJob-' + job.name,
-			text: job.title,
-			css: {cursor: 'pointer',
-				textShadow: '3px 3px 4px gray'}
-		}));
-
-		let input = $('<input/>', {
-			id: 'toggle-leaderJob-' + job.name,
-			name: 'leaderJob',
-			value: job.name,
-			type: 'radio'
-		}).data('option', option);
-
-		if (input.prop("value") === option.leaderJob) {
-			input.prop("checked", true);
-		}
-
-		element.on('mouseup', function () {
-			let lastJobName = $("input[name='leaderJob']:checked").val();
-			delete kittenStorage.items['toggle-leaderJob-' + lastJobName];
-		});
-
-		input.on('change', function () {
-			imessage('distribute.leaderJob', [job.title]);
-			option.leaderJob = $("input[name='leaderJob']:checked").val();
-			kittenStorage.items['toggle-leaderJob-' + option.leaderJob] = true;
-			saveToKittenStorage();
-		});
-		element.append(input, label);
-
-		return element;
-	};
-
-	let getLeaderTrait = function (index, option) {
-		const trait = window["com"]["nuclearunicorn"].game.village.Kitten().traits[index];
-
-		const element = $('<li/>');
-
-		const label = ($('<label/>', {
-			'for': 'toggle-leaderTrait-' + trait.name,
-			text: trait.title,
-			css: {
-				cursor: 'pointer',
-				textShadow: '3px 3px 4px gray'
+		let getCraftOption = function (name, option) {
+			let iname = ucfirst(i18n('$resources.' + name + '.title'));
+			if (name === "ship") {
+				iname = ucfirst(i18n('$workshop.crafts.' + name + '.label'));
 			}
-		}));
 
-		const input = $('<input/>', {
-			id: 'toggle-leaderTrait-' + trait.name,
-			name: 'leaderTrait',
-			value: trait.name,
-			type: 'radio'
-		}).data('option', option);
+			let element = getOption(name, option, iname);
+			if (name === 'parchment') {return element;}
 
-		if (input.prop("value") === option.leaderTrait) {
-			input.prop("checked", true);
-		}
+			let label = $('<label/>', {
+				'for': 'toggle-limited-' + name,
+				title: i18n("craft.limitedTitle"),
+				text: i18n('ui.craftLimit')
+			});
 
-		element.on('mouseup', function () {
-			let lastTraitName = $("input[name='leaderTrait']:checked").val();
-			delete kittenStorage.items['toggle-leaderTrait-' + lastTraitName];
-		});
+			let input = $('<input/>', {
+				id: 'toggle-limited-' + name,
+				type: 'checkbox'
+			}).data('option', option);
 
-		input.on('change', function () {
-			imessage('distribute.leaderTrait', [trait.title]);
-			option.leaderTrait = $(this).val();
-			kittenStorage.items['toggle-leaderTrait-' + option.leaderTrait] = true;
-			saveToKittenStorage();
-		});
-		element.append(input, label);
+			if (option.limited) {
+				input.prop('checked', true);
+			}
 
-		return element;
-	};
+			input.on('change', function () {
+				if (input.is(':checked') && !option.limited) {
+					option.limited = true;
+					imessage('craft.limited', [iname]);
+					msgSummary('craftLimited');
+				} else if ((!input.is(':checked')) && option.limited) {
+					option.limited = false;
+					let require = (option.require) ? resMap[option.require].title + '满足触发资源的触发条件才会制作，' : '无，当资源满足制作条件就会制作';
+					imessage('craft.unlimited', [iname, require]);
+				}
+				kittenStorage.items[input.attr('id')] = option.limited;
+				saveToKittenStorage();
+			});
 
-	let buildOption, spaceOption, build, buildItem;
-	// Grab button labels for religion options
-	let religionManager = new ReligionManager();
-	for (buildOption in options.auto.faith.items) {
-		buildItem = options.auto.faith.items[buildOption];
-		build = religionManager.getBuild(buildItem.name || buildOption, buildItem.variant);
-		if (build) {
-			options.auto.faith.items[buildOption].label = build.label;
-		}
-	}
+			element.append(input, label);
 
-	// Grab button labels for time options
-	let timeManager = new TimeManager();
-	for (buildOption in options.auto.time.items) {
-		buildItem = options.auto.time.items[buildOption];
-		build = timeManager.getBuild(buildItem.name || buildOption, buildItem.variant);
-		if (build) {
-			options.auto.time.items[buildOption].label = build.label;
-		}
-	}
+			return element;
+		};
 
-	// Grab button labels for build options
-	let buildManager = new BuildManager();
-	for (buildOption in options.auto.build.items) {
-		buildItem = options.auto.build.items[buildOption];
-		build = buildManager.getBuild(buildItem.name || buildOption);
-		if (build) {
-			if ("stage" in buildItem) {
-				options.auto.build.items[buildOption].label = build.meta.stages[buildItem.stage].label;
+		let getCycle = function (index, option) {
+			let cycle = game.calendar.cycles[index];
+			let element = $('<li/>');
+
+			let label = $('<label/>', {
+				'for': 'toggle-timeSkip-' + index,
+				text: cycle.title
+			});
+
+			let input = $('<input/>', {
+				id: 'toggle-timeSkip-' + index,
+				type: 'checkbox'
+			}).data('option', option);
+
+			if (option[index]) {
+				input.prop('checked', true);
+			}
+
+			input.on('change', function () {
+				if (input.is(':checked') && !option[index]) {
+					option[index] = true;
+					imessage('time.skip.cycle.enable', [cycle.title]);
+				} else if ((!input.is(':checked')) && option[index]) {
+					option[index] = false;
+					imessage('time.skip.cycle.disable', [cycle.title]);
+				}
+				kittenStorage.items[input.attr('id')] = option[index];
+				saveToKittenStorage();
+			});
+
+			element.append(input, label);
+
+			return element;
+		};
+
+		let getResetOption = function (name, type, option) {
+			let element = $('<li/>');
+			let elementLabel = option.label;
+
+			let label = $('<label/>', {
+				'for': 'toggle-reset-' + type + '-' + name,
+				text: elementLabel,
+				css: {display: 'inline-block', minWidth: '80px'}
+			});
+
+			let input = $('<input/>', {
+				id: 'toggle-reset-' + type + '-' + name,
+				type: 'checkbox'
+			}).data('option', option);
+
+			if (option.checkForReset) {
+				input.prop('checked', true);
+			}
+
+			input.on('change', function () {
+				if (input.is(':checked') && !option.checkForReset) {
+					option.checkForReset = true;
+					imessage('status.reset.check.enable', [elementLabel]);
+				} else if ((!input.is(':checked')) && option.checkForReset) {
+					option.checkForReset = false;
+					imessage('status.reset.check.disable', [elementLabel]);
+				}
+				kittenStorage.items[input.attr('id')] = option.checkForReset;
+				saveToKittenStorage();
+			});
+
+			let minButton = $('<div/>', {
+				id: 'set-reset-' + type + '-' + name + '-min',
+				text: i18n('ui.min', [option.triggerForReset]),
+				title: option.triggerForReset,
+				css: {cursor: 'pointer',
+					display: 'inline-block',
+					float: 'right',
+					paddingRight: '5px',
+					textShadow: '3px 3px 4px gray'}
+			}).data('option', option);
+
+			minButton.on('click', function () {
+				let value;
+				value = window.prompt(i18n('reset.check.trigger.set', [option.label]), option.triggerForReset.toString());
+
+				if (value !== null) {
+					option.triggerForReset = parseInt(value);
+					kittenStorage.items[minButton.attr('id')] = option.triggerForReset;
+					saveToKittenStorage();
+					minButton[0].title = option.triggerForReset;
+					minButton[0].innerText = i18n('ui.min', [option.triggerForReset]);
+				}
+			});
+
+
+			element.append(input, label, minButton);
+
+			return element;
+		};
+
+		let getTimeCtrlOption = function (name, option) {
+			let triggerButton;
+			let element = getOption(name, option);
+
+			if (name === 'timeSkip') {
+				triggerButton = $('<div/>', {
+					id: 'set-timeSkip-subTrigger',
+					text: i18n('ui.trigger'),
+					title: option.subTrigger,
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'}
+				}).data('option', option);
+				triggerButton.on('click', function () {
+					let value;
+					engine.stop(false);
+					value = window.prompt(i18n('time.skip.trigger.set', []), option.subTrigger);
+					if (options.auto.engine.enabled) {
+						engine.start(false);
+					}
+
+					if (value !== null) {
+						option.subTrigger = parseFloat(value);
+						kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
+						saveToKittenStorage();
+						triggerButton[0].title = option.subTrigger;
+					}
+				});
+
+				let maximumButton = $('<div/>', {
+					id: 'set-timeSkip-maximum',
+					text: i18n('ui.maximum'),
+					title: option.max,
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'}
+				}).data('option', option);
+				maximumButton.on('click', function () {
+					let value;
+					engine.stop(false);
+					value = window.prompt(i18n('ui.max.set', ["每次燃烧时间水晶"]), option.maximum.toString());
+					if (options.auto.engine.enabled) {
+						engine.start(false);
+					}
+
+					if (value !== null) {
+						option.maximum = parseFloat(value);
+						kittenStorage.items[maximumButton.attr('id')] = option.maximum;
+						saveToKittenStorage();
+						maximumButton[0].title = option.maximum;
+					}
+				});
+
+				let cyclesButton = $('<div/>', {
+					id: 'toggle-cycle-' + name,
+					text: i18n('ui.cycles'),
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'},
+				});
+
+				let cyclesList = $('<ul/>', {
+					id: 'cycles-list-' + name,
+					css: {display: 'none', paddingLeft: '20px'}
+				});
+
+				for (let i in game.calendar.cycles) {cyclesList.append(getCycle(i, option));}
+
+
+				let seasonsButton = $('<div/>', {
+					id: 'toggle-seasons-' + name,
+					text: i18n('trade.seasons'),
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'},
+				});
+
+
+				let seasonsList = $('<ul/>', {
+					id: 'seasons-list-' + name,
+					css: {display: 'none', paddingLeft: '20px'}
+				});
+
+				// fill out the list with seasons
+				seasonsList.append(getSeasonForTimeSkip('spring', option));
+				seasonsList.append(getSeasonForTimeSkip('summer', option));
+				seasonsList.append(getSeasonForTimeSkip('autumn', option));
+				seasonsList.append(getSeasonForTimeSkip('winter', option));
+
+				cyclesButton.on('click', function () {
+					cyclesList.toggle();
+					seasonsList.toggle(false);
+				});
+
+				seasonsButton.on('click', function () {
+					cyclesList.toggle(false);
+					seasonsList.toggle();
+				});
+
+				element.append(cyclesButton, seasonsButton, maximumButton, triggerButton, cyclesList, seasonsList);
+
+			} else if (name === 'reset') {
+
+				let item;
+				let resetBuildList     = getOptionHead('reset-build');
+				let resetSpaceList     = getOptionHead('reset-space');
+				let resetResourcesList = getResourceOptions(true);
+				let resetReligionList  = getOptionHead('reset-religion');
+				let resetTimeList      = getOptionHead('reset-time');
+
+				for (item in options.auto.build.items)              {resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));}
+				for (item in options.auto.space.items)              {resetSpaceList.append(getResetOption(item, 'space', options.auto.space.items[item]));}
+				for (item in options.auto.unicorn.items)            {resetReligionList.append(getResetOption(item, 'unicorn', options.auto.unicorn.items[item]));}
+				for (item in options.auto.faith.items)              {resetReligionList.append(getResetOption(item, 'faith', options.auto.faith.items[item]));}
+				for (item in options.auto.time.items)               {resetTimeList.append(getResetOption(item, 'time', options.auto.time.items[item]));}
+
+				let buildButton = $('<div/>', {id: 'toggle-reset-build', text: i18n('ui.build'),
+					css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
+				let spaceButton = $('<div/>', {id: 'toggle-reset-space', text: i18n('ui.space'),
+					css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
+				let resourcesButton = $('<div/>', {id: 'toggle-reset-resources', text: i18n('ui.craft.resources'),
+					css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
+				let religionButton = $('<div/>', {id: 'toggle-reset-religion', text: i18n('ui.faith'),
+					css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
+				let timeButton = $('<div/>', {id: 'toggle-reset-time', text: i18n('ui.time'),
+					css: {cursor:'pointer',display:'inline-block',float:'right',paddingRight:'5px',textShadow:'3px 3px 4px gray'},});
+
+				buildButton.on('click', function(){resetBuildList.toggle(); resetSpaceList.toggle(false); resetResourcesList.toggle(false); resetReligionList.toggle(false); resetTimeList.toggle(false);});
+				spaceButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(); resetResourcesList.toggle(false); resetReligionList.toggle(false); resetTimeList.toggle(false);});
+				resourcesButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(false); resetResourcesList.toggle(); resetReligionList.toggle(false); resetTimeList.toggle(false);});
+				religionButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(false); resetResourcesList.toggle(false); resetReligionList.toggle(); resetTimeList.toggle(false);});
+				timeButton.on('click', function(){resetBuildList.toggle(false); resetSpaceList.toggle(false); resetResourcesList.toggle(false); resetReligionList.toggle(false); resetTimeList.toggle();});
+
+				element.append(buildButton, spaceButton, resourcesButton, religionButton, timeButton,
+					resetBuildList, resetSpaceList, resetResourcesList, resetReligionList, resetTimeList);
 			} else {
-				options.auto.build.items[buildOption].label = build.meta.label;
+				triggerButton = $('<div/>', {
+					id: 'set-' + name + '-subTrigger',
+					text: i18n('ui.trigger'),
+					title: option.subTrigger,
+					css: {
+						cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'
+					}
+				}).data('option', option);
+
+				triggerButton.on('click', function () {
+					let value;
+					value = window.prompt(i18n('ui.trigger.set', [option.label]), option.subTrigger);
+
+					if (value !== null) {
+						option.subTrigger = parseFloat(value);
+						kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
+						saveToKittenStorage();
+						triggerButton[0].title = option.subTrigger;
+					}
+				});
+				element.append(triggerButton);
 			}
-		}
+
+			return element;
+		};
+
+		let getOptionsOption = function (name, option) {
+			let input;
+			let element = getOption(name, option);
+
+			// hack for style.
+			// If there are more UI options, split it to "getUIOption"
+			if (name === 'style') {
+				input = element.children('input');
+				input.unbind('change');
+				input.on('change', function (e) {
+					option.enabled = input.prop('checked');
+					kittenStorage.items[input.attr('id')] = option.enabled;
+					if (e.isTrusted) {saveToKittenStorage();}
+					let style = document.getElementById('toggleCenter').style;
+					if (option.enabled) {
+						document.body.setAttribute('data-ks-style', '');
+						if (!game.ui.isCenter) {
+							style.display = 'none';
+						}
+					} else {
+						document.body.removeAttribute('data-ks-style');
+						style.display = '';
+					}
+				});
+			}
+
+			if (name === 'useWorkers') {
+				input = element.children('input');
+				input.on('click', function () {
+					let a = confirm(i18n('ui.trigger.useWorkers.alert'));
+					if (a && !option.enabled) {
+						engine.stop();
+						option.enabled = true;
+						kittenStorage.items[input.attr('id')] = option.enabled;
+						if (options.auto.engine.enabled) {
+							engine.start();
+						}
+					} else if (a && option.enabled) {
+						engine.stop();
+						option.enabled = false;
+						kittenStorage.items[input.attr('id')] = option.enabled;
+						if (options.auto.engine.enabled) {
+							engine.start();
+						}
+					}
+				});
+			}
+
+			if (name === 'saves') {
+				input = element.children('input');
+				input.on('click', function () {
+					engine.stop(false);
+					let confirm = window.confirm("点击确认会导出珂学家的配置.txt文件");
+					if (confirm) {
+						let $link = $("#download-link");
+						let data = JSON.stringify(window.localStorage['cbc.kitten-scientists']);
+						let b = game.compressLZData(data, false);
+						let blob = new Blob([b], {type: "text/plain"});
+						$link.attr("href", window.URL.createObjectURL(blob));
+						let filename = "小猫珂学家配置" + (game.stats.getStat("totalResets").val + 1) + "周目";
+						$link.attr("download", filename + ".txt");
+						$link.get(0).dispatchEvent(new MouseEvent("click"));
+					}
+					if (options.auto.engine.enabled) {
+						engine.start(false);
+					}
+				});
+
+				let loadKS = $('<div/>', {
+					id: 'loadKS',
+					text: "导入配置",
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'}
+				}).data('option', option);
+
+				loadKS.on('click', function () {
+					engine.stop(false);
+					let b = window.prompt('窗口内填入后你需要导入的珂学家配置，确认后会导入配置', '');
+					if (options.auto.engine.enabled) {
+						engine.start(false);
+					}
+					if (b && b.length >= 10) {
+						let ksSave;
+						if (b.charAt(0) !== "{") {
+							ksSave = JSON.parse(LZString.decompressFromBase64(b));
+						}
+						window.localStorage['cbc.kitten-scientists'] = ksSave;
+						loadFromKittenStorage();
+					}
+				});
+
+				let ressetKS = $('<div/>', {
+					id: 'ressetKS',
+					text: "恢复默认配置",
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'}
+				}).data('option', option);
+
+				ressetKS.on('click', function () {
+					if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置(有可能会刷新页面)')){
+						engine.stop();
+						let cbc = sessionStorage.getItem('options');
+						delete localStorage['cbc.kitten-scientists'];
+						if (cbc) {
+							$("#ks-options").remove();
+							options.policies = [];
+							options['auto'] = JSON.parse(cbc).auto;
+							optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
+							optionsListElement = $('<ul/>');
+							optionsListElement.append(getToggle('engine'));
+							if (options.auto.engine.enabled) {
+								engine.start();
+							}
+							toggles.forEach((name) => {
+								optionsListElement.append(getToggle(name));
+							});
+							right.prepend(optionsElement.append(optionsListElement));
+							engineOn();
+							loadFromKittenStorage();
+						} else {
+							game.save();
+							window.location.reload();
+						}
+					}
+				});
+
+				element.append(loadKS);
+				element.append(ressetKS);
+			}
+
+			if (name === 'donate') {
+				input = element.children('input');
+				input.unbind('change');
+				input.on('change', function (e) {
+					option.enabled = input.prop('checked');
+					kittenStorage.items[input.attr('id')] = option.enabled;
+					if (e.isTrusted) {saveToKittenStorage();}
+					let style = document.getElementById('ks-donate').style;
+					if (option.enabled) {
+						style.display = 'block';
+					} else {
+						style.display = 'none';
+					}
+					style = null;
+				});
+			}
+
+			if (name === 'wiki') {
+				input = element.children('input');
+				input.on('click', function () {
+					let tempWindow = window.open();
+					tempWindow.location = 'https://petercheney.gitee.io/baike/?file=004-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7/02-%E5%B0%8F%E7%8C%AB%E7%A7%91%E5%AD%A6%E5%AE%B6';
+					printoutput(['如果还有问题可以在猫国群询问，有BUG或意见可以联系Cheney。默认配置即推荐配置：文艺复兴玄学下默认配置能2小时冲出轨道。','ks-default', options.activitycolor]);
+				});
+			}
+
+			if (option.subTrigger !== undefined) {
+				let triggerButton = $('<div/>', {
+					id: 'set-' + name + '-subTrigger',
+					text: i18n('ui.trigger'),
+					title: option.subTrigger,
+					css: {cursor: 'pointer',
+						display: 'inline-block',
+						float: 'right',
+						paddingRight: '5px',
+						textShadow: '3px 3px 4px gray'}
+				}).data('option', option);
+
+				triggerButton.on('click', function () {
+					let value;
+					engine.stop(false);
+					if (name === 'crypto') {
+						value = window.prompt(i18n('ui.trigger.crypto.set', [option.label]), option.subTrigger);
+					} else if (name === 'shipOverride') {
+						value = window.prompt(i18n('ui.trigger.shipOverride.set', [option.label]), option.subTrigger);
+					} else {
+						value = window.prompt(i18n('ui.trigger.set', [option.label]), option.subTrigger);
+					}
+					if (options.auto.engine.enabled) {
+						engine.start(false);
+					}
+
+					if (value !== null) {
+						if (name === 'crypto') {
+							option.subTrigger = value;
+						} else {
+							option.subTrigger = parseFloat(value);
+						}
+						kittenStorage.items[triggerButton.attr('id')] = option.subTrigger;
+						saveToKittenStorage();
+						triggerButton[0].title = option.subTrigger;
+					}
+				});
+
+				element.append(triggerButton);
+			}
+
+			return element;
+		};
+
+		let getDistributeOption = function (name, option) {
+			if (name === "leader") {return getLeader(name, option);}
+			let iname = ucfirst(i18n('$village.job.' + name));
+
+			let element = getOption(name, option, iname);
+			element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
+
+			//Limited Distribution
+			let label = $('<label/>', {
+				'for': 'toggle-limited-' + name,
+				text: i18n('ui.limit')
+			});
+
+			let input = $('<input/>', {
+				id: 'toggle-limited-' + name,
+				type: 'checkbox'
+			}).data('option', option);
+
+			if (option.limited) {
+				input.prop('checked', true);
+			}
+
+			input.on('change', function () {
+				if (input.is(':checked') && !option.limited) {
+					option.limited = true;
+					imessage('distribute.limited', [iname]);
+				} else if ((!input.is(':checked')) && option.limited) {
+					option.limited = false;
+					imessage('distribute.unlimited', [iname]);
+				}
+				kittenStorage.items[input.attr('id')] = option.limited;
+				saveToKittenStorage();
+			});
+
+			element.append(input, label);
+
+			let maxButton = $('<div/>', {
+				id: 'set-' + name + '-max',
+				text: i18n('ui.max', [option.max]),
+				title: option.max,
+				css: {cursor: 'pointer',
+					display: 'inline-block',
+					float: 'right',
+					paddingRight: '5px',
+					textShadow: '3px 3px 4px gray'}
+			}).data('option', option);
+
+			(function (iname){
+				maxButton.on('click', function () {
+					let value;
+					engine.stop(false);
+					value = window.prompt(i18n('ui.max.set', [iname]) + ' （按max比例分配）', option.max.toString());
+					if (options.auto.engine.enabled) {
+						engine.start(false);
+					}
+
+					if (value !== null) {
+						option.max = Math.max(0, parseInt(value));
+						kittenStorage.items[maxButton.attr('id')] = option.max;
+						saveToKittenStorage();
+						maxButton[0].title = option.max;
+						maxButton[0].innerText = i18n('ui.max', [option.max]);
+					}
+				});
+			})(iname);
+
+			element.append(maxButton);
+
+			return element;
+		};
+
+		let getLeader = function (name, option) {
+			let i;
+			let iname = ucfirst(i18n('distribute.makeLeader'));
+			let element = getOption(name, option, iname);
+			element.css('borderBottom', '1px solid rgba(185, 185, 185, 0.7)');
+
+			let traitList = $('<ul/>', {
+				id: 'items-list-traits',
+				css: {display: 'none', paddingLeft: '20px'}
+			});
+
+			let traitShowButton = $('<div/>', {
+				id: 'toggle-leaderTrait' + name,
+				text: i18n('$village.trait.filter.all'),
+				css: {
+					cursor:'pointer',
+					display:'inline-block',
+					float:'right',
+					paddingRight:'5px',
+					textShadow:'3px 3px 4px gray'}
+			});
+
+			for (i in window["com"]["nuclearunicorn"].game.village.Kitten().traits){
+				traitList.append(getLeaderTrait(i, option));
+			}
+
+			traitShowButton.on('click', function () {
+				jobList.toggle(false);
+				traitList.toggle();
+			});
+
+			let jobList = $('<ul/>', {
+				id: 'items-list-jobs',
+				css: {display: 'none', paddingLeft: '20px'}
+			});
+
+			let jobShowButton = $('<div/>', {
+				id: 'toggle-leaderJob' + name,
+				text: i18n('$village.panel.job'),
+				css: {
+					cursor:'pointer',
+					display:'inline-block',
+					float:'right',
+					paddingRight:'5px',
+					textShadow:'3px 3px 4px gray'}
+			});
+
+			for (i in game.village.jobs){
+				jobList.append(getLeaderJob(i, option));
+			}
+
+			jobShowButton.on('click', function () {
+				traitList.toggle(false);
+				jobList.toggle();
+			});
+
+			element.append(traitShowButton, jobShowButton, traitList, jobList);
+
+			return element;
+		};
+
+		let getLeaderJob = function (index, option) {
+			let job = game.village.jobs[index];
+
+			let element = $('<li/>');
+
+			let label = ($('<label/>', {
+				'for': 'toggle-leaderJob-' + job.name,
+				text: job.title,
+				css: {cursor: 'pointer',
+					textShadow: '3px 3px 4px gray'}
+			}));
+
+			let input = $('<input/>', {
+				id: 'toggle-leaderJob-' + job.name,
+				name: 'leaderJob',
+				value: job.name,
+				type: 'radio'
+			}).data('option', option);
+
+			if (input.prop("value") === option.leaderJob) {
+				input.prop("checked", true);
+			}
+
+			element.on('mouseup', function () {
+				let lastJobName = $("input[name='leaderJob']:checked").val();
+				delete kittenStorage.items['toggle-leaderJob-' + lastJobName];
+			});
+
+			input.on('change', function () {
+				imessage('distribute.leaderJob', [job.title]);
+				option.leaderJob = $("input[name='leaderJob']:checked").val();
+				kittenStorage.items['toggle-leaderJob-' + option.leaderJob] = true;
+				saveToKittenStorage();
+			});
+			element.append(input, label);
+
+			return element;
+		};
+
+		let getLeaderTrait = function (index, option) {
+			const trait = window["com"]["nuclearunicorn"].game.village.Kitten().traits[index];
+
+			const element = $('<li/>');
+
+			const label = ($('<label/>', {
+				'for': 'toggle-leaderTrait-' + trait.name,
+				text: trait.title,
+				css: {
+					cursor: 'pointer',
+					textShadow: '3px 3px 4px gray'
+				}
+			}));
+
+			const input = $('<input/>', {
+				id: 'toggle-leaderTrait-' + trait.name,
+				name: 'leaderTrait',
+				value: trait.name,
+				type: 'radio'
+			}).data('option', option);
+
+			if (input.prop("value") === option.leaderTrait) {
+				input.prop("checked", true);
+			}
+
+			element.on('mouseup', function () {
+				let lastTraitName = $("input[name='leaderTrait']:checked").val();
+				delete kittenStorage.items['toggle-leaderTrait-' + lastTraitName];
+			});
+
+			input.on('change', function () {
+				imessage('distribute.leaderTrait', [trait.title]);
+				option.leaderTrait = $(this).val();
+				kittenStorage.items['toggle-leaderTrait-' + option.leaderTrait] = true;
+				saveToKittenStorage();
+			});
+			element.append(input, label);
+
+			return element;
+		};
+
+		let optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
+		let optionsListElement = $('<ul/>');
+		//var optionsTitleElement = $('<div/>', {
+		//	css: { bottomBorder: '1px solid gray', marginBottom: '5px' },
+		//	text: kg_version
+		//});
+		//optionsElement.append(optionsTitleElement);
+
+		optionsListElement.append(getToggle('engine'));
+		toggles.forEach((name) => {
+			optionsListElement.append(getToggle(name));
+		});
+		// Donation Button
+		// ===============
+
+		let showD = function() {
+			const address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
+			let donate = $('<li/>', {id: "ks-donate"}).append($('<a/>', {
+				href: 'bitcoin:' + address + '?amount=0.00048&label=Kittens Donation',
+				target: '_blank',
+				text: address
+			})).prepend($('<img alt="bit" src="https://s1.ax1x.com/2022/04/30/OSmUAK.png" height="15px" />', {
+				css: {
+					height: '15px',
+					width: '15px',
+					padding: '3px 4px 0 4px',
+					verticalAlign: 'bottom'
+				},
+			}));
+
+			// Add some padding above the donation item
+			donate.css('padding', '5px');
+
+			optionsListElement.append(donate);
+		};
+		showD();
+		// add the options above the game log
+		right.prepend(optionsElement.append(optionsListElement));
 	}
-
-	// Grab button labels for space options
-	let spaceManager = new SpaceManager();
-	for (spaceOption in options.auto.space.items) {
-		build = spaceManager.getBuild(spaceOption);
-		if (build) {
-			// It's changed to label in 1.3.0.0
-			let title = build.title ? build.title : build.label;
-			options.auto.space.items[spaceOption].label = title;
-		}
-	}
-
-	let optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
-	let optionsListElement = $('<ul/>');
-	//var optionsTitleElement = $('<div/>', {
-	//	css: { bottomBorder: '1px solid gray', marginBottom: '5px' },
-	//	text: kg_version
-	//});
-	//optionsElement.append(optionsTitleElement);
-
-	optionsListElement.append(getToggle('engine'));
-	toggles.forEach((name) => {
-		optionsListElement.append(getToggle(name));
-	});
 
 	// add activity button
 	// ===================
 
 	let activitySummary = {
 		other: {},
+		resGain: {},
+		resConsume: {},
+		research: {},
 	};
 
 	//建筑日志提示
@@ -7702,6 +7773,13 @@ let run = function() {
 				activity(i18n('summary.auto.' + build), filter);
 				storeForSummary('auto.' + build);
 			}
+		}
+	};
+
+	let storePrices = (prices) => {
+		for (let i in prices) {
+			let price = prices[i];
+			storeForSummary(price.name, price.val, 'resConsume');
 		}
 	};
 
@@ -7730,18 +7808,42 @@ let run = function() {
 	};
 
 	let displayActivitySummary = function () {
-		if (game.console.messages.length > 900) {
-			game.clearLog();
+		if (game.console.messages.length > 900) {game.clearLog();}
+		let space = ' ';
+		let equal = '='.repeat(24);
+		let l, name, msg;
+
+		let gain = activitySummary.resGain;
+		for (name in gain) {
+			let val = game.getDisplayValueExt(gain[name]);
+			if (!val) {continue;}
+			msg = game.msg('小喵共获得了 ' + game.getDisplayValueExt(gain[name]) + space + $I("resources." + name +".title"), null, null, true);
+			$(msg.span).css('color', "#ff589c");
+		}
+		if (msg) {
+			game.msg(equal, 'notice');
+			msg = null;
 		}
 
-		for (const i in activitySummary.other) {
-			if (activitySummary.other[i]) {isummary('summary.' + i , [game.getDisplayValueExt(activitySummary.other[i])]);}
+		let consume = activitySummary.resConsume;
+		let resources = game.resPool.resources;
+		for (let i = resources.length - 1; i > 0; i--) {
+			name = resources[i].name;
+			let val = consume[name];
+			if (!val) {continue;}
+			msg = game.msg('小喵共消耗了 ' + game.getDisplayValueExt(val) + space + $I("resources." + name +".title"), null, null, true);
+			$(msg.span).css('color', "#DC143C");
+		}
+		if (msg) {game.msg(equal, 'notice');}
+
+		let other = activitySummary.other;
+		for (const i in other) {
+			if (other[i]) {isummary('summary.' + i , [game.getDisplayValueExt(other[i])]);}
 		}
 
-		// Techs
-		let l,name;
-		for (name in activitySummary["research"]) {
-			l = activitySummary["research"][name];
+		let teach = activitySummary.research;
+		for (name in teach) {
+			l = teach[name];
 			l = (l) ? '科学家' : '';
 			isummary('summary.tech', [l + '小猫研究了 ' + ucfirst(name)]);
 		}
@@ -7753,29 +7855,13 @@ let run = function() {
 			isummary('summary.upgrade', [l + '小猫发明了 ' + ucfirst(name)]);
 		}
 
-		// Buildings
-		for (name in activitySummary.build) {
-			isummary('summary.building', [game.getDisplayValueExt(activitySummary.build[name]), ucfirst(name)]);
-		}
-
-		// Order of the Sun
-		for (name in activitySummary.faith) {
-			isummary('summary.sun', [game.getDisplayValueExt(activitySummary.faith[name]), ucfirst(name)]);
-		}
-
-		// Crafts
-		for (name in activitySummary.craft) {
-			isummary('summary.craft', [game.getDisplayValueExt(activitySummary.craft[name]), ucfirst(name)]);
-		}
-
-		for (name in activitySummary["craftLeader"]) {
-			isummary('summary.craftLeader', [game.getDisplayValueExt(activitySummary["craftLeader"][name]), ucfirst(name)]);
-		}
-
-		// Trading
-		for (name in activitySummary.trade) {
-			isummary('summary.trade', [game.getDisplayValueExt(activitySummary.trade[name]), ucfirst(name)]);
-		}
+		let items = ['build', 'faith', 'craft', 'craftLeader', 'trade']
+		items.forEach((item) => {
+			let summary = activitySummary[item];
+			for (let i in summary) {
+				isummary('summary.' + item, [game.getDisplayValueExt(summary[i]), ucfirst(i)]);
+			}
+		});
 
 		// Show time since last run. Assumes that the day and year are always higher.
 		if (activitySummary.lastyear && activitySummary.lastday) {
@@ -7853,33 +7939,6 @@ let run = function() {
 		messageBox.toggle();
 	};
 
-	// Donation Button
-	// ===============
-
-	let showD = function() {
-		const address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
-		let donate = $('<li/>', {id: "ks-donate"}).append($('<a/>', {
-			href: 'bitcoin:' + address + '?amount=0.00048&label=Kittens Donation',
-			target: '_blank',
-			text: address
-		})).prepend($('<img alt="bit" src="https://s1.ax1x.com/2022/04/30/OSmUAK.png" height="15px" />', {
-			css: {
-				height: '15px',
-				width: '15px',
-				padding: '3px 4px 0 4px',
-				verticalAlign: 'bottom'
-			},
-		}));
-
-		// Add some padding above the donation item
-		donate.css('padding', '5px');
-
-		optionsListElement.append(donate);
-	};
-	showD();
-	// add the options above the game log
-	right.prepend(optionsElement.append(optionsListElement));
-
 	// Initialize and set toggles for Engine
 	// =====================================
 
@@ -7892,6 +7951,7 @@ let run = function() {
 			if (toggleEngine.is(':checked')) {
 				options.auto.engine.enabled = true;
 				engine.start();
+				game.msg('点击小猫总结可以查询干了什么', 'notice');
 			} else {
 				options.auto.engine.enabled = false;
 				engine.stop();
