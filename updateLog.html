@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh_CN">
     <head>
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta http-equiv="Pragma" content="no-cache" />
-        <meta http-equiv="Expires" content="0" />
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control" />
+        <meta content="no-cache" http-equiv="Pragma" />
+        <meta content="0" http-equiv="Expires" />
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
         <title>小猫珂学家更新日志</title>
 <xmp theme='litera'>
-  #### 4.25-6.11
+#### 7.4
+	1. 修复轨道测地学前会少合巨石
+#### 4.25-7.3
     1. 每天都优化了若干日志、文本、逻辑等等，太多啦就不写呐
 #### 4.25:
     1. 猫薄荷使用变得保守
@@ -95,5 +97,12 @@
     7. 修复营火、空间等等的项目MAX等于 0 时，会无视MAX上限。
 </xmp>
     </head>
-    <script src="https://petercheney.gitee.io/strapdown.js"></script>
+    <script>
+	    if (window.location.pathname && window.location.pathname.indexOf('//') == -1) {
+		    if (typeof navigator.serviceWorker !== 'undefined') {
+			    navigator.serviceWorker.register('serviceWorker.js');
+		    }
+	    }
+    </script>
+    <script src="https://petercheney.github.io/strap/strapdown.js"></script>
 </html>

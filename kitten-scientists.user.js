@@ -1823,25 +1823,23 @@ let run = function() {
 					} else {
 						let tearNeed;
 						let btnButton = 0;
-						if (oneTear) {
-							tearNeed = 0.99;
-						} else {
+						if (!oneTear) {
 							buttonPrices = dojo.clone(btn.prices);
 							for (i = 0; i < buttonPrices.length; i++) {
 								let price = buttonPrices[i];
 								price.val *= Math.pow(1.15, btn.on);
 								if (price.name === 'tears') {
-									price.val += craftManager.getStock('tears');
+									price.val += craftManager.getStock('tears') + 0.01;
 									tearNeed = price.val;
 								}
-								if (price.name === 'gold')  {price.val *= 1 - game.getEffect('goldCostReduction');}
+								if (price.name === 'gold') {price.val *= 1 - game.getEffect('goldCostReduction');}
 							}
-							btnButton = religionManager.getBuildButton(btn.name, 'z');
 						}
+						tearNeed = (oneTear) ? 1 : tearNeed;
 						if (religion.getZU('sunspire').on > 4 && builds['blackPyramid'].enabled && resMap['sorrow'].value < 5) {
 							tearNeed += 10e3;
 						}
-						if (tearNeed + 0.01 > tearHave) {
+						if (tearNeed > tearHave) {
 							// if no ziggurat, getBestUnicornBuilding will return unicornPasture
 							let maxSacrifice = Math.floor((unicorns - craftManager.getStock('unicorns')) / 2500);
 							let needSacrifice = Math.ceil((tearNeed - tearHave) / zigguratOn);
@@ -2004,10 +2002,12 @@ let run = function() {
 				let adoreFactor = (!religion.faithRatio || tt);
 				let catnipAdore = transcendenceTier > 9 || this.catnipForReligion() > 0;
 				// 期望太阳革命加成赞美群星
+				let production = game.prestige.getParagonProductionRatio();
+				let paragonFactor =  (production < 2.25) ? Math.max(2.25 / game.prestige.getParagonProductionRatio(), 2.25) : 1;
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
 				let rrVal = game.time.getCFU("ressourceRetrieval").val;
 				let factor = (adoreFactor < 10 || rrVal) ? 1.65 + Math.log1p(solarRLimit) : 1.3;
-				let expectSolarRevolutionRatio = game.getLimitedDR(factor * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
+				let expectSolarRevolutionRatio = game.getLimitedDR(paragonFactor * factor * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				let expect = solarRatio * 1e2 < expectSolarRevolutionRatio;
 				if (adoreTri === 0.001 && booleanForAdore && expect && tt) {
@@ -4180,7 +4180,7 @@ let run = function() {
 					break;
 				// falls through
 				case 'mansion':
-					vitruvianFeline = (vitruvianFeline || (!vitruvianFeline && game.workshop.get('orbitalGeodesy').researched && id === 'mansion'));
+					vitruvianFeline = (vitruvianFeline || (!vitruvianFeline && game.workshop.get('orbitalGeodesy').researched && id === 'mansion' && game.village.sim.kittens.length < 130));
 					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1 && !TitaniumCap && vitruvianFeline) {
 						halfCount = true;
 					}
@@ -4982,17 +4982,15 @@ let run = function() {
 			}
 
 			if (name === 'megalith') {
-				if (res.value > 50 || game.bld.metaCache.ziggurat.meta.on || resMap['unicorns'].value < 1000) {
-					if (!game.workshop.get('orbitalGeodesy').researched) {
-						limRat = 0.01;
-					}
-				}
-				let ziggurat = game.bld.get('ziggurat');
+				let ziggurat = game.bld.getBuildingExt('ziggurat').meta;
 				let factor = Math.pow(ziggurat.priceRatio + priceRatio, ziggurat.val);
 				let reactorFactor = Math.pow(reactor.priceRatio + priceRatio, reactor.val);
 				limRat = (renaissance) ? limRat : 0.2;
 				limRat = (res.value > Math.max(100, 50 * factor)) ? 5e-3 : limRat;
 				limRat = (resMap['plate'].value < Math.max(5000, 50 * reactorFactor)) ? 0.1 : limRat;
+				if (res.value > 50 || ziggurat.on || resMap['unicorns'].value < 1000) {
+					if (!game.workshop.get('orbitalGeodesy').researched) {limRat = 0.01;}
+				}
 			}
 
 			if (name === 'concrate') {
