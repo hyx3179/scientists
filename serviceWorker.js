@@ -1,4 +1,5 @@
 const locationUrl = location.origin + location.pathname.replace('serviceWorker.js', '');
+const CACHE_NAME = 'likexiaCat';
 const cdn = "https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-y/";
 const strap = "https://petercheney.github.io/strap/";
 const cdnCache = [
