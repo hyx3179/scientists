@@ -1863,9 +1863,7 @@ let run = function() {
 							}
 						}
 						// && resMap['tears'].value >= tearNeed
-						if (btnButton === undefined && zigguratOn) {
-							religionManager.manager.render();
-						} else if (!oneTear && game.resPool.hasRes(buttonPrices)) {
+						if (!oneTear && game.resPool.hasRes(buttonPrices) && zigguratOn) {
 							religionManager.build(btn.name, 'z', 1);
 							refreshRequired = 1;
 						}
@@ -5978,8 +5976,8 @@ let run = function() {
 		});
 
 		let Color;
-		if (Res.type == "uncommon") {Color = "#FF7F50";}
-		if (Res.type == "rare") {Color = "#FFA500";}
+		if (Res.type === "uncommon") {Color = "#FF7F50";}
+		if (Res.type === "rare") {Color = "#FFA500";}
 		Color = Res.color || Color;
 		let label = $('<div/>', {
 			id: 'resource-label-' + name,
@@ -6122,8 +6120,8 @@ let run = function() {
 				// visible. This helps cut down on total size.
 				if (name && $(idPrefix + name).length === 0) {
 					let Color;
-					if (res.type == "uncommon") {Color = "#FF7F50";}
-					if (res.type == "rare") {Color = "#FFA500";}
+					if (res.type === "uncommon") {Color = "#FF7F50";}
+					if (res.type === "rare") {Color = "#FFA500";}
 					Color = res.color || Color;
 					let item = $('<div/>', {
 						id: 'resource-add-' + name,
