@@ -16,7 +16,8 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const kg_version = "小猫珂学家版本1.5.0";
+	const version = '1.5.1';
+	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -938,6 +939,7 @@ let run = function() {
 					promote:            {enabled: true,                    misc: true, label: i18n('option.promote')},
 					autofeed:           {enabled: true,                    misc: true, label: i18n('option.autofeed')},
 					observe:            {enabled: true,                    misc: true, label: i18n('option.observe')},
+					gameFilter:         {enabled: true,                    misc: true, label: '游戏日志过滤'},
 					crypto:             {enabled: false, subTrigger: 1e4,  misc: true, label: i18n('option.crypto')},
 					fixCry:             {enabled: false,                   misc: true, label: i18n('option.fix.cry')},
 					//_steamworks:        {enabled: true,                   misc: true, label: i18n('option.steamworks')},
@@ -969,34 +971,36 @@ let run = function() {
 			},
 			filter: {
 				//What log messages should be filtered?
-				enabled: true,
+				enabled: false,
+				console: {},
 				items: {
-					buildFilter:     {enabled: false, filter: true, label: i18n('filter.build'),      variant: "ks-activity type_ks-build"},
-					researchFilter:  {enabled: false, filter: true, label: i18n('filter.research'),   variant: "ks-activity type_ks-research"},
-					upgradeFilter:   {enabled: false, filter: true, label: i18n('filter.upgrade'),    variant: "ks-activity type_ks-upgrade"},
-					craftFilter:     {enabled: false, filter: true, label: i18n('filter.craft'),      variant: "ks-activity type_ks-craft"},
-					policyFilter:    {enabled: false, filter: true, label: i18n('filter.policy'),     variant: "ks-activity type_ks-policy"},
-					upgBldFilter:    {enabled: false, filter: true, label: i18n('filter.upgBld'),     variant: "ks-activity type_ks-upgBld"},
-					tradeFilter:     {enabled: false, filter: true, label: i18n('filter.trade'),      variant: "ks-activity type_ks-trade"},
-					embassyFilter:   {enabled: false, filter: true, label: i18n('filter.embassy'),    variant: "ks-activity type_ks-embassy"},
-					huntFilter:      {enabled: false, filter: true, label: i18n('filter.hunt'),       variant: "ks-activity type_ks-hunt"},
-					praiseFilter:    {enabled: false, filter: true, label: i18n('filter.praise'),     variant: "ks-activity type_ks-praise"},
-					adoreFilter:     {enabled: false, filter: true, label: i18n('filter.adore'),      variant: "ks-activity type_ks-adore"},
-					transcendFilter: {enabled: false, filter: true, label: i18n('filter.transcend'),  variant: "ks-activity type_ks-transcend"},
-					sacrificeFilter: {enabled: false, filter: true, label: i18n('filter.sacrifice'),  variant: "ks-activity type_ks-sacrifice"},
-					faithFilter:     {enabled: false, filter: true, label: i18n('filter.faith'),      variant: "ks-activity type_ks-faith"},
-					accelerateFilter:{enabled: false, filter: true, label: i18n('filter.accelerate'), variant: "ks-activity type_ks-accelerate"},
-					timeSkipFilter:  {enabled: false, filter: true, label: i18n('filter.time.skip'),  variant: "ks-activity type_ks-timeSkip"},
-					festivalFilter:  {enabled: false, filter: true, label: i18n('filter.festival'),   variant: "ks-activity type_ks-festival"},
-					starFilter:      {enabled: false, filter: true, label: i18n('filter.star'),       variant: "ks-activity type_ks-star"},
-					distributeFilter:{enabled: false, filter: true, label: i18n('filter.distribute'), variant: "ks-activity type_ks-distribute"},
-					leaderFilter:    {enabled: false, filter: true, label: i18n('filter.leader'),     variant: "ks-activity type_ks-leader"},
-					miscFilter:      {enabled: false, filter: true, label: i18n('filter.misc'),       variant: "ks-activity"}
+					buildFilter:             {enabled: false,  label: i18n('filter.build'),      variant: "ks-activity type_ks-build"},
+					researchFilter:          {enabled: false,  label: i18n('filter.research'),   variant: "ks-activity type_ks-research"},
+					upgradeFilter:           {enabled: false,  label: i18n('filter.upgrade'),    variant: "ks-activity type_ks-upgrade"},
+					craftFilter:             {enabled: false,  label: i18n('filter.craft'),      variant: "ks-activity type_ks-craft"},
+					policyFilter:            {enabled: false,  label: i18n('filter.policy'),     variant: "ks-activity type_ks-policy"},
+					upgBldFilter:            {enabled: false,  label: i18n('filter.upgBld'),     variant: "ks-activity type_ks-upgBld"},
+					tradeFilter:             {enabled: false,  label: i18n('filter.trade'),      variant: "ks-activity type_ks-trade"},
+					embassyFilter:           {enabled: false,  label: i18n('filter.embassy'),    variant: "ks-activity type_ks-embassy"},
+					huntFilter:              {enabled: false,  label: i18n('filter.hunt'),       variant: "ks-activity type_ks-hunt"},
+					// 赞美太阳 faith => parise
+					faithFilter:             {enabled: false,  label: i18n('filter.praise'),     variant: "ks-activity type_ks-praise"},
+					adoreFilter:             {enabled: false,  label: i18n('filter.adore'),      variant: "ks-activity type_ks-adore"},
+					transcendFilter:         {enabled: false,  label: i18n('filter.transcend'),  variant: "ks-activity type_ks-transcend"},
+					unicornSacrificeFilter:  {enabled: false,  label: i18n('filter.sacrifice'),  variant: "ks-activity type_ks-sacrifice"},
+					faithBuildFilter:        {enabled: false,  label: i18n('filter.faith'),      variant: "ks-activity type_ks-faith"},
+					accelerateFilter:        {enabled: false,  label: i18n('filter.accelerate'), variant: "ks-activity type_ks-accelerate"},
+					tcShatterFilter:         {enabled: false,  label: i18n('filter.time.skip'),  variant: "ks-activity type_ks-timeSkip"},
+					festivalFilter:          {enabled: false,  label: i18n('filter.festival'),   variant: "ks-activity type_ks-festival"},
+					astronomicalEventFilter: {enabled: false,  label: i18n('filter.star'),       variant: "ks-activity type_ks-star"},
+					distributeFilter:        {enabled: false,  label: i18n('filter.distribute'), variant: "ks-activity type_ks-distribute"},
+					leaderFilter:            {enabled: false,  label: i18n('filter.leader'),     variant: "ks-activity type_ks-leader"},
+					miscFilter:              {enabled: false,  label: i18n('filter.misc'),       variant: "ks-activity"}
 				}
 			},
 			resources: {
 				furs:        {enabled: true,  stock: 350, checkForReset: false, stockForReset: Infinity},
-				timeCrystal: {enabled: false, stock: 0,    checkForReset: true,  stockForReset: 500000}
+				timeCrystal: {enabled: false, stock: 0,   checkForReset: true,  stockForReset: 500000}
 			},
 			policies: [],
 			cache: {
@@ -1449,7 +1453,7 @@ let run = function() {
 
 			// Tempus Fugit
 			if (optionVals.accelerateTime.enabled && game.science.get("calendar").researched) {
-				const tf = game.resPool.get('temporalFlux');
+				const tf = resMap['temporalFlux'];
 				if (tf.value >= Math.max(tf.maxValue * optionVals.accelerateTime.subTrigger, 1) && !game.time.isAccelerated) {
 					game.time.isAccelerated = true;
 					iactivity('act.accelerate', [], 'ks-accelerate');
@@ -1745,7 +1749,7 @@ let run = function() {
 		},
 		autofeed: function () {
 			const levi = game.diplomacy.get("leviathans");
-			const nCorn = game.resPool.get("necrocorn");
+			const nCorn = resMap["necrocorn"];
 			if (!(levi.unlocked && nCorn.value > 0)) {return;}
 			if (levi.energy === game.diplomacy.getMarkerCap()) {return;}
 			if (nCorn.value >= 1) {
@@ -1760,8 +1764,8 @@ let run = function() {
 		},
 		crypto: function () {
 			let coinPrice = game.calendar.cryptoPrice;
-			let previousRelic = game.resPool.get('relic').value;
-			let previousCoin = game.resPool.get('blackcoin').value;
+			let previousRelic = resMap['relic'].value;
+			let previousCoin = resMap['blackcoin'].value;
 			if ((!game.science.get("blackchain").researched && !previousCoin > 0) || !game.diplomacy.get("leviathans").unlocked) {return;}
 			let crypto = options.auto.options.items.crypto;
 			let subTrigger = (crypto.subTrigger == null) ? "10000-860-1060" : options.auto.options.items.crypto.subTrigger.toString().split('-');
@@ -1785,14 +1789,14 @@ let run = function() {
 			if (coinPrice < minCoinPrice && previousRelic > relicTrigger) {
 				game.diplomacy.buyBcoin();
 
-				let currentCoin = game.resPool.get('blackcoin').value;
+				let currentCoin = resMap['blackcoin'].value;
 				let exchangedCoin = game.getDisplayValueExt(currentCoin - previousCoin);
 				iactivity('blackcoin.buy', [exchangedCoin, game.getDisplayValueExt(previousRelic)], 'ks-trade');
 				storeForSummary('blackcoin.buy', 1);
-			} else if (coinPrice > maxCoinPrice && game.resPool.get('blackcoin').value > 0) {
+			} else if (coinPrice > maxCoinPrice && resMap['blackcoin'].value > 0) {
 				game.diplomacy.sellBcoin();
 
-				let currentRelic = game.resPool.get('relic').value;
+				let currentRelic = resMap['relic'].value;
 				let exchangedRelic = game.getDisplayValueExt(currentRelic - previousRelic);
 
 				iactivity('blackcoin.sell', [exchangedRelic, game.getDisplayValueExt(previousCoin)], 'ks-trade');
@@ -2220,11 +2224,11 @@ let run = function() {
 					if (upgrades.techs.limited) {
 						let name = upg.name;
 						let titanium = resMap['titanium'].value;
-						if (name === 'biology' && resMap['compedium'].value < 1e3) {continue;}
+						if (name === 'biology' && resMap['compedium'].value < 2e3) {continue;}
 						if (name === 'ecology' && titanium < 6000) {continue;}
 						if (name === 'ai' && titanium < 10000) {continue;}
-						if (name === 'oilProcessing' && !nanotechnology && titanium < 10000) {continue;}
-						if (name === 'drama' && 8 * craftManager.getTickVal(craftManager.getResource('parchment'), true) < 5) {continue;}
+						if (name === 'oilProcessing' && !nanotechnology && titanium < 10e3) {continue;}
+						if (name === 'drama' && craftManager.getTickVal(craftManager.getResource('parchment'), true) < 1) {continue;}
 						if (name === 'cryptotheology' && resMap['relic'].value > 105) {continue;}
 						if (name === 'particlePhysics' && !nanotechnology && titanium < 1000) {continue;}
 					}
@@ -2463,7 +2467,7 @@ let run = function() {
 						if (game.diplomacy.get(race).unlocked) {return;}
 						let manpower = craftManager.getValueAvailable('manpower', true);
 						if (manpower >= 1000) {
-							game.resPool.get('manpower').value -= 1000;
+							resMap['manpower'].value -= 1000;
 							maxRaces = 'render';
 							iactivity('upgrade.race', [game.diplomacy.unlockRandomRace().title], 'ks-trade');
 							storeForSummary('manpower', 1000, 'resConsume');
@@ -2474,9 +2478,9 @@ let run = function() {
 						unlockRace('sharks');
 						unlockRace('griffins');
 					}
-					if (game.resPool.get("culture").value >= 1500) {unlockRace('nagas');}
-					if (game.resPool.get("ship").value >= 1) {unlockRace('zebras');}
-					if (game.resPool.get("ship").value >= 100 && game.resPool.get("science").maxValue > 125000) {unlockRace('spiders');}
+					if (resMap["culture"].value >= 1500) {unlockRace('nagas');}
+					if (resMap["ship"].value >= 1) {unlockRace('zebras');}
+					if (resMap["ship"].value >= 100 && resMap["science"].maxValue > 125000) {unlockRace('spiders');}
 					if (game.science.get("nuclearFission").researched) {unlockRace('dragons');}
 					if (!game["diplomacyTab"].racePanels.length || maxRaces === 'render') {game["diplomacyTab"].render();}
 				}
@@ -2541,7 +2545,7 @@ let run = function() {
 				if (libraryMeta.stage === 0) {
 					if (libraryMeta.stages[1].stageUnlocked) {
 						let ratio = 1 + game.bld.get('biolab').val * 0.01;
-						ratio = game.resPool.get('compedium').value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 2e6;
+						ratio = resMap['compedium'].value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 2e6;
 						ratio |= craftManager.getTickVal(resMap['concrate']) > 600;
 						if (ratio && options.auto.build.items.dataCenter.enabled) {
 							let energyRatio = game.challenges.isActive("energy") ? 2 : 1;
@@ -2674,7 +2678,7 @@ let run = function() {
 				}
 				// 没铀不造反应堆
 				let reactor = items['reactor'];
-				let sattelite = game.space.getBuilding('sattelite').on
+				let sattelite = game.space.getBuilding('sattelite').on;
 				if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 || !sattelite) {reactor.max = 25 + 10 * blackSky;}
 				if (resMap['uranium'].value < 100) {reactor.max = 0;}
 
@@ -2833,7 +2837,7 @@ let run = function() {
 				//铸币厂
 				if (!game.challenges.isActive("pacifism")) {
 					let mint = items['mint'];
-					let manpower = game.resPool.get('manpower').maxValue;
+					let manpower = resMap['manpower'].maxValue;
 					let mintV = game.bld.getBuildingExt('mint').meta.val;
 					if (manpower <= 2e4) {
 						mint.enabled = false;
@@ -2998,19 +3002,19 @@ let run = function() {
 			if (upgrades.cache && game.workshop.get(upgrades.cache).researched) {upgrades.cache = false;}
 		},
 		holdFestival: function () {
-			if (!(game.science.get('drama').researched && game.calendar.festivalDays < 400)) {return;}
+			if (!game.science.get('drama').researched || game.calendar.festivalDays >= 400) {return;}
 			if (!game.prestige.getPerk('carnivals').researched && game.calendar.festivalDays > 0) {return;}
-			if (game.village.getKittens() < 5 && game.resPool.get("zebras").value === 0) {return;}
+			if (game.village.getKittens() < 5 && !resMap["zebras"].value) {return;}
 
 			let craftManager = this.craftManager;
-			let catpowProf = 4000 * craftManager.getTickVal(craftManager.getResource('manpower'), true) > 1500;
-			let cultureProf = 4000 * craftManager.getTickVal(craftManager.getResource('culture'), true) > 5000;
-			let parchProf = 4000 * craftManager.getTickVal(craftManager.getResource('parchment'), true) > 2500;
+			let catpowProf = 4000 * craftManager.getTickVal(resMap['manpower'], true) > 1500;
+			let cultureProf = 4000 * craftManager.getTickVal(resMap['culture'], true) > 5000;
+			let parchProf = 4000 * craftManager.getTickVal(resMap['parchment'], true) > 2500 * 2;
 
-			if (!(catpowProf && cultureProf && (game.resPool.get('parchment').value >= 7500 || parchProf))) {return;}
+			if (!(catpowProf && cultureProf && (resMap['parchment'].value >= 7500 || parchProf))) {return;}
 
 			if (game.science.getPolicy('carnivale').researched) {
-				let luxury = (!game.resPool.get("furs").value || !game.resPool.get("ivory").value || !game.resPool.get("spice").value);
+				let luxury = (!resMap["furs"].value || !resMap["ivory"].value || !resMap["spice"].value);
 				if (luxury) {return;}
 			}
 
@@ -3023,6 +3027,7 @@ let run = function() {
 			if (game.resPool.hasRes(price)) {
 				game.resPool.payPrices(price);
 				game.village.holdFestival(1);
+				options.auto.trade.festival = undefined;
 
 				storeForSummary('festival', 1);
 				storePrices(price);
@@ -3031,6 +3036,8 @@ let run = function() {
 				} else {
 					iactivity('festival.hold', [], 'ks-festival');
 				}
+			} else {
+				options.auto.trade.festival = true;
 			}
 		},
 		observeStars: function () {
@@ -3068,8 +3075,6 @@ let run = function() {
 			let manpowerBoolean = itemHunt.subTrigger <= manpower.value / manpower.maxValue;
 			let tradeCache = !manpowerBoolean && options.auto.trade.cache;
 			if (manpowerBoolean || mint || unicornHunt || tradeCache || itemHunt.time) {
-				// No way to send only some hunters. Thus, we hunt with everything
-				if (manpower.perTickCached < 100 && manpower.value >= 200) {huntCount -= 1;}
 				if (mint) {
 					huntCount = preCount;
 					iactivity('act.hunt.mint', '', 'ks-hunt');
@@ -3193,7 +3198,7 @@ let run = function() {
 				}
 			}
 
-			let catnipNow = game.resPool.get('catnip').value + 100 * game.getResourcePerTick("catnip", true);
+			let catnipNow = resMap['catnip'].value + 100 * game.getResourcePerTick("catnip", true);
 			let sharksAmt = tradeManager.getLowestTradeAmount('sharks');
 			if (catnipNow < 0 && sharksAmt && game.deadKittens < 1e3) {
 				let sharks = game.diplomacy.get('sharks');
@@ -3208,8 +3213,10 @@ let run = function() {
 			// Figure out how much we can currently trade
 			let maxTrades = Math.floor(tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited);
 
+			// 节日
+			if (optionTrade.festival) {return;}
+			// if (craftManager.getTickVal(resMap('parchment'), true) > 15)
 			// Distribute max trades without starving any race
-
 			if (maxTrades < 1) {return;}
 			let spice = resMap['spice'].value + 60 * game.getResourcePerTick('spice', true) < 0;
 			if (spice && game.calendar.festivalDays) {maxTrades = Math.ceil(maxTrades * 0.3);}
@@ -3301,6 +3308,22 @@ let run = function() {
 			const optionVals = options.auto.options.items;
 			let refreshRequired = 0;
 
+			// 游戏日志过滤
+			let filter = options.auto.filter;
+			if (optionVals.gameFilter.enabled && filter.enabled) {
+				let items = filter.items;
+				let consoles = filter.console;
+				let gameFilter = game.console.filters;
+				for (let i in gameFilter) {
+					let item = items[i + 'Filter'];
+					let Filter = gameFilter[i];
+					if (!Filter.unlocked || (item && !item.enabled) || consoles[i]) {continue;}
+					Filter.enabled = false;
+					consoles[i] = true;
+					refreshRequired = 1;
+				}
+				if (refreshRequired) {game.ui.renderFilters();}
+			}
 			AutoEmbassy:
 			if (optionVals.buildEmbassies.enabled && !!game.diplomacy.races[0].embassyPrices) {
 				let culture = craftManager.getResource('culture');
@@ -3397,9 +3420,10 @@ let run = function() {
 				mint.on = mint.val;
 			}
 			if (mint.on && resMap['manpower'].maxValue < 2e4 && !game.challenges.isActive("pacifism")) {
-				if (mint.on > 2 && !game.opts.enableRedshift)
-				mint.on = 0;
-				msg('mint');
+				if (mint.on > 2 && !game.opts.enableRedshift) {
+					mint.on = 0;
+					msg('mint');
+				}
 			}
 			let button;
 			// 自动打开蒸汽工房
@@ -3528,7 +3552,7 @@ let run = function() {
 			if (trait) {
 				if (game.science.get('civil').researched && vLeader && !game.challenges.isActive("anarchy")) {
 					let cache = options.auto.cache;
-					let hasTrait = game.village.traits.some(obj => {return obj.title === $I("village.trait." + trait)});
+					let hasTrait = game.village.traits.some(obj => {return obj.title === $I("village.trait." + trait);});
 					if (!cache.trait[trait]) {
 						if (hasTrait) {
 							cache.trait[trait] = true;
@@ -3581,7 +3605,7 @@ let run = function() {
 			let epiphany = game.religion.faithRatio;
 			let epiphanyInc = game.religion.faith / 1000000 * (tt + 1) * (tt + 1) * 1.01;
 			let epiphanyAfterAdore = epiphany + epiphanyInc - value;
-			let worshipAfterAdore = 0.01 + game.resPool.get('faith').value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
+			let worshipAfterAdore = 0.01 + resMap['faith'].value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
 			let solarRevolutionAdterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, 10 + game.getEffect("solarRevolutionLimit"));
 			if (tt < 10) {
 				catnipTick = game.village.getResConsumption()['catnip'] * (1 + game.getEffect("catnipDemandRatio"));
@@ -3589,7 +3613,7 @@ let run = function() {
 					catnipTick += catnipTick * Math.max(game.village.happiness * (1 + game.getEffect("hapinnessConsumptionRatio")) - 1, 0) * (1 + game.getEffect("catnipDemandWorkerRatioGlobal"));
 				}
 				let solarRevolutionRatio = 1 + game.religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
-				catnipTick = ((game.resPool.get('catnip').perTickCached - catnipTick) * (1 + solarRevolutionAdterAdore) / solarRevolutionRatio) + catnipTick + game.globalEffectsCached.catnipPerTickCon;
+				catnipTick = ((resMap['catnip'].perTickCached - catnipTick) * (1 + solarRevolutionAdterAdore) / solarRevolutionRatio) + catnipTick + game.globalEffectsCached.catnipPerTickCon;
 			}
 			if (catnipTick < 0) {
 				let optionFaith = options.auto.faith;
@@ -4156,6 +4180,7 @@ let run = function() {
 					if (!vitruvianFeline) {break;}
 					if (spaceManufacturing) {
 						if (!game.space.getBuilding('sattelite').val && game.bld.get(id).val) {
+							options.auto.space.times['sattelite'].enabled = true;
 							count = 0;
 						}
 					} else {
@@ -4227,7 +4252,7 @@ let run = function() {
 			let prices = build.stages[build.stage].prices;
 			for(let i = 0; i < prices.length; i++){
 				let price = prices[i];
-				let res = game.resPool.get(price.name);
+				let res = resMap[price.name];
 				if (res.isRefundable() && !price.isTemporary && build.val) {
 					let sumPrices = this.getSumPrices(build, price);
 					game.resPool.addResEvent(price.name, sumPrices * 0.5);
@@ -4340,7 +4365,7 @@ let run = function() {
 			game.stats.getStatCurrent("totalCrafts").val++;
 			game.stats.getStat("totalClicks").val += 1;
 
-			let iname = game.resPool.get(name).title;
+			let iname = resMap[name].title;
 
 			// determine actual amount after crafting upgrades
 			// amount = (amount * (1 + ratio)).toFixed(2);
@@ -5072,7 +5097,7 @@ let run = function() {
 
 			//if (!game.opts.disableCMBR) {baseProd *= (1 + game.getCMBRBonus());}
 
-			baseProd *= 1 + (game.getEffect('blsProductionBonus') * game.resPool.get('sorrow').value);
+			baseProd *= 1 + (game.getEffect('blsProductionBonus') * resMap['sorrow'].value);
 
 			baseProd = game.calendar.cycleEffectsFestival({catnip: baseProd})['catnip'];
 
@@ -5419,7 +5444,7 @@ let run = function() {
 				output[item.name] = mean;
 			}
 			if (race.name === "zebras") {
-				let shipCount = game.resPool.get("ship").value;
+				let shipCount = resMap["ship"].value;
 				let zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
 				let titanProb = Math.min(0.15 + shipCount * 0.0035, 1);
 				//let modifier = (shipCount < 230) ? Math.log(shipCount) * shipCount * 0.00084 - 0.01 : 1;
@@ -5437,7 +5462,7 @@ let run = function() {
 		},
 		isValidTrade: function (item, race) {
 			return (!(item.minLevel && race.embassyLevel < item.minLevel)
-				&& (game.resPool.get(item.name).unlocked || item.name === 'titanium' || item.name === 'uranium' || race.name === 'leviathans'));
+				&& (resMap[item.name].unlocked || item.name === 'titanium' || item.name === 'uranium' || race.name === 'leviathans'));
 		},
 		getLowestTradeAmount: function (name, limited, trigConditions) {
 			let total, amount, highestCapacity, i;
@@ -5446,8 +5471,7 @@ let run = function() {
 
 			for (i in materials) {
 				if (i === "manpower") {
-					const manpowerValue = Math.max(this.craftManager.getValueAvailable(i, true) - 100, 0);
-					total = manpowerValue / materials[i];
+					total = this.craftManager.getValueAvailable(i, true) / materials[i];
 				} else {
 					total = this.craftManager.getValueAvailable(i, !limited, options.auto.trade.trigger) / materials[i];
 				}
@@ -5589,8 +5613,6 @@ let run = function() {
 	// ==============================
 	// Configure overall page display
 	// ==============================
-
-	let right = $('#rightColumn');
 
 	// 插入cssRule
 	let addRule = function (rule) {
@@ -6609,7 +6631,7 @@ let run = function() {
 					imessage('trade.limited', [iname]);
 				} else if ((!input.is(':checked')) && option.limited) {
 					option.limited = false;
-					let require = (option.require === false) ? '资源满足黄金的触发条件就会' : '需同时满足资源黄金和' + game.resPool.get(option.require).title + '的触发条件才';
+					let require = (option.require) ? '需同时满足资源黄金和' + resMap[option.require].title + '的触发条件才' : '资源满足黄金的触发条件就会';
 					imessage('trade.unlimited', [iname, require]);
 				}
 				kittenStorage.items[input.attr('id')] = option.limited;
@@ -6725,7 +6747,9 @@ let run = function() {
 		let getOption = function (name, option, iname) {
 			let element = $('<li/>');
 			let elementLabel = iname || option.label || ucfirst(name);
-			let titleName = i18n('ui.trigger.resource') + ": " + ((game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none'));
+			let require = option.require;
+			require = (require) ? game.resPool.get(option.require).title : i18n('ui.none');
+			let titleName = i18n('ui.trigger.resource') + ": " + require;
 			if (option.require === undefined) {
 				titleName = null;
 			}
@@ -6924,7 +6948,9 @@ let run = function() {
 		let getLimitedOption = function (name, option, iname) {
 			let element = $('<li/>');
 			let elementLabel = iname || option.label || ucfirst(name);
-			let titleName = (game.resPool.get(option.require).title) ? game.resPool.get(option.require).title : i18n('ui.none');
+			let require = option.require;
+			require = (require) ? game.resPool.get(option.require).title : i18n('ui.none');
+			let titleName = require;
 
 			let label = $('<label/>', {
 				'for': 'toggle-' + name,
@@ -7731,21 +7757,15 @@ let run = function() {
 			return element;
 		};
 
+		let right = $('#rightColumn');
 		let optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
 		let optionsListElement = $('<ul/>');
-		//var optionsTitleElement = $('<div/>', {
-		//	css: { bottomBorder: '1px solid gray', marginBottom: '5px' },
-		//	text: kg_version
-		//});
-		//optionsElement.append(optionsTitleElement);
-
 		optionsListElement.append(getToggle('engine'));
 		toggles.forEach((name) => {
 			optionsListElement.append(getToggle(name));
 		});
-		// Donation Button
-		// ===============
 
+		// Donation Button
 		let showD = function() {
 			const address = '1HDV6VEnXH9m8PJuT4eQD7v8jRnucbneaq';
 			let donate = $('<li/>', {id: "ks-donate"}).append($('<a/>', {
@@ -7769,6 +7789,14 @@ let run = function() {
 		showD();
 		// add the options above the game log
 		right.prepend(optionsElement.append(optionsListElement));
+
+		let optionsTitleElement = $('<a/>', {
+			css: { display: 'inline-block', textShadow: '3px 3px 4px gray', fontStyle:'italic', transform: 'scale(0.85)'},
+			text: version,
+			target: '_blank',
+			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
+		});
+		$('#ks-engine').append(optionsTitleElement);
 	}
 
 	// add activity button
@@ -7876,7 +7904,7 @@ let run = function() {
 			isummary('summary.upgrade', [l + '小猫发明了 ' + ucfirst(name)]);
 		}
 
-		let items = ['build', 'faith', 'craft', 'craftLeader', 'trade']
+		let items = ['build', 'faith', 'craft', 'craftLeader', 'trade'];
 		items.forEach((item) => {
 			let summary = activitySummary[item];
 			for (let i in summary) {
@@ -7982,7 +8010,7 @@ let run = function() {
 				msgStock();
 				setTimeout(()=>{
 					if (Engine.enabled) {game.msg('点击小猫总结可以查询干了什么', 'notice');}
-				}, 2000)
+				}, 2000);
 			} else {
 				Engine.enabled = false;
 				engine.stop();
@@ -8029,8 +8057,8 @@ let run = function() {
 
 	if (kittenStorage.reset && kittenStorage.reset.reset) {
 		// calc paragon and karma
-		kittenStorage.reset.karmaTotal += game.resPool.get('karma').value - Number(kittenStorage.reset.karmaLastTime);
-		kittenStorage.reset.paraonTotal += game.resPool.get('paragon').value - Number(kittenStorage.reset.paragonLastTime);
+		kittenStorage.reset.karmaTotal += resMap['karma'].value - Number(kittenStorage.reset.karmaLastTime);
+		kittenStorage.reset.paraonTotal += resMap['paragon'].value - Number(kittenStorage.reset.paragonLastTime);
 		kittenStorage.reset.reset = false;
 
 		// show messagebox
