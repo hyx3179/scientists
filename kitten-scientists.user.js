@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.6';
+	const version = '15.7';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -320,6 +320,7 @@ let run = function() {
 			'ui.limit': '限制',
 			'ui.craftLimit': 'AI平衡',
 			'ui.upgradesLimit': '优选',
+			'ui.trigger.gameFilter.set': '设置游戏日志数量上限',
 			'ui.trigger.shipOverride.set': '输入一个新的 强制贸易船 触发值，\n即贸易船数量低于触发条件时，相当于未勾选贸易船AI平衡。',
 			'ui.trigger.missions.set': '输入一个新的 探索星球 触发值,取值范围为 0 到 13 的整数。\n分别对应13颗星球。\n\n默认优先碧池探索，会暂时跳过沙丘',
 			'ui.trigger.crypto.set': '输入一个新的 {0} 触发值，\n支持3个参数：-符号隔开数字参数\n第一个数字：当遗物数量大于触发值才会进行黑币交易\n第二个数字：买入的最高价（超过这价格就不会买了）\n第三个数字：卖出最低的价格。（低于这价格就不会卖出）\n默认10000-881-1060',
@@ -473,7 +474,7 @@ let run = function() {
 			'summary.auto.bls': '小猫存眼泪提炼悲伤将要造黑金字塔辣',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
-			'summary.auto.changeLeader': '如需对应项目-自动切换领袖(特质)，需勾选领袖相关和喵喵管理的分配领袖',
+			'summary.auto.changeLeader': '如需对应项目-自动切换对应领袖特质-比如工艺项目切换到工匠合成更多材料、升级切换到科学家减少科学价格等等<br>但需同时勾选 领袖相关 和喵喵管理中的 分配领袖',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
 			'summary.auto.crossbow': '铁当然是要来用来改良弩，喵用喵说好',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
@@ -483,6 +484,7 @@ let run = function() {
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.magnetos': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
+			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
 			'summary.auto.oxidation': '为菈妮氧化反应，小猫把钢全存起来了',
 			'summary.auto.parchment': '地质学还未解锁，喵喵喵把毛皮存起来了',
@@ -531,8 +533,6 @@ let run = function() {
 			'summary.chronocontrolOn': '小猫开启了时间操纵延长时间悖论的持续天数',
 			'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
 			'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
-
-			'summary.marker': '没有黑金字塔小猫拒绝了神印的建造',
 
 			'summary.festival': '举办了 {0} 次节日',
 			'summary.stars': '观测了 {0} 次天文事件',
@@ -949,7 +949,7 @@ let run = function() {
 					promote:            {enabled: true,                    misc: true, label: i18n('option.promote')},
 					autofeed:           {enabled: true,                    misc: true, label: i18n('option.autofeed')},
 					observe:            {enabled: true,                    misc: true, label: i18n('option.observe')},
-					gameFilter:         {enabled: true,                    misc: true, label: '游戏日志过滤'},
+					gameFilter:         {enabled: true,  subTrigger: 400,  misc: true, label: '游戏日志过滤'},
 					crypto:             {enabled: false, subTrigger: 1e4,  misc: true, label: i18n('option.crypto')},
 					fixCry:             {enabled: false,                   misc: true, label: i18n('option.fix.cry')},
 					//_steamworks:        {enabled: true,                   misc: true, label: i18n('option.steamworks')},
@@ -1025,9 +1025,6 @@ let run = function() {
 		}
 	};
 
-	// Increase messages displayed in log
-	game.console.maxMessages = 1000;
-
 	// 方便引用
 	let resMap = game.resPool.resourceMap;
 
@@ -1090,11 +1087,10 @@ let run = function() {
 	//var iwarning = function(key, args, t) { warning(i18n(key, args), t); };
 
 	// 缓存upgrade
-	const cacheUpgrades = (meta) => {
+	const cacheUpgrades = (metaUpgrades) => {
 		if (!options.auto.cache.upgrade) {
 			options.auto.cache.upgrade = {};
 		}
-		let metaUpgrades = meta.upgrades;
 		for (let i in metaUpgrades) {
 			if (!options.auto.cache.upgrade[i]) {
 				options.auto.cache.upgrade[i] = [];
@@ -1108,17 +1104,12 @@ let run = function() {
 			}
 		}
 	};
-
 	// 资源百分比
 	let resPercent = (name) => {
 		let res = resMap[name];
 		return res.value / res.maxValue;
 	};
 
-	// 未完成
-	let calculateResource = (name) => {
-
-	};
 	// Core Engine for Kitten Scientists
 	// =================================
 
@@ -1185,7 +1176,6 @@ let run = function() {
 			if (msg) {imessage('status.ks.disable');}
 		},
 		iterate: async function () {
-			clearTimeout(this.renderID);
 			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused)               {return;}
 			let refresh = 0;
 			this.beforeStart();
@@ -1213,6 +1203,8 @@ let run = function() {
 			//if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
 		},
 		beforeStart: function () {
+			clearTimeout(this.renderID);
+			// TO DO: 清auto的总结日志
 			if (!options.auto.options.items.promote.enabled) {return;}
 			let resPool = game.resPool;
 			let resources = resPool.resources;
@@ -1731,7 +1723,7 @@ let run = function() {
 					let geodesy = game.workshop.get("geodesy").researched;
 					if (!geodesy && resMap['iron'].perTickCached < 50) {maxKS = Math.round(maxKS * 0.5);}
 					if (!game.science.get('mechanization').unlocked && !geodesy) {maxKS = 1;}
-					if (resPercent('gold') > 1) {maxKS = 0;}
+					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
 				}
 				if (name === 'scholar' && limited) {
 					if (!game.getEffect('shatterTCGain') && scholar) {maxKS = Math.max(maxKS, 18);}
@@ -2138,6 +2130,10 @@ let run = function() {
 				let noMax = ['scholasticism','goldenSpire','stainedGlass','basilica','templars'];
 				noMax.forEach(index => {copyBuilds[index].max = -1;});
 			}
+			if (!Religion.getZU("blackPyramid").getEffectiveValue(game)) {
+				msgSummary('marker');
+				copyBuilds['marker'].enabled = false;
+			}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
@@ -2173,17 +2169,6 @@ let run = function() {
 			let count;
 			for (let entry in buildList) {
 				if (buildList[entry].count > 0) {
-					// 无金字塔过滤神印
-					if (buildList[entry].id === 'marker') {
-						if (!Religion.getZU("blackPyramid").getEffectiveValue(game)) {
-							if (!activitySummary.other['marker'] ) {
-								activity(i18n('summary.marker'));
-								storeForSummary('marker');
-							}
-							continue;
-						}
-					}
-
 					count = (Religion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
 
 					buildManager.build(buildList[entry].id, buildList[entry].variant, count);
@@ -2460,13 +2445,16 @@ let run = function() {
 				})();
 			}
 
-			if (upgrades.missions.enabled && game["spaceTab"].visible) {
+			let spaceTab = game["spaceTab"];
+			if (upgrades.missions.enabled && spaceTab.visible) {
 				let subTrigger = upgrades.missions.subTrigger;
 				let missionsLength = game.space.meta[0].meta.length;
+				let manu = game.workshop.get('spaceManufacturing').researched;
+				if (subTrigger === 4 && resMap['alicorn'].value && manu && resMap['starchart'].value > 1e5) {subTrigger = 11;}
 				let index = 0;
 				let skip = !orbitalGeodesy && !game.ironWill && !geodesy;
-				let GCPanel = game["spaceTab"].GCPanel;
-				if (!GCPanel) {game["spaceTab"].render();}
+				let GCPanel = spaceTab.GCPanel;
+				if (!GCPanel) {spaceTab.render();}
 				const missions = game.space.meta[0].meta;
 				missionLoop:
 				for (i = 0; i < missionsLength; i++) {
@@ -2477,7 +2465,7 @@ let run = function() {
 
 					let Btn = GCPanel.children[i];
 					if (!Btn || !Btn.model.metadata) {
-						game["spaceTab"].render();
+						spaceTab.render();
 						break;
 					}
 
@@ -2501,7 +2489,7 @@ let run = function() {
 						activity(i18n('upgrade.space', [missions[i].label]));
 					}
 				}
-				if (game["spaceTab"].planetPanels.length !== index && !skip) {game["spaceTab"].render();}
+				if (spaceTab.planetPanels.length !== index && !skip) {spaceTab.render();}
 			}
 
 			if (upgrades.races.enabled && game.diplomacy.hasUnlockedRaces()) {
@@ -2549,7 +2537,7 @@ let run = function() {
 							if (meta.updateEffects) {
 								meta.updateEffects(meta, game);
 							}
-							cacheUpgrades(meta);
+							cacheUpgrades(meta.upgrades);
 						}
 						game.bld.getBuildingExt(name)._metaCache = null;
 						game.bld.getBuildingExt(name)._metaCacheStage = 1;
@@ -2640,6 +2628,7 @@ let run = function() {
 
 			// 每次第一次运行builds为空
 			if (typeof builds != 'object') {
+				let Production = game.prestige.getParagonProductionRatio();
 				copyItem = {};
 				let items = JSON.parse(JSON.stringify(options.auto.build.items));
 				const important = {
@@ -2668,7 +2657,7 @@ let run = function() {
 				};
 				if (revolutionRatio < 50) {
 					scienceBuild('observatory', 300, 0.98);
-					scienceBuild('academy', Math.max(22 *(game.prestige.getParagonProductionRatio() + 1), 100), 0.99);
+					scienceBuild('academy', Math.max(22 * (Production + 1), 100), 0.99);
 					scienceBuild('biolab', 200, 1);
 				}
 
@@ -2677,7 +2666,7 @@ let run = function() {
 				let astronomy = science.get('astronomy');
 				let set = game.stats.getStat("totalResets").val && !astronomy.researched;
 				if (scienceTrigger < 0.98 && set && (!machinery || astronomy.unlocked) && resMap['minerals'].value) {
-					items['academy'].max = 6 * (game.prestige.getParagonProductionRatio() + 1);
+					items['academy'].max = 6 * (Production + 1);
 					msgSummary('academy');
 				}
 				// 粮仓
@@ -2727,6 +2716,8 @@ let run = function() {
 				if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 || !sattelite) {reactor.max = 25 + 10 * blackSky;}
 				if (resMap['uranium'].value < 100) {reactor.max = 0;}
 
+				// 采石场
+				if (resMap['oil'].maxValue < 55e3) {items['quarry'].max = 40 / (1 + Production);}
 				// 庙塔
 				let priceRatio = game.getEffect("priceRatio");
 				let zigguratM = game.bld.getBuildingExt('ziggurat').meta;
@@ -2812,7 +2803,7 @@ let run = function() {
 					if (scienceMap.maxValue > 150000 && resMap['oil'].maxValue > 35000) {
 						calciner.max = (calcinerMax === -1) ? 25 : Math.min(25, calcinerMax);
 					} else {
-						let amt = (1 + game.prestige.getParagonProductionRatio() * 7) * Math.max(1, Math.log(revolutionRatio));
+						let amt = (1 + Production * 7) * Math.max(1, Math.log(revolutionRatio));
 						calciner.max = (calcinerMax === -1) ? amt : Math.min(amt, calcinerMax);
 					}
 				}
@@ -2845,15 +2836,6 @@ let run = function() {
 				let titaniumMap = resMap['titanium'];
 				let biolab = items['biolab'];
 				if (!geodesy && !orbitalGeodesy) {
-					if (resMap['starchart'].value > 1e5) {
-						items['observatory'].max = 50;
-						items['amphitheatre'].max = 17;
-						items['academy'].max = 60;
-						items['logHouse'].max = game.bld.getBuildingExt('logHouse').meta.val + 1;
-						items['hut'].max = game.bld.getBuildingExt('hut').meta.val + 1;
-						smelter.max = 60;
-						items['ziggurat'].max = 1;
-					}
 					if (!blackSky && titaniumMap.value > 1 && mansion.max) {
 						msgSummary('mansion');
 						mansion.max = 10;
@@ -2875,10 +2857,19 @@ let run = function() {
 						biolab.max = 10 * revolutionRatio;
 						if (titaniumMap.value / titaniumMap.maxValue <= 0.96) {
 							biolab.max = 10;
-							mansion.max = Math.max(135 - game.village.maxKittens, Math.floor(17 * (game.prestige.getParagonProductionRatio() + 1)));
+							mansion.max = Math.max(135 - game.village.maxKittens, Math.floor(17 * (Production + 1)));
 							msgSummary('mansion');
 						}
 					}
+				}
+				if (resMap['starchart'].value > 1e5 && !spaceManufacturing && !game.calendar.festivalDays && !game.ironWill) {
+					items['observatory'].max = 50;
+					items['amphitheatre'].max = 17;
+					items['academy'].max = 60;
+					items['logHouse'].max = game.bld.getBuildingExt('logHouse').meta.val + 1;
+					items['hut'].max = game.bld.getBuildingExt('hut').meta.val + 1;
+					smelter.max = 60;
+					items['ziggurat'].max = 1;
 				}
 
 				//铸币厂
@@ -3127,7 +3118,7 @@ let run = function() {
 			let huntCount = Math.floor(manpower.value / 100);
 			let architecture = game.science.get('writing').researched;
 			let preCount = (!resMap['furs'].value || resMap['parchment'].value < 25) ? Math.max(30 , Math.floor(0.5 * huntCount)) : 0;
-			let mint = (architecture && huntCount > preCount && preCount > 0);
+			let mint = (architecture && huntCount > preCount && preCount > 0 && resPercent('culture') !== 1);
 
 			let itemHunt = options.auto.options.items.hunt;
 			let manpowerBoolean = itemHunt.subTrigger <= manpower.value / manpower.maxValue;
@@ -4025,7 +4016,7 @@ let run = function() {
 			if (meta.onResearch) {meta.onResearch(game);}
 			if (meta.upgrades) {
 				if (variant === 'workshop' && !itemsUpgrades.update) {itemsUpgrades.update = true;}
-				cacheUpgrades(meta);
+				cacheUpgrades(meta.upgrades);
 			}
 
 			game.stats.getStat("totalClicks").val += 1;
@@ -4205,7 +4196,7 @@ let run = function() {
 					if (id === 'oilWell') {
 						let meta = game.bld.getBuildingExt(id).meta.val;
 						if (meta < 8 || resMap['oil'].maxValue < 2e4) {break;}
-						if (resMap['oil'].maxValue > 55e3 && resMap['oil'].value > 2e4 && meta < 199) {count = Math.floor(count * 0.5);}
+						if (resMap['oil'].maxValue > 55e3 && resMap['oil'].value > 3e4 && meta < 199) {count = Math.floor(count * 0.5);}
 						if (game.bld.getBuildingExt('calciner').meta.val > 20 && !orbitalGeodesy) {break;}
 					}
 				// falls through
@@ -4419,7 +4410,7 @@ let run = function() {
 			game.resPool.payPrices(prices);
 			game.resPool.addResEvent(craft.name, craftAmt);
 			// storeForSummary(craft.name, craftAmt, 'resGain');
-			if (craft.upgrades) {cacheUpgrades(craft);}
+			if (craft.upgrades) {cacheUpgrades(craft.upgrades);}
 			game.stats.getStat("totalCrafts").val++;
 			game.stats.getStatCurrent("totalCrafts").val++;
 			game.stats.getStat("totalClicks").val += 1;
@@ -4496,8 +4487,9 @@ let run = function() {
 			// 默认数量设为可达无限的最小值
 			let amount = Number.MAX_VALUE / ratio + Number.MAX_VALUE / Math.pow(2, 53) / ratio;
 
-			let gScience = game.science;
-			let scienceMeta = gScience.meta[0];
+			let Science = game.science;
+			let scienceMeta = Science.meta[0];
+			let navigation = Science.get('navigation').researched;
 			let indexMax;
 			let cache = options.auto.cache;
 			let msgScience = (name) => {
@@ -4574,14 +4566,14 @@ let run = function() {
 						break;
 					}
 				}
-				if (!scienceMeta.meta[18].researched && cultrueTri > 0.9 && resValue < 65) {force = true;}
+				if (!navigation && cultrueTri > 0.9 && resValue < 65) {force = true;}
 				if (aboveTrigger && 4000 * this.getTickVal(resMap['parchment'], true) < 2500) {
 					limited = false;
 				}
 			}
 
 			let religion = resMap['gold'].maxValue < 500 || (game.religion.getRU('solarRevolution').on && game.religion.faith > 1000);
-			if (name === 'compedium' && limited && gScience.get('navigation').researched && religion) {
+			if (name === 'compedium' && limited && navigation && religion) {
 				let cacheCompedium = cache.resources['compedium'];
 				indexMax = (cacheCompedium) ? 19 : 27;
 				for (i = 18; i < indexMax; i++) {
@@ -4614,7 +4606,7 @@ let run = function() {
 				}
 			}
 
-			if (name === 'blueprint' && limited && gScience.get('electricity').researched) {
+			if (name === 'blueprint' && limited && Science.get('electricity').researched) {
 				//indexMax = (game.village.maxKittens > 130) ? 44 : 34;
 				for (i = 30; i < 44; i++) {
 					let meta = scienceMeta.meta[i];
@@ -4651,7 +4643,7 @@ let run = function() {
 					force= true;
 					autoMax = 2;
 				}
-				if (!gScience.get('navigation').researched) {
+				if (!navigation) {
 					if (resValue > 300) {limited = true;}
 					if (resValue > 500) {
 						autoMax = 0;
@@ -4884,6 +4876,7 @@ let run = function() {
 			let res = options.auto.resources[name];
 			let stock = (res && res.enabled) ? res.stock : 0;
 			let workshop = game.workshop;
+			let orbiGeodesy = workshop.get('orbitalGeodesy').researched;
 
 			if (name === 'iron') {
 				let lumberMill = game.bld.get('lumberMill').val > 19 - 40 * game.getEffect("priceRatio");
@@ -4933,12 +4926,12 @@ let run = function() {
 				}
 			}
 			if (name === 'titanium') {
-				if (this.getWorkshopResearched('rotaryKiln') && workshop.get('orbitalGeodesy').researched) {stock += 5000;}
+				if (this.getWorkshopResearched('rotaryKiln') && orbiGeodesy) {stock += 5000;}
 				// if (unResearched('augumentation') && resMap['uranium'].value > 50 && game.village.leader && workshop.get('rotaryKiln').researched) {stock += 5000;}
 				if (this.getWorkshopResearched('spaceManufacturing') && game.bld.get('reactor').val > 24 && resMap['titanium'].maxValue > 125e3) {stock += 13e5;}
 			}
 			if (name === 'gear') {
-				if (this.getWorkshopResearched('rotaryKiln') && workshop.get('orbitalGeodesy').researched) {stock += 5000;}
+				if (this.getWorkshopResearched('rotaryKiln') && orbiGeodesy && resMap['titanium'].value > 5e3) {stock += 5000;}
 				if (this.getWorkshopResearched('fuelInjectors') && resPercent('coal') < 0.8 && resMap['oil'].value > 2e4) {stock += 250;}
 			}
 			if (name === 'beam') {
@@ -5121,21 +5114,21 @@ let run = function() {
 				}
 			}
 
+			let scienceBldMax = game.bld.getEffect("scienceMax");
+			let compCap = game.bld.getEffect("scienceMaxCompendia");
+			if (game.ironWill) {scienceBldMax *= 10;}
+			if (game.prestige.getPerk("codexLeviathanianus").researched) {
+				let blackLibrary = game.religion.getTU("blackLibrary");
+				let ttBoostRatio = 1 + blackLibrary.val * (blackLibrary.effects["compendiaTTBoostRatio"] + game.getEffect("blackLibraryBonus"));
+				scienceBldMax *= 1 + 0.05 * ttBoostRatio * game.religion.transcendenceTier;
+			}
 			if (name === 'compedium') {
 				limRat = (game.science.get('architecture').unlocked) ? limRat : 0;
 				limRat = (resMap['manuscript'].value > Math.max(10e3, 100 * templeFactor)) ? 0.9 : limRat;
+				if (res.value * 10 > Math.max(2e4, scienceBldMax + compCap) && resPercent('science') === 1) {limRat = 0;}
 			}
-
 			if (name === 'blueprint') {
 				limRat = (game.science.get('industrialization').unlocked) ? limRat : 0;
-				let scienceBldMax = game.bld.getEffect("scienceMax");
-				let compCap = game.bld.getEffect("scienceMaxCompendia");
-				if (game.ironWill) {scienceBldMax *= 10;}
-				if (game.prestige.getPerk("codexLeviathanianus").researched) {
-					let blackLibrary = game.religion.getTU("blackLibrary");
-					let ttBoostRatio = 1 + blackLibrary.val * (blackLibrary.effects["compendiaTTBoostRatio"] + game.getEffect("blackLibraryBonus"));
-					scienceBldMax *= 1 + 0.05 * ttBoostRatio * game.religion.transcendenceTier;
-				}
 				if (resMap['compedium'].value * 10 > Math.max(2e4, scienceBldMax + compCap) && resPercent('science') === 1) {limRat = 1;}
 			}
 
@@ -5382,7 +5375,7 @@ let run = function() {
 					if (meta.updateEffects) {
 						meta.updateEffects(meta, game);
 					}
-					cacheUpgrades(meta);
+					cacheUpgrades(meta.upgrades);
 					//game.upgrade(meta.upgrades);
 				}
 			}
@@ -7616,6 +7609,8 @@ let run = function() {
 					engine.stop(false);
 					if (name === 'crypto') {
 						value = window.prompt(i18n('ui.trigger.crypto.set', [option.label]), option.subTrigger);
+					} else if (name === 'gameFilter') {
+						value = window.prompt(i18n('ui.trigger.gameFilter.set'), option.subTrigger);
 					} else if (name === 'shipOverride') {
 						value = window.prompt(i18n('ui.trigger.shipOverride.set', [option.label]), option.subTrigger);
 					} else {
@@ -7628,6 +7623,9 @@ let run = function() {
 					if (value !== null) {
 						if (name === 'crypto') {
 							option.subTrigger = value;
+						} else if (name === 'gameFilter'){
+							option.subTrigger = parseFloat(value);
+							gameMaxMsg();
 						} else {
 							option.subTrigger = parseFloat(value);
 						}
@@ -7918,7 +7916,7 @@ let run = function() {
 			}
 		}
 	};
-
+	// 小猫总结消耗资源
 	let storePrices = (prices) => {
 		for (let i in prices) {
 			let price = prices[i];
@@ -7951,7 +7949,7 @@ let run = function() {
 	};
 
 	let displayActivitySummary = function () {
-		if (game.console.messages.length > 900) {game.clearLog();}
+		if (game.console.messages.length > game.console.maxMessages - 100) {game.clearLog();}
 		let equal = '='.repeat(24);
 		let l, name, msg;
 
@@ -8118,16 +8116,18 @@ let run = function() {
 	engineOn();
 
 	// 记录初始数据
-	(() => {
-		let _timer = options.auto.cache.dataTimer;
-		_timer['trueYear'] = game.calendar.trueYear();
-		_timer['ticksTotal'] = game.timer.ticksTotal;
-		_timer['saveId'] = game.telemetry.guid;
-		_timer = null;
-	})();
+	options.auto.cache.dataTimer['trueYear'] = game.calendar.trueYear();
+	options.auto.cache.dataTimer['ticksTotal'] = game.timer.ticksTotal;
+	options.auto.cache.dataTimer['saveId'] = game.telemetry.guid;
 
 	sessionStorage.setItem('options',JSON.stringify(options));
 	loadFromKittenStorage();
+
+	// 游戏日志长度
+	let gameMaxMsg = () => {
+		game.console.maxMessages = Math.min(Math.max(400, options.auto.options.items.gameFilter.subTrigger), 2000);
+	}
+	gameMaxMsg();
 
 	// hack for style.
 	// If there are more UI options, split it to "updateUI"
