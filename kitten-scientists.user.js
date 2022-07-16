@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.11';
+	const version = '15.12';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -485,6 +485,7 @@ let run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
+			'summary.auto.leaderPriset': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.magnetos': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
@@ -559,7 +560,7 @@ let run = function() {
 			'summary.separator': ' ',
 			'summary.day': '天',
 			'summary.days': '天',
-			'summary.head': '过去 {0} 的小喵种田总结',
+			'summary.head': '过去 {0} 的总结',
 			'summary.show': '小猫总结',
 		},
 	};
@@ -739,10 +740,10 @@ let run = function() {
 					// other
 					amphitheatre:   {require: 'minerals',    enabled: true, max:60, stage: 0, checkForReset: true, triggerForReset: -1},
 					broadcastTower: {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'amphitheatre', checkForReset: true, triggerForReset: -1},
-					tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					chapel:         {require: 'minerals',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					temple:         {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					mint:           {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+					tradepost:      {require: 'gold',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					// unicornPasture: {require: false,         enabled: true},
 					ziggurat:       {require: false,         enabled: true, max:110, checkForReset: true, triggerForReset: -1},
 					chronosphere:   {require: 'unobtainium', enabled: false,max:-1,  checkForReset: true, triggerForReset: -1},
@@ -922,7 +923,7 @@ let run = function() {
 						summer:  false, autumn:  false, winter:  false,         spring:      true},
 
 					spiders:    {enabled: true,  require: false,         allowCapped: false,    limited: true,
-						summer:  false, autumn:  true,  winter:  false,         spring:      false},
+						summer:  true,  autumn:  true,   winter:  true,         spring:      true},
 
 					leviathans: {enabled: true,   require: 'unobtainium', allowCapped: true,     limited: true,
 						summer:  true,  autumn:  true,  winter:  true,          spring:      true}
@@ -1632,7 +1633,12 @@ let run = function() {
 			if (leaderVals.enabled && game.science.get('civil').researched && !game.challenges.isActive("anarchy") && !options.copyTrait) {
 				let traitName = leaderVals.leaderTrait;
 				let leaderJobName = leaderVals.leaderJob;
-				leaderJobName = (leaderJobName === 'farmer' && game.getEffect('priceRatio') && traitName === 'manager' && !game.challenges.isActive("atheism")) ? 'priest' : leaderJobName;
+
+				if (leaderJobName === 'farmer' && game.getEffect('priceRatio') && traitName === 'manager' && village.getJob('priest').unlocked) {
+					leaderJobName = 'priest';
+					msgSummary('leaderPriset');
+				}
+
 				if (village.leader === null && village.sim.kittens.length) {
 					return game["villageTab"].censusPanel.census.makeLeader(village.sim.kittens[0]);
 				}
@@ -2160,7 +2166,7 @@ let run = function() {
 				let metabuild = buildManager.getBuild(name, build.variant);
 				let faithEnabled = (metabuild.on && metabuild.noStackable) || Religion.faith < metabuild.faith;
 				if (build.variant === 's' && faithEnabled) {build.max = 0;}
-				if (build.variant === "z" && !game.bld.getBuildingExt("ziggurat").on) {build.max = 0;}
+				if (build.variant === "z" && !game.bld.getBuildingExt("ziggurat").meta.on) {build.max = 0;}
 				if (build.variant === 'c' && !game.science.get('cryptotheology').researched) {build.max = 0;}
 				metaData[name] = metabuild;
 			}
@@ -2448,9 +2454,10 @@ let run = function() {
 							}
 						}
 					}
+					checkPrices:
 					for (i of toResearch) {
 						for (let resource of i.prices) {
-							if (craftManager.getValueAvailable(resource.name, true) < resource.val * ratio) {break;}
+							if (craftManager.getValueAvailable(resource.name, true) < resource.val * ratio) {continue checkPrices;}
 						}
 						upgradeManager.build(i, 'policy');
 					}
@@ -2593,8 +2600,7 @@ let run = function() {
 						ratio = resMap['compedium'].value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 2e6;
 						ratio |= craftManager.getTickVal(resMap['concrate']) > 600 * paragon;
 						if (ratio && options.auto.build.items.dataCenter.enabled) {
-							let energyRatio = game.challenges.isActive("energy") ? 2 : 1;
-							if (winterProd >= game.resPool.energyCons + 150 * energyRatio) {return upgradeBuilding('library', libraryMeta);}
+							if (winterProd >= game.resPool.energyCons + 150 && !game.challenges.isActive("energy")) {return upgradeBuilding('library', libraryMeta);}
 						} else {
 							msgSummary('upgLibrary', '', 'upgBldFilter');
 						}
@@ -2638,7 +2644,7 @@ let run = function() {
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
 
-			// 每次第一次运行builds为空
+			// 每次由iterate第一次运行builds为空
 			if (typeof builds != 'object') {
 				let Production = game.prestige.getParagonProductionRatio();
 				copyItem = {};
@@ -3001,8 +3007,12 @@ let run = function() {
 				// 轨道阵列
 				let Array = builds['orbitalArray'];
 				let Nummon = game["nummon"];
-				if (Nummon && Nummon.getBestUnobtainiumBuilding() !== $I("space.planet.piscine.orbitalArray.label") && Array.max < 0) {
-					Array.max = 0;
+				if (Nummon) {
+					if (Nummon.getBestUnobtainiumBuilding() === $I("space.planet.piscine.orbitalArray.label")) {
+						Array.max = game.space.getBuilding('orbitalArray').val + 1;
+					} else if (Array.max < 0) {
+						Array.max = 0;
+					}
 				}
 			}
 
@@ -3253,7 +3263,7 @@ let run = function() {
 				if (name === 'nagas' && !game.ironWill && skipNagas) {continue;}
 				if (name === 'zebras' && !prof && game.calendar.season === 2 && resPercent('titanium') > 0.5) {continue;}
 				if (name === 'sharks' && race.embassyLevel < 10) {prof = false;}
-				if (name === 'dragons' && solarRevolution > 1 && !prof) {continue;}
+				if (name === 'dragons' && solarRevolution > 2 && !prof) {continue;}
 
 				// 优先太阳革命
 				let faithValue = resMap['faith'].value;
@@ -3398,7 +3408,7 @@ let run = function() {
 				options.auto.filter.console = {};
 				resetActivitySummary();
 				msgStock();
-				cache.resUpg = null;
+				cache.resUpg = {};
 				options.auto.upgrade.items.upgrades.cache = null;
 				let dataTimer = cache.dataTimer;
 				dataTimer['saveId'] = guid;
@@ -3654,7 +3664,7 @@ let run = function() {
 			let Auto = options.auto;
 			let distribute = Auto.distribute;
 			if (!Auto.options.items.promote.enabled || !distribute.items.leader.enabled || !distribute.enabled) {
-				return msgSummary('changeLeader', '', 'noFilter');
+				if (vLeader) {return msgSummary('changeLeader', '', 'noFilter');}
 			}
 			if (trait) {
 				if (game.science.get('civil').researched && vLeader && !game.challenges.isActive("anarchy")) {
@@ -4518,13 +4528,14 @@ let run = function() {
 			let shipValue = resMap['ship'].value;
 			if (name === 'ship') {
 				// 准备自动 强制
-				force = options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
 				let optionShipVal = options.auto.options.items.shipOverride.subTrigger;
+				force = shipValue < Math.max(100, 0.5 * optionShipVal) || resMap['science'].maxValue > 1e5;
+				force &= options.auto.options.enabled && options.auto.options.items.shipOverride.enabled;
 				let geodesy = workshop.get("geodesy").researched;
 				let solar = game.religion.getSolarRevolutionRatio();
 				optionShipVal = (geodesy) ? Math.max(243, optionShipVal) : 60 / Math.max(0.3, Math.log1p(solar));
-				force &= shipValue < optionShipVal;
 				force &= (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar;
+				force = force && shipValue < optionShipVal;
 			}
 
 			// 默认数量设为可达无限的最小值
@@ -5540,6 +5551,7 @@ let run = function() {
 				profit += (res.maxValue > 0) ? Math.min(output[prod], Math.max(res.maxValue - res.value, 0)) / tick : output[prod] / tick;
 			}
 			let prof = true;
+			let season = game.calendar.season;
 			let spice = resMap['spice'].value + 60 * game.getResourcePerTick('spice', true) < 0;
 			if (name === 'nagas') {
 				if (!resMap['concrate'].unlocked && !game.ironWill) {prof = false;}
@@ -5547,30 +5559,36 @@ let run = function() {
 				let production = 1 + game.prestige.getParagonProductionRatio();
 				if (resMap['concrate'].value < 100 * production && race.embassyLevel > 10 && resMap['concrate'].value) {doTrade = true;}
 			}
+			let solar = game.religion.getSolarRevolutionRatio();
+			let titanium = resMap['titanium'];
 			if (name === 'griffins') {
-				if (resMap['ship'].value && game.calendar.season !== 2 && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
+				if (resMap['ship'].value && season !== 2 && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
+				if (titanium.value && titanium.value < 500 && season === 2 && solar > 1) {prof = false;}
 				doTrade = spice && game.calendar.festivalDays;
 			}
 			if (name === 'zebras') {
 				let calciner = game.bld.getBuildingExt('calciner').meta.val;
 				let griffins = options.auto.trade.items.griffins;
 				let iron = this.craftManager.getTickVal(resMap['iron']);
-				let titanium = resMap['titanium'];
 				// / this.craftManager.getTickVal(titanium
 				let titaniumProfit = Math.min(Math.max(titanium.maxValue - titanium.value, 0), output['titanium']) / titanium.perTickCached;
 				let autumnIron = this.getAverageTrade(this.getRace('griffins'))['iron'] / iron < output['iron'] / iron + titaniumProfit;
-				if (griffins.enabled && griffins.autumn && game.calendar.season === 2 && calciner) {
+				if (griffins.enabled && griffins.autumn && season === 2 && calciner) {
 					prof = prof && autumnIron && resPercent('titanium') < 0.95;
 				}
-				let solar = game.religion.getSolarRevolutionRatio();
+
 				if (solar > 1.5 && !game.religion.getRU("stainedGlass").on) {prof = false;}
 				if (calciner > 1 && solar > 3 && !game.religion.getRU("basilica").on) {prof = false;}
 				doTrade = spice && game.calendar.festivalDays;
 				doTrade = doTrade && game.workshop.get('caravanserai').researched;
 			}
 			if (name === 'spiders') {
-				doTrade = resPercent('titanium') > 0.1 && resPercent('coal') < 1;
-				doTrade = game.challenges.isActive('atheism') && race.embassyLevel > 4;
+				if (season !== 2) {prof = resPercent('titanium') > 0.5 && resPercent('coal') < 0.5;}
+				if (season === 3) {prof = resPercent('titanium') > 0.9 && resPercent('coal') < 0.5 && resPercent('gold') > 0.95;}
+				if (!prof && !doTrade) {
+					doTrade = resPercent('titanium') > 0.1 && resPercent('coal') < 1;
+					doTrade = game.challenges.isActive('atheism') && race.embassyLevel > 4;
+				}
 			}
 			if (name === 'dragons') {
 				prof = doTrade && resPercent('titanium') > 0.5;
@@ -7975,9 +7993,12 @@ let run = function() {
 
 	let activitySummary;
 	let resetActivitySummary = function () {
+		let Calendar = game.calendar;
 		activitySummary = {
-			lastyear: game.calendar.year,
-			lastday:  game.calendar.day,
+			lastyear: Calendar.year,
+			lastTrueYear: Calendar.trueYear(),
+			lastday:  Calendar.day,
+			lastSeason:  Calendar.season,
 			craft:    {},
 			trade:    {},
 			build:    {},
@@ -8025,7 +8046,7 @@ let run = function() {
 
 		let consume = activitySummary.resConsume;
 		let resources = game.resPool.resources;
-		for (let i = resources.length - 1; i > 0; i--) {
+		for (let i = resources.length - 1; i  > 0; i--) {
 			if (!consume) {break;}
 			name = resources[i].name;
 			let val = consume[name];
@@ -8068,27 +8089,35 @@ let run = function() {
 
 		// Show time since last run. Assumes that the day and year are always higher.
 		if (activitySummary.lastyear + activitySummary.lastday) {
-			let years = game.calendar.year - activitySummary.lastyear;
-			let days = game.calendar.day - activitySummary.lastday;
+			let Calendar = game.calendar;
+			let years = Calendar.year - activitySummary.lastyear;
+			let days = Calendar.day - activitySummary.lastday;
+			let trueYears = Calendar.trueYear() - activitySummary.lastTrueYear;
+			let seasons = Calendar.season - activitySummary.lastSeason;
 
-			if (days < 0) {
-				years -= 1;
-				days += 400;
-			}
+			let daysPerSeason = Calendar.daysPerSeason;
+			let seasonsPerYear = Calendar.seasonsPerYear;
 
+			days += years * 400;
+			days += seasons * daysPerSeason;
 			let duration = '';
-			if (years > 0) {
+			if (days >= 400) {
 				duration += years + ' ';
 				duration += (years === 1) ? i18n('summary.year') : i18n('summary.years');
 			}
 
 			if (days >= 0) {
 				if (years > 0) {duration += i18n('summary.separator');}
-				duration += roundToTwo(days) + ' ';
+				duration += roundToTwo(days % 400) + ' ';
 				duration += (days === 1) ? i18n('summary.day') : i18n('summary.days');
 			}
 
 			isummary('summary.head', [duration]);
+
+			if (trueYears > 0) {
+				let realTime = game.toDisplaySeconds(trueYears * seasonsPerYear * daysPerSeason * Calendar.ticksPerDay / game.ticksPerSecond);
+				summary('总共 ' + realTime + ' 的小喵种田时间');
+			}
 		}
 
 		let filter = options.auto.filter;
