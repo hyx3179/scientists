@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.12';
+	const version = '15.13';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -280,7 +280,7 @@ let run = function() {
 			'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
 			'act.observe': '小猫观测了天文现象',
 			'act.hunt': '{0} 波{1}去打猎',
-			'act.hunt.unicorn': '小猫急着派出猎人帮独角兽配种，呜呼十连爪ฅ',
+			'act.hunt.unicorn': '小猫急着派出猎人帮独角兽配种，呜呼十连爪ฅ ฅ',
 			'act.hunt.trade': '小猫贸易后决定去打猎',
 			'act.hunt.mint': '毛皮或羊皮纸处于低储量',
 			'act.build': '小猫建造了一个 {0}',
@@ -472,7 +472,7 @@ let run = function() {
 
 			'summary.auto.academy': '小猫当科学快满了才会继续建造研究院',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
-			'summary.auto.bls': '小猫存眼泪提炼悲伤将要造黑金字塔辣',
+			'summary.auto.bls': '小猫存眼泪提炼悲伤(当然是在幸福度边上)',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '如需对应项目-自动切换对应领袖特质-比如工艺项目切换到工匠合成更多材料、升级切换到科学家减少科学价格等等<br>但需同时勾选 提拔领袖小猫 和喵喵管理中的 分配领袖',
@@ -485,7 +485,7 @@ let run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
-			'summary.auto.leaderPriset': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
+			'summary.auto.leaderPriest': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.magnetos': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
@@ -1147,6 +1147,7 @@ let run = function() {
 		renderID: undefined,
 		worker: undefined,
 		toolText: undefined,
+		leaderTimer: undefined,
 		start: function (msg = true) {
 			options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
 			if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
@@ -1607,8 +1608,12 @@ let run = function() {
 			let leader = village.leader;
 			if (game.science.get('civil').researched && leader) {
 				if (village.jobs[5].unlocked) {leader.exp += 5 * game.getEffect("skillXP");}
-				let optionDistribute = options.auto.distribute;
-				let optionLeader = optionDistribute.items.leader;
+				let Distribute = options.auto.distribute;
+				let optionLeader = Distribute.items.leader;
+				let countDown = this.leaderTimer;
+				if (optionLeader.enabled && leader.trait === optionLeader.leaderTrait && countDown) {this.leaderTimer++;}
+				// 5分钟
+				if (!leader.rank && resMap['gold'].value < 8e3 && countDown < 31 && countDown) {return;}
 
 				let rank = leader.rank;
 				let gold = this.craftManager.getValueAvailable('gold', true);
@@ -1620,6 +1625,7 @@ let run = function() {
 					iactivity('act.promote', [rank + 1, 25 + 25 * rank], 'leaderFilter');
 					census.renderGovernment(census.container);
 					census.update();
+					if (optionLeader.enabled && leader.trait === optionLeader.leaderTrait) {this.leaderTimer = 1;}
 					storeForSummary('gold', 25 + 25 * rank, 'resConsume');
 					storeForSummary('promote', 1);
 				}
@@ -1636,7 +1642,7 @@ let run = function() {
 
 				if (leaderJobName === 'farmer' && game.getEffect('priceRatio') && traitName === 'manager' && village.getJob('priest').unlocked) {
 					leaderJobName = 'priest';
-					msgSummary('leaderPriset');
+					msgSummary('leaderPriest');
 				}
 
 				if (village.leader === null && village.sim.kittens.length) {
@@ -1702,7 +1708,7 @@ let run = function() {
 			let currentRatio = 0;
 			let revolution = game.religion.getSolarRevolutionRatio();
 			let expect = options.auto.faith.addition.autoPraise.expect;
-			let scholar = game.workshop.get('spaceManufacturing').researched || resMap['starchart'].value > 1e4;
+			let scholar = game.workshop.get('spaceManufacturing').researched || resMap['starchart'].value > 1e4 || game.challenges.isActive("blackSky");
 			expect = expect && expect > 5 && revolution < expect * 0.3 && village.jobs[5].unlocked;
 			for (let i = village.jobs.length - 1; i >= 0; i--) {
 				let job = village.jobs[i];
@@ -2049,7 +2055,7 @@ let run = function() {
 				let paragonFactor = (production < 2) ? Math.max(2 / game.prestige.getParagonProductionRatio(), 2) : 1;
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
 				let rrVal = game.time.getCFU("ressourceRetrieval").val;
-				let factor = (adoreFactor < 10 || rrVal) ? 1.92 + Math.log1p(solarRLimit) : 1.3;
+				let factor = (adoreFactor < 11 || rrVal) ? 1.92 + Math.log1p(solarRLimit) : 1.32;
 				let expectSolarRevolutionRatio = game.getLimitedDR(paragonFactor * factor * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				let expect = solarRatio * 1e2 < expectSolarRevolutionRatio;
@@ -2165,9 +2171,9 @@ let run = function() {
 				let build = copyBuilds[name];
 				let metabuild = buildManager.getBuild(name, build.variant);
 				let faithEnabled = (metabuild.on && metabuild.noStackable) || Religion.faith < metabuild.faith;
-				if (build.variant === 's' && faithEnabled) {build.max = 0;}
-				if (build.variant === "z" && !game.bld.getBuildingExt("ziggurat").meta.on) {build.max = 0;}
-				if (build.variant === 'c' && !game.science.get('cryptotheology').researched) {build.max = 0;}
+				if (build.variant === 's' && faithEnabled) {build.enabled = false;}
+				if (build.variant === "z" && !game.bld.getBuildingExt("ziggurat").meta.on) {build.enabled = false;}
+				if (build.variant === 'c' && !game.science.get('cryptotheology').researched) {build.enabled = false;}
 				metaData[name] = metabuild;
 			}
 
@@ -2208,8 +2214,8 @@ let run = function() {
 			const metaData = {};
 			for (let name in builds) {
 				let build = builds[name];
-				if (build.variant === 'chrono' && !game.workshop.get('chronoforge').researched) {build.max = 0;}
-				if (build.variant === 'void' && !game.science.get('voidSpace').researched) {build.max = 0;}
+				if (build.variant === 'chrono' && !game.workshop.get('chronoforge').researched) {build.enabled = false;}
+				if (build.variant === 'void' && !game.science.get('voidSpace').researched) {build.enabled = false;}
 				metaData[name] = buildManager.getBuild(name, build.variant);
 
 				// let button = buildManager.getBuildButton(name, build.variant);
@@ -2830,7 +2836,7 @@ let run = function() {
 						calciner.max = (calcinerMax === -1) ? amt : Math.min(amt, calcinerMax);
 					}
 				}
-				if (game.getResourcePerTick('oil', true) < 0.4) {
+				if (game.getResourcePerTick('oil', true) < 0.6) {
 					calciner.max = 0;
 					items['magneto'].max = 0;
 				}
@@ -2929,8 +2935,8 @@ let run = function() {
 			for (let name in builds) {
 				let build = builds[name];
 				let meta = buildManager.getBuild(build.name || name).meta;
-				if (meta.almostLimited && !geodesy && hasLeader) {build.max = 0;}
-				if (meta.stage !== build.stage) {build.max = 0;}
+				if (meta.almostLimited && !geodesy && hasLeader) {build.enabled = false;}
+				if (meta.stage !== build.stage) {build.enabled = false;}
 				metaData[name] = meta;
 			}
 
@@ -3227,17 +3233,18 @@ let run = function() {
 
 			if (!tradeManager.singleTradePossible(undefined)) {return;}
 
-			let season = game.calendar.getCurSeason().name;
+			let Calendar = game.calendar;
+			let season = Calendar.getCurSeason().name;
 			let goldTrigger = requireTrigger <= gold.value / gold.maxValue;
 
 			let isLimited;
 			this.setTrait('merchant');
 			let index = 0;
 			let solarRevolution = game.religion.getSolarRevolutionRatio();
-			let challenge = game.challenges.anyChallengeActive() && game.calendar.year > 2;
+			let challenge = game.challenges.anyChallengeActive() && Calendar.year > 2;
 			let renaissance = game.prestige.getPerk('renaissance').researched;
 			let solar = solarRevolution || challenge || !renaissance;
-			let skipNagas = game.calendar.year > 2e3 || (renaissance && game.workshop.get('spaceManufacturing').researched);
+			let skipNagas = Calendar.year > 2e3 || game.workshop.get('spaceManufacturing').researched;
 			// Determine how many races we will trade this cycl
 			let trade, race, name, require;
 			for (name in optionTrade.items) {
@@ -3250,7 +3257,6 @@ let run = function() {
 				index++;
 				if (!trade.enabled) {continue;}
 				let Season = trade[season];
-				if (name === 'spiders' && race.embassyLevel > 5 && !solarRevolution && resMap['oil'].value < 1e6) {Season = true;}
 				if (!Season) {continue;}
 				let button = tradeManager.getTradeButton(race.name);
 
@@ -3261,7 +3267,7 @@ let run = function() {
 				// If we have enough to trigger the check, then attempt to trade
 				let prof = tradeManager.getProfitability(name);
 				if (name === 'nagas' && !game.ironWill && skipNagas) {continue;}
-				if (name === 'zebras' && !prof && game.calendar.season === 2 && resPercent('titanium') > 0.5) {continue;}
+				if (name === 'zebras' && !prof && Calendar.season === 2 && resPercent('titanium') > 0.5) {continue;}
 				if (name === 'sharks' && race.embassyLevel < 10) {prof = false;}
 				if (name === 'dragons' && solarRevolution > 2 && !prof) {continue;}
 
@@ -3298,12 +3304,11 @@ let run = function() {
 			let maxTrades = Math.floor(tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited);
 
 			// 节日
-			if (optionTrade.festival && !game.calendar.festivalDays) {return;}
+			if (optionTrade.festival && !Calendar.festivalDays) {return;}
 			// Distribute max trades without starving any race
 			if (maxTrades < 1) {return;}
-			let spice = resMap['spice'].value + 60 * game.getResourcePerTick('spice', true) < 0;
-			if (spice && game.calendar.festivalDays) {maxTrades = Math.ceil(maxTrades * 0.3);}
-
+			// let spice = resMap['spice'].value + 60 * game.getResourcePerTick('spice', true) < 0;
+			// if (spice && Calendar.festivalDays) {maxTrades = Math.ceil(maxTrades * 0.3);}
 			const maxByRace = [];
 			for (i = 0; i < trades.length; i++) {
 				name = trades[i];
@@ -3321,6 +3326,7 @@ let run = function() {
 
 			if (trades.length === 0) {return;}
 
+			let Spiders = resMap['steel'].value > resMap['plate'].value && !game.getEffect('shatterTCGain') && Calendar.season !== 2;
 			const tradesDone = {};
 			while (trades.length > 0 && maxTrades >= 1) {
 				if (maxTrades < trades.length) {
@@ -3340,8 +3346,10 @@ let run = function() {
 						minTradePos = i;
 					}
 				}
-				if (!tradesDone[trades[minTradePos]]) {tradesDone[trades[minTradePos]] = 0;}
-				tradesDone[trades[minTradePos]] += minTrades;
+				name = trades[minTradePos];
+				if (name === 'spiders' && Spiders) {minTrades = Math.floor(0.6 * minTrades);}
+				if (!tradesDone[name]) {tradesDone[name] = 0;}
+				tradesDone[name] += minTrades;
 				maxTrades -= minTrades;
 				trades.splice(minTradePos, 1);
 				maxByRace.splice(minTradePos, 1);
@@ -3369,9 +3377,7 @@ let run = function() {
 
 			cacheManager.pushToCache({'materials': tradeNet});
 
-			if (resPercent('gold') >= 0.98) {
-				optionTrade.cache = true;
-			}
+			if (resPercent('gold') >= 0.98) {optionTrade.cache = true;}
 
 			for (let name in tradesDone) {
 				if (tradesDone[name] > 0) {
@@ -3408,7 +3414,9 @@ let run = function() {
 				options.auto.filter.console = {};
 				resetActivitySummary();
 				msgStock();
+				cache.resUpg = null;
 				cache.resUpg = {};
+				this.leaderTimer = 0;
 				options.auto.upgrade.items.upgrades.cache = null;
 				let dataTimer = cache.dataTimer;
 				dataTimer['saveId'] = guid;
@@ -4733,8 +4741,8 @@ let run = function() {
 				let steelValAva = this.getValueAvailable('steel');
 				// let ironHut = !game.ironWill && resMap['iron'].maxValue > 3000 && this.getUnResearched('ironwood');
 				// ironHut = resValue > 250 * ratio || ironHut;
-				let ironCoalRatio = Math.max(1, resMap['coal'].perTickCached / resMap['iron'].perTickCached);
-				if (resMap['iron'].value < 1.25 * ironCoalRatio * resMap['steel'].value && !Craft.oxidation) {amount = 0;}
+				let ironCoalRatio = 0.3 * Math.min(1, resMap['coal'].perTickCached / resMap['iron'].perTickCached);
+				if (resMap['plate'].value < 1.25 * ironCoalRatio * resMap['steel'].value && !Craft.oxidation) {amount = 0;}
 				let forceSteel = (name, prices) => {
 					let workshopMeta;
 					if (name) {
@@ -4748,7 +4756,8 @@ let run = function() {
 							if (prices[Res].name === 'steel') {steelPrice = prices[Res].val;}
 						}
 						let amt = Math.ceil((steelPrice - resValue) / ratio);
-						let checkRes = (this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt);
+						// let checkRes = (this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt);
+						let checkRes = resMap['iron'].value > 100 * amt && resMap['coal'].value > 100 * amt;
 						if (amt > 0 && checkRes) {
 							amount = amt;
 							force = true;
@@ -4765,10 +4774,10 @@ let run = function() {
 					if (calciner.isAutomationEnabled) {
 						msgSummary('ironFactory');
 					} else {
-						let calAmount = 0.003 * (1 + game.bld.get("reactor").on * 0.1) * (game.getEffect("calcinerRatio") + 1)
+						let calAmount = 0.0015 * (1 + game.bld.get("reactor").on * 0.1) * (1 + game.getEffect("calcinerRatio"))
 							* game.bld.getAutoProductionRatio() * (1 + game.getEffect("ironPolicyRatio"))
 							* game.calendar.cycleEffectsFestival({iron : 1})['iron'] * calVal * (1 + game.getEffect("ironPolicyRatio"));
-						amount = (amount <= 0) ? calAmount : amount + calAmount;
+						amount = Math.max(0, amount) + calAmount;
 						let minAmount = Math.min(resMap['coal'].value, resMap['iron'].value) * 0.01;
 						if (amount > minAmount) {amount = minAmount;}
 					}
@@ -4985,17 +4994,20 @@ let run = function() {
 							stock += 75;
 						}
 						// 精钢锯
-						let steelSaw = this.getUnResearched('steelSaw') && resMap[name].value > 250;
+						let steelSaw = this.getUnResearched('steelSaw') && resMap[name].value > 250 && !resMap['titanium'].perTickCached;
 						if (steelSaw) {
 							stock += 750;
 							msgSummary('steelSaw');
 						}
 						if (options.auto.craft.oxidation && this.getUnResearched('oxidation')) {stock += 5000;}
-						if (game.challenges.isActive("blackSky") && !resMap['titanium'].perTickCached && resMap['steel'].value < 1100) {stock += 1100;}
+
+						if (game.challenges.isActive("blackSky") && !resMap['titanium'].perTickCached && resMap['steel'].value < 1100 && resMap['oil'].value > 6e3) {
+							stock += 1100;
+						}
+
 						let cacheSteel = options.auto.cache.resUpg['steel'];
 						if (cacheSteel) {stock += cacheSteel;}
-						if (cacheAlloy) {stock += cacheAlloy * 75 / game.getEffect("craftRatio");}
-						if (cacheAlloy) {stock += cacheAlloy;}
+						if (cacheAlloy) {stock += cacheAlloy * 75 / (1 + game.getEffect("craftRatio"));}
 						break;
 					}
 					case 'titanium':
@@ -5315,7 +5327,6 @@ let run = function() {
 				// 建筑数量大于等于max时 或者等于0时跳过
 				if (build.max !== -1 && build.max <= data.val) { continue; }
 				if (data.unlocked === false) {continue;}
-				if (data.stage !== build.stage) {continue;}
 				let require = build.require ? this.craftManager.getResource(build.require) : false;
 				if (!require || trigger <= require.value / require.maxValue) {
 					let prices = (data.stages) ? data.stages[data.stage].prices : data.prices;
@@ -5677,7 +5688,7 @@ let run = function() {
 
 				max = tradeOutput[item.name];
 
-				let capacity = Math.max((resource.maxValue - resource.value) / max, 0);
+				let capacity = Math.max((resource.maxValue - resource.value - Math.max(0, 5 * resource.perTickCached)) / max, 0);
 
 				highestCapacity = (capacity < highestCapacity) ? highestCapacity : capacity;
 			}
