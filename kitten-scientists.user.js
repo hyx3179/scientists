@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.13';
+	const version = '15.14';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -495,6 +495,7 @@ let run = function() {
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好，真的是最后1个了',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所(如果有问题的话',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
+			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
 			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成双成对',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
 			'summary.auto.tradepost': '祷告太阳革命前，交易所开摆',
@@ -1175,6 +1176,7 @@ let run = function() {
 			}
 
 			if (!this.loop) {return;}
+			clearTimeout(this.huntID);
 			clearInterval(this.loop);
 			this.loop = undefined;
 			if (msg) {imessage('status.ks.disable');}
@@ -1708,7 +1710,8 @@ let run = function() {
 			let currentRatio = 0;
 			let revolution = game.religion.getSolarRevolutionRatio();
 			let expect = options.auto.faith.addition.autoPraise.expect;
-			let scholar = game.workshop.get('spaceManufacturing').researched || resMap['starchart'].value > 1e4 || game.challenges.isActive("blackSky");
+			let scholar = game.workshop.get('spaceManufacturing').researched || game.challenges.isActive("blackSky")
+				|| (resMap['starchart'].value > 1e5 && game.calendar.year < 10);
 			expect = expect && expect > 5 && revolution < expect * 0.3 && village.jobs[5].unlocked;
 			for (let i = village.jobs.length - 1; i >= 0; i--) {
 				let job = village.jobs[i];
@@ -1750,7 +1753,10 @@ let run = function() {
 					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
 				}
 				if (name === 'scholar' && limited) {
-					if (!game.getEffect('shatterTCGain') && scholar) {maxKS = Math.max(maxKS, 18);}
+					if (!game.getEffect('shatterTCGain') && scholar) {
+						maxKS = Math.max(maxKS, 24);
+						if (val < maxKS) {msgSummary('scholar');}
+					}
 					if (resPercent('science') > 0.4) {maxKS = 0;}
 				}
 				if (name === 'miner' && !game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
@@ -1917,7 +1923,7 @@ let run = function() {
 					}
 				}
 			} else {
-				if (resMap['alicorn'].value < 50 || option.bestUnicornBuilding.confirm < 3) {
+				if (!resMap['alicorn'].unlock || option.bestUnicornBuilding.confirm < 2) {
 					$('#toggle-bestUnicornBuilding').click();
 					option.bestUnicornBuilding.confirm += 1;
 				}
@@ -2082,11 +2088,12 @@ let run = function() {
 			}
 
 			// 太阳革命加速恢复到期望值
-			let transformTier = 0.525 * Math.log(religion.faithRatio) + 3.45;
+			let transformTier = 0.65 * (0.525 * Math.log(religion.faithRatio) + 3.45);
 			let factor = (voidOrder || activitySummary.other['adore']) ? 1 : 0.3;
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5;
 			factor = (game.workshop.get('spaceManufacturing').researched) ? 5 : factor;
-			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, 0.65 * transformTier) * factor, 80 * maxSolarRevolution);
+			let maxPercent = (resMap['starchart'].value > 2e5) ? 90 : 80;
+			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, transformTier) * factor, maxPercent * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = religion.getRU('solarRevolution').on;
 			// 彩色玻璃
@@ -2331,8 +2338,8 @@ let run = function() {
 						noup.push('caravanserai');
 					}
 					// 缺电过滤碳封存
-					if (game.resPool.energyProd - game.resPool.energyCons - 100 <= 0) {
-						noup = noup.concat(['carbonSequestration']);
+					if (game.resPool.energyProd - game.resPool.energyCons <= 50) {
+						noup = noup.concat(['carbonSequestration', 'pumpjack']);
 					}
 					// 过滤钛升级
 					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.006 && resMap['ship'].value < 40 && revolutionRatio > 1){
@@ -2681,9 +2688,9 @@ let run = function() {
 				};
 				if (revolutionRatio < 50) {
 					let number = (resMap['starchart'].value > 1e5) ? 200 : 300;
-					scienceBuild('observatory', number, 0.98);
-					scienceBuild('academy', Math.max(22 * (Production + 1), 100), 0.99);
-					scienceBuild('biolab', 200, 1);
+					scienceBuild('observatory', number, 0.96);
+					scienceBuild('academy', Math.max(22 * (Production + 1), 100), 0.98);
+					scienceBuild('biolab', 200, 0.99);
 				}
 
 				let winterTick = craftManager.getPotentialCatnip(false);
@@ -2747,7 +2754,7 @@ let run = function() {
 				let priceRatio = game.getEffect("priceRatio");
 				let zigguratM = game.bld.getBuildingExt('ziggurat').meta;
 				let factor = Math.pow(zigguratM.priceRatio + priceRatio, zigguratM.val);
-				if (zigguratM.val > 10 && resMap['blueprint'].value < 5 * factor && !spaceManufacturing) {items['ziggurat'].max = 0;}
+				if (zigguratM.val > 10 && resMap['blueprint'].value < 3 * factor && !resMap['alicorn'].unlock) {items['ziggurat'].max = 0;}
 				// 天文台
 				if (blackSky && resMap['science'].maxValue > 3e5 && !orbitalGeodesy) {items['observatory'].max = 0;}
 
@@ -3131,7 +3138,7 @@ let run = function() {
 			if (calendar.observeBtn != null && !game.workshop.get("seti").researched){
 				let sci = resMap['science'].value;
 				let star = resMap['starchart'].value;
-				if (game.calendar.observeRemainingTime < 270 && game.ticks < 600) {activity('珂学家可能进入了后台，运行速度缓慢(最好别最小化挂机)');}
+				if (game.calendar.observeRemainingTime < 270 && game.ticks > 600) {activity('珂学家可能进入了后台，运行速度缓慢(最好别最小化挂机)');}
 				calendar.observeHandler();
 				storeForSummary('science', resMap['science'].value - sci, 'resGain');
 				storeForSummary('starchart', resMap['starchart'].value - star, 'resGain');
@@ -3574,17 +3581,19 @@ let run = function() {
 				msg('temporalAccelerator');
 			}
 			// 缺电
-			let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+			// let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+			let Prod = game.resPool.energyProd;
 			let biolab = game.bld.getBuildingExt('biolab').meta;
 			let biofuel = biolab.on && game.workshop.get('biofuel').researched;
-			let catnipTick = options.auto.distribute.religion || craftManager.getPotentialCatnip() < 0;
+			let catnipTick = craftManager.getPotentialCatnip();
+			catnipTick = options.auto.distribute.religion || (catnipTick < 0 && resMap['catnip'].value - 4000 * catnipTick);
 			if (biofuel && catnipTick) {
 				activity(i18n('summary.biolab.test') + "(猫薄荷产量过低)");
 				biolab.on = 0;
 			}
-			if (winterProd && winterProd < game.resPool.energyCons) {
+			if (Prod && Prod < game.resPool.energyCons + 1) {
 				if (biofuel && biolab.on) {
-					let msg = '冬季产出电:' + game.getDisplayValueExt(winterProd) + '，冬季消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
+					let msg = '冬季产出电:' + game.getDisplayValueExt(Prod) + '，消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
 					let number = biolab.on;
 					iactivity('summary.biolab.test', [msg + number]);
 					biolab.on = 0;
@@ -3671,7 +3680,7 @@ let run = function() {
 			let vLeader = game.village.leader;
 			let Auto = options.auto;
 			let distribute = Auto.distribute;
-			if (!Auto.options.items.promote.enabled || !distribute.items.leader.enabled || !distribute.enabled) {
+			if (!Auto.options.items.promote.enabled || !distribute.items.leader.enabled) {
 				if (vLeader) {return msgSummary('changeLeader', '', 'noFilter');}
 			}
 			if (trait) {
@@ -4849,7 +4858,7 @@ let run = function() {
 				forceAlloy('alloyAxe', 25);
 			}
 
-			if (name === 'eludium' && limited && !aboveTrigger) {
+			if (name === 'eludium' && limited && !aboveTrigger && resPercent('unobtainium') > 0.1) {
 				if (huntTime && game.time.getCFU("ressourceRetrieval").on > 8 - renaissance * 2) {
 					amount = Math.max(amount, 1);
 				}
@@ -4913,9 +4922,10 @@ let run = function() {
 			}
 			let ignore = (res.name === 'spice' || res.name === 'blueprint');
 			if (prod <= 0 && ignore) {return 'ignore';}
+			let timeSkip = activitySummary['other']['time.skip'];
+			let ratio = 1;
 			if (!preTrade) {
-				let ratio = 1;
-				if (res.name === 'unobtainium' && game.time.getCFU("ressourceRetrieval").val && game.calendar.cycle !== 5) {ratio = 0.5;}
+				if (res.name === 'unobtainium' && timeSkip) {ratio = 0.4;}
 				prod += this.cacheManager.getResValue(res.name) * ratio;
 			}
 			return prod;
@@ -5080,9 +5090,6 @@ let run = function() {
 			return (meta.unlocked && !meta.researched);
 		},
 		getLimRat: function (name, limited, limRat) {
-			//if (limited) {
-			//	switch (name) {
-			//}
 			if (!limited) {return limRat;}
 			let navigation = game.science.get('navigation');
 
