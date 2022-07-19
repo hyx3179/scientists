@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.14';
+	const version = '15.15';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -271,8 +271,6 @@ let run = function() {
 			'filter.distribute': '猫猫分配',
 			'filter.leader': '领袖相关',
 			'filter.misc': '喵喵喵',
-
-			'time' : '{1}处理用时：{0}ms',
 
 			'dispose.necrocorn': '小猫帮你处理掉了影响效率的多余死灵兽',
 			'act.feed': '小猫向利维坦献上祭品。古神很高兴',
@@ -791,7 +789,7 @@ let run = function() {
 
 					// Helios
 					sunlifter:          {require: 'science', enabled: true,  max:-1, checkForReset: true, triggerForReset: -1},
-					containmentChamber: {require: 'science', enabled: false, max:5,  checkForReset: true, triggerForReset: -1},
+					containmentChamber: {require: 'science', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					heatsink:           {require: 'thorium', enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					sunforge:           {require: false,     enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 
@@ -1149,6 +1147,7 @@ let run = function() {
 		worker: undefined,
 		toolText: undefined,
 		leaderTimer: undefined,
+		time: undefined,
 		start: function (msg = true) {
 			options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
 			if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
@@ -1177,14 +1176,15 @@ let run = function() {
 
 			if (!this.loop) {return;}
 			clearTimeout(this.huntID);
+			clearTimeout(this.renderID);
 			clearInterval(this.loop);
 			this.loop = undefined;
 			if (msg) {imessage('status.ks.disable');}
 		},
 		iterate: async function () {
 			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused)               {return;}
-			clearTimeout(this.renderID);
 			let refresh = 0;
+			this.time = performance.now();
 			let auto = options.auto;
 			let subOptions = auto.options;
 			if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
@@ -1206,6 +1206,7 @@ let run = function() {
 			if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
 			if (auto.distribute.enabled)                                                    {refresh += ~~this.distribute();}
 			if (refresh > 0)                                                                {this.delay('render');}
+			this.calculateTime();
 			//if (options.auto.timeCtrl.enabled && options.auto.timeCtrl.items.reset.enabled) {await this.reset();}
 		},
 		delay: function (render) {
@@ -1838,6 +1839,8 @@ let run = function() {
 			}
 		},
 		worship: function () {
+			let priest = game.village.getJob('priest');
+			if (!game.ironWill && priest.unlocked && !priest.value && !options.auto.distribute.enabled && resMap['kittens'].value > 200) {return;}
 			const builds = options.auto.faith.items;
 			const buildManager = this.buildManager;
 			const craftManager = this.craftManager;
@@ -2610,10 +2613,12 @@ let run = function() {
 					if (libraryMeta.stages[1].stageUnlocked) {
 						let ratio = 1 + game.bld.get('biolab').val * 0.01;
 						let paragon = Math.max(1 + game.prestige.getParagonProductionRatio(), 2) / 2;
-						ratio = resMap['compedium'].value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 2e6;
+						ratio = resMap['compedium'].value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 1e6;
 						ratio |= craftManager.getTickVal(resMap['concrate']) > 600 * paragon;
 						if (ratio && options.auto.build.items.dataCenter.enabled) {
-							if (winterProd >= game.resPool.energyCons + 150 && !game.challenges.isActive("energy")) {return upgradeBuilding('library', libraryMeta);}
+							if (winterProd >= game.resPool.energyCons + 150 && !game.challenges.isActive("energy")) {
+								return upgradeBuilding('library', libraryMeta);
+							}
 						} else {
 							msgSummary('upgLibrary', '', 'upgBldFilter');
 						}
@@ -2990,7 +2995,7 @@ let run = function() {
 					trigger = 9;
 				}
 
-				let better = blackSky || solarRevolution > 5;
+				let blackOrSolar = blackSky || solarRevolution > 5;
 				let sattelite = game.space.getBuilding('sattelite').val;
 				if (!trigger) {
 					let station = game.space.getBuilding('spaceStation').val;
@@ -3008,24 +3013,40 @@ let run = function() {
 					} else if (!solarRevolution) {
 						builds['spaceElevator'].max = 22;
 					}
+
+					// 收容室 散热器
+					let itemChamber = builds['containmentChamber'];
+					let itemHeatsink = builds['heatsink'];
+					let antimatter = resMap['antimatter'];
+					let heatsink = game.space.getBuilding("heatsink").val;
+					let containmentChamber = game.space.getBuilding("containmentChamber").val;
+					itemHeatsink.max = heatsink + 1;
+					itemChamber.max = containmentChamber + 1;
+					let ChamberCons = 50 * (1 + heatsink * 0.01);
+					let energyExtra = (game.resPool.energyProd < game.resPool.energyCons + ChamberCons);
+					if (antimatter.value + 50 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra) {
+						itemChamber.enabled = false;
+						itemHeatsink.enabled = false;
+					}
+
+					// 轨道阵列
+					let Array = builds['orbitalArray'];
+					let Nummon = game["nummon"];
+					if (Nummon) {
+						if (Nummon.getBestUnobtainiumBuilding() === $I("space.planet.piscine.orbitalArray.label")) {
+							Array.max = game.space.getBuilding('orbitalArray').val + 1;
+						} else if (Array.max < 0) {
+							Array.max = 0;
+						}
+					}
 				}
 				if (game.ironWill) {builds['spaceStation'].max = 0;}
-				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && better) {buildManager.build("sattelite", 1);}
-				if (blackSky || solarRevolution > 6) {
+				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && blackOrSolar) {buildManager.build("sattelite", 1);}
+				if (blackOrSolar) {
 					if (!blackSky && game.space.getBuilding('researchVessel').val < 1 && builds.sattelite.enabled) {
 						buildManager.build("researchVessel", 1);
 					}
 					if (game.space.getBuilding('researchVessel').val < 4) {builds['spaceStation'].max = 0;}
-				}
-				// 轨道阵列
-				let Array = builds['orbitalArray'];
-				let Nummon = game["nummon"];
-				if (Nummon) {
-					if (Nummon.getBestUnobtainiumBuilding() === $I("space.planet.piscine.orbitalArray.label")) {
-						Array.max = game.space.getBuilding('orbitalArray').val + 1;
-					} else if (Array.max < 0) {
-						Array.max = 0;
-					}
 				}
 			}
 
@@ -3045,14 +3066,6 @@ let run = function() {
 			for (let entry in buildList) {
 				let item = buildList[entry];
 				if (item.count > 0) {
-					let id = item.id;
-					if (id === 'containmentChamber') {
-						let antimatter = resMap['antimatter'];
-						let perYear = game.getEffect('antimatterProduction');
-						let energyExtra = (game.resPool.energyProd < game.resPool.energyCons);
-						if (perYear * 500 + antimatter.value < antimatter.maxValue || energyExtra) {continue;}
-					}
-
 					buildManager.build(item.id, item.count);
 					refreshRequired = 1;
 				}
@@ -3147,7 +3160,7 @@ let run = function() {
 			}
 		},
 		hunt: function () {
-			clearTimeout(this.huntID);
+			// clearTimeout(this.huntID);
 			let manpower = this.craftManager.getResource('manpower');
 			if (manpower.value < 100 || game.challenges.isActive("pacifism")) {return;}
 			if (resPercent('manpower') > 3 && game.getEffect('hunterRatio') < 3) {return;}
@@ -3158,16 +3171,19 @@ let run = function() {
 			let unicornPasture = game.bld.getBuildingExt('unicornPasture').meta.val;
 			let unicornHunt = (!unicornPasture && unicorn && manpower.value > 1e3 && unicornValue < 3 && game.getEffect("craftRatio") > 0.06);
 
+			let itemHunt = options.auto.options.items.hunt;
+			let subTrigger = itemHunt.subTrigger;
+			let manpowerBoolean = itemHunt.subTrigger <= manpower.value / manpower.maxValue;
+			let tradeCache = !manpowerBoolean && options.auto.trade.cache;
+
 			// 铸币厂前加速打猎
 			let aveOutput = this.craftManager.getAverageHunt();
+			manpower.value += Math.max(manpower.perTickCached * 2 * (subTrigger > 0.9), 0);
 			let huntCount = Math.floor(manpower.value / 100);
 			let architecture = game.science.get('writing').researched;
 			let preCount = (!resMap['furs'].value || resMap['parchment'].value < 25) ? Math.max(30 , Math.floor(0.5 * huntCount)) : 0;
 			let mint = (architecture && huntCount > preCount && preCount > 0 && resPercent('culture') !== 1);
 
-			let itemHunt = options.auto.options.items.hunt;
-			let manpowerBoolean = itemHunt.subTrigger <= manpower.value / manpower.maxValue;
-			let tradeCache = !manpowerBoolean && options.auto.trade.cache;
 			if (manpowerBoolean || mint || unicornHunt || tradeCache || itemHunt.time) {
 				if (mint) {
 					huntCount = preCount;
@@ -3197,9 +3213,7 @@ let run = function() {
 				this.setTrait('manager');
 				game.village.gainHuntRes(huntCount);
 				this.setTrait();
-				if (huntCount >= 1000 && !game.challenges.getChallenge("pacifism").unlocked) {
-					game.challenges.getChallenge("pacifism").unlocked = true;
-				}
+				if (huntCount >= 1000) {game.challenges.getChallenge("pacifism").unlocked = true;}
 				if (options.auto.cache.trait['manager']) {
 					iactivity('act.hunt', ['管理者派出' + huntCount, hunter], 'huntFilter');
 					storeForSummary('hunt.manager', huntCount);
@@ -3223,7 +3237,7 @@ let run = function() {
 		},
 		trade: function () {
 			let cacheSummary = {};
-			let Ratio = (options.auto.options.items.promote.enabled) ? 2 : 0;
+			let Ratio = (options.auto.options.items.promote.enabled && options.auto.distribute.enabled) ? 2 : 0;
 			for (let res in resMap) {
 				let Res = resMap[res];
 				game.resPool.addRes(Res, Math.max(Ratio * Res.perTickCached + game.getEffect(res + 'PerTickCon'), 0), false);
@@ -3575,7 +3589,7 @@ let run = function() {
 			if (re.val && re.on !== re.val && ur > 0) {msg('reactor', undefined, true);}
 			// 自动打开时空加速器自动化
 			let timeA = game.time.getCFU("temporalAccelerator");
-			if (timeA.on && !game.time.testShatter){
+			if (timeA.on && !game.time.testShatter) {
 				timeA.isAutomationEnabled = true;
 				game.time.testShatter = 1;
 				msg('temporalAccelerator');
@@ -3586,7 +3600,7 @@ let run = function() {
 			let biolab = game.bld.getBuildingExt('biolab').meta;
 			let biofuel = biolab.on && game.workshop.get('biofuel').researched;
 			let catnipTick = craftManager.getPotentialCatnip();
-			catnipTick = options.auto.distribute.religion || (catnipTick < 0 && resMap['catnip'].value - 4000 * catnipTick);
+			catnipTick = options.auto.distribute.religion || (catnipTick < 0 && resMap['catnip'].value + 400 * catnipTick > 0);
 			if (biofuel && catnipTick) {
 				activity(i18n('summary.biolab.test') + "(猫薄荷产量过低)");
 				biolab.on = 0;
@@ -3658,6 +3672,7 @@ let run = function() {
 			return refreshRequired;
 		},
 		gameUpgrade: function () {
+			let Time = performance.now();
 			let auto = options.auto;
 			let upgrades = auto.upgrade.items.upgrades;
 			let cache = auto.cache;
@@ -3675,12 +3690,20 @@ let run = function() {
 				game.updateCaches();
 				upgrades.update = null;
 			}
+			let diffTime = performance.now() - Time;
+			storeForSummary('珂学家等待游戏处理耗时共', diffTime, 'CPU');
+			this.time += diffTime;
+		},
+		calculateTime: function () {
+			let Time = this.time;
+			let diffTime = performance.now() - Time;
+			storeForSummary('可爱的猫猫珂学家服务耗时', diffTime, 'CPU');
 		},
 		setTrait: function (trait) {
 			let vLeader = game.village.leader;
 			let Auto = options.auto;
 			let distribute = Auto.distribute;
-			if (!Auto.options.items.promote.enabled || !distribute.items.leader.enabled) {
+			if (!Auto.options.items.promote.enabled || !distribute.enabled || !distribute.items.leader.enabled) {
 				if (vLeader) {return msgSummary('changeLeader', '', 'noFilter');}
 			}
 			if (trait) {
@@ -3736,7 +3759,7 @@ let run = function() {
 				let solarRevolutionRatio = 1 + game.religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
 				catnipTick = ((resMap['catnip'].perTickCached - catnipTick) * (1 + solarRevolutionAdterAdore) / solarRevolutionRatio) + catnipTick + game.globalEffectsCached.catnipPerTickCon;
 			}
-			if (catnipTick < 0) {
+			if (catnipTick < 0 && resMap['catnip'].value + 1000 * catnipTick < 0) {
 				let optionFaith = options.auto.faith;
 				if (!options.auto.distribute.religion) {
 					options.auto.distribute.religion = true;
@@ -5201,7 +5224,8 @@ let run = function() {
 					break;
 				}
 				case 'kerosene':
-					limRat = (!piscine.val && resMap['starchart'].value > 1400 && res.value < 250 && sloar > 2) ? 0.7 : limRat;
+					limRat = 0.25;
+					limRat = (!piscine.val && resMap['starchart'].value > 1400 && res.value < 250 && sloar > 3) ? 0.8 : limRat;
 					limRat = (!piscine.on && res.value > 250) ? 0 : limRat;
 					limRat = (space.getProgram('moonMission').val) ? limRat : 0;
 					break;
@@ -8143,6 +8167,16 @@ let run = function() {
 			|| game.console.filters['faith'].enabled || game.console.filters['astronomicalEvent'].enabled) {
 			summary(equal);
 			game.msg('喵喵提示：游戏(珂学家)日志消耗性能会比较多', "alert");
+		}
+
+		let CPU = activitySummary['CPU'];
+		let numberFix = Math.pow(10, 2 + game.opts.forceHighPrecision);
+		for (name in CPU) {
+			let millisecond = Math.round(CPU[name] * numberFix) / numberFix;
+			if (millisecond > 1e3) {
+				millisecond = game.toDisplaySeconds(Math.floor(millisecond / 1000)) + Math.round(millisecond % 1000 * numberFix) / numberFix;
+			}
+			summary(name + ' ' + millisecond + ' 毫秒');
 		}
 		// Clear out the old activity
 		resetActivitySummary();
