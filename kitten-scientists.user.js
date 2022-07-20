@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.15';
+	const version = '15.16';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -382,6 +382,9 @@ let run = function() {
 			'status.sub.disable': '禁用 {0}',
 			'status.auto.disable': '禁用自动化 {0}',
 
+			'time.game' : '猫珂学家等待游戏处理{0} 毫秒',
+			'time.ks': '可爱猫猫珂学家一共服务了 {0} 次，珂学家处理共耗时 {1} 毫秒， 平均耗时 {2} 毫秒',
+
 			'trade.limited': '贸易获得数量大于产量时才与 {0} 贸易，次数自动限制',
 			'trade.limitedTitle': '根据产量和贸易获得数量',
 			'trade.unlimited': '{1}与 {0} 的 贸易',
@@ -489,7 +492,7 @@ let run = function() {
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
 			'summary.auto.oxidation': '为菈妮氧化反应，小猫把钢全存起来了',
-			'summary.auto.parchment': '地质学还未解锁，喵喵喵把毛皮存起来了',
+			'summary.auto.parchment': '还未研究地质学，毛皮用不了那么多，喵喵喵把毛皮存起来了',
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好，真的是最后1个了',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所(如果有问题的话',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
@@ -498,7 +501,9 @@ let run = function() {
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
 			'summary.auto.tradepost': '祷告太阳革命前，交易所开摆',
 			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
+			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造。',
+			'summary.auto.spaceTrigger': '小猫发展飞快，把星图留给探索碧池星',
 			'summary.auto.steelSaw': '小喵存着钢给木材厂换精钢锯，更加锋利了喵',
 			'summary.auto.smelter': '神学前，冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.tear': '小喵都做了什么?! 独角兽的眼泪加小猫幸福度的捏',
@@ -1643,12 +1648,13 @@ let run = function() {
 				let traitName = leaderVals.leaderTrait;
 				let leaderJobName = leaderVals.leaderJob;
 
-				if (leaderJobName === 'farmer' && game.getEffect('priceRatio') && traitName === 'manager' && village.getJob('priest').unlocked) {
+				let Leader = village.leader;
+				if (leaderJobName === 'farmer' && game.getEffect('priceRatio') && village.getJob('priest').unlocked && Leader && Leader.job !== 'priest') {
 					leaderJobName = 'priest';
 					msgSummary('leaderPriest');
 				}
 
-				if (village.leader === null && village.sim.kittens.length) {
+				if (Leader === null && village.sim.kittens.length) {
 					return game["villageTab"].censusPanel.census.makeLeader(village.sim.kittens[0]);
 				}
 				let optionsTheocracy = false;
@@ -1657,7 +1663,7 @@ let run = function() {
 				}
 				if (optionsTheocracy || game.science.getPolicy('theocracy').researched) {leaderJobName = "priest";}
 				let distributeJob = village.getJob(leaderJobName);
-				if (village.leader == null || !(village.leader.job === leaderJobName && village.leader.trait.name === traitName)) {
+				if (Leader == null || !(Leader.job === leaderJobName && Leader.trait.name === traitName)) {
 					let traitKittens = village.sim.kittens.filter(kitten => kitten.trait.name === traitName);
 					if (traitKittens.length !== 0) {
 						if (distributeJob.unlocked && distributeJob.value < village.getJobLimit(leaderJobName)) {
@@ -1754,11 +1760,17 @@ let run = function() {
 					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
 				}
 				if (name === 'scholar' && limited) {
+					let more;
 					if (!game.getEffect('shatterTCGain') && scholar) {
+						more = true;
+					}
+
+					if (resPercent('science') > 0.4) {
+						maxKS = 0;
+					} else if (more) {
 						maxKS = Math.max(maxKS, 24);
 						if (val < maxKS) {msgSummary('scholar');}
 					}
-					if (resPercent('science') > 0.4) {maxKS = 0;}
 				}
 				if (name === 'miner' && !game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
 				if (name === 'priest' && resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
@@ -1839,8 +1851,6 @@ let run = function() {
 			}
 		},
 		worship: function () {
-			let priest = game.village.getJob('priest');
-			if (!game.ironWill && priest.unlocked && !priest.value && !options.auto.distribute.enabled && resMap['kittens'].value > 200) {return;}
 			const builds = options.auto.faith.items;
 			const buildManager = this.buildManager;
 			const craftManager = this.craftManager;
@@ -2974,6 +2984,7 @@ let run = function() {
 			return refreshRequired;
 		},
 		space: function () {
+			if (!game["spaceTab"].visible) {return;}
 			const builds = JSON.parse(JSON.stringify(options.auto.space.items));
 			const buildManager = this.spaceManager;
 			const craftManager = this.craftManager;
@@ -2993,6 +3004,7 @@ let run = function() {
 					}
 				} else if (!trigger && solarRevolution > 2 && !game.space.meta[0].meta[3].val && starchartVal < 2000) {
 					trigger = 9;
+					msgSummary('spaceTrigger');
 				}
 
 				let blackOrSolar = blackSky || solarRevolution > 5;
@@ -3041,7 +3053,10 @@ let run = function() {
 					}
 				}
 				if (game.ironWill) {builds['spaceStation'].max = 0;}
-				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && blackOrSolar) {buildManager.build("sattelite", 1);}
+				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && blackOrSolar) {
+					buildManager.build("sattelite", 1);
+					msgSummary('sattelite');
+				}
 				if (blackOrSolar) {
 					if (!blackSky && game.space.getBuilding('researchVessel').val < 1 && builds.sattelite.enabled) {
 						buildManager.build("researchVessel", 1);
@@ -3691,13 +3706,14 @@ let run = function() {
 				upgrades.update = null;
 			}
 			let diffTime = performance.now() - Time;
-			storeForSummary('珂学家等待游戏处理耗时共', diffTime, 'CPU');
 			this.time += diffTime;
+			// activitySummary.gameTime += diffTime;
 		},
 		calculateTime: function () {
 			let Time = this.time;
 			let diffTime = performance.now() - Time;
-			storeForSummary('可爱的猫猫珂学家服务耗时', diffTime, 'CPU');
+			activitySummary.ksTime += diffTime;
+			activitySummary.totalTicks++;
 		},
 		setTrait: function (trait) {
 			let vLeader = game.village.leader;
@@ -4512,8 +4528,11 @@ let run = function() {
 			// amount = (amount * (1 + ratio)).toFixed(2);
 			amount = craftAmt;
 
-			if (trait) {storeForSummary(iname, amount, 'craftLeader');}
-			else {storeForSummary(iname, amount, 'craft');}
+			if (trait) {
+				storeForSummary(iname, amount, 'craftLeader');
+			} else {
+				storeForSummary(iname, amount, 'craft');
+			}
 			iactivity('act.craft', [leader + game.getDisplayValueExt(amount), iname], 'craftFilter');
 		},
 		canCraft: function (name, amount) {
@@ -4663,9 +4682,8 @@ let run = function() {
 						break;
 					}
 				}
-				if (!navigation && cultrueTri > 0.9 && resValue < 65) {force = true;}
-				if (aboveTrigger && 4000 * this.getTickVal(resMap['parchment'], true) < 2500) {
-					limited = false;
+				if (cultrueTri > 0.9 && (this.getTickVal(resMap['parchment'], true) < 1.25 || !navigation)) {
+					force = true;
 				}
 			}
 
@@ -8011,7 +8029,6 @@ let run = function() {
 		$('#ks-engine').append(optionsTitleElement);
 	}
 
-
 	//建筑日志提示
 	let msgSummary = (build, isDelete, filter)=> {
 		if (isDelete) {
@@ -8041,6 +8058,9 @@ let run = function() {
 			lastTrueYear: Calendar.trueYear(),
 			lastday:  Calendar.day,
 			lastSeason:  Calendar.season,
+			// gameTime: 0,
+			ksTime: 0,
+			totalTicks: 0,
 			craft:    {},
 			trade:    {},
 			build:    {},
@@ -8130,10 +8150,12 @@ let run = function() {
 		});
 
 		// Show time since last run. Assumes that the day and year are always higher.
-		if (activitySummary.lastyear + activitySummary.lastday) {
+		let lastYear = activitySummary.lastyear;
+		let lastDay = activitySummary.lastday;
+		if (lastYear + lastDay) {
 			let Calendar = game.calendar;
-			let years = Calendar.year - activitySummary.lastyear;
-			let days = Calendar.day - activitySummary.lastday;
+			let years = Calendar.year - lastYear;
+			let days = Calendar.day - lastDay;
 			let trueYears = Calendar.trueYear() - activitySummary.lastTrueYear;
 			let seasons = Calendar.season - activitySummary.lastSeason;
 
@@ -8162,6 +8184,7 @@ let run = function() {
 			}
 		}
 
+		// 提示日志过滤
 		let filter = options.auto.filter;
 		if (!filter.enabled || !filter.items['craftFilter'].enabled || !filter.items['buildFilter'].enabled
 			|| game.console.filters['faith'].enabled || game.console.filters['astronomicalEvent'].enabled) {
@@ -8169,14 +8192,22 @@ let run = function() {
 			game.msg('喵喵提示：游戏(珂学家)日志消耗性能会比较多', "alert");
 		}
 
-		let CPU = activitySummary['CPU'];
-		let numberFix = Math.pow(10, 2 + game.opts.forceHighPrecision);
-		for (name in CPU) {
-			let millisecond = Math.round(CPU[name] * numberFix) / numberFix;
-			if (millisecond > 1e3) {
-				millisecond = game.toDisplaySeconds(Math.floor(millisecond / 1000)) + Math.round(millisecond % 1000 * numberFix) / numberFix;
-			}
-			summary(name + ' ' + millisecond + ' 毫秒');
+		// 处理耗时
+		let ksTime = activitySummary.ksTime;
+		if (ksTime) {
+			let totalTicks = activitySummary.totalTicks;
+			let gameTime = activitySummary.gameTime;
+			let numberFix = Math.pow(10, 2 + game.opts.forceHighPrecision);
+			let diplaySecond = (time) => {
+				let millisecond = Math.round(time * numberFix) / numberFix;
+				let number = Math.round(time % 1000 * numberFix) / numberFix;
+				if (time > 1e3) {
+					number = game.toDisplaySeconds(Math.floor(millisecond / 1000)) + number;
+				}
+				return number;
+			};
+			summary(i18n('time.ks', [totalTicks, diplaySecond(ksTime) ,Math.round(ksTime * numberFix / totalTicks) / numberFix]));
+			// if (gameTime) {summary(i18n('time.game', [diplaySecond(gameTime)]));}
 		}
 		// Clear out the old activity
 		resetActivitySummary();
