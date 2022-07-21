@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.16';
+	const version = '15.17';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -1649,9 +1649,9 @@ let run = function() {
 				let leaderJobName = leaderVals.leaderJob;
 
 				let Leader = village.leader;
-				if (leaderJobName === 'farmer' && game.getEffect('priceRatio') && village.getJob('priest').unlocked && Leader && Leader.job !== 'priest') {
+				if (leaderJobName === 'farmer' && traitName === 'manager' && game.getEffect('priceRatio') && village.getJob('priest').unlocked) {
 					leaderJobName = 'priest';
-					msgSummary('leaderPriest');
+					if (Leader && Leader.job !== 'priest') {msgSummary('leaderPriest');}
 				}
 
 				if (Leader === null && village.sim.kittens.length) {
@@ -2677,13 +2677,6 @@ let run = function() {
 				let Production = game.prestige.getParagonProductionRatio();
 				copyItem = {};
 				let items = JSON.parse(JSON.stringify(options.auto.build.items));
-				const important = {
-					amphitheatre:items['amphitheatre'],
-					reactor:items['reactor'],
-					magneto:items['magneto'],
-					steamworks:items['steamworks'],
-				};
-				items = Object.assign(important, items);
 
 				let scienceMap = resMap['science'];
 				let scienceTrigger = scienceMap.value / scienceMap.maxValue;
@@ -2935,6 +2928,10 @@ let run = function() {
 					}
 				}
 
+				// 挑战等3个传送仪一起造
+				if (priceRatio && resMap['unobtainium'].value < 8794) {items['biolab'].enabled = false;}
+
+				// 黑暗天空造煅烧炉
 				let calcinerMeta = game.bld.getBuildingExt('calciner').meta;
 				if (blackSky && options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerMeta.val) {
 					buildManager.build("calciner", undefined, 1);
@@ -8028,6 +8025,16 @@ let run = function() {
 		});
 		$('#ks-engine').append(optionsTitleElement);
 	}
+
+	// 渲染完后把建筑重要建筑排前面
+	let buildItems = options.auto.build.items;
+	options.auto.build.items = Object.assign({
+		amphitheatre:buildItems['amphitheatre'],
+		reactor:buildItems['reactor'],
+		magneto:buildItems['magneto'],
+		steamworks:buildItems['steamworks'],
+	}, buildItems);
+	buildItems = null;
 
 	//建筑日志提示
 	let msgSummary = (build, isDelete, filter)=> {
