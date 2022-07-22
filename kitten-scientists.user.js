@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.18';
+	const version = '15.19';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -732,11 +732,11 @@ let run = function() {
 					quarry:         {require: false,         enabled: true, max:300,checkForReset: true, triggerForReset: -1},
 
 					// science
-					library:        {require: 'wood',        enabled: true, max:-1, stage: 0, checkForReset: true, triggerForReset: -1},
-					dataCenter:     {require: false,         enabled: true, max:150, stage: 1, name: 'library', checkForReset: true, triggerForReset: -1},
 					observatory:    {require: 'iron',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					academy:        {require: 'wood',        enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					biolab:         {require: 'science',     enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+					library:        {require: 'wood',        enabled: true, max:-1, stage: 0, checkForReset: true, triggerForReset: -1},
+					dataCenter:     {require: false,         enabled: true, max:150, stage: 1, name: 'library', checkForReset: true, triggerForReset: -1},
 
 					pasture:        {require: 'catnip',      enabled: true, max:150, stage: 0, checkForReset: true, triggerForReset: -1},
 					solarFarm:      {require: 'titanium',    enabled: true, max:-1, stage: 1, name: 'pasture', checkForReset: true, triggerForReset: -1},
@@ -1996,7 +1996,8 @@ let run = function() {
 			let apocripha = religion.getRU('apocripha').on;
 			let firstAdore = tt || (!epiphany && worship > 200e3);
 			booleanForAdore = booleanForAdore && apocripha && firstAdore && autoAdoreEnabled;
-			if (moonBoolean && booleanForAdore && PraiseSubTrigger < 0.98 && PraiseSubTrigger) {option.autoPraise.subTrigger = 0.98;}
+			let praiseLess = PraiseSubTrigger < 0.98;
+			if (moonBoolean && booleanForAdore && praiseLess && PraiseSubTrigger) {option.autoPraise.subTrigger = 0.98;}
 
 			// 超越 和 赞美群星
 			if (Math.min(0.999, Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
@@ -2114,7 +2115,7 @@ let run = function() {
 
 			// 太阳革命加速恢复到期望值
 			let transformTier = 0.65 * (0.525 * Math.log(religion.faithRatio) + 3.45);
-			let factor = (voidOrder || activitySummary.other['adore']) ? 1 : 0.3;
+			let factor = (voidOrder || activitySummary['adore'][0]) ? 1 : 0.3;
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5;
 			factor = (game.workshop.get('spaceManufacturing').researched) ? 5 : factor;
 			let maxPercent = (resMap['starchart'].value > 2e5) ? 90 : 80;
@@ -2127,7 +2128,8 @@ let run = function() {
 			// 大教堂
 			let basilica = religion.getRU("basilica").on || resMap['gold'].value < 750 || resourceFaith.perTickCached < 6
 				|| game.getEffect('culturePerTickBase') < 2.7;
-			if (solarRevolution && PraiseSubTrigger === 0.98 && solarRatio < expectSolarRevolutionRatio * 0.01 && glass && basilica) {
+			praiseLess = !praiseLess && PraiseSubTrigger <= 1;
+			if (solarRevolution && praiseLess && solarRatio < expectSolarRevolutionRatio * 0.01 && glass && basilica) {
 				PraiseSubTrigger = 0;
 			}
 
@@ -2135,13 +2137,13 @@ let run = function() {
 			let fR = (1 + game.getUnlimitedDR(epiphany, 0.1) * 0.1);
 			let praiseForSolar = !solarRatio && !voidOrder;
 			let fPraise = resourceFaith.value > (1000 - worship) / fR && worship < 1000;
-			forceStep = fPraise || (resourceFaith.value > (150 - worship) / fR && worship < 150 && !voidOrder);
-			forceStep &= praiseForSolar;
+			fPraise = fPraise || (resourceFaith.value > (150 - worship) / fR && worship < 150 && !voidOrder);
+			fPraise &= praiseForSolar;
 			// Praise
 			let fistReset = (rate < 0.98 || !voidOrder || solarRevolution);
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
-			if (booleanForPraise || forceStep) {
-				if (option.autoPraise.subTrigger === 0.98 && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 4e5 && !timeSkipAdore) {
+			if (booleanForPraise || forceStep || fPraise) {
+				if (praiseLess && !forceStep && rate < 0.98 && Date.now() > option.autoPraise.time + 4e5 && !timeSkipAdore) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
 					activity(i18n('summary.praise.msg', [expectSolar]));
@@ -2187,10 +2189,10 @@ let run = function() {
 			// 圣殿骑士
 			if (!game.ironWill && !game.workshop.get('orbitalGeodesy').researched) {
 				copyBuilds['templars'].enabled = false;
-				if (game.religion.faith > 75e3) {msgSummary('templars');}
+				if (!Religion.getRU("templars").on && game.religion.faith > 75e3) {msgSummary('templars');}
 			}
 
-			if (Religion.getSolarRevolutionRatio() > 9.98 + 0.9 * game.getEffect("solarRevolutionLimit") && game.workshop.get('spaceManufacturing').researched && activitySummary.other.adore) {
+			if (Religion.getSolarRevolutionRatio() > 9.98 + 0.9 * game.getEffect("solarRevolutionLimit") && game.workshop.get('spaceManufacturing').researched && activitySummary['adore'][0]) {
 				let noMax = ['scholasticism','goldenSpire','stainedGlass','basilica','templars'];
 				noMax.forEach(index => {copyBuilds[index].max = -1;});
 			}
@@ -2917,7 +2919,8 @@ let run = function() {
 						biolab.max = 10 * revolutionRatio;
 						if (resPercent('titanium') < 0.96) {
 							biolab.max = 10;
-							broadcastTower.max = 40;
+							let bTowerMax = broadcastTower.max;
+							broadcastTower.max = (bTowerMax === -1) ? 30 : Math.max(30, bTowerMax);
 							mansion.max = Math.max(135 - game.village.maxKittens, Math.floor(17 * (Production + 1)));
 						}
 					}
@@ -3062,8 +3065,9 @@ let run = function() {
 					let Array = builds['orbitalArray'];
 					let Nummon = game["nummon"];
 					if (Nummon) {
+						let ArrayVal = game.space.getBuilding('orbitalArray').val;
 						if (Nummon.getBestUnobtainiumBuilding() === $I("space.planet.piscine.orbitalArray.label")) {
-							Array.max = game.space.getBuilding('orbitalArray').val + 1;
+							Array.max = ArrayVal + 1;
 						} else if (Array.max < 0) {
 							Array.max = 0;
 						}
@@ -3300,8 +3304,9 @@ let run = function() {
 			let skipNagas = Calendar.year > 2e3 || game.workshop.get('spaceManufacturing').researched;
 			// Determine how many races we will trade this cycl
 			let trade, race, name, require;
-			for (name in optionTrade.items) {
-				trade = optionTrade.items[name];
+			let items = optionTrade.items;
+			for (name in items) {
+				trade = items[name];
 
 				// Check if the race is in season, enabled, unlocked, and can actually afford it
 				race = tradeManager.getRace(name);
@@ -3313,7 +3318,8 @@ let run = function() {
 				if (!Season) {continue;}
 				let button = tradeManager.getTradeButton(race.name);
 
-				if (!button || !tradeManager.singleTradePossible(name)) {continue;}
+				// || !tradeManager.singleTradePossible(name)
+				if (!button) {continue;}
 
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 
@@ -3377,9 +3383,12 @@ let run = function() {
 				maxByRace[i] = tradePos;
 			}
 
-			if (trades.length === 0) {return;}
+			let tradesLength = trades.length;
+			if (!trades.length) {return;}
 
-			let Spiders = resMap['steel'].value > resMap['plate'].value && !game.getEffect('shatterTCGain') && Calendar.season !== 2;
+			let TC = !game.getEffect('shatterTCGain');
+			let Spiders = resMap['steel'].value > resMap['plate'].value && !TC && Calendar.season !== 2;
+			let Dragons = resPercent('uranium') > 0.4 && tradesLength > 1;
 			const tradesDone = {};
 			while (trades.length > 0 && maxTrades >= 1) {
 				if (maxTrades < trades.length) {
@@ -3401,6 +3410,7 @@ let run = function() {
 				}
 				name = trades[minTradePos];
 				if (name === 'spiders' && Spiders) {minTrades = Math.floor(0.5 * minTrades);}
+				if (name === 'dragons' && Dragons) {minTrades = Math.floor(0.3 * minTrades);}
 				if (!tradesDone[name]) {tradesDone[name] = 0;}
 				tradesDone[name] += minTrades;
 				maxTrades -= minTrades;
@@ -4303,7 +4313,7 @@ let run = function() {
 				// falls through
 				case 'lumberMill':
 					if (id === 'lumberMill') {
-						if (game.bld.getBuildingExt(id).meta.val < 55 - 10 * vitruvianFeline - 10 * !orbitalGeodesy) {
+						if (game.bld.getBuildingExt(id).meta.val < 55 - 10 * !vitruvianFeline - 10 * !orbitalGeodesy) {
 							if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.1 && resMap['iron'].maxValue > 1200) {
 								count = 0;
 							}
@@ -5217,8 +5227,8 @@ let run = function() {
 					limRat = (options.auto.craft.oxidation) ? 1 : limRat;
 					break;
 				case 'eludium': {
-					let RR = game.time.getCFU("ressourceRetrieval").on;
-					limRat = (RR) ? 0.1 : limRat;
+					let RR = game.time.getCFU("ressourceRetrieval").on > 5;
+					limRat = (RR) ? 0.1 : 0.6;
 					limRat = (res.value < 125 && game.getEffect('hutPriceRatio') > -1.06) ? 1 : limRat;
 					break;
 				}
@@ -5667,7 +5677,7 @@ let run = function() {
 				}
 			}
 			if (name === 'dragons') {
-				prof = doTrade && resPercent('titanium') > 0.5;
+				prof = game.space.getProgram('centaurusSystemMission').on && resPercent('titanium') > 0.5 || resPercent('uranium') < 0.4;
 			}
 			return doTrade || (cost <= profit && prof);
 		},
@@ -8155,6 +8165,10 @@ let run = function() {
 			}
 		}
 
+		// 赞美太阳 赞美群星
+		displaySolar('praise');
+		displaySolar('adore');
+
 		let teach = activitySummary.research;
 		for (name in teach) {
 			l = teach[name];
@@ -8169,9 +8183,6 @@ let run = function() {
 			isummary('summary.upgrade', [l + '小猫发明了 ' + ucfirst(name)]);
 		}
 
-		// 赞美太阳 赞美群星
-		displaySolar('praise');
-		displaySolar('adore');
 
 		let items = ['faith', 'build', 'craft', 'craftLeader', 'trade'];
 		items.forEach((item) => {
@@ -8311,11 +8322,11 @@ let run = function() {
 			let Engine = options.auto.engine;
 			if (toggleEngine.is(':checked')) {
 				Engine.enabled = true;
-				engine.start();
-				msgStock();
-				setTimeout(()=>{
-					if (Engine.enabled) {message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');}
-				}, 2000);
+					engine.start();
+					msgStock();
+					setTimeout(()=>{
+						if (Engine.enabled) {message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');}
+					}, 2000);
 			} else {
 				Engine.enabled = false;
 				engine.stop();
