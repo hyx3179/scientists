@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.20';
+	const version = '15.21';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -476,7 +476,7 @@ let run = function() {
 			'summary.auto.bls': '小猫存眼泪提炼悲伤(当然是在幸福度边上)',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
-			'summary.auto.changeLeader': '如需对应项目-自动切换对应领袖特质<br>比如工艺项目切换到工匠合成更多材料、升级切换到科学家减少科学价格等等<br>但需同时勾选 提拔领袖小猫 和喵喵管理中的 分配领袖',
+			'summary.auto.changeLeader': '如需对应项目-自动切换对应领袖特质<br>比如工艺项目切换到工匠合成更多材料、升级切换到科学家减少科学价格等等<br>但需同时勾选 提拔领袖小猫 和喵喵管理以及里面的 分配领袖',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
 			'summary.auto.crossbow': '铁当然是要来用来改良弩，喵用喵说好',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
@@ -1590,7 +1590,6 @@ let run = function() {
 							});
 							addCraft.craft = true;
 							activity(i18n('summary.resource', [name]));
-							storeForSummary('resource');
 						}
 					}
 
@@ -1818,7 +1817,7 @@ let run = function() {
 			let previousCoin = resMap['blackcoin'].value;
 			if ((!game.science.get("blackchain").researched && !previousCoin > 0) || !game.diplomacy.get("leviathans").unlocked) {return;}
 			let crypto = options.auto.options.items.crypto;
-			let subTrigger = (crypto.subTrigger == null) ? "10000-860-1060" : options.auto.options.items.crypto.subTrigger.toString().split('-');
+			let subTrigger = (crypto.subTrigger == null) ? "1e6-860-1060" : options.auto.options.items.crypto.subTrigger.toString().split('-');
 			//var isNumber = /^\d+(\.\d+)?$/;
 
 			let relicTrigger = parseFloat(subTrigger[0]);
@@ -4858,7 +4857,7 @@ let run = function() {
 				let calVal = calciner.on;
 				if (calVal) {
 					if (calciner.isAutomationEnabled) {
-						msgSummary('ironFactory');
+						if (game.time.getCFU("ressourceRetrieval").on < 5) {msgSummary('ironFactory');}
 					} else {
 						let calAmount = 0.0015 * (1 + game.bld.get("reactor").on * 0.1) * (game.getEffect("calcinerRatio") + 1)
 							* game.bld.getAutoProductionRatio() * (game.getEffect("ironPolicyRatio") + 1)
