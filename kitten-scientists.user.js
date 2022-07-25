@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.21';
+	const version = '15.22';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -500,7 +500,7 @@ let run = function() {
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
 			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成双成对',
-			'summary.auto.templars': '没有足够的黄金和铁产量哪什么祷告圣殿骑士呢',
+			'summary.auto.templars': '没有足够的黄金和铁产量拿什么祷告圣殿骑士呢',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
 			'summary.auto.tradepost': '祷告太阳革命前，交易所开摆',
 			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
@@ -1220,6 +1220,7 @@ let run = function() {
 		delay: function (render) {
 			if (render) {
 				let tool = dojo.byId('tooltip').textContent;
+				tool = tool.slice(0, Math.ceil(tool.length * 0.4));
 				if (options.renderTime + 6e5 < Date.now() || this.toolText !== tool) {
 					msgSummary('changeLeader', true, 'noFilter');
 					this.renderID = setTimeout(() => {
@@ -1762,14 +1763,14 @@ let run = function() {
 					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
 				}
 				if (name === 'scholar' && limited) {
-					let more;
+					let moreScholar;
 					if (!game.getEffect('shatterTCGain') && scholar) {
-						more = true;
+						moreScholar = true;
 					}
 
-					if (resPercent('science') > 0.4) {
+					if (resPercent('science') > 0.3) {
 						maxKS = 0;
-					} else if (more) {
+					} else if (moreScholar) {
 						maxKS = Math.max(maxKS, 24);
 						if (val < maxKS) {msgSummary('scholar');}
 					}
@@ -2006,7 +2007,7 @@ let run = function() {
 					let TranscendTimes;
 					let nextLevelCatnip = religion._getTranscendTotalPrice(tt + 1) - religion._getTranscendTotalPrice(tt);
 					let transcendCatnip = this.catnipForReligion(nextLevelCatnip);
-					transcendCatnip = transcendCatnip > 0 || (transcendCatnip < 0 && resMap['catnip'].value + 400 * transcendCatnip > 0);
+					transcendCatnip = transcendCatnip >= 0 || (transcendCatnip < 0 && resMap['catnip'].value + 2000 * transcendCatnip > 0);
 					if (tt > 10) {
 						TranscendTimes = 1;
 					} else if (tt < 11 && moonBoolean && worship > 1e5 && apocripha && transcendCatnip) {
@@ -2080,7 +2081,7 @@ let run = function() {
 				// Adore
 				let adoreFactor = (!religion.faithRatio || tt);
 				let catnipAdore = this.catnipForReligion();
-				catnipAdore = catnipAdore > 0 || (catnipAdore < 0 && resMap['catnip'].value + 400 * catnipAdore > 0);
+				catnipAdore = catnipAdore > 0 || (catnipAdore < 0 && resMap['catnip'].value + 2000 * catnipAdore > 0);
 				catnipAdore = transcendenceTier > 9 || catnipAdore;
 				// 期望太阳革命加成赞美群星
 				let production = game.prestige.getParagonProductionRatio();
@@ -2438,7 +2439,7 @@ let run = function() {
 						noup = noup.concat(['hubbleTelescope']);
 					}
 					// 钍反应堆
-					if (resMap['thorium'].value < 3e4) {noup.push('thoriumReactors');}
+					if (resMap['thorium'].value < 5e4) {noup.push('thoriumReactors');}
 					// 天体观测仪
 					isFilter = resMap['science'].maxValue > 19e4 && resStarchart.value < 2075;
 					if (isFilter || resMap['titanium'].value < 30) {
@@ -2815,7 +2816,7 @@ let run = function() {
 				}
 				// 商队驿站
 				let caravanserai = game.workshop.get('caravanserai');
-				if (caravanserai.unlocked && !caravanserai.researched && resMap['ivory'].value > 1e4) {
+				if (caravanserai.unlocked && !caravanserai.researched && resMap['ivory'].value > 1e4 && resMap['gold'].value > 100) {
 					temple.enabled = false;
 					tradepost.max = 21;
 					msgSummary('caravanserai');
@@ -3074,7 +3075,11 @@ let run = function() {
 					if (Nummon) {
 						let ArrayVal = game.space.getBuilding('orbitalArray').val;
 						if (Nummon.getBestUnobtainiumBuilding() === $I("space.planet.piscine.orbitalArray.label")) {
-							Array.max = ArrayVal + 1;
+							if (!game.getEffect('shatterTCGain') || ArrayVal > 39) {
+								Array.max = ArrayVal + 1;
+							} else {
+								Array.max = 40;
+							}
 						} else if (Array.max < 0) {
 							Array.max = 0;
 						}
@@ -3393,7 +3398,7 @@ let run = function() {
 			let tradesLength = trades.length;
 			if (!trades.length) {return;}
 
-			let TC = !game.getEffect('shatterTCGain');
+			let TC = game.getEffect('shatterTCGain');
 			let Spiders = resMap['steel'].value > resMap['plate'].value && !TC && Calendar.season !== 2;
 			let Dragons = resPercent('uranium') > 0.4 && tradesLength > 1;
 			const tradesDone = {};
@@ -4351,13 +4356,16 @@ let run = function() {
 					break;
 				case 'harbor':
 					if (id === 'harbor') {
-						if (game.bld.getBuildingExt(id).meta.val < 8){
+						let harborVal = game.bld.getBuildingExt(id).meta.val;
+						let reactorVal = game.bld.getBuildingExt('reactor').meta.val;
+						if (harborVal < 8) {
 							msgSummary('harbor');
 							halfCount = true;
-						} else if (game.bld.getBuildingExt('reactor').meta.val < 20 && game.religion.getSolarRevolutionRatio() > 7.5) {halfCount = true;}
+						} else if (reactorVal < 20 && game.religion.getSolarRevolutionRatio() > 7.5) {halfCount = true;}
 						else if (!orbitalGeodesy && !game.workshop.get('geodesy').researched) {halfCount = true;}
 						else if (spaceManufacturing) {msgSummary('harbor', true);}
-						if (game.bld.getBuildingExt(id).meta.val > 50 && resMap['plate'].value < 6e3) {count = Math.floor(count * 0.5);}
+
+						if (harborVal > 60 + reactorVal && resPercent('iron') < 0.9) {count = Math.floor(count * 0.5);}
 					}
 					break;
 				case 'logHouse':
@@ -5185,12 +5193,12 @@ let run = function() {
 			let factor;
 			switch(name) {
 				case 'wood':
-					limRat = (0.09 + res.perTickCached < resMap['catnip'].perTickCached / game.workshop.getCraft("wood").prices[0].val && this.getPotentialCatnip()) ? 1 : limRat;
+					limRat = (0.09 + res.perTickCached < resMap['catnip'].perTickCached / game.workshop.getCraft("wood").prices[0].val && this.getPotentialCatnip()) ? 1 : 0.5 / Math.log10(10 + sloar);
 					break;
 				case 'beam': {
 					let craftBeam = navigation.unlocked || resMap['gold'].maxValue < 500 || (resMap['iron'].value > 1000 && !resMap['coal'].value);
 					limRat = (craftBeam) ? limRat : 5e-3;
-					limRat = (resMap['scaffold'].value < 500) ? limRat : 0.02;
+					limRat = (resMap['scaffold'].value < 500 + 500 * sloar) ? limRat : 0.02;
 					break;
 				}
 				case 'slab': {
@@ -5215,7 +5223,7 @@ let run = function() {
 				}
 				case 'plate': {
 					let titan = resMap['titanium'].value > 3500 && resMap['uranium'].value > 250 && !reactor.val;
-					let Temple = temple.on && temple.on < 12 && sloar && res.value < templeFactor * 15;
+					let Temple = temple.on && temple.on < 15 - 3 * renaissance && sloar && res.value < templeFactor * 15;
 					limRat = (game.getEffect('calcinerRatio') || Temple) ? limRat : 0.3;
 					limRat = ((res.value < 150 && navigation.researched && resMap['starchart'].value > 10 && resMap['scaffold'].value > 50)
 						|| titan) ? 0.9 : limRat;
@@ -5305,7 +5313,7 @@ let run = function() {
 					factor = Math.pow(observatory.priceRatio + priceRatio, observatory.val);
 					limRat = (res.value < 100 && game.science.get('navigation').unlocked && resMap['iron'].value > 750) ? 1 : limRat;
 					limRat = (game.science.get('navigation').unlocked) ? limRat : 0;
-					//limRat = (res.value < 50 * factor && res.value > 85 && resMap['science'].value < 15e4) ? 1 : limRat;
+					limRat = (res.value < 50 * factor && resMap['minerals'].maxValue > 5e5) ? 0.75 : limRat;
 					break;
 				}
 				case 'tanker':
@@ -5673,7 +5681,7 @@ let run = function() {
 
 				if (solar > 1.5 && !game.religion.getRU("stainedGlass").on) {prof = false;}
 				if (calciner > 1 && solar > 3 && !game.religion.getRU("basilica").on) {prof = false;}
-				doTrade = spice && game.calendar.festivalDays;
+				doTrade = doTrade || spice && game.calendar.festivalDays;
 				doTrade = doTrade && game.workshop.get('caravanserai').researched;
 			}
 			if (name === 'spiders') {
@@ -8335,7 +8343,7 @@ let run = function() {
 				setTimeout(()=>{
 					if (Engine.enabled) {message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');}
 				}, 2000);
-				if (game.getEffect('priceRatio') < -0.03 && game.religion.transcendenceTier < 4) {msgSummary('ksHelp', false, 'noFilter');}
+				if (game.getEffect('priceRatio') > -0.03 && game.religion.transcendenceTier < 4) {msgSummary('ksHelp', false, 'noFilter');}
 			} else {
 				Engine.enabled = false;
 				engine.stop();
