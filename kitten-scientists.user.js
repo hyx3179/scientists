@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 let run = function() {
-	const version = '15.22';
+	const version = '15.23';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -495,7 +495,7 @@ let run = function() {
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
 			'summary.auto.oxidation': '为菈妮氧化反应，小猫把钢全存起来了',
 			'summary.auto.parchment': '还未研究地质学，毛皮用不了那么多，喵喵喵把毛皮存起来了',
-			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好，真的是最后1个了',
+			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所(如果有问题的话',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
@@ -1618,7 +1618,7 @@ let run = function() {
 			let village = game.village;
 			let leader = village.leader;
 			if (game.science.get('civil').researched && leader) {
-				if (village.jobs[5].unlocked) {leader.exp += 5 * game.getEffect("skillXP");}
+				if (village.jobs[5].unlocked) {leader.exp += 0.1 + 5 * game.getEffect("skillXP");}
 				let Distribute = options.auto.distribute;
 				let optionLeader = Distribute.items.leader;
 				let countDown = this.leaderTimer;
@@ -1768,7 +1768,7 @@ let run = function() {
 						moreScholar = true;
 					}
 
-					if (resPercent('science') > 0.3) {
+					if (resPercent('science') > 0.3 && val) {
 						maxKS = 0;
 					} else if (moreScholar) {
 						maxKS = Math.max(maxKS, 24);
@@ -1998,6 +1998,7 @@ let run = function() {
 			let firstAdore = tt || (!epiphany && worship > 200e3);
 			booleanForAdore = booleanForAdore && apocripha && firstAdore && autoAdoreEnabled;
 			let praiseLess = PraiseSubTrigger < 0.98;
+			let hasAdored = activitySummary['adore'][0];
 			if (moonBoolean && booleanForAdore && praiseLess && PraiseSubTrigger) {option.autoPraise.subTrigger = 0.98;}
 
 			// 超越 和 赞美群星
@@ -2118,9 +2119,9 @@ let run = function() {
 
 			// 太阳革命加速恢复到期望值
 			let transformTier = 0.65 * (0.525 * Math.log(religion.faithRatio) + 3.45);
-			let factor = (voidOrder || activitySummary['adore'][0]) ? 1 : 0.3;
+			let factor = (voidOrder || hasAdored) ? 1 : 0.3;
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5;
-			factor = (game.workshop.get('spaceManufacturing').researched) ? 5 : factor;
+			factor = (religion.getRU('solarchant').on > 6) ? 5 : factor;
 			let maxPercent = (resMap['starchart'].value > 2e5) ? 90 : 80;
 			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, transformTier) * factor, maxPercent * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
@@ -2315,15 +2316,36 @@ let run = function() {
 					if (upgrades.techs.limited) {
 						let name = upg.name;
 						let titanium = resMap['titanium'].value;
-						if (name === 'biology' && titanium < 3000) {continue;}
-						if (name === 'biochemistry' && resMap['compedium'].value < 2e3) {continue;}
-						if (name === 'ecology' && titanium < 6000) {continue;}
-						if (name === 'ai' && titanium < 10000) {continue;}
-						if (name === 'oilProcessing' && !nanotechnology && titanium < 10e3) {continue;}
-						if (name === 'drama' && craftManager.getTickVal(craftManager.getResource('parchment'), true) < 1) {continue;}
-						if (name === 'cryptotheology' && resMap['relic'].value < 105) {continue;}
-						if (name === 'particlePhysics' && !nanotechnology && titanium < 1000) {continue;}
-						if (name === 'antimatter' && !game.workshop.get('chronoforge').researched) {continue;}
+						let relic = resMap['relic'].value;
+						switch (name) {
+							case 'biology':
+								if (titanium < 3000) {continue;}
+								break;
+							case 'biochemistry':
+								if (titanium < 6000) {continue;}
+								break;
+							case 'ai':
+								if (titanium < 10e3) {continue;}
+								break;
+							case 'particlePhysics':
+								if (!nanotechnology && titanium < 1000) {continue;}
+								break;
+							case 'oilProcessing':
+								if (!nanotechnology && titanium < 10e3) {continue;}
+								break;
+							case 'drama':
+								if (craftManager.getTickVal(resMap['parchment'], true) < 2) {continue;}
+								break;
+							case 'cryptotheology':
+								if (relic < 105 && resMap['antimatter'].value < 4000) {continue;}
+								break;
+							case 'blackchain':
+								if (relic < 1e6) {continue;}
+								break;
+							case 'antimatter':
+								if (!game.workshop.get('chronoforge').researched) {continue;}
+								break;
+						}
 					}
 
 					let prices = dojo.clone(upg.prices);
@@ -2375,9 +2397,7 @@ let run = function() {
 						noup = noup.concat(['spaceEngineers','aiEngineers','chronoEngineers','amFission','factoryRobotics','factoryOptimization']);
 					}
 					// 太阳革命
-					if (!game.religion.getRU('solarRevolution').on && resMap['faith'].maxValue >= 750 && game.religion.faith > 1000) {
-						noup.push('caravanserai');
-					}
+					if (!revolutionRatio && resMap['faith'].maxValue >= 750 && game.religion.faith > 1000) {noup.push('caravanserai');}
 					// 缺电过滤碳封存
 					if (game.resPool.energyProd - game.resPool.energyCons <= 50) {
 						noup = noup.concat(['carbonSequestration', 'pumpjack']);
@@ -2425,7 +2445,9 @@ let run = function() {
 						noup = noup.concat(['machineLearning', 'aiBases']);
 					}
 					// 反应堆槽
-					if (!game.bld.getBuildingExt('reactor').meta.val || resMap['ship'].value < 169) {noup = noup.concat(['reactorVessel', 'enrichedUranium']);}
+					if (!game.bld.getBuildingExt('reactor').meta.val || resMap['ship'].value < 169) {
+						noup = noup.concat(['reactorVessel', 'enrichedUranium']);
+					}
 					// 太阳能卫星
 					if (game.space.getBuilding('sattelite').val < 6) {
 						noup = noup.concat(['solarSatellites', 'satelliteRadio']);
@@ -2442,7 +2464,7 @@ let run = function() {
 					if (resMap['thorium'].value < 5e4) {noup.push('thoriumReactors');}
 					// 天体观测仪
 					isFilter = resMap['science'].maxValue > 19e4 && resStarchart.value < 2075;
-					if (isFilter || resMap['titanium'].value < 30) {
+					if (isFilter || resMap['titanium'].value < 5 + 10 * revolutionRatio) {
 						noup = noup.concat(['astrolabe','unobtainiumReflectors','lhc','titaniumMirrors']);
 					}
 					// 无政府挑战
@@ -3434,7 +3456,7 @@ let run = function() {
 			const tradeNet = {};
 			for (name in tradesDone) {
 				race = tradeManager.getRace(name);
-				let amt = goldTrigger ? 1 : tradesDone[name] * 0.6;
+				let amt = goldTrigger ? 1 : Math.ceil(tradesDone[name] * 0.6);
 
 				let materials = tradeManager.getMaterials(name);
 				for (let mat in materials) {
@@ -3659,7 +3681,7 @@ let run = function() {
 				activity(i18n('summary.biolab.test') + "(猫薄荷产量过低)");
 				biolab.on = 0;
 			}
-			if (Prod && Prod < game.resPool.energyCons + 1) {
+			if (Prod && Prod < game.resPool.energyCons) {
 				if (biofuel && biolab.on) {
 					let msg = '冬季产出电:' + game.getDisplayValueExt(Prod) + '，消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
 					let number = biolab.on;
