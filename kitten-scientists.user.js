@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.26';
+	const version = '15.27';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -273,7 +273,7 @@ window.run = function() {
 			'act.feed': '小猫向利维坦献上祭品。古神很高兴',
 			'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
 			'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
-			'act.observe': '小猫观测了天文现象',
+			'act.observe': '小猫观测了天文现象{0}',
 			'act.hunt': '{0} 波{1}去打猎',
 			'act.hunt.unicorn': '小猫急着派出猎人帮独角兽配种，呜呼十连爪ฅ ฅ',
 			'act.hunt.trade': '小猫贸易后决定去打猎',
@@ -489,7 +489,7 @@ window.run = function() {
 			'summary.auto.magnetos': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
-			'summary.auto.oxidation': '为菈妮氧化反应，小猫把钢全存起来了',
+			'summary.auto.oxidation': '别急，你先别急，小猫为了氧化反应把钢全存起来了',
 			'summary.auto.parchment': '还未研究地质学，毛皮用不了那么多，喵喵喵把毛皮存起来了',
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所(如果有问题的话',
@@ -1226,6 +1226,7 @@ window.run = function() {
 						game.ui.render();
 					}, Math.min(197, 197 - Date.now() + game.timer.timestampStart));
 				}
+				game.updateResources();
 			} else {
 				this.huntID = setTimeout(() => {
 					this.hunt();
@@ -1703,7 +1704,7 @@ window.run = function() {
 			let currentKitten = resKitten.value;
 			let agriculture = game.science.get("agriculture").researched;
 			let catnipTick = this.craftManager.getPotentialCatnip(false);
-			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 10) || resMap["catnip"].value + 1500 * catnipTick < 0;
+			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 4) || resMap["catnip"].value + 2000 * (catnipTick - 1.7) < 0;
 			let normalWinterCatnip = (winterCatnip || (village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
 			let catnipValue = (resCatnip.value - (1800 * happiness * currentKitten) < 0 || resKitten.maxValue - currentKitten === 1 || freeKittens > 1);
 			if (religionCatnip.religion || (normalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue)) {
@@ -2844,7 +2845,7 @@ window.run = function() {
 				}
 				// 商队驿站
 				let caravanserai = game.workshop.get('caravanserai');
-				if (caravanserai.unlocked && !caravanserai.researched && resMap['ivory'].value > 1e4 && resMap['gold'].value > 100) {
+				if (caravanserai.unlocked && !caravanserai.researched && resMap['ivory'].value > 1e4 && resMap['gold'].value > 130) {
 					temple.enabled = false;
 					tradepost.max = 21;
 					msgSummary('caravanserai');
@@ -3228,11 +3229,18 @@ window.run = function() {
 				let star = resMap['starchart'].value;
 				if (game.calendar.observeRemainingTime < 270 && game.ticks > 600) {activity('珂学家可能进入了后台，运行速度缓慢(最好别最小化挂机)');}
 				calendar.observeHandler();
-				storeForSummary('science', resMap['science'].value - sci, 'resGain');
-				storeForSummary('starchart', resMap['starchart'].value - star, 'resGain');
-				iactivity('act.observe', [], 'astronomicalEventFilter');
+
+				let msg = '';
+				let afterSci = resMap['science'].value - sci;
+				if (afterSci) {msg += '，获得了 ' + game.getDisplayValueExt(afterSci) + ' 科学';}
+				let afterStar = resMap['starchart'].value - star;
+				if (afterStar) {msg += '，获得了 ' + afterStar + ' 个星图';}
+				iactivity('act.observe', [msg], 'astronomicalEventFilter');
+				storeForSummary('science', afterSci, 'resGain');
+				storeForSummary('starchart', afterStar, 'resGain');
 				storeForSummary('stars', 1);
 			}
+			if (game.ironWill) {resMap['catnip'].value += 10;}
 		},
 		hunt: function () {
 			// clearTimeout(this.huntID);
@@ -4324,6 +4332,13 @@ window.run = function() {
 			let amphitheatre = game.bld.getBuildingExt('amphitheatre').meta;
 			let moonM = game.space.getProgram('moonMission');
 			switch (id) {
+				case 'field':
+					if (game.bld.getBuildingExt(id).meta.val > 35 + 85 * vitruvianFeline) {
+						if (!game.libraryTab.visible) {halfCount = true;}
+					} else {
+						return count;
+					}
+					break;
 				case 'chapel':
 					if (id === 'chapel') {
 						if (game.bld.getBuildingExt(id).meta.val < 18) {
@@ -4455,8 +4470,9 @@ window.run = function() {
 			}
 			if ((id === 'hut' || id === 'logHouse') && count) {
 				let Catnip = resMap['catnip'];
-				catnipTick = Catnip.perTickCached < 1.4 * game.village.happiness || (catnipTick < 0 && Catnip.value + Catnip * 1000 < 0);
-				if (catnipTick && !geodesy) {
+				let noFarmer = Catnip.perTickCached < 1.7 * game.village.happiness && (!game.science.get('agriculture').researched || resMap['kittens'].maxValue === 2);
+				let noKitten = noFarmer || (catnipTick < 0 && Catnip.value + catnipTick * 1000 < 0);
+				if (noKitten && !geodesy) {
 					count = 0;
 					msgSummary('kittens');
 				} else {
@@ -4940,8 +4956,8 @@ window.run = function() {
 					if (flu && !cacheUpg.cache) {
 						let amt = Math.ceil((200 - alloyVal) / ratio);
 						let titanium = resMap['titanium'].value;
-						console.log((amt * 10 - titanium) / resMap['titanium'].perTickCached)
-						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 300;
+						// 1分钟半 5 * 60 * 1
+						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 450;
 						if (amt > 0 && calVal > 6 && b) {
 							options.auto.cache.resUpg['alloy'] = 200;
 							cacheUpg.cache = 'fluidizedReactors';
@@ -4968,7 +4984,7 @@ window.run = function() {
 					let workshopMeta = workshop.get(name);
 					if (workshopMeta.researched || !workshopMeta.unlocked) {return;}
 					let amt = Math.ceil((price - resMap['alloy'].value) / ratio);
-					if (amt > 1 && resMap['steel'].value > amt * 75 && resMap['titanium'].value > amt * 10) {
+					if (amt > 1 && resMap['steel'].value > amt * 75 && resMap['titanium'].value > amt * 10 && !Craft.oxidation) {
 						amount = amt;
 						force = true;
 						activity(i18n('craft.forceSteel', [workshopMeta.label]));
@@ -5283,7 +5299,7 @@ window.run = function() {
 					let titaniumTick = game.globalEffectsCached['titaniumPerTickAutoprod'];
 					let calcinerVal = Bld.getBuildingExt('calciner').meta.val;
 					factor = Math.pow(magneto.priceRatio + priceRatio, magneto.val);
-					limRat = (steamworks.on < magneto.on || calcinerVal < 2) ? limRat : 0.75;
+					limRat = (steamworks.on < magneto.on || calcinerVal < 2) ? limRat : 0.76;
 					limRat = (res.value > Math.max(1250, 10 * factor) && options.auto.build.items.magneto.enabled) ? 0.01 : limRat;
 					limRat = ((resMap['titanium'].value < 17 && !calcinerVal) || (calcinerVal < 2 && game.challenges.isActive('blackSky'))) ? 0 : limRat;
 					break;
@@ -5726,7 +5742,7 @@ window.run = function() {
 				// / this.craftManager.getTickVal(titanium
 				let titaniumProfit = Math.min(Math.max(titanium.maxValue - titanium.value, 0), output['titanium']) / titanium.perTickCached;
 				let autumnIron = this.getAverageTrade(this.getRace('griffins'))['iron'] / iron < output['iron'] / iron + titaniumProfit;
-				if (griffins.enabled && griffins.autumn && season === 2 && calciner) {
+				if (griffins.enabled && griffins.autumn && season === 2 && calciner > 2) {
 					prof = prof && autumnIron && titaniumTri < 0.95;
 				}
 
@@ -6108,8 +6124,16 @@ window.run = function() {
 	let loadFromKittenStorage = function () {
 		let saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
 		if (!saved || saved.version > kittenStorageVersion) {
-			initializeKittenStorage();
-			return;
+			if (!game.ironWill) {
+				if (game.stats.getStat("totalResets").val > 1) {game.msg('非钢铁意志模式，故勾上了喵喵建筑', 'alert');}
+				['hut', 'logHouse', 'mansion'].forEach((name) => {
+					if (!options.auto.build.items[name].enabled) {
+						$('#toggle-' + name).click();
+					}
+				});
+			}
+
+			return initializeKittenStorage();
 		}
 
 		if (saved.version === 1) {
@@ -8500,7 +8524,7 @@ window.loadTest = function () {
 	if (typeof gamePage === 'undefined' || typeof i18nLang === 'undefined') {
 		// Test if kittens game is already loaded or wait 2s and try again
 		setTimeout(function () {
-			loadTest();
+			window.loadTest();
 		}, 1000);
 	} else {
 		let upgrades = game.workshop.upgrades;
@@ -8511,7 +8535,7 @@ window.loadTest = function () {
 		game.workshop.metaCache['undefined'] = null;
 		delete game.workshop.metaCache['undefined'];
 		// Kittens loaded, run Kitten Scientist's Automation Engine
-		run();
+		window.run();
 		window.loadTest = window.run = null;
 	}
 };
