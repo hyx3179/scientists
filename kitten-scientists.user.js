@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.27';
+	const version = '15.28';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -3350,7 +3350,7 @@ window.run = function() {
 			let challenge = game.challenges.anyChallengeActive() && Calendar.year > 2;
 			let renaissance = game.prestige.getPerk('renaissance').researched;
 			let solar = solarRevolution || challenge || !renaissance;
-			let skipNagas = Calendar.year > 2e3 || game.workshop.get('spaceManufacturing').researched;
+			let skipNagas = !game.ironWill && game.workshop.get('spaceManufacturing').researched && solarRevolution > 2;
 			// Determine how many races we will trade this cycl
 			let trade, race, name, require;
 			let items = optionTrade.items;
@@ -3374,7 +3374,7 @@ window.run = function() {
 
 				// If we have enough to trigger the check, then attempt to trade
 				let prof = tradeManager.getProfitability(name);
-				if (name === 'nagas' && !game.ironWill && skipNagas) {continue;}
+				if (name === 'nagas' && skipNagas) {continue;}
 				if (name === 'zebras' && !prof && Calendar.season === 2 && titaniumTri > 0.5) {continue;}
 				if (name === 'sharks' && race.embassyLevel < 10) {prof = false;}
 				if (name === 'dragons' && solarRevolution > 2 && !prof && titaniumTri < 1) {continue;}
@@ -4946,7 +4946,7 @@ window.run = function() {
 					let orb = this.getUnResearched('orbitalGeodesy');
 					if (orb && resMap['oil'].value > 1.7e4 && resMap['oil'].maxValue > 3.5e4 && resMap['uranium'].value < 1e3) {
 						let a = Math.ceil((1000 - alloyVal) / ratio);
-						let isCache = resMap['titanium'].value > a * 10 || (resMap['alloy'].value > 300 && calVal > 20) || (a * 10 - titanium) / resMap['titanium'].perTickCached < 450;
+						let isCache = resMap['titanium'].value > a * 10 || (resMap['alloy'].value > 300 && calVal > 20) || (a * 10 - titanium) / resMap['titanium'].perTickCached < 600;
 						if (a > 0 && isCache && !cacheUpg.cache) {
 							options.auto.cache.resUpg['alloy'] = 1000;
 							cacheUpg.cache = 'orbitalGeodesy';
@@ -4956,8 +4956,8 @@ window.run = function() {
 					if (flu && !cacheUpg.cache) {
 						let amt = Math.ceil((200 - alloyVal) / ratio);
 						let titanium = resMap['titanium'].value;
-						// 1分钟半 5 * 60 * 1
-						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 450;
+						// 2分钟 5 * 60 * 2
+						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 600;
 						if (amt > 0 && calVal > 6 && b) {
 							options.auto.cache.resUpg['alloy'] = 200;
 							cacheUpg.cache = 'fluidizedReactors';
@@ -5977,7 +5977,7 @@ window.run = function() {
 			+ '}');
 
 		addRule(defaultSelector + ' #midColumn {'
-			+ 'margin-top: 1% !important;'
+			// + 'margin-top: 1% !important;'
 			+ 'height: 90%;'
 			+ 'width: 49%;'
 			+ '}');
@@ -5986,6 +5986,7 @@ window.run = function() {
 			+ 'overflow-y: auto;'
 			+ 'height: 92%;'
 			+ 'width: 19%;'
+			+ 'top: 5px;'
 			+ 'font-size: 12px;'
 			+ 'font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif;'
 			+ '}');
@@ -6584,6 +6585,7 @@ window.run = function() {
 				css: {display: 'none', paddingLeft: '20px'}
 			});
 
+			if (toggleName === 'distribute') {return list;}
 			let disableAll = $('<div/>', {
 				id: 'toggle-all-items-' + toggleName,
 				text: i18n('ui.disable.all'),
