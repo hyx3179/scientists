@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.28';
+	const version = '15.29';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -472,9 +472,10 @@ window.run = function() {
 			'summary.auto.bls': '小猫存眼泪提炼悲伤(当然是在幸福度边上)',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，太空制造解锁后建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
-			'summary.auto.changeLeader': '如需对应项目-自动切换对应领袖特质<br>比如工艺项目切换到工匠合成更多材料、升级切换到科学家减少科学价格等等<br>但需同时勾选 提拔领袖小猫 和喵喵管理以及里面的 分配领袖',
+			'summary.auto.changeLeader': '如需对应项目-自动切换对应领袖特质<br>比如工艺项目切换到工匠每次合成至少多0.06、<br>升级切换到科学家减少至少5%科学价格等等<br>但需同时勾选 提拔领袖小猫 和喵喵管理以及里面的 分配领袖',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
 			'summary.auto.crossbow': '铁当然是要来用来改良弩，喵用喵说好',
+			'summary.auto.defaultPriest': '默认无限制牧师，如需要限制请更改max',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
 			'summary.auto.ironFactory': '如果钢的合成数量偏少，推荐关闭煅烧炉的自动化',
@@ -567,10 +568,10 @@ window.run = function() {
 			'summary.show': '小猫总结',
 		},
 	};
-	if (!i18nData[lang]) {
-		console.error(lang + ' not found');
-		i18nData[lang] = i18nData['en'];
-	}
+	// if (!i18nData[lang]) {
+	// 	console.error(lang + ' not found');
+	// 	i18nData[lang] = i18nData['en'];
+	// }
 
 	const i18n = function (key, args) {
 		// i18n('$xx') mean load string from game
@@ -1217,7 +1218,7 @@ window.run = function() {
 				let tool = dojo.byId('tooltip').textContent;
 				tool = tool.slice(0, Math.ceil(tool.length * 0.4));
 				if (options.renderTime + 6e5 < Date.now() || this.toolText !== tool) {
-					msgSummary('changeLeader', true, 'noFilter');
+					msgSummary('changeLeader', true);
 					this.renderID = setTimeout(() => {
 						let active = game.ui.activeTabId;
 						if (active === 'Village' || active === 'Nummon') {return;}
@@ -1778,7 +1779,13 @@ window.run = function() {
 					}
 				}
 				if (name === 'miner' && !game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
-				if (name === 'priest' && resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
+				if (name === 'priest') {
+					if (limited && maxKS) {
+						limited = false;
+						msgSummary('defaultPriest');
+					}
+					if (resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
+				}
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
 					if (currentRatio < minRatio) {
@@ -3802,7 +3809,7 @@ window.run = function() {
 			let Auto = options.auto;
 			let distribute = Auto.distribute;
 			if (!Auto.options.items.promote.enabled || !distribute.enabled || !distribute.items.leader.enabled) {
-				if (vLeader) {return msgSummary('changeLeader', '', 'noFilter');}
+				if (vLeader) {return msgSummary('changeLeader');}
 			}
 			if (trait) {
 				if (game.science.get('civil').researched && vLeader && !game.challenges.isActive("anarchy")) {
