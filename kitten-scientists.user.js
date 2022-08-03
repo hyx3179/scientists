@@ -16,7 +16,8 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.31';
+	//32
+	const version = '♥';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -847,7 +848,7 @@ window.run = function() {
 				enabled: false,
 				items: {
 					accelerateTime:     {enabled: true,  subTrigger: 1,     misc: true, label: i18n('option.accelerate')},
-					timeSkip:           {enabled: true, subTrigger: 200,     misc: true, label: i18n('option.time.skip'), maximum: 1,
+					timeSkip:           {enabled: true, subTrigger: 300,     misc: true, label: i18n('option.time.skip'), maximum: 1,
 						0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true,
 						spring: true, summer: false, autumn: false, winter: false,
 						wait: false, adore: false, craft: false, moonMsg: -1},
@@ -1153,6 +1154,7 @@ window.run = function() {
 		worker: undefined,
 		toolText: undefined,
 		leaderTimer: undefined,
+		leader: 0,
 		time: undefined,
 		start: function (msg = true) {
 			options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
@@ -1487,7 +1489,7 @@ window.run = function() {
 				let heatNow = game.time.heat;
 				if (!timeSkipMaximum) {return 0;}
 				let factor = game.challenges.getChallenge("1000Years").researched ? 5 : 10;
-				if (heatNow - 15 * game.getEffect('heatPerTick') < 0.5 * heatMax) {
+				if (heatNow - 15 * game.getEffect('heatPerTick') < 0.9 * heatMax) {
 					timeSkipMaximum = Math.ceil(Math.max(50 / factor * game.getEffect('heatPerTick') / game.getTicksPerSecondUI() , timeSkipMaximum));
 				}
 				const subTrigger = optionVals.timeSkip.subTrigger;
@@ -1630,11 +1632,12 @@ window.run = function() {
 
 					// game.village.sim.goldToPromote will check gold
 					// game.village.sim.promote check both gold and exp
-					if (village.sim.goldToPromote(rank, rank + 1, gold)[0] && village.sim.promote(leader, rank + 1) === 1) {
+					if (village.sim.goldToPromote(rank, rank + 1, gold)[0] && village.sim.promote(leader, rank + 1) === 1 && leader.rank >= this.leader) {
 						let census = game['villageTab'].censusPanel.census;
 						iactivity('act.promote', [rank + 1, 25 + 25 * rank], 'leaderFilter');
 						census.renderGovernment(census.container);
 						census.update();
+						this.leader = leader.rank;
 						if (optionLeader.enabled && leader.trait === optionLeader.leaderTrait) {this.leaderTimer = 1;}
 						storeForSummary('gold', 25 + 25 * rank, 'resConsume');
 						storeForSummary('promote', 1);
@@ -1874,6 +1877,7 @@ window.run = function() {
 			let refreshRequired = 0;
 			let noPastureCopy, i;
 			let voidOrder = game.prestige.getPerk("voidOrder").researched;
+			let production = game.prestige.getParagonProductionRatio();
 			let rrVal = game.time.getCFU("ressourceRetrieval").val;
 
 			if (option.bestUnicornBuilding.enabled) {
@@ -2096,7 +2100,6 @@ window.run = function() {
 				catnipAdore = catnipAdore > 0 || (catnipAdore < 0 && resMap['catnip'].value + 2000 * catnipAdore > 0);
 				catnipAdore = transcendenceTier > 9 || catnipAdore;
 				// 期望太阳革命加成赞美群星
-				let production = game.prestige.getParagonProductionRatio();
 				let paragonFactor = (production < 2) ? 1 + Math.min(2 / game.prestige.getParagonProductionRatio(), 0.3) : 1;
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
 				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + Math.min(0.6, tt * 0.06) + Math.log1p(solarRLimit) : 1.32;
@@ -2132,11 +2135,12 @@ window.run = function() {
 			let transformTier = 0.65 * (0.525 * Math.log(religion.faithRatio) + 3.45);
 			let factor = (voidOrder || hasAdored) ? 1 : 0.3;
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5;
-			factor = (religion.getRU('solarchant').on > 6) ? 5 : factor;
+			factor = (religion.getRU('solarchant').on > 6) ? 5 - Math.sqrt(production) : factor;
 			let maxPercent = (resMap['starchart'].value > 2e5) ? 90 : 80;
 			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, transformTier) * factor, maxPercent * maxSolarRevolution);
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = religion.getRU('solarRevolution').on;
+
 			// 彩色玻璃
 			let glass = religion.getRU("stainedGlass").on || resMap['gold'].value < 250 || resourceFaith.perTickCached < 2
 				|| game.getEffect('culturePerTickBase') < 0.9;
@@ -2809,7 +2813,7 @@ window.run = function() {
 					msgSummary('workshop', true);
 				}
 
-				//熔炉
+				// 熔炉
 				if (!game["workshopTab"].visible && !game.challenges.isActive('winterIsComing') && science.get('animal').researched) {
 					smelter.max = 0;
 					if (pasture.max === -1) {
@@ -2845,7 +2849,7 @@ window.run = function() {
 				}
 				// 无节日不造酿酒厂
 				let Brewery = items['brewery'];
-				if (!science.get('metalurgy').researched || resMap['spice'].value < 3e3) {Brewery.max = 5;}
+				if (!science.get('metalurgy').researched || resMap['spice'].value < 1e4) {Brewery.max = 5;}
 				if (!game.calendar.festivalDays) {Brewery.max = 0;}
 
 				let temple = items['temple'];
@@ -2886,7 +2890,7 @@ window.run = function() {
 						}
 					}
 					if (game.religion.transcendenceTier) {
-						tradepost.max = 12;
+						tradepost.max = 15 - Production;
 						if (resMap['gold'].value > 525) {tradepost.max = Math.min(18, game.bld.getBuildingExt('tradepost').meta.val + 1);}
 					}
 					msgSummary('tradepost');
@@ -2967,7 +2971,7 @@ window.run = function() {
 						msgSummary('mansion', true);
 						msgSummary('scienceBld', true);
 					} else {
-						biolab.max = 10 * revolutionRatio;
+						biolab.max = 8 + 10 * revolutionRatio;
 						if (resPercent('titanium') < 0.96 && !geodesy) {
 							biolab.max = 10;
 							let bTowerMax = broadcastTower.max;
@@ -3365,7 +3369,7 @@ window.run = function() {
 			let solarRevolution = game.religion.getSolarRevolutionRatio();
 			let challenge = game.challenges.anyChallengeActive() && Calendar.year > 2;
 			let renaissance = game.prestige.getPerk('renaissance').researched;
-			let solar = solarRevolution || challenge || !renaissance;
+			let solar = solarRevolution || challenge || !game.religion.transcendenceTier || resMap['gold'].maxValue < 450;
 			let skipNagas = !game.ironWill && game.workshop.get('spaceManufacturing').researched && solarRevolution > 2;
 			// Determine how many races we will trade this cycl
 			let trade, race, name, require;
@@ -3557,6 +3561,7 @@ window.run = function() {
 			}
 			if (currentTick - startingTick > 2e4) {
 				dataTimer.ticksTotal = currentTick;
+				options.auto.cache.cacheSum = {};
 			}
 
 			// 游戏日志过滤
@@ -3844,7 +3849,12 @@ window.run = function() {
 						cache.trait[traitName] = true;
 					}
 					if (!hasTrait) {cache.trait[trait] = false;}
-					if (hasTrait || options.copyTrait === trait) {vLeader.trait.name = trait;}
+					if (hasTrait || options.copyTrait === trait) {
+						vLeader.trait.name = trait;
+						// if (!game.religion.transcendenceTier || game.getEffect('priceRatio')) {
+						//
+						// }
+					}
 				}
 			} else if (options.copyTrait && vLeader) {
 				if ($I('village.trait.' + options.copyTrait) === vLeader.trait.title) {
@@ -4872,9 +4882,9 @@ window.run = function() {
 
 			if (name === 'parchment') {
 				limited = ratio < 2.1;
-				if (!resMap[name].value && ratio > 1.5) {
-					force= true;
-					autoMax = 2;
+				if (resMap[name].value < 5  && ratio > 1.5) {
+					force = true;
+					autoMax = 1;
 				}
 				if (!navigation) {
 					if (resValue > 300) {limited = true;}
@@ -8188,7 +8198,7 @@ window.run = function() {
 
 		let optionsTitleElement = $('<a/>', {
 			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
-				fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px'},
+				color: '#FFC0CB', fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px'},
 			text: version,
 			target: '_blank',
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
@@ -8476,6 +8486,7 @@ window.run = function() {
 		});
 	};
 	engineOn();
+	$("#ks-engine > label")[0].style.color = "#ffb6c1";
 
 	// 记录初始数据
 	options.auto.cache.dataTimer['trueYear'] = game.calendar.trueYear();
@@ -8497,7 +8508,7 @@ window.run = function() {
 	$('#toggle-donate').trigger('change');
 
 	if (console && console.log) {console.log(kg_version + " loaded");}
-	game._publish("kitten_scientists/ready", kg_version);
+	// game._publish("kitten_scientists/ready", kg_version);
 	// 提示库存
 	let msgStock = () => {
 		let resources = options.auto.resources;
