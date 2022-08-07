@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.35';
+	const version = '15.36';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -1770,7 +1770,12 @@ window.run = function() {
 					if (!geodesy && resMap['iron'].perTickCached < 50) {maxKS = Math.round(maxKS * 0.5);}
 					if (game.religion.transcendenceTier < 7 && geodesy) {
 						maxKS = Math.max(50, maxKS);
-						if (val >= 40 && val < 50) {msgSummary('geologist');}
+						if (val >= 40 && val < 50) {
+							let msg = msgSummary('geologist');
+							if (!msg) {
+								$("#set-geologist-max")[0].innerText = i18n('ui.max', [Math.ceil(maxKS)]);
+							}
+						}
 					}
 					if (!game.science.get('mechanization').unlocked && !geodesy) {maxKS = 1;}
 					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
@@ -2423,9 +2428,6 @@ window.run = function() {
 					}
 					// 和平主义
 					if (pacifism) {noup = noup.concat(['bolas',"huntingArmor","steelArmor","alloyArmor","nanosuits"]);}
-					// 碳封存
-					let magneto = game.bld.getBuildingExt('magneto').meta;
-					if (magneto.val && magneto.on === magneto.val) {noup.push('carbonSequestration');}
 					if (game.village.getJob('engineer').value < 5) {
 						noup = noup.concat(['spaceEngineers','aiEngineers','chronoEngineers','amFission','factoryRobotics','factoryOptimization']);
 					}
@@ -2493,8 +2495,11 @@ window.run = function() {
 					} else {
 						noup = noup.concat(['hubbleTelescope']);
 					}
+					// 碳封存
+					let magneto = game.bld.getBuildingExt('magneto').meta;
+					if (magneto.val && magneto.on === magneto.val) {noup.push('carbonSequestration');}
 					// 钍反应堆
-					if (resMap['thorium'].value < 6e4) {noup.push('thoriumReactors');}
+					if (resMap['thorium'].value < 1e5 || game.resPool.energyProd - game.resPool.energyCons > 400) {noup.push('thoriumReactors');}
 					// 天体观测仪
 					isFilter = resMap['science'].maxValue > 19e4 && resStarchart.value < 2075;
 					if (isFilter || resMap['titanium'].value < 5 + 10 * revolutionRatio) {
@@ -2921,7 +2926,7 @@ window.run = function() {
 				let calcinerMax = calciner.max;
 				if (orbitalGeodesy) {
 					if (!spaceManufacturing || !sattelite) {
-						let Max = Math.min(47, 5 * revolutionRatio + 18);
+						let Max = Math.min(47, 6 * revolutionRatio + 14.5 + Production);
 						calciner.max = (calcinerMax === -1) ? Math.min(Max + Max * game.getEffect("productionRatio"), 95 - 30 * blackSky)
 							: Math.min(50, calcinerMax);
 					}
@@ -3089,13 +3094,15 @@ window.run = function() {
 			this.setTrait('chemist');
 			// 自动项目
 			{
+				let unobtainiumTick = game.getEffect('unobtainiumPerTickSpace');
 				let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
+				let keepStar = solarRevolution > 1.3 && unobtainiumTick || solarRevolution > 2;
 				if (blackSky) {
 					builds['researchVessel'].enabled = false;
 					if (builds['spaceStation'].enabled) {
 						$('#toggle-spaceStation').click();
 					}
-				} else if (!trigger && solarRevolution > 2 && !game.space.meta[0].meta[3].val && starchartVal < 2000) {
+				} else if (!trigger && keepStar && !game.space.meta[0].meta[3].val && starchartVal < 2000) {
 					trigger = 9;
 					msgSummary('spaceTrigger');
 				}
@@ -3715,6 +3722,8 @@ window.run = function() {
 					if (button) {button.controller.onAll(button.model);}
 				}
 			};
+
+			// 铸币厂
 			let mint = game.bld.getBuildingExt('mint').meta;
 			if (mint.on !== mint.val && resMap['manpower'].maxValue > 2e4) {
 				mint.on = mint.val;
@@ -5404,7 +5413,7 @@ window.run = function() {
 					let titaniumTick = game.globalEffectsCached['titaniumPerTickAutoprod'];
 					let calcinerVal = Bld.getBuildingExt('calciner').meta.val;
 					factor = Math.pow(magneto.priceRatio + priceRatio, magneto.val);
-					limRat = (steamworks.on < magneto.on || calcinerVal < 2) ? limRat : 0.76;
+					limRat = (steamworks.on < magneto.on || calcinerVal < 2) ? 0.45 : 0.76;
 					limRat = (res.value > Math.max(1250, 10 * factor) && options.auto.build.items.magneto.enabled) ? 0.01 : limRat;
 					let blackSky = calcinerVal < 6 && game.challenges.isActive('blackSky');
 					limRat = ((resMap['titanium'].value < 17 && !calcinerVal) || blackSky || !game.science.get('electricity').researched) ? 0 : limRat;
@@ -5864,19 +5873,23 @@ window.run = function() {
 				}
 				if (season === 1) {
 					if (game.workshop.get("geodesy").researched && !game.workshop.get("concreteHuts").researched) {doTrade = true;}
-					if (resMap['steel'].value > resMap['plate'].value && resMap['ship'].vale > 240 && titaniumTri < 0.8) {doTrade = true;}
+					if (resMap['ship'].value > 240) {
+						if (resMap['steel'].value > resMap['plate'].value || titaniumTri < 0.5) {doTrade = true;}
+					}
 				}
 				doTrade = (doTrade || spice && game.calendar.festivalDays) && game.workshop.get('caravanserai').researched;
 			}
 			if (name === 'spiders') {
 				if (season === 2) {
-					prof = titaniumTri > 0.3;
+					prof = titaniumTri > 0.4;
 				} else {
-					prof = titaniumTri > 0.4 && resPercent('coal') < 0.5;
+					prof = titaniumTri > 0.5 && resPercent('coal') < 0.5;
 				}
 				if (season === 3) {prof = titaniumTri > 0.9 && resPercent('coal') < 0.5 && resPercent('gold') > 0.95;}
 				if (!doTrade) {
-					doTrade = resPercent('coal') < 1 && titanium.value > 600 * (1 + solar) && resMap['iron'].value > 1e4 + 1e4 * solar;
+					let production = game.prestige.getParagonProductionRatio() + 1;
+					let coal = resPercent('coal') < 1 && resMap['steel'].value < 0.8 * production * resMap['plate'].value;
+					doTrade = coal && titanium.value > 600 * (1 + solar) * production && resMap['iron'].value > 1e4 + 1e4 * solar;
 					if (!prof && !doTrade) {doTrade = game.challenges.isActive('atheism') && race.embassyLevel > 4;}
 				}
 				if (resMap['scaffold'].value < 7000 + 7e3 * solar) {return false;}
@@ -8289,6 +8302,8 @@ window.run = function() {
 				if (!filter) {filter = 'miscFilter';}
 				activity(i18n('summary.auto.' + build), filter);
 				storeForSummary('auto.' + build);
+			} else {
+				return true;
 			}
 		}
 	};
