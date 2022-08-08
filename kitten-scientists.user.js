@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.36';
+	const version = '15.37';
 	const kg_version = "小猫珂学家版本" + version;
 	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
@@ -1689,32 +1689,20 @@ window.run = function() {
 				}
 			}
 
-
-			let freeKittens = village.getFreeKittens();
-			let miner = village.jobs[4];
-			let religionCatnip = options.auto.distribute;
-			if (!freeKittens) {
-				let woodcutter = village.getJob('woodcutter').value;
-				let minerItem = options.auto.distribute.items.miner;
-				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && village.sim.kittens.length) {village.sim.removeJob('woodcutter');}
-				if (religionCatnip.religion && woodcutter > 2) {
-					village.sim.removeJob('woodcutter');
-				} else {
-					return refreshRequired;
-				}
-			}
-
 			// 缺少猫薄荷
+			let freeKittens = village.getFreeKittens();
 			let resKitten = resMap["kittens"];
 			let resCatnip = resMap["catnip"];
 			let happiness = village.happiness;
 			let currentKitten = resKitten.value;
 			let agriculture = game.science.get("agriculture").researched;
 			let catnipTick = this.craftManager.getPotentialCatnip(false);
-			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 4) || resMap["catnip"].value + 2000 * (catnipTick - 1.7) < 0;
+			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 4) || resMap["catnip"].value + 2500 * (catnipTick - 1.7) < 0;
 			let normalWinterCatnip = (winterCatnip || (village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
 			let catnipValue = (resCatnip.value - (1800 * happiness * currentKitten) < 0 || resKitten.maxValue - currentKitten === 1 || freeKittens > 1);
-			if (religionCatnip.religion || (normalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue)) {
+			let religionCatnip = options.auto.distribute;
+			let farmerCatnip = religionCatnip.religion || (normalWinterCatnip && agriculture && catnipValue && resCatnip.value <= resCatnip.maxValue);
+			if (farmerCatnip) {
 				religionCatnip.religion = false;
 				village.assignJob(village.getJob("farmer"), 1);
 				iactivity('act.distribute.catnip', [], 'distributeFilter');
@@ -1722,6 +1710,19 @@ window.run = function() {
 				storeForSummary('catnip', 1);
 				return refreshRequired;
 			}
+
+			let miner = village.jobs[4];
+			let woodcutter = village.getJob('woodcutter').value;
+			if (!freeKittens) {
+				let minerItem = options.auto.distribute.items.miner;
+				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && village.sim.kittens.length) {village.sim.removeJob('woodcutter');}
+				if (farmerCatnip && woodcutter > 2) {
+					village.sim.removeJob('woodcutter');
+					refreshRequired += 1;
+				}
+				return refreshRequired;
+			}
+
 
 			let jobName = '';
 			let minRatio = Infinity;
@@ -1800,6 +1801,7 @@ window.run = function() {
 						msgSummary('defaultPriest');
 					}
 					if (resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
+					if (!woodcutter) {maxKS = 0;}
 				}
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
@@ -2337,7 +2339,7 @@ window.run = function() {
 				const tech = game.science.techs;
 				upgrades.techs.limited = true;
 				let nanotechnology = game.science.get('nanotechnology').researched;
-				let acoustics = game.science.get('acoustics').researched;
+				let acoustics = !game.science.get('acoustics').researched && resMap['science'].value > 6e4 && game.religion.transcendenceTier;
 				techLoop:
 				for (let upg of tech) {
 					if (upg.researched || !upg.unlocked) {continue;}
@@ -2358,8 +2360,8 @@ window.run = function() {
 							case 'ai':
 								if (titanium < 10e3) {continue;}
 								break;
-							case 'chemistry':
-								if (!acoustics && resMap['compedium'].value < 120 || resMap['steel'].value < 100) {continue;}
+							case 'physics':
+								if (acoustics && resMap['compedium'].value < 120 || resMap['steel'].value < 100) {continue;}
 								break;
 							case 'particlePhysics':
 								if (!nanotechnology && titanium < 1000) {continue;}
@@ -2368,7 +2370,7 @@ window.run = function() {
 								if (!nanotechnology && titanium < 10e3) {continue;}
 								break;
 							case 'drama':
-								if (craftManager.getTickVal(resMap['parchment'], true) < 2) {continue;}
+								if (craftManager.getTickVal(resMap['parchment'], true) < 2 && resMap['manpower'].perTickCached < 20) {continue;}
 								break;
 							case 'cryptotheology':
 								if (relic < 105 && resMap['antimatter'].value < 4000) {continue;}
@@ -2937,6 +2939,8 @@ window.run = function() {
 						let amt = (15 + Production * 3) * Math.max(1, Math.log(1 + revolutionRatio));
 						calciner.max = (calcinerMax === -1) ? amt : Math.min(amt, calcinerMax);
 					}
+					if (!game.workshop.get('oxidation').researched) {calciner.max = 7;}
+					if (!game.workshop.get('fluidizedReactors').researched) {calciner.max = 15;}
 				}
 
 				let oilTick = game.getResourcePerTick('oil', true);
@@ -3139,7 +3143,7 @@ window.run = function() {
 					}
 
 					// 星球裂解
-					if (uranium > 50 && starchartVal < 1e5) {builds['planetCracker'].max = 0;}
+					if (uranium > 50 && starchartVal < 5e5) {builds['planetCracker'].max = 0;}
 
 					// 收容室 散热器
 					let itemChamber = builds['containmentChamber'];
@@ -4466,9 +4470,11 @@ window.run = function() {
 				case 'oilWell':
 					if (id === 'oilWell') {
 						let meta = game.bld.getBuildingExt(id).meta.val;
-						if (meta < 8 || resMap['oil'].maxValue < 2e4) {break;}
-						if (resMap['oil'].maxValue > 55e3 && resMap['oil'].value > 3e4 && meta < 199) {count = Math.floor(count * 0.5);}
-						if (game.bld.getBuildingExt('calciner').meta.val > 20 && !orbitalGeodesy) {break;}
+						let oil = resMap['oil'];
+						let Val = resMap['oil'].val;
+						if (meta < 8 || oil.maxValue < 2e4) {break;}
+						if (oil.maxValue > 55e3 && Val > 3e4 && meta < 199) {count = Math.floor(count * 0.5);}
+						if (game.bld.getBuildingExt('calciner').meta.val > 17 && !orbitalGeodesy && Val < 3.5e4) {break;}
 					}
 				// falls through
 				case 'quarry' :
@@ -4819,20 +4825,21 @@ window.run = function() {
 
 			let itemHunt = options.auto.options.items.hunt;
 			let huntTime = itemHunt.time === 'fullIron' && itemHunt.enabled;
-			if (name === 'plate' && limited && Craft.items['steel'].enabled) {
+			if (name === 'plate' && limited) {
 				let coalTick = game.getResourcePerTick('coal', true);
 				let coalTri = this.getResource('coal').maxValue * trigger;
 				let reactMeta = game.bld.getBuildingExt('reactor').meta;
 				let reactRatio = Math.pow(priceRatio + reactMeta.priceRatio, reactMeta.val);
 				let react = resMap['titanium'].value > 3500 * reactRatio && resMap['uranium'].value > 300 && resValue < 5000 * reactRatio;
 				if (coalTick > 0 && resMap['iron'].value !== resMap['iron'].maxValue && resValue > 150 && !react) {
-					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > 0.8) {
+					if (this.getValueAvailable('plate') / this.getValueAvailable('steel') > 0.8 && Craft.items['steel'].enabled) {
 						let ironInTime = ((coalTri - this.getValue('coal')) / coalTick) * Math.max(game.getResourcePerTick('iron', true), 0);
 						autoMax = 0.008 * (this.getValueAvailable('iron') - Math.max(coalTri - ironInTime, 0));
 					}
 				}
 				if (react) {force = true;}
-				if (resMap['faith'].maxValue < 750 && resMap['gold'].value > 30 && resMap[name].value < 23 && ratio > 3) {force = true;}
+				let templeRes = resMap['faith'].maxValue < 750 && resMap['gold'].value > 30 && resMap['manuscript'].value < 17;
+				if (templeRes && resMap[name].value < 23 && ratio > 2.8) {force = true;}
 				if (!shipValue && ratio > 3 && resMap['starchart'].value >= 25 && resValue < 150) {
 					autoMax = Math.ceil(Math.min(resMap['iron'].value / 100, (150 - resValue) / ratio));
 					force = true;
@@ -4851,7 +4858,7 @@ window.run = function() {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript > 0) {
-						let buildTemple = (i === 16 && game.village.happiness < 4 && temple.val === 1 && renaissance);
+						let buildTemple = (i === 16 && game.village.happiness < 4 && temple.val === 1 && ratio > 4);
 						buildTemple = buildTemple || resMap['faith'].maxValue > 750 || resMap['gold'].value < 50;
 						price = (buildTemple) ? price : 10 * templePriceRatio;
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
@@ -4900,11 +4907,13 @@ window.run = function() {
 						break;
 					}
 				}
-				if (i === 22 && resMap[name].value < 60) {
+				// 物理学 => 强制到声学
+				if (i === 20 && resMap[name].value < 60) {
 					force = true;
 					autoMax = 1;
 				}
-				if (!scienceMeta.meta[32].researched && cultrueTri > 0.98 && resValue < 100 && scienceTri > 0.98) {
+				// 冶金
+				if (!Science.get('metalurgy').researched && cultrueTri > 0.98 && resValue < 100 && scienceTri > 0.98) {
 					force = true;
 				}
 			}
@@ -4981,7 +4990,9 @@ window.run = function() {
 				// ironHut = resValue > 250 * ratio || ironHut;
 				let ironCoalRatio = 0.3 * Math.min(1, resMap['coal'].perTickCached / resMap['iron'].perTickCached);
 				if (resMap['plate'].value < 1.25 * ironCoalRatio * resMap['steel'].value && !Craft.oxidation && Craft.items['plate'].enabled) {amount = 0;}
+				let cacheUpg = options.auto.upgrade.items.upgrades;
 				let forceSteel = (name, prices) => {
+					if (!cacheUpg.cache) {return;}
 					let workshopMeta;
 					if (name) {
 						workshopMeta = workshop.get(name);
@@ -4991,7 +5002,9 @@ window.run = function() {
 					if (!name || !workshopMeta.researched) {
 						let steelPrice;
 						for (let Res in prices) {
-							if (prices[Res].name === 'steel') {steelPrice = prices[Res].val;}
+							let price = prices[Res];
+							if (price.name === 'steel') {steelPrice = price.val;}
+							if (price.name === 'science' && resMap['science'].value < 0.95 * price.val) {return;}
 						}
 						let amt = Math.ceil((steelPrice - resValue) / ratio);
 						// let checkRes = (this.getValueAvailable('iron', true) > 100 * amt && this.getValueAvailable('coal', true) > 100 * amt);
@@ -5020,7 +5033,6 @@ window.run = function() {
 						if (amount > minAmount) {amount = minAmount;}
 					}
 					forceSteel('oxidation');
-					let cacheUpg = options.auto.upgrade.items.upgrades;
 					let titanium = resMap['titanium'].value;
 					// 氧化反应
 					if (oxid) {
@@ -5036,9 +5048,9 @@ window.run = function() {
 					let alloyVal = resMap['alloy'].value;
 					let flu = this.getUnResearched('fluidizedReactors');
 					let orb = this.getUnResearched('orbitalGeodesy');
-					if (orb && resMap['oil'].value > 1.7e4 && resMap['oil'].maxValue > 3.5e4 && resMap['uranium'].value < 1e3 && !flu) {
+					if (orb && resMap['oil'].value > 3e4 && resMap['oil'].maxValue > 3.5e4 && resMap['uranium'].value < 1e3 && !flu) {
 						let a = Math.ceil((1000 - alloyVal) / ratio);
-						let isCache = resMap['titanium'].value > a * 10 || (resMap['alloy'].value > 300 && calVal > 20) || (a * 10 - titanium) / resMap['titanium'].perTickCached < 600;
+						let isCache = resMap['titanium'].value > a * 10 || (resMap['alloy'].value > 300 && calVal > 20) || (a * 10 - titanium) / resMap['titanium'].perTickCached < 600 || calVal > 24;
 						if (a > 0 && isCache && !cacheUpg.cache) {
 							options.auto.cache.resUpg['alloy'] = 1000;
 							cacheUpg.cache = 'orbitalGeodesy';
@@ -5048,7 +5060,7 @@ window.run = function() {
 					if (flu && !cacheUpg.cache) {
 						let amt = Math.ceil((200 - alloyVal) / ratio);
 						// 2分钟 5 * 60 * 2
-						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 600;
+						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 600 || calVal > 14;
 						if (amt > 0 && calVal > 6 && b) {
 							options.auto.cache.resUpg['alloy'] = 200;
 							cacheUpg.cache = 'fluidizedReactors';
@@ -5056,7 +5068,7 @@ window.run = function() {
 						}
 					}
 					let Drill = this.getUnResearched('miningDrill');
-					if (Drill && resMap['science'].value > 1e5 && titanium > 1750 && geodesy) {
+					if (Drill && resMap['science'].value > 1e5 && titanium > 1750 && geodesy && !cacheUpg.cache) {
 						forceSteel('miningDrill');
 					}
 					let alloyCache = options.auto.cache.resUpg['alloy'];
@@ -5275,6 +5287,7 @@ window.run = function() {
 					}
 					case 'titanium':
 						if (this.getUnResearched('rotaryKiln') && orbGeodesy) {stock += 5000;}
+						if (this.getUnResearched('geodesy') && resMap['starchart'].value > 500 && game.religion.getSolarRevolutionRatio() < 2 && game.bld.getBuildingExt('calciner').meta.val > 2) {stock += 250;}
 						// if (unResearched('augumentation') && resMap['uranium'].value > 50 && game.village.leader && workshop.get('rotaryKiln').researched) {stock += 5000;}
 						if (this.getUnResearched('spaceManufacturing') && game.bld.get('reactor').val > 24 && resMap['titanium'].maxValue > 125e3) {stock += 13e5;}
 						break;
@@ -5393,9 +5406,10 @@ window.run = function() {
 					let satnav = !piscine.on && space.getBuilding('sattelite').val < 9 && res.value;
 					let manufacture = satnav && sloar > 6 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && sloar > 6 && titaniumMax > 120e3;
+					limRat = (game.workshop.get('geodesy').researched && !space.getProgram('moonMission').val) ? 0.7 : 0.4;
 					limRat = (shipValue > shipLimit * 0.75 && sloar > 3 && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
 					// (shipValue > shipLimit * 5 && sloar > 5) ||
-					limRat = (manufacture || resPercent('titanium') > 0.9) ? 0.05 : limRat;
+					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3)) ? 0 : limRat;
 					limRat = (shipValue > Math.max(400, titaniumMax)) ? 0 : limRat;
 					break;
@@ -5856,12 +5870,11 @@ window.run = function() {
 			if (name === 'zebras') {
 				let calciner = game.bld.getBuildingExt('calciner').meta.val;
 				let griffins = options.auto.trade.items.griffins;
-				let iron = this.craftManager.getTickVal(resMap['iron']);
-				// / this.craftManager.getTickVal(titanium
-				let titaniumProfit = Math.min(Math.max(titanium.maxValue - titanium.value, 0), output['titanium']) / titanium.perTickCached;
-				let autumnIron = this.getAverageTrade(this.getRace('griffins'))['iron'] / iron < output['iron'] / iron + titaniumProfit;
-				if (griffins.enabled && griffins.autumn && season === 2 && calciner > 2) {
-					prof = prof && autumnIron && titaniumTri > 0.3;
+				if (griffins.enabled && griffins.autumn && season === 2 && calciner > 2 && prof) {
+					let iron = this.craftManager.getTickVal(resMap['iron']);
+					let titaniumProfit = Math.min(Math.max(titanium.maxValue - titanium.value, 0), output['titanium']) / titanium.perTickCached;
+					let autumnIron = this.getAverageTrade(this.getRace('griffins'))['iron'] / iron < output['iron'] / iron + titaniumProfit;
+					prof = autumnIron && titaniumTri < 0.3;
 				}
 
 				let glass = resMap['gold'].value > 200 || (doTrade && resMap['faith'].value > 450);
