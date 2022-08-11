@@ -16,224 +16,11 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.39';
+	const version = '15.40';
 	const kg_version = "小猫珂学家版本" + version;
-	const lang = (localStorage["com.nuclearunicorn.kittengame.language"] === 'zh') ? 'zh' : 'en';
 	// Initialize and set toggles for Engine
 	// =====================================
 	const i18nData = {
-		'en': {
-			'option.observe': 'Observe Astro Events',
-			'option.festival': 'Hold Festivals',
-			'option.praise': 'Auto Praise',
-			'option.autofeed': 'Feed Leviathans',
-			'option.hunt': 'Hunt',
-			'option.crypto': 'Trade Blackcoin',
-			'option.embassies': 'Build Embassies (Beta)',
-			'option.style': 'View Full Width',
-			'option.steamworks': 'Turn on Steamworks',
-
-			'filter.build': 'Building',
-			'filter.craft': 'Crafting',
-			'filter.upgrade': 'Upgrading',
-			'filter.research': 'Researching',
-			'filter.trade': 'Trading',
-			'filter.hunt': 'Hunting',
-			'filter.praise': 'Praising',
-			'filter.faithBld': 'Order of the Sun',
-			'filter.festival': 'Festivals',
-			'filter.star': 'Astronomical Events',
-			'filter.misc': 'Miscellaneous',
-
-			'dispose.necrocorn': 'Kittens disposed of inefficient necrocorns',
-			'blackcoin.buy': 'Kittens sold your Relics and bought {0} Blackcoins',
-			'blackcoin.sell': 'Kittens sold your Blackcoins and bought {0} Relics',
-			'act.feed': 'Kittens fed the Elders. The elders are pleased',
-			'act.observe': 'Kitten Scientists have observed a star',
-			'act.hunt': 'Sent {1} on {0} hunts',
-			'act.build': 'Kittens have built a new {0}',
-			'act.builds': 'Kittens have built a new {0} {1} times.',
-			'act.craft': 'Kittens have crafted {0} {1}',
-			'act.trade': 'Kittens have traded {0}x with {1}',
-
-			'upgrade.space.mission': 'Kittens conducted a mission to {0}',
-			'upgrade.space': 'Kittens conducted a {0}',
-			'upgrade.race': 'Kittens met the {0}',
-			'upgrade.building.pasture': 'Upgraded pastures to solar farms!',
-			'upgrade.building.aqueduct': 'Upgraded aqueducts to hydro plants!',
-			'upgrade.building.library': 'Upgraded libraries to data centers!',
-			'upgrade.building.amphitheatre': 'Upgraded amphitheatres to broadcast towers!',
-			'upgrade.upgrade': 'Kittens have bought the upgrade {0}',
-			'upgrade.limited': 'Optimize {0}',
-			'upgrade.unlimited': 'All {0}',
-			'upgrade.tech': 'Kittens have bought the tech {0}',
-			'upgrade.policy': 'Kittens have passed {0}',
-
-			'festival.hold': 'Kittens begin holding a festival',
-			'festival.extend': 'Kittens extend the festival',
-
-			'build.embassy': 'Built {0} embassy for {1}',
-			'build.embassies': 'Built {0} embassies for {1}',
-
-			'act.praise': 'Praised the sun! Accumulated {0} faith to {1} worship',
-			'act.sun.discover': 'Kittens have discovered {0}',
-			'act.sun.discovers': 'Kittens have discovered {0} {1} times.',
-
-			'ui.items': 'items',
-			'ui.disable.all': 'disable all',
-			'ui.enable.all': 'enable all',
-			'ui.craft.resources': 'resources',
-			'ui.trigger': 'trigger',
-			'ui.trigger.set': 'Enter a new trigger value for {0}. Should be in the range of 0 to 1.',
-			'ui.limit': 'Limited',
-			'ui.trigger.missions.set': 'Enter a new trigger value for missions. Should be in the range of 0 to 13. Corresponds to each planet sort',
-			'ui.trigger.crypto.set': 'Enter a new trigger value for {0}. Corresponds to the amount of Relics needed before the exchange is made.',
-			'ui.engine': 'Enable Scientists',
-			'ui.build': 'Bonfire',
-			'ui.space': 'Space',
-			'ui.craft': 'Crafting',
-			'ui.upgrade': 'Unlocking',
-			'ui.trade': 'Trading',
-			'ui.faith': 'Religion',
-			'ui.time': 'Time',
-			'ui.options': 'Options',
-			'ui.filter': 'Filters',
-			'ui.distribute': 'Kitten Resources',
-			'ui.max': 'Max: {0}',
-
-			'ui.upgrade.upgrades': 'Upgrades',
-			'ui.upgrade.techs': 'Techs',
-			'ui.upgrade.races': 'Races',
-			'ui.upgrade.missions': 'Missions',
-			'ui.upgrade.buildings': 'Buildings',
-			'ui.upgrade.policies': 'Policies',
-			'ui.upgrade.policies.load': 'Load',
-			'ui.upgrade.policies.show': 'Show',
-
-			'ui.faith.addtion': 'addition',
-			'option.faith.best.unicorn': 'Build Best Unicorn Building First',
-			'option.faith.best.unicorn.desc': 'Include auto Sacrifice Unicorns if tears are not enough to build the best unicorn building',
-			'option.faith.transcend': 'Auto Transcend',
-			'act.transcend': 'Spend {0} epiphany, Transcend to T-level: {1}',
-			'summary.transcend': 'Transcend {0} times',
-			'filter.transcend': 'Transcend',
-			'option.faith.adore': 'Auto Adore the Galaxy',
-			'act.adore': 'Adore the galaxy! Accumulated {0} worship to {1} epiphany',
-			'summary.adore': 'Accumulated {0} epiphany by adore the galaxy',
-			'filter.adore': 'Adoring',
-			'adore.trigger.set': 'Enter a new trigger value for AutoAdore. Should be in the range of 0 to 1.\nKS will AutoAdore if the Solar Revolution Bonus brought by praising the sun once after adore can reach the trigger of maximum.\n\nNote: The solar revolution bonus will diminish after reaching 75% of the maximum.',
-
-			'resources.add': 'add resources',
-			'resources.clear.unused': 'clear unused',
-			'resources.stock': 'Stock: {0}',
-			'resources.consume': 'Consume: {0}',
-			'resources.del': 'del',
-			'resources.stock.set': 'Stock for {0}',
-			'resources.consume.set': 'Consume rate for {0}',
-			'resources.del.confirm': 'Delete resource controls for {0}?',
-
-			'status.ks.enable': 'Enabling the kitten scientists!',
-			'status.ks.disable': 'Disabling the kitten scientists!',
-			'status.sub.enable': 'Enabled {0}',
-			'status.auto.enable': 'Enable Auto {0}',
-			'status.sub.disable': 'Disabled {0}',
-			'status.auto.disable': 'Disable Auto {0}',
-
-			'trade.limited': 'Trading with {0}: limited to only occur when profitable based off relative production time',
-			'trade.unlimited': 'Trading with {0}: unlimited',
-			'trade.seasons': 'seasons',
-			'trade.season.enable': 'Enabled trading with {0} in the {1}',
-			'trade.season.disable': 'Disabled trading with {0} in the {1}',
-
-			'filter.enable': 'Enable {0} Filter',
-			'filter.disable': 'Disabled {0} Filter',
-
-			'craft.limited': 'Crafting {0}: limited to be proportional to cost ratio',
-			'craft.unlimited': 'Crafting {0}: unlimited',
-
-			'distribute.limited': 'Distribute to {0}: stop when reach max',
-			'distribute.unlimited': 'Distribute to {0}: unlimited',
-			'distribute.leaderJob': 'Leader Job: {0} ',
-			'distribute.leaderTrait': 'Choose {0} Leader',
-			'distribute.makeLeader': 'Make Leader',
-			'act.distribute': 'Distribute a kitten to {0}',
-			'act.distributeLeader': 'Make a {0} kitten leader',
-			'ui.max.set': 'Maximum for {0}',
-			'summary.distribute': 'Help {0} kittens to find job',
-			'filter.distribute': 'Distribute',
-
-			'option.promote': 'Promote Leader',
-			'act.promote': 'Kittens\' leader has been promoted to rank {0}',
-			'filter.promote': 'Promote leader',
-			'summary.promote': 'Promoted leader {0} times',
-
-			'ui.timeCtrl': 'Time Control',
-			'option.accelerate': 'Tempus Fugit',
-			'act.accelerate': 'Accelerate time!',
-			'filter.accelerate': 'Tempus Fugit',
-			'summary.accelerate': 'Accelerate time {0} times',
-			'option.time.skip': 'Time Skip',
-			'act.time.skip': 'Kittens combust Time crystal, {0} years skipped!',
-			'ui.cycles': 'cycles',
-			'ui.maximum': 'Maximum',
-			'time.skip.cycle.enable': 'Enable time skip in cycle {0} and allow skip over this cycle',
-			'time.skip.cycle.disable': 'Disable time skip in cycle {0} and disallow skip over this cycle',
-			'time.skip.season.enable': 'Enable time skip in the {0}',
-			'time.skip.season.disable': 'Disable time skip in the {0}',
-			'time.skip.trigger.set': 'Enter a new trigger value for Time Skip (Combust time crystal). Should be a positive integer.',
-			'summary.time.skip': 'Skip {0} years',
-			'filter.time.skip': 'Time Skip',
-			'option.time.reset': 'Reset Timeline (Danger!)',
-			'status.reset.check.enable': 'Enable check {0} before Reset Timeline',
-			'status.reset.check.disable': 'Disable check {0} before Reset Timeline',
-			'ui.min': 'Min: {0}',
-			'reset.check.trigger.set': 'Enter a new trigger value for {0}.\n-1 meaning must build this building until exceeding resource limit.',
-			'reset.check': 'Trigger for {0} : {1}, you have {2}',
-			'reset.checked': 'All conditions are met, the timeline will restart in next few seconds!',
-			'reset.tip': 'You can cancel this reset by disable "Kitten Scientists" or "Time Control" or "Reset Timeline"',
-			'reset.countdown.10': '10 - Harvesting catnip',
-			'reset.countdown.9': '&nbsp;9 - Sacrificing Unicorns',
-			'reset.countdown.8': '&nbsp;8 - Releasing lizards',
-			'reset.countdown.7': '&nbsp;7 - Disassembling rail-guns',
-			'reset.countdown.6': '&nbsp;6 - Starting time engines',
-			'reset.countdown.5': '&nbsp;5 - Melting blackcoins',
-			'reset.countdown.4': '&nbsp;4 - Turning off satellite',
-			'reset.countdown.3': '&nbsp;3 - Opening temporal rifts',
-			'reset.countdown.2': '&nbsp;2 - Boosting the chronoforge',
-			'reset.countdown.1': '&nbsp;1 - Time engine start',
-			'reset.countdown.0': '&nbsp;0 - Temporal rifts opened!',
-			'reset.last.message': 'See you next poinciana recurrence',
-			'reset.after': 'Nice to meet you, the cute Kittens Scientists will serve you',
-			'reset.cancel.message': 'Timeline Reset canceled.',
-			'reset.cancel.activity': 'Meoston, We Have a Problem.',
-			'summary.time.reset.title': 'Summary of the last {0} timelines',
-			'summary.time.reset.content': 'Gain {0} Karma.<br>Gain {1} Paragon.',
-			'ui.close': 'close',
-
-			'option.fix.cry': 'Fix Cryochamber',
-			'act.fix.cry': 'Kittens fix {0} Cryochambers',
-			'summary.fix.cry': 'Fix {0} Cryochambers',
-
-			'summary.festival': 'Held {0} festivals',
-			'summary.stars': 'Observed {0} stars',
-			'summary.praise': 'Accumulated {0} worship by praising the sun',
-			'summary.hunt': 'Sent adorable kitten hunters on {0} hunts',
-			'summary.embassy': 'Built {0} embassies',
-			'summary.feed': 'Fed the elders {0} necrocorns',
-			'summary.tech': 'Researched: {0}',
-			'summary.upgrade': 'Upgraded: {0}',
-			'summary.building': 'Built: +{0} {1}',
-			'summary.sun': 'Discovered: +{0} {1}',
-			'summary.craft': 'Crafted: +{0} {1}',
-			'summary.trade': 'Traded: {0}x {1}',
-			'summary.year': 'year',
-			'summary.years': 'years',
-			'summary.separator': ' and ',
-			'summary.day': 'day',
-			'summary.days': 'days',
-			'summary.head': 'Summary of the last {0}',
-			'summary.show': 'Show activity',
-		},
 		'zh': {
 			'option.observe': '观测天文现象',
 			'option.festival': '举办节日',
@@ -469,7 +256,7 @@ window.run = function() {
 
 			'summary.auto.academy': '小猫当科学快满了才会继续建造研究院',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
-			'summary.auto.bls': '小猫存眼泪提炼悲伤(当然是在幸福度边上)',
+			'summary.auto.bls': '小猫存眼泪提炼悲伤',
 			'summary.auto.broadcastTower': '小猫为了节省钛用来发展，钛快到上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>科学和工坊升级换到科学家领袖，比如神学的科学价格变为19K等等',
@@ -498,23 +285,25 @@ window.run = function() {
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所(如果有问题的话',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
+			'summary.auto.rotaryKiln': '猫猫看上了<s>回转炉</s>? 减肥旋转滚轮!',
+			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血',
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
+			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
+			'summary.auto.smelter': '神学前，冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
+			'summary.auto.spaceTrigger': '小猫发展飞快，把星图留给探索碧池星',
 			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成双成对',
+			'summary.auto.steelAxe': '存着钢换个喵喵自用的精钢斧',
+			'summary.auto.steelSaw': '小喵存着钢给木材厂换精钢锯，更加锋利了喵',
 			'summary.auto.templars': '没有足够的黄金和铁产量拿什么祷告圣殿骑士呢',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
 			'summary.auto.tradepost': '祷告太阳革命前，交易所开摆',
-			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
-			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血',
-			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造。',
-			'summary.auto.spaceTrigger': '小猫发展飞快，把星图留给探索碧池星',
-			'summary.auto.steelSaw': '小喵存着钢给木材厂换精钢锯，更加锋利了喵',
-			'summary.auto.smelter': '神学前，冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.tear': '小喵都做了什么?! 独角兽的眼泪加小猫幸福度的捏',
 			'summary.auto.unicorn': '最佳独角兽建筑：{0}',
 			'summary.auto.upgPasture': '当勾选太阳能发电站了，并有足够钛的产量、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部牧场后，升级太阳能发电站!',
 			'summary.auto.upgAqueduct': '当勾选水电站了，有太阳能发电站、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部水渠后，升级水电站!',
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
 			'summary.auto.upgAmphitheatre': '当有贸易船或者钛产量足够高时，小猫会贴心的帮你卖出全部剧场后，升级广播塔!',
+			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
 			'summary.upgrade.building.aqueduct': '卖出水渠 并升级为 水电站 !',
 			'summary.upgrade.building.library': '卖出图书馆 并升级为 数据中心!',
@@ -567,7 +356,7 @@ window.run = function() {
 			'summary.separator': ' ',
 			'summary.day': '天',
 			'summary.days': '天',
-			'summary.head': '猫国过去 {0} 的总结',
+			'summary.head': '你醒啦，这是猫国过去 {0} 的总结',
 			'summary.show': '小猫总结',
 		},
 	};
@@ -582,14 +371,9 @@ window.run = function() {
 		if (key[0] === "$") {
 			return $I(key.slice(1));
 		}
-		let value = i18nData[lang][key];
+		let value = i18nData['zh'][key];
 		if (typeof value === 'undefined') {
-			value = i18nData['en'][key];
-			if (!value) {
-				console.error('key "' + key + '" not found');
-				return '$' + key;
-			}
-			console.error('Key "' + key + '" not found in ' + lang);
+			return msgSummary(key);
 		}
 		if (args) {
 			for (let i = 0; i < args.length; i++) {
@@ -1792,6 +1576,7 @@ window.run = function() {
 					}
 					if (!game.science.get('mechanization').unlocked && !geodesy) {maxKS = 1;}
 					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
+					if (!woodcutter) {maxKS = 0;}
 				}
 				if (name === 'scholar' && limited) {
 					let moreScholar;
@@ -1813,7 +1598,10 @@ window.run = function() {
 						msgSummary('defaultPriest');
 					}
 					if (resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
-					if (!woodcutter) {maxKS = 0;}
+					if (!woodcutter) {
+						limited = true;
+						maxKS = 0;
+					}
 				}
 				if (!limited || val < maxKS) {
 					currentRatio = val / maxKS;
@@ -1951,10 +1739,13 @@ window.run = function() {
 							}
 						}
 						// 神印留眼泪
-						if (blackPyramidVal && builds['marker'].enabled) {
-							let marker = religion.getZU('marker').on;
-							let tearPrice = 5e3 * Math.pow(1.15, marker);
-							if (tearHave < tearPrice  && sunspire > Math.min(9 + marker, 19)) {tearNeed = Math.min(tearPrice, tearNeed);}
+						if (blackPyramidVal) {
+							if (builds['marker'].enabled) {
+								let marker = religion.getZU('marker').on;
+								let tearPrice = 5e3 * Math.pow(1.15, marker);
+								if (tearHave < tearPrice  && sunspire > Math.min(9 + marker, 19)) {tearNeed = Math.min(tearPrice, tearNeed);}
+							}
+							if (game.calendar.day < 1 && !game.calendar.season && Math.random() < 0.1) {game.diplomacy.unlockElders();}
 						}
 
 						tearNeed = (bls) ? 10e3 : tearNeed;
@@ -2134,7 +1925,8 @@ window.run = function() {
 				// 低于期望太阳革命加成时日志提醒
 				if (adoreTri === 0.001 && booleanForAdore && expect && tt) {
 					// 并当赞美群星赞美太阳后恢复的加成过少时会取消赞美群星
-					let solarAdore = solarRevolutionAfterAdore <= Math.max(1, Math.min(expectSolarRevolutionRatio * 0.01 - 0.5, maxSolarRevolution * 0.9));
+					let lessRatio = Math.min(expectSolarRevolutionRatio - 45 - tt, maxSolarRevolution * 90 + 3 * tt, maxSolarRevolution * 94);
+					let solarAdore = solarRevolutionAfterAdore * 100 <= Math.max(1, lessRatio);
 					if (solarAdore) {booleanForAdore = false;}
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 100) / 100;
 					let filter = !rrVal || !voidOrder;
@@ -2602,7 +2394,10 @@ window.run = function() {
 				let subTrigger = upgrades.missions.subTrigger;
 				let missionsLength = game.space.meta[0].meta.length;
 				let manu = game.workshop.get('spaceManufacturing').researched;
-				if (subTrigger === 4 && resMap['alicorn'].value && manu && resMap['starchart'].value > 1e5) {subTrigger = 12;}
+				if (subTrigger === 4 && resMap['alicorn'].value && manu && resMap['starchart'].value > 1e5) {
+					subTrigger = 7;
+					if (resMap['relic'].value < 26) {subTrigger = 12;}
+				}
 				let index = 0;
 				let skip = !orbitalGeodesy && !game.ironWill && !geodesy;
 				let GCPanel = spaceTab.GCPanel;
@@ -2672,7 +2467,8 @@ window.run = function() {
 
 			if (upgrades.buildings.enabled) {
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
-				let energy = (winterProd && winterProd - 50 < game.resPool.energyCons);
+				let energyActive = game.challenges.isActive("energy");
+				let energy = winterProd && winterProd - 50 < game.resPool.energyCons || energyActive;
 				let pastures = (pastureMeta.stage === 0) ? pastureMeta.val : 0;
 				let aqueducts = (aqueductMeta.stage === 0) ? aqueductMeta.val : 0;
 				let upgradeBuilding = (name, meta) => {
@@ -2715,7 +2511,8 @@ window.run = function() {
 
 				if (aqueductMeta.stage === 0) {
 					if (aqueductMeta.stages[1].stageUnlocked) {
-						let catnip = craftManager.getPotentialCatnip(true, pastures, 0) > 90;
+						let catnipTick = craftManager.getPotentialCatnip(true, pastures, 0);
+						let catnip = catnipTick > 0 || (catnipTick < 0 && resMap['catnip'].value + 4000 * catnipTick > 0);
 						if (catnip && energy && pastureMeta.stage === 1 && options.auto.build.items.hydroPlant.enabled) {
 							return upgradeBuilding('aqueduct', aqueductMeta);
 						} else {
@@ -2733,7 +2530,7 @@ window.run = function() {
 						ratio = resMap['compedium'].value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 1e6;
 						ratio |= craftManager.getTickVal(resMap['concrate']) > 600 * paragon;
 						if (ratio && options.auto.build.items.dataCenter.enabled) {
-							if (winterProd >= game.resPool.energyCons + 150 && !game.challenges.isActive("energy")) {
+							if (winterProd >= game.resPool.energyCons + 150 && !energyActive) {
 								return upgradeBuilding('library', libraryMeta);
 							}
 						} else {
@@ -2893,8 +2690,8 @@ window.run = function() {
 				let tradepost = items['tradepost'];
 				let solarUnlocked = (game.religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched);
 				let goldTri = resMap['gold'].value / resMap['gold'].maxValue;
-				if (!blackSky && resMap['titanium'].value < 25) {
-					temple.max = Math.max(30, 10 * (1 + revolutionRatio));
+				if (!game.getEffect('unobtainiumPerTickSpace') && resMap['faith'].maxValue < 7500) {
+					temple.max = Math.max(26, 10 * (1 + revolutionRatio));
 				}
 				// 商队驿站
 				let caravanserai = game.workshop.get('caravanserai');
@@ -3168,11 +2965,13 @@ window.run = function() {
 					if (uranium > 10 && starchartVal < 5e5) {builds['planetCracker'].max = 0;}
 					// 流体切割
 					if (starchartVal < 3e4) {builds['hydrofracturer'].max = 100 * game.getEffect('spaceRatio') - Production - solarRevolution;}
+					// 香料提取
+					if (starchartVal < 1e5) {builds['spiceRefinery'].max = 0;}
 
 					// 低温储存站
 					let cryostation = game.space.getBuilding('cryostation').val;
-					let eludiumVal = resMap['eludium'].val;
-					let cryostationFactor = Math.pow(1.12, cryostation + Production + Math.sqrt(game.prestige.getParagonStorageRatio() * 1e-5));
+					let eludiumVal = resMap['eludium'].value;
+					let cryostationFactor = 25 * Math.pow(1.12, cryostation + Production + Math.sqrt(game.prestige.getParagonStorageRatio() * 0.5));
 					if (eludiumVal > cryostationFactor) {builds['cryostation'].max = cryostation + 1;}
 					if (eludiumVal < cryostationFactor) {builds['cryostation'].max = 0;}
 
@@ -3197,7 +2996,7 @@ window.run = function() {
 					if (Nummon) {
 						let ArrayVal = game.space.getBuilding('orbitalArray').val;
 						if (Nummon.getBestUnobtainiumBuilding() === $I("space.planet.piscine.orbitalArray.label")) {
-							if (!game.getEffect('shatterTCGain') || ArrayVal > 39) {
+							if (!game.getEffect('shatterTCGain') || ArrayVal > 39 || Production < 2) {
 								Array.max = ArrayVal + 1;
 							} else {
 								Array.max = 40;
@@ -3399,7 +3198,7 @@ window.run = function() {
 				this.setTrait();
 				if (huntCount >= 1000) {game.challenges.getChallenge("pacifism").unlocked = true;}
 				if (options.auto.cache.trait['manager']) {
-					iactivity('act.hunt', ['管理者派出' + huntCount, hunter], 'huntFilter');
+					iactivity('act.hunt', ['管理者派出 ' + huntCount, hunter], 'huntFilter');
 					storeForSummary('hunt.manager', huntCount);
 				} else {
 					storeForSummary('hunt', huntCount);
@@ -3475,8 +3274,8 @@ window.run = function() {
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 
 				// If we have enough to trigger the check, then attempt to trade
-				let prof = tradeManager.getProfitability(name);
 				if (name === 'nagas' && skipNagas) {continue;}
+				let prof = tradeManager.getProfitability(name);
 				if (name === 'zebras' && !prof && Calendar.season === 2 && titaniumTri > 0.5) {continue;}
 				if (name === 'sharks' && race.embassyLevel < 10) {prof = false;}
 				if (name === 'dragons' && solarRevolution > 2 && !prof && titaniumTri < 1) {continue;}
@@ -5184,8 +4983,9 @@ window.run = function() {
 			return materials;
 		},
 		getTickVal: function (res, preTrade) {
-			let prod = game.getResourcePerTick(res.name, true);
-			if (res.name === 'timeCrystal') {
+			let name = res.name;
+			let prod = game.getResourcePerTick(name, true);
+			if (name === 'timeCrystal') {
 				let aliChance = game.getEffect("alicornChance");
 				let alicornTick = game.getResourcePerTick("alicorn");
 				let tcRefineRatio = 0.04 * (1 + game.getEffect("tcRefineRatio"));
@@ -5195,22 +4995,23 @@ window.run = function() {
 			}
 			if (res.craftable) {
 				let minProd = Number.MAX_VALUE;
-				let materials = this.getMaterials(res.name);
+				let materials = this.getMaterials(name);
+				let ratio = 1 + game.getResCraftRatio(name);
 				for (let mat in materials) {
-					let rat = (1 + game.getResCraftRatio(res.name)) / materials[mat];
+					let rat = ratio / materials[mat];
 					//Currently preTrade is only true for the festival stuff, so including furs from hunting is ideal.
 					let addProd = this.getTickVal(this.getResource(mat));
 					minProd = Math.min(addProd * rat, minProd);
 				}
 				prod += (minProd === Number.MAX_VALUE) ? 0 : minProd;
 			}
-			let ignore = (res.name === 'spice' || res.name === 'blueprint');
+			let ignore = (name === 'spice' || name === 'blueprint');
 			if (prod <= 0 && ignore) {return 'ignore';}
 			if (!preTrade) {
 				let timeSkip = activitySummary['other']['time.skip'];
 				let ratio = 1;
-				if (res.name === 'unobtainium' && timeSkip) {ratio = 0.4;}
-				prod += this.cacheManager.getResValue(res.name) * ratio;
+				if (name === 'unobtainium' && timeSkip) {ratio = 0.4;}
+				prod += this.cacheManager.getResValue(name) * ratio;
 			}
 			return prod;
 		},
@@ -5264,13 +5065,18 @@ window.run = function() {
 			cache.stocks = {};
 			let orbGeodesy = workshop.get('orbitalGeodesy').researched;
 			let leader = game.village.leader;
+			let iw = game.ironWill;
 			['wood','iron', 'alloy', 'steel', 'titanium', 'gear', 'beam', 'blueprint'].forEach((name) => {
 				let cacheAlloy = options.auto.cache.resUpg[name];
 				cache.stocks[name] = 0;
 				let stock = 0;
+				let msgStock = (price, name) => {
+					stock += price;
+					msgSummary(name);
+				};
 				switch (name) {
 					case 'wood': {
-						if (this.getUnResearched('ironwood') && resMap['iron'].value > 3e3 && !game.ironWill) {stock += 15e3;}
+						if (this.getUnResearched('ironwood') && resMap['iron'].value > 3e3 && !iw) {stock += 15e3;}
 						break;
 					}
 					case 'iron': {
@@ -5278,15 +5084,12 @@ window.run = function() {
 						let a = resMap['gold'].value < 50 && lumberMill;
 						if (game.bld.getBuildingExt('temple').meta.on > 2 || resMap['faith'].maxValue > 749 || a || resMap['plate'].value > 18) {
 							let stockIron = (isStock, price, name) => {
-								if (isStock && resMap['iron'].value < 1e4) {
-									stock += price;
-									msgSummary(name);
-								}
+								if (isStock && resMap['iron'].value < 1e4) {msgStock(price, name);}
 							};
 							let reinforcedSaw = this.getUnResearched('reinforcedSaw') && resMap[name].value > 200 && resMap[name].maxValue > 1e3;
 							let crossbow = this.getUnResearched('crossbow') && lumberMill && resMap[name].maxValue > 1500;
 							let ironwood = this.getUnResearched('ironwood') && resMap[name].value > 800 && resMap[name].maxValue > 3000
-								&& resMap['science'].maxValue > 3e4 && !game.ironWill;
+								&& resMap['science'].maxValue > 3e4 && !iw;
 
 							stockIron(reinforcedSaw, 1000, 'reinforcedSaw');
 							stockIron(crossbow, 1500, 'crossbow');
@@ -5306,15 +5109,11 @@ window.run = function() {
 					case 'steel': {
 						let blackSky = game.challenges.isActive("blackSky");
 						let steelAxe = this.getUnResearched('steelAxe') && resMap['coal'].value > 3000;
-						if (steelAxe && (game.bld.get('lumberMill').val > 30 || resMap[name].value > 10)) {
-							stock += 75;
-						}
+						if (steelAxe && !iw && (game.bld.get('lumberMill').val > 30 || resMap[name].value > 10)) {msgStock(75, 'steelAxe');}
 						// 精钢锯
 						let steelSaw = this.getUnResearched('steelSaw') && resMap[name].value > 250 && !resMap['titanium'].value && !blackSky;
-						if (steelSaw) {
-							stock += 750;
-							msgSummary('steelSaw');
-						}
+						if (steelSaw) {msgStock(750, 'steelSaw');}
+						// 氧化反应
 						if (options.auto.craft.oxidation && this.getUnResearched('oxidation')) {stock += 5000;}
 
 						if (blackSky && !resMap['titanium'].perTickCached && resMap['steel'].value < 1100 && resMap['oil'].value > 6e3) {
@@ -5327,7 +5126,9 @@ window.run = function() {
 						break;
 					}
 					case 'titanium': {
-						if (this.getUnResearched('rotaryKiln') && orbGeodesy) {stock += 5000;}
+						// 回转炉
+						if (this.getUnResearched('rotaryKiln') && orbGeodesy) {msgStock(5000, 'rotaryKiln');}
+
 						let Revolution = game.religion.getSolarRevolutionRatio();
 						let cal = Revolution < 2 && game.bld.getBuildingExt('calciner').meta.val > 2 && leader;
 						let anarchy = game.challenges.isActive("anarchy") && Revolution < 6;
@@ -5889,7 +5690,7 @@ window.run = function() {
 			let output = this.getAverageTrade(race);
 			let profit = 0;
 			for (let prod in output) {
-				let res = this.craftManager.getResource(prod);
+				let res = resMap[prod];
 				tick = this.craftManager.getTickVal(res);
 				if (tick === 'ignore') {continue;}
 				if (tick <= 0) {doTrade = true;}
@@ -5978,15 +5779,12 @@ window.run = function() {
 
 			let output = {};
 			for (let item of race.sells) {
-				//var item = race.sells[s];
 				if (!this.isValidTrade(item, race)) {continue;}
-				//var resource = this.craftManager.getResource(item.name);
-				let mean = 0;
 				let tradeChance = (item.minLevel) ? item.chance * (1 + game.getLimitedDR(0.01 * race.embassyLevel, 0.75)) : item.chance;
 				let sRatio = (item.seasons) ? 1 + item.seasons[game.calendar.getCurSeason().name] : 1;
 				let normBought = (successRat - bonusRat) * Math.min(tradeChance, 1);
 				let normBonus = bonusRat * Math.min(tradeChance, 1);
-				mean = (normBought + 1.25 * normBonus) * item.value * rRatio * sRatio * tRatio;
+				let mean = (normBought + 1.25 * normBonus) * item.value * rRatio * sRatio * tRatio;
 				output[item.name] = mean;
 			}
 			if (race.name === "zebras") {
@@ -6280,7 +6078,6 @@ window.run = function() {
 			},
 			policies: []
 		};
-
 	};
 	resetKittenStorage();
 
@@ -6298,7 +6095,7 @@ window.run = function() {
 		kittenStorage.items['toggle-leaderTrait-manager'] = true;
 
 		if (!game.ironWill) {
-			if (game.stats.getStat("totalResets").val > 1) {game.msg('非钢铁意志模式，故勾上了喵喵建筑', 'alert');}
+			if (game.stats.getStat("totalResets").val > 1) {game.msg('注意：非钢铁意志模式，故勾上了喵喵建筑', 'alert');}
 			['hut', 'logHouse', 'mansion'].forEach((name) => {
 				if (!options.auto.build.items[name].enabled) {$('#toggle-' + name).click();}
 			});
@@ -7999,8 +7796,8 @@ window.run = function() {
 						delete localStorage['cbc.kitten-scientists'];
 						if (cbc) {
 							$("#ks-options").remove();
-							options.policies = [];
 							options.auto = JSON.parse(cbc).auto;
+							resetKittenStorage();
 							optionsElement = $('<div/>', {id: 'ks-options', css: {marginBottom: '10px'}});
 							optionsListElement = $('<ul/>');
 							optionsListElement.append(getToggle('engine'));
@@ -8009,9 +7806,7 @@ window.run = function() {
 							});
 							right.prepend(optionsElement.append(optionsListElement));
 							engineOn();
-							resetKittenStorage();
 							initializeKittenStorage();
-							activity('为了照顾钢铁模式，小屋、木屋、宅邸默认不勾，请有需要的自行勾上');
 						} else {
 							game.save();
 							window.location.reload();
@@ -8344,15 +8139,6 @@ window.run = function() {
 		showD();
 		// add the options above the game log
 		right.prepend(optionsElement.append(optionsListElement));
-
-		let optionsTitleElement = $('<a/>', {
-			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
-				fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px'},
-			text: version,
-			target: '_blank',
-			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
-		});
-		$('#ks-engine').append(optionsTitleElement);
 	}
 
 	// 渲染完后把建筑重要建筑排前面
@@ -8637,6 +8423,15 @@ window.run = function() {
 				engine.stop();
 			}
 		});
+		// 插入版本号
+		let optionsTitleElement = $('<a/>', {
+			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
+				fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px'},
+			text: version,
+			target: '_blank',
+			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
+		});
+		$('#ks-engine').append(optionsTitleElement);
 	};
 	engineOn();
 
