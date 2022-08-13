@@ -2135,6 +2135,7 @@ window.run = function() {
 			let geodesy = game.workshop.get('geodesy').researched;
 			let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
 			let revolutionRatio = game.religion.getSolarRevolutionRatio();
+			let Production = game.prestige.getParagonProductionRatio();
 			let priceRatio = game.getEffect('priceRatio');
 			let refreshRequired = 0;
 
@@ -2161,6 +2162,9 @@ window.run = function() {
 						switch (name) {
 							case 'biology':
 								if (titanium < 5000) {continue;}
+								// falls through
+							case 'rocketry':
+								if (start) {continue;}
 								break;
 							case 'ecology':
 								if (titanium < 5000) {continue;}
@@ -2182,9 +2186,6 @@ window.run = function() {
 								break;
 							case 'drama':
 								if (craftManager.getTickVal(resMap['parchment'], true) < 2 && resMap['manpower'].perTickCached < 20) {continue;}
-								break;
-							case 'electronics':
-								if (start) {continue;}
 								break;
 							case 'cryptotheology':
 								if (relic < 105 && resMap['antimatter'].value < 4000) {continue;}
@@ -2401,7 +2402,7 @@ window.run = function() {
 				let manu = game.workshop.get('spaceManufacturing').researched;
 				if (subTrigger === 4 && resMap['alicorn'].value && manu && resMap['starchart'].value > 1e5) {
 					subTrigger = 7;
-					if (resMap['relic'].value < 26) {subTrigger = 12;}
+					if (resMap['relic'].value > 26) {subTrigger = 12;}
 				}
 				let index = 0;
 				let skip = !orbitalGeodesy && !game.ironWill && !geodesy;
@@ -2532,7 +2533,7 @@ window.run = function() {
 				}
 
 				let libraryMeta = game.bld.getBuildingExt('library').meta;
-				let scienceBldMax = 0.1 * libraryMeta.totalEffectsCached.scienceMax / (1 + game.prestige.getParagonProductionRatio());
+				let scienceBldMax = 0.1 * libraryMeta.totalEffectsCached.scienceMax / (1 + Production);
 				if (libraryMeta.stage === 0) {
 					if (libraryMeta.stages[1].stageUnlocked) {
 						let ratio = 1 + game.bld.get('biolab').val * 0.01;
@@ -2834,6 +2835,7 @@ window.run = function() {
 				}
 				if (resMap['starchart'].value > 1e5 && !spaceManufacturing && !game.calendar.festivalDays && !game.ironWill) {
 					items['observatory'].max = 50;
+					items['chapel'].max = 10;
 					items['amphitheatre'].max = 17;
 					items['academy'].max = 60;
 					items['logHouse'].max = game.bld.getBuildingExt('logHouse').meta.val + 1;
@@ -2974,7 +2976,7 @@ window.run = function() {
 					// 星球裂解
 					if (uranium > 10 && starchartVal < 5e5) {builds['planetCracker'].max = 0;}
 					// 流体切割
-					if (starchartVal < 3e4) {builds['hydrofracturer'].max = 100 * game.getEffect('spaceRatio') - Production - solarRevolution;}
+					if (starchartVal < 3e4 * solarRevolution + solarRevolution) {builds['hydrofracturer'].max = 100 * game.getEffect('spaceRatio') - Production - solarRevolution;}
 					// 香料提取
 					if (starchartVal < 1e5) {builds['spiceRefinery'].max = 0;}
 
@@ -4624,16 +4626,6 @@ window.run = function() {
 			let navigation = Science.get('navigation').researched;
 			let indexMax;
 			let cache = options.auto.cache;
-			let msgScience = (name) => {
-				let scienceName = (cache.science) ? cache.science : "科学";
-				force = true;
-				if (scienceName === '油气处理') {return;}
-				if (!options.auto.filter.items.miscFilter.enabled) {
-					let msg = game.msg(i18n("craft.force", [resMap[name].title, scienceName]), null, null, true);
-					$(msg.span).css('color', "#ff589c");
-				}
-				storeForSummary('craft' + ucfirst(name), 1);
-			};
 
 			if (name === 'beam' || name === 'slab') {
 				i = Object.keys(materials)[0];
@@ -4678,8 +4670,18 @@ window.run = function() {
 			}
 
 			let scienceVal = this.getValueAvailable('science', true);
-			let scienceTri = resMap['science'].value / resMap['science'].maxValue;
-			let cultrueTri = resMap['culture'].value / resMap['culture'].maxValue;
+			let scienceTri = resPercent('science');
+			let cultrueTri = resPercent('culture');
+			let msgScience = (name) => {
+				let scienceName = (cache.science) ? cache.science : "科学";
+				force = true;
+				if (scienceName === '油气处理') {return;}
+				if (!options.auto.filter.items.miscFilter.enabled) {
+					let msg = game.msg(i18n("craft.force", [resMap[name].title, scienceName]), null, null, true);
+					$(msg.span).css('color', "#ff589c");
+				}
+				storeForSummary('craft' + ucfirst(name), 1);
+			};
 			if (name === 'manuscript' && limited) {
 				let cacheManuscript = cache.resources['manuscript'];
 				indexMax = (cacheManuscript) ? 17 : 19;
@@ -4693,6 +4695,7 @@ window.run = function() {
 						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
 						autoMax = Math.ceil((price - resValue) / ratio);
 						let resVal = this.getValueAvailable('parchment', true);
+						// 文化 this.getValueAvailable('culture', true);
 						if (resVal > autoMax * craftPrices && autoMax >= 1 && resMap['culture'].value > craftPrices * 16 * autoMax) {
 							cache.science = (cacheManuscript > 0) ? cache.science : meta.label;
 							cache.science = (buildTemple) ? cache.science : "神殿";
@@ -4702,7 +4705,7 @@ window.run = function() {
 						break;
 					}
 				}
-				if (cultrueTri > 0.9 && (resMap['manpower'].perTickCached < 14 || !navigation)) {
+				if (cultrueTri > 0.9 && cultrueTri < 2 && (resMap['manpower'].perTickCached < 14 || !navigation)) {
 					force = true;
 				}
 			}
@@ -4857,6 +4860,7 @@ window.run = function() {
 							* game.bld.getAutoProductionRatio() * (game.getEffect("ironPolicyRatio") + 1)
 							* game.calendar.cycleEffectsFestival({iron : 1})['iron'] * calVal;
 						amount = Math.max(0, amount) + calAmount;
+						if (steelVal < 125) {amount += 1;}
 						let minAmount = Math.min(resMap['coal'].value, resMap['iron'].value) * 0.01;
 						if (amount > minAmount) {amount = minAmount;}
 					}
@@ -5071,7 +5075,7 @@ window.run = function() {
 				};
 				switch (name) {
 					case 'wood': {
-						if (this.getUnResearched('ironwood') && resMap['iron'].value > 3e3 && !iw) {stock += 15e3;}
+						if (this.getUnResearched('ironwood') && resMap['iron'].value > 3e3 && game.village.sim.kittens.length > 20) {stock += 15e3;}
 						break;
 					}
 					case 'iron': {
@@ -5089,7 +5093,7 @@ window.run = function() {
 							stockIron(reinforcedSaw, 1000, 'reinforcedSaw');
 							stockIron(crossbow, 1500, 'crossbow');
 							stockIron(ironwood, 3000, 'ironwood');
-							if (workshop.get('orbitalGeodesy').researched) {
+							if (workshop.get('spaceManufacturing').researched) {
 								msgSummary('ironwood', true);
 								msgSummary('crossbow', true);
 								msgSummary('ironwood', true);
@@ -5127,9 +5131,12 @@ window.run = function() {
 						let Revolution = game.religion.getSolarRevolutionRatio();
 						let cal = Revolution < 2 && game.bld.getBuildingExt('calciner').meta.val > 2 && leader;
 						let anarchy = game.challenges.isActive("anarchy") && Revolution < 6;
-						if (this.getUnResearched('geodesy') && resMap['starchart'].value > 500 && (cal || anarchy)) {stock += 250;}
+						let geodesy = this.getUnResearched('geodesy');
+						if (geodesy && resMap['starchart'].value > 500 && (cal || anarchy)) {stock += 250;}
+						// 混凝土小屋
+						if (this.getUnResearched('concreteHuts') && !geodesy && resMap['titanium'].value > 500 && !iw && resMap['concrate'].value > 45 && resMap['science'].maxValue > 12e4) {stock += 3e3;}
 						// if (unResearched('augumentation') && resMap['uranium'].value > 50 && leader && workshop.get('rotaryKiln').researched) {stock += 5000;}
-						if (this.getUnResearched('spaceManufacturing') && game.bld.get('reactor').val > 24 && resMap['titanium'].maxValue > 125e3) {
+						if (this.getUnResearched('spaceManufacturing') && game.bld.getBuildingExt('reactor').meta.val > 24 && resMap['titanium'].maxValue > 125e3) {
 							stock += 13e5;
 						}
 						break;
@@ -8294,8 +8301,8 @@ window.run = function() {
 		let filter = options.auto.filter;
 		if (!filter.enabled || !filter.items['craftFilter'].enabled || !filter.items['buildFilter'].enabled
 			|| game.console.filters['faith'].enabled || game.console.filters['astronomicalEvent'].enabled) {
-			summary(equal);
 			game.msg('喵喵提示：游戏(珂学家)日志消耗性能会比较多', "alert");
+			summary(equal);
 		}
 
 		// 处理耗时
