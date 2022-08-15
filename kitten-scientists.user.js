@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.42';
+	const version = '15.43';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1523,7 +1523,8 @@ window.run = function() {
 			let currentRatio = 0;
 			let revolution = game.religion.getSolarRevolutionRatio();
 			let expect = options.auto.faith.addition.autoPraise.expect;
-			let scholar = game.workshop.get('spaceManufacturing').researched || game.challenges.isActive("blackSky")
+			let scholar = game.workshop.get('spaceManufacturing').researched
+				|| (game.challenges.isActive("blackSky") && game.workshop.get('orbitalGeodesy').researched)
 				|| (resMap['eludium'].value && game.calendar.year < 10);
 			expect = expect && expect > 5 && revolution < expect * 0.3 && village.jobs[5].unlocked && !anarchy;
 			for (let i = village.jobs.length - 1; i >= 0; i--) {
@@ -2051,8 +2052,12 @@ window.run = function() {
 			for (let name in copyBuilds) {
 				let build = copyBuilds[name];
 				let metabuild = buildManager.getBuild(name, build.variant);
-				let faithEnabled = (metabuild.on && metabuild.noStackable) || Religion.faith < metabuild.faith;
-				if (build.variant === 's' && faithEnabled) {build.enabled = false;}
+				if (build.variant === 's') {
+					let stack = metabuild.noStackable;
+					let faithEnabled = (metabuild.on && stack) || Religion.faith < metabuild.faith;
+					if (faithEnabled) {build.enabled = false;}
+					if (stack) {build.max = 1;}
+				}
 				if (build.variant === "z" && !game.bld.getBuildingExt("ziggurat").meta.on) {build.enabled = false;}
 				if (build.variant === 'c' && !game.science.get('cryptotheology').researched) {build.enabled = false;}
 				metaData[name] = metabuild;
@@ -2098,19 +2103,6 @@ window.run = function() {
 				if (build.variant === 'chrono' && !game.workshop.get('chronoforge').researched) {build.enabled = false;}
 				if (build.variant === 'void' && !game.science.get('voidSpace').researched) {build.enabled = false;}
 				metaData[name] = buildManager.getBuild(name, build.variant);
-
-				// let button = buildManager.getBuildButton(name, build.variant);
-				// if (!button || !button.model.metadata) {
-				// 	if (name === "cryochambers") {continue;}
-				// 	game["timeTab"].render();
-				// 	continue;
-				// }
-				// if (!button.model.enabled) {
-				// 	button.controller.updateEnabled(button.model);
-				// 	continue;
-				// }
-				// let model = button.model;
-				// metaData[name].tHidden = (!model.visible || !model.enabled);
 			}
 
 			const buildList = bulkManager.bulk(builds, metaData, trigger);
@@ -2509,7 +2501,7 @@ window.run = function() {
 						let boolean = (energy && broadcastTower && game.getResourcePerTick('titanium', true) > 25);
 						let catnipTick = craftManager.getPotentialCatnip(true, 0, aqueducts);
 						catnipTick = catnipTick > 0 || (catnipTick < 0 && resMap['catnip'].value + 2000 * catnipTick > 0);
-						if (catnipTick && boolean && items.solarFarm.enabled) {
+						if (catnipTick && boolean && items.solarFarm.enabled && resPercent('titanium') > 0.4) {
 							return upgradeBuilding('pasture', pastureMeta);
 						} else {
 							msgSummary('upgPasture', '', 'upgBldFilter');
@@ -2566,30 +2558,30 @@ window.run = function() {
 		},
 		build: function (builds) {
 			const buildManager = this.buildManager;
-			const craftManager = this.craftManager;
 			const bulkManager = this.bulkManager;
 			let trigger = options.auto.build.trigger;
 			let refreshRequired = 0;
-			let blackSky = game.challenges.isActive('blackSky');
-			let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
-			let atheism = game.challenges.isActive('atheism');
 			let geodesy = game.workshop.get('geodesy').researched;
-			let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
-			let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
-
-			let solarMeta = game.religion.getRU('solarRevolution');
-			let revolutionRatio = game.religion.getSolarRevolutionRatio();
-
-			let science = game.science;
-			let theology = science.get('theology').researched;
-			let build2 = {};
+			let buildIterate = {};
 			let copyItem;
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
 
 			// 每次由iterate第一次运行builds为空
 			if (typeof builds != 'object') {
+				const craftManager = this.craftManager;
+				let blackSky = game.challenges.isActive('blackSky');
+				let vitruvianFeline = game.prestige.getPerk('vitruvianFeline').researched;
+				let atheism = game.challenges.isActive('atheism');
 				let Production = game.prestige.getParagonProductionRatio();
+				let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
+				let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
+
+				let solarMeta = game.religion.getRU('solarRevolution');
+				let revolutionRatio = game.religion.getSolarRevolutionRatio();
+
+				let science = game.science;
+				let theology = science.get('theology').researched;
 				copyItem = {};
 				let items = JSON.parse(JSON.stringify(options.auto.build.items));
 
@@ -2694,7 +2686,7 @@ window.run = function() {
 				// 无节日不造酿酒厂
 				let Brewery = items['brewery'];
 				if (!science.get('metalurgy').researched || resMap['spice'].value > 1e3 && resMap['spice'].value < 1e4) {Brewery.max = 4;}
-				if (!game.calendar.festivalDays || resMap['spice'].value < 1e3 + 1e3 * Production) {Brewery.max = 0;}
+				if (!game.calendar.festivalDays || resMap['spice'].value < 1e3 + 500 * Production) {Brewery.max = 0;}
 
 				let temple = items['temple'];
 				let templeVal = game.bld.getBuildingExt('temple').meta.val;
@@ -2757,7 +2749,7 @@ window.run = function() {
 				if (orbitalGeodesy) {
 					if (!spaceManufacturing || !sattelite) {
 						let Max = Math.min(47, 6 * revolutionRatio + 14.5 + Production);
-						calciner.max = (calcinerMax === -1) ? Math.min(Max + Max * game.getEffect("productionRatio"), 95 - 30 * blackSky)
+						calciner.max = (calcinerMax === -1) ? Math.min(Max + Max * game.getEffect("productionRatio"), 95 - 25 * blackSky)
 							: Math.min(50, calcinerMax);
 					}
 				} else {
@@ -2778,8 +2770,7 @@ window.run = function() {
 
 				// 太阳能
 				let solarFarm = items['solarFarm'];
-				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
-				if (!spaceManufacturing && resMap['titanium'].maxValue > 125000 && winterProd > game.resPool.energyCons) {
+				if (resPercent('titanium') < 0.9 && game.resPool.energyProd - 10 > game.resPool.energyCons) {
 					solarFarm.enabled = false;
 				}
 
@@ -2875,7 +2866,7 @@ window.run = function() {
 					if (optimize.indexOf(name) === -1) {
 						copyItem[name] = item;
 					} else {
-						build2[name] = item;
+						buildIterate[name] = item;
 					}
 				}
 			}
@@ -2906,8 +2897,8 @@ window.run = function() {
 			}
 
 			// 低优先度的后计算资源数量
-			if (JSON.stringify(build2) !== "{}") {
-				refreshRequired += this.build(build2);
+			if (JSON.stringify(buildIterate) !== "{}") {
+				refreshRequired += this.build(buildIterate);
 			}
 
 			return refreshRequired;
@@ -3458,6 +3449,7 @@ window.run = function() {
 				}
 				if (refreshRequired) {game.ui.renderFilters();}
 			}
+
 			AutoEmbassy:
 			if (optionVals.buildEmbassies.enabled && !!game.diplomacy.races[0].embassyPrices) {
 				let culture = resMap['culture'];
@@ -3466,7 +3458,7 @@ window.run = function() {
 				// let b = !subTrigger || cultureTri >= 0.98;
 				let b = cultureTri > Math.max(0.96, options.auto.craft.trigger);
 				let solarFactor = Math.sqrt(game.religion.getSolarRevolutionRatio() + 1);
-				let cultureForce = culture.value > 5e3 + 6e3 * game.religion.getSolarRevolutionRatio();
+				let cultureForce = culture.value > 5e3 + 6e3 * Math.sqrt(2 * game.religion.getSolarRevolutionRatio());
 				if (optionVals.buildEmbassies.subTrigger <= cultureTri && cultureTri < 2 || cultureForce) {
 					let i, name, race, emBulk;
 					const racePanels = game["diplomacyTab"].racePanels;
@@ -4325,7 +4317,7 @@ window.run = function() {
 							halfCount = true;
 						} else if (reactorVal < 20 && revolution > 7.5) {
 							halfCount = true;
-							Math.floor(count * 0.4);
+							Math.floor(count * 0.2);
 						} else if (!orbitalGeodesy && !game.workshop.get('geodesy').researched) {
 							halfCount = true;
 						} else if (spaceManufacturing) {
@@ -4820,7 +4812,7 @@ window.run = function() {
 				// let ironHut = !game.ironWill && resMap['iron'].maxValue > 3000 && this.getUnResearched('ironwood');
 				// ironHut = resValue > 250 * ratio || ironHut;
 				let ironCoalRatio = 0.3 * Math.min(1, resMap['coal'].perTickCached / resMap['iron'].perTickCached);
-				if (resMap['plate'].value < 1.25 * ironCoalRatio * resMap['steel'].value && !Craft.oxidation && Craft.items['plate'].enabled) {amount = 0;}
+				if (resMap['plate'].value < 1.25 * ironCoalRatio * resMap['steel'].value && !Craft.oxidation && Craft.items['plate'].enabled && steelValAva) {amount = 0;}
 				let cacheUpg = options.auto.upgrade.items.upgrades;
 				let forceSteel = (name, prices) => {
 					if (cacheUpg.cache) {return;}
@@ -5143,7 +5135,7 @@ window.run = function() {
 						break;
 					}
 					case 'gear':
-						if (this.getUnResearched('rotaryKiln') && resMap['titanium'].value > 5e3) {stock += 500;}
+						if (this.getUnResearched('rotaryKiln') && resMap['titanium'].value > 4e3) {stock += 500;}
 						if (this.getUnResearched('fuelInjectors') && resPercent('coal') < 0.8 && resMap['oil'].value > 2e4) {stock += 250;}
 						if (this.getUnResearched('logistics') && resMap['oil'].maxValue < 5e4 && resMap['scaffold'].value > 1000 && leader) {stock += 100;}
 						break;
@@ -5224,7 +5216,7 @@ window.run = function() {
 			let reactor = Bld.getBuildingExt('reactor').meta;
 			let priceRatio = game.getEffect("priceRatio");
 			let steamworks = Bld.get("steamworks");
-			let magneto = Bld.get('magneto');
+			let magneto = Bld.getBuildingExt('magneto').meta;
 			const temple = Bld.getBuildingExt('temple').meta;
 			let templeFactor = Math.pow(temple.priceRatio + priceRatio, temple.val);
 			let sloar = game.religion.getSolarRevolutionRatio();
@@ -5279,7 +5271,8 @@ window.run = function() {
 					let calcinerVal = Bld.getBuildingExt('calciner').meta.val;
 					factor = Math.pow(magneto.priceRatio + priceRatio, magneto.val);
 					limRat = (steamworks.on < magneto.on || calcinerVal < 2) ? 0.45 : 0.76;
-					limRat = (res.value > Math.max(1250, 10 * factor) && options.auto.build.items.magneto.enabled) ? 0.01 : limRat;
+					let Reactor = !reactor.val && magneto.val > 31;
+					limRat = (res.value > Math.max(1250, 10 * factor) && options.auto.build.items.magneto.enabled || Reactor) ? 0.01 : limRat;
 					let blackSky = calcinerVal < 6 && game.challenges.isActive('blackSky');
 					limRat = ((resMap['titanium'].value < 17 && !calcinerVal) || blackSky || !game.science.get('electricity').researched) ? 0 : limRat;
 					break;
@@ -5311,7 +5304,7 @@ window.run = function() {
 					factor = Math.pow(reactor.priceRatio + priceRatio, reactor.val);
 					let dataCenter = Bld.getBuildingExt('library').meta;
 					let dataFactor = Math.pow(dataCenter.priceRatio + priceRatio, dataCenter.val) * dataCenter.stage;
-					limRat = (reactor.val) ? limRat : 0.25;
+					limRat = (reactor.val > 1) ? 0.6 : 0.25;
 					limRat = (res.value > Math.max(moon, 50 * factor, 10 * dataFactor)) ? 0.01 : limRat;
 					limRat = (!res.unlocked && game.diplomacy.get('nagas').embassyLevel > 10 && !game.calendar.season && resMap['titanium'].value > 500) ? 1 : limRat;
 					break;
@@ -5394,7 +5387,8 @@ window.run = function() {
 				let calendar = (game.calendar.year < 4) ? 0 : 0.15;
 				fieldProd *= game.calendar.seasons[3].modifiers.catnip - calendar;
 			}
-			let vilProd = (game.village.getResProduction().catnip) ? game.village.getResProduction().catnip * (1 + game.getEffect('catnipJobRatio')) : 0;
+			let ResCatnip = game.village.getResProduction().catnip;
+			let vilProd = (ResCatnip) ? ResCatnip * (1 + game.getEffect('catnipJobRatio')) : 0;
 			let baseProd = fieldProd + vilProd;
 
 			if (aqueducts === undefined) {
@@ -5460,8 +5454,8 @@ window.run = function() {
 			let counter = 0;
 			for (const name in builds) {
 				build = builds[name];
-				data = metaData[name];
 				if (!build.enabled) {continue;}
+				data = metaData[name];
 				// 建筑数量大于等于max时 或者等于0时跳过
 				if (build.max !== -1 && build.max <= data.val) { continue; }
 				if (data.unlocked === false) {continue;}
@@ -5519,58 +5513,59 @@ window.run = function() {
 					let build = countList[j];
 					data = metaData[build.id];
 					let dataVal = data.val;
+					let valPlusLoopTime = k + dataVal;
 					prices = build.prices;
-					priceRatio = build.priceRatio;
+					priceRatio = build.priceRatio || 1;
 					source = build.source;
 					for (let p = 0; p < prices.length; p++) {
+						let priceRes = prices[p];
 						let spaceOil, cryoKarma, oilPrice, karmaPrice = false;
-						if (source && source === 'space' && prices[p].name === 'oil') {
+						if (source && source === 'space' && priceRes.name === 'oil') {
 							spaceOil = true;
-							oilPrice = prices[p].val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
-						} else if (build.id === 'cryochambers' && prices[p].name === 'karma') {
+							oilPrice = priceRes.val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
+						} else if (build.id === 'cryochambers' && priceRes.name === 'karma') {
 							cryoKarma = true;
-							karmaPrice = prices[p].val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
+							karmaPrice = priceRes.val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
 						}
 
 						if (spaceOil) {
-							nextPriceCheck = (tempPool['oil'] < oilPrice * Math.pow(1.05, k + dataVal));
+							nextPriceCheck = (tempPool['oil'] < oilPrice * Math.pow(1.05, valPlusLoopTime));
 						} else if (cryoKarma) {
-							nextPriceCheck = (tempPool['karma'] < karmaPrice * Math.pow(priceRatio, k + dataVal));
+							nextPriceCheck = (tempPool['karma'] < karmaPrice * Math.pow(priceRatio, valPlusLoopTime));
 						} else {
-							let price = prices[p].val * Math.pow(priceRatio, k + dataVal);
-							nextPriceCheck = tempPool[prices[p].name] < price;
+							let price = priceRes.val * Math.pow(priceRatio, valPlusLoopTime);
+							nextPriceCheck = tempPool[priceRes.name] < price;
 						}
-						if (nextPriceCheck || (data.noStackable && (k + dataVal) >= 1) || (build.id === 'ressourceRetrieval' && k + dataVal >= 100)
-						  || (build.id === 'cryochambers' && game.bld.getBuildingExt('chronosphere').meta.val <= k + dataVal)) {
+						if (nextPriceCheck) {
 							for (let p2 = 0; p2 < p; p2++) {
 								if (source && source === 'space' && prices[p2].name === 'oil') {
 									let oilPriceRefund = prices[p2].val * (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
-									tempPool['oil'] += oilPriceRefund * Math.pow(1.05, k + dataVal);
+									tempPool['oil'] += oilPriceRefund * Math.pow(1.05, valPlusLoopTime);
 								} else if (build.id === 'cryochambers' && prices[p2].name === 'karma') {
 									let karmaPriceRefund = prices[p2].val * (1 - game.getLimitedDR(0.01 * game.prestige.getBurnedParagonRatio(), 1.0));
-									tempPool['karma'] += karmaPriceRefund * Math.pow(priceRatio, k + dataVal);
+									tempPool['karma'] += karmaPriceRefund * Math.pow(priceRatio, valPlusLoopTime);
 								} else {
-									let refundVal = prices[p2].val * Math.pow(priceRatio, k + dataVal);
+									let refundVal = prices[p2].val * Math.pow(priceRatio, valPlusLoopTime);
 									tempPool[prices[p2].name] += (prices[p2].name === 'void') ? Math.ceil(refundVal) : refundVal;
 								}
 							}
 							if (build.limit !== -1) {
 								build.count = Math.max(0, Math.min(build.count, (build.limit - build.val)));
 							}
-							bList[countList[j].spot].count = countList[j].count;
+							bList[build.spot].count = build.count;
 							countList.splice(j, 1);
 							j--;
 							continue bulkLoop;
 						}
 						if (spaceOil) {
-							tempPool['oil'] -= oilPrice * Math.pow(1.05, k + dataVal);
+							tempPool['oil'] -= oilPrice * Math.pow(1.05, valPlusLoopTime);
 						} else if (cryoKarma) {
-							tempPool['karma'] -= karmaPrice * Math.pow(priceRatio, k + dataVal);
+							tempPool['karma'] -= karmaPrice * Math.pow(priceRatio, valPlusLoopTime);
 						} else {
-							let pVal = prices[p].val * Math.pow(priceRatio, k + dataVal);
-							tempPool[prices[p].name] -= (prices[p].name === 'void') ? Math.ceil(pVal) : pVal;
+							let pVal = priceRes.val * Math.pow(priceRatio, valPlusLoopTime);
+							tempPool[priceRes.name] -= (priceRes.name === 'void') ? Math.ceil(pVal) : pVal;
 							// 检查 NaN
-							tempPool[prices[p].name] = tempPool[prices[p].name] ? tempPool[prices[p].name] : 0;
+							tempPool[priceRes.name] = tempPool[priceRes.name] ? tempPool[priceRes.name] : 0;
 						}
 					}
 					countList[j].count++;
@@ -5701,20 +5696,22 @@ window.run = function() {
 			}
 			let prof = true;
 			let season = game.calendar.season;
-			let spice = resMap['spice'].value + 60 * game.getResourcePerTick('spice', true) < 0;
+			let spice = resMap['spice'].value + 100 * game.getResourcePerTick('spice', true) < 0;
 			let solar = game.religion.getSolarRevolutionRatio();
 			let titaniumTri = resPercent('titanium');
 			if (name === 'nagas') {
 				if (!resMap['concrate'].unlocked && !game.ironWill) {prof = false;}
 				if (resMap['ship'].value < 30 && race.embassyLevel < 10 && !game.ironWill) {prof = false;}
 				let production = 1 + game.prestige.getParagonProductionRatio();
-				if (resMap['concrate'].value < 100 * production && race.embassyLevel > 10 && resMap['concrate'].value && resMap['titanium'].value > 30 * production) {doTrade = true;}
+				if (resMap['concrate'].value < 100 * production && race.embassyLevel > 10 && resMap['concrate'].value && resMap['titanium'].value > 30 * production || (spice && game.calendar.festivalDays)) {doTrade = true;}
 				if (resMap['concrate'].value > 1000 * (1 + solar) && titaniumTri < 0.8) {prof = false;}
 			}
 			let titanium = resMap['titanium'];
 			if (name === 'griffins') {
 				if (resMap['ship'].value && season !== 2 && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
 				if (titanium.value < 500 && season === 2 && solar > 1) {prof = false;}
+				if (game.challenges.isActive("blackSky") && titanium.value < 500 && game.religion.getRU("basilica").on && season === 2) {doTrade = true;}
+				// 缺铁贸易狮鹫
 				if (resMap['steel'].value > 5 * resMap['plate'].value && titanium.value > 500 && season === 2) {doTrade = true;}
 				doTrade = doTrade || spice && game.calendar.festivalDays;
 			}
