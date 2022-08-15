@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.41';
+	const version = '15.42';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1524,7 +1524,7 @@ window.run = function() {
 			let revolution = game.religion.getSolarRevolutionRatio();
 			let expect = options.auto.faith.addition.autoPraise.expect;
 			let scholar = game.workshop.get('spaceManufacturing').researched || game.challenges.isActive("blackSky")
-				|| (resMap['starchart'].value > 1e5 && game.calendar.year < 10);
+				|| (resMap['eludium'].value && game.calendar.year < 10);
 			expect = expect && expect > 5 && revolution < expect * 0.3 && village.jobs[5].unlocked && !anarchy;
 			for (let i = village.jobs.length - 1; i >= 0; i--) {
 				let job = village.jobs[i];
@@ -1579,14 +1579,14 @@ window.run = function() {
 					if (!woodcutter) {maxKS = 0;}
 				}
 				if (name === 'scholar' && limited) {
-					let moreScholar;
+					let moreScholar = 0.3;
 					if (!game.getEffect('shatterTCGain') && scholar && revolution) {
-						moreScholar = true;
+						moreScholar = 0.6;
 					}
 
-					if (resPercent('science') > 0.3 && val) {
+					if (resPercent('science') > moreScholar && val) {
 						maxKS = 0;
-					} else if (moreScholar) {
+					} else if (moreScholar > 0.3) {
 						maxKS = Math.max(maxKS, 24);
 						if (val < maxKS) {msgSummary('scholar');}
 					}
@@ -2063,10 +2063,10 @@ window.run = function() {
 			let refreshRequired = 0;
 			let count;
 			for (let entry in buildList) {
-				if (buildList[entry].count > 0) {
-					count = (Religion.getRU('solarRevolution').on) ? buildList[entry].count : 1;
-
-					buildManager.build(buildList[entry].id, buildList[entry].variant, count);
+				let build = buildList[entry];
+				let conut = build.count
+				if (conut > 0) {
+					buildManager.build(build.id, build.variant, conut);
 					refreshRequired += 1;
 				}
 			}
@@ -2605,7 +2605,7 @@ window.run = function() {
 								msgSummary('scienceBld');
 							}
 						} else {
-							bld.max = (bldMax === -1) ? game.bld.getBuildingExt(name).meta.val + 2 : bldMax;
+							bld.max = (bldMax === -1) ? game.bld.getBuildingExt(name).meta.val + 3 : bldMax;
 						}
 					}
 				};
@@ -3259,7 +3259,7 @@ window.run = function() {
 			this.setTrait('merchant');
 			let index = 0;
 			let solarRevolution = game.religion.getSolarRevolutionRatio();
-			let challenge = game.challenges.anyChallengeActive() && Calendar.year > 2;
+			let challenge = game.challenges.anyChallengeActive() && Calendar.year > 3;
 			let renaissance = game.prestige.getPerk('renaissance').researched;
 			let solar = solarRevolution || challenge || !game.religion.transcendenceTier || resMap['gold'].maxValue < 450;
 			let skipNagas = !game.ironWill && game.workshop.get('spaceManufacturing').researched && solarRevolution > 2;
@@ -3299,7 +3299,7 @@ window.run = function() {
 				let transcendence = (game.religion.getRU("transcendence").on || !options.auto.faith.items.transcendence.enabled);
 				let apocripha = (game.religion.getRU('apocripha').on || !options.auto.faith.items.apocripha.enabled);
 				let miningDrill = game.workshop.get('miningDrill').researched;
-				let tier = (transcendence && apocripha) || game.religion.transcendenceTier > 2;
+				let tier = (transcendence && apocripha) || game.religion.transcendenceTier > 7;
 				let Moon = tier || !game.space.getBuilding('moonOutpost').val || !miningDrill;
 				if (trade.limited && prof && solar && Moon && glass) {
 					trades.push(name);
@@ -5065,6 +5065,7 @@ window.run = function() {
 			let orbGeodesy = workshop.get('orbitalGeodesy').researched;
 			let leader = game.village.leader;
 			let iw = game.ironWill;
+			let kittens = game.village.sim.kittens.length;
 			['wood','iron', 'alloy', 'steel', 'titanium', 'gear', 'beam', 'blueprint'].forEach((name) => {
 				let cacheAlloy = options.auto.cache.resUpg[name];
 				cache.stocks[name] = 0;
@@ -5075,7 +5076,7 @@ window.run = function() {
 				};
 				switch (name) {
 					case 'wood': {
-						if (this.getUnResearched('ironwood') && resMap['iron'].value > 3e3 && game.village.sim.kittens.length > 20) {stock += 15e3;}
+						if (this.getUnResearched('ironwood') && resMap['iron'].value > 3e3 && kittens > 20) {stock += 15e3;}
 						break;
 					}
 					case 'iron': {
@@ -5088,7 +5089,7 @@ window.run = function() {
 							let reinforcedSaw = this.getUnResearched('reinforcedSaw') && resMap[name].value > 200 && resMap[name].maxValue > 1e3;
 							let crossbow = this.getUnResearched('crossbow') && lumberMill && resMap[name].maxValue > 1500;
 							let ironwood = this.getUnResearched('ironwood') && resMap[name].value > 800 && resMap[name].maxValue > 3000
-								&& resMap['science'].maxValue > 3e4 && !iw;
+								&& resMap['science'].maxValue > 3e4 && kittens > 20;
 
 							stockIron(reinforcedSaw, 1000, 'reinforcedSaw');
 							stockIron(crossbow, 1500, 'crossbow');
