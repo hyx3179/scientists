@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.46';
+	const version = '15.47';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -981,7 +981,8 @@ window.run = function() {
 			let auto = options.auto;
 			let subOptions = auto.options;
 			if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
-			if (subOptions.enabled && subOptions.items.festival.enabled)                    {this.holdFestival();}
+			// && subOptions.items.festival.enabled
+			if (subOptions.enabled)                                                         {this.holdFestival();}
 			if (auto.timeCtrl.enabled)                                                      {refresh += ~~this.timeCtrl();}
 			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
 			if (auto.trade.enabled)                                                         {this.trade();}
@@ -1427,6 +1428,7 @@ window.run = function() {
 						if (optionLeader.enabled && leader.trait === optionLeader.leaderTrait) {this.leaderTimer = 1;}
 						storeForSummary('gold', 25 + 25 * rank, 'resConsume');
 						storeForSummary('promote', 1);
+						msgSummary('changeLeader', true);
 					}
 				} else {
 					this.leaderTimer++;
@@ -1490,7 +1492,8 @@ window.run = function() {
 			let currentKitten = resKitten.value;
 			let agriculture = game.science.get("agriculture").researched;
 			let catnipTick = this.craftManager.getPotentialCatnip(false);
-			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 4) || resMap["catnip"].value + 2500 * (catnipTick - 1.7) < 0;
+			let negative = 3000 * (catnipTick - 1.6 * (happiness > 2) - 0.1);
+			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 4) || resMap["catnip"].value + negative  < 0;
 			let normalWinterCatnip = (winterCatnip || (village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
 			let catnipValue = (resCatnip.value - (1800 * happiness * currentKitten) < 0 || resKitten.maxValue - currentKitten === 1 || freeKittens > 1);
 			let religionCatnip = options.auto.distribute;
@@ -2188,7 +2191,7 @@ window.run = function() {
 								if (!nanotechnology && titanium < 10e3) {continue;}
 								break;
 							case 'drama':
-								if (craftManager.getTickVal(resMap['parchment'], true) < 2 && resMap['manpower'].perTickCached < 20) {continue;}
+								if (craftManager.getTickVal(resMap['parchment'], true) < 3 && resMap['manpower'].perTickCached < 20) {continue;}
 								break;
 							case 'cryptotheology':
 								if (relic < 105 && resMap['antimatter'].value < 4000) {continue;}
@@ -2258,7 +2261,7 @@ window.run = function() {
 					}
 					// 过滤钛升级
 					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.02 && resMap['ship'].value < 32 && revolutionRatio > 2) {
-						noup = noup.concat(['titaniumAxe','silos','astrolabe','titaniumBarns','alloyAxe','alloyArmor']);
+						noup = noup.concat(['titaniumAxe','silos','astrolabe','titaniumBarns','alloyAxe','alloyArmor','alloyBarns','alloyWarehouses']);
 					}
 					// 过滤测地学
 					isFilter = revolutionRatio > 6 || orbitalGeodesy;
@@ -2478,7 +2481,7 @@ window.run = function() {
 				let items = options.auto.build.items;
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let energyActive = game.challenges.isActive("energy");
-				let energy = winterProd && winterProd - 50 < game.resPool.energyCons || energyActive;
+				let energy = winterProd && (winterProd - 10 - 10 * Production < game.resPool.energyCons) || energyActive;
 				let pastures = (pastureMeta.stage === 0) ? pastureMeta.val : 0;
 				let aqueducts = (aqueductMeta.stage === 0) ? aqueductMeta.val : 0;
 				// 升级建筑
@@ -2555,12 +2558,12 @@ window.run = function() {
 
 				let amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
 				if (amphitheatreMeta.stage === 0) {
-					if (amphitheatreMeta.stages[1].stageUnlocked && items['broadcastTower'].enabled) {
-						if (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 200) {
+					if (amphitheatreMeta.stages[1].stageUnlocked) {
+						if (items['broadcastTower'].enabled && (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 200)) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
+						} else {
+							msgSummary('upgAmphitheatre', '', 'upgBldFilter');
 						}
-					} else {
-						msgSummary('upgAmphitheatre', '', 'upgBldFilter');
 					}
 				}
 			}
@@ -2710,8 +2713,8 @@ window.run = function() {
 				let tradepost = items['tradepost'];
 				let solarUnlocked = (Religion.faith > solarMeta.faith || game.prestige.getPerk("voidOrder").researched);
 				let goldTri = resMap['gold'].value / resMap['gold'].maxValue;
-				if (!game.getEffect('unobtainiumPerTickSpace') && resMap['faith'].maxValue < 7500) {
-					temple.max = Math.max(26, 10 * (1 + revolutionRatio));
+				if (!game.getEffect('unobtainiumPerTickSpace') && resMap['faith'].maxValue < 8000) {
+					temple.max = Math.max(25, 10 * (1 + revolutionRatio));
 				}
 				// 商队驿站
 				let caravanserai = game.workshop.get('caravanserai');
@@ -2766,14 +2769,14 @@ window.run = function() {
 				if (orbitalGeodesy) {
 					if (!spaceManufacturing || !sattelite) {
 						let Max = Math.min(47, 6 * revolutionRatio + 14.5 + Production);
-						calciner.max = (calcinerMax === -1) ? Math.min(Max + Max * game.getEffect("productionRatio"), 95 - 25 * blackSky)
+						calciner.max = (calcinerMax === -1) ? Math.min(Max + Max * game.getEffect("productionRatio"), 95 - 35 * blackSky + game.space.meta[0].meta[0].on * blackSky * 15)
 							: Math.min(50, calcinerMax);
 					}
 				} else {
-					let amt = 25;
+					let uranium = resMap['uranium'].value > 250;
+					let amt = 25 + 10 * uranium;
 					if (scienceMap.maxValue < 2e5 || resMap['oil'].maxValue < 5e4) {
-						let uranium = resMap['uranium'].value > 250;
-						amt = Math.min(10 + Production * 3 + 2 * Math.sqrt(revolutionRatio), 25 + 10 * uranium);
+						amt = Math.min(10 + Production * 3 + 2 * Math.sqrt(revolutionRatio), amt);
 					}
 					calciner.max = (calcinerMax === -1) ? amt : Math.min(amt, calcinerMax);
 					if (!game.workshop.get('fluidizedReactors').researched) {calciner.max = 15;}
@@ -2962,7 +2965,7 @@ window.run = function() {
 					let spaceStation = 3e3 * Math.pow(1.12, station);
 					let FiveSattelite = 2300 * Math.pow(1.12, sattelite);
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {builds['sattelite'].max = sattelite + 1;}
-					// 补反应堆
+					// 反应堆
 					let one = game.getEffect('productionRatio') < 0.6 && unobtainiumTri > 0 && solarRevolution > 5;
 					if (starchartVal < FiveSattelite && solarRevolution < 2 || !game.workshop.get('orbitalGeodesy').researched || one) {builds['sattelite'].max = 0;}
 					if (starchartVal > spaceStation) {builds['spaceStation'].max = station + 1;}
@@ -3121,7 +3124,7 @@ window.run = function() {
 			let cultureProf = 4000 * craftManager.getTickVal(resMap['culture'], true) > 5000;
 			let parchProf = 4000 * craftManager.getTickVal(resMap['parchment'], true) > 2500 * 2;
 
-			let noSkip = resMap['parchment'].value >= 5000 || parchProf || resMap['manpower'].perTickCached > 16;
+			let noSkip = resMap['parchment'].value >= 5000 || parchProf || resMap['manpower'].perTickCached > 18;
 			if (!(catpowProf && cultureProf && noSkip)) {return;}
 
 			if (game.science.getPolicy('carnivale').researched) {
@@ -3291,7 +3294,7 @@ window.run = function() {
 			let solarRevolution = game.religion.getSolarRevolutionRatio();
 			let faithVal = resMap['faith'].value;
 			let challenge = game.challenges.anyChallengeActive() && !faithVal;
-			let renaissance = game.prestige.getPerk('renaissance').researched;
+			let vitruvian = game.prestige.getPerk('vitruvianFeline').researched;
 			let solar = solarRevolution || challenge || resMap['gold'].maxValue < 470;
 			let skipNagas = !game.ironWill && game.workshop.get('spaceManufacturing').researched && solarRevolution > 2;
 			let glass = game.religion.getRU("stainedGlass").on || !solarRevolution || faithVal < 200;
@@ -3299,11 +3302,11 @@ window.run = function() {
 			let faithValue = resMap['faith'].value;
 			// 有采矿钻和登红月后优先点出超越和赞美群星
 			let Faith = options.auto.faith.items;
-			let transcendence = (game.religion.getRU("transcendence").on || !Faith.transcendence.enabled);
+			let transcendence = (game.religion.getRU("transcendence").on || !Faith.transcendence.enabled || !game.space.getBuilding('moonOutpost').val);
 			let apocripha = (game.religion.getRU('apocripha').on || !Faith.apocripha.enabled || game.religion.transcendenceTier);
 			let miningDrill = game.workshop.get('miningDrill').researched;
 			let tier = transcendence && apocripha;
-			let Moon = tier || !game.space.getBuilding('moonOutpost').val || game.religion.transcendenceTier > 9;
+			let Moon = tier || game.religion.transcendenceTier > 9 || game.village.sim.kittens.length < 130;
 
 			// Determine how many races we will trade this cycl
 			let trade, race, name, require;
@@ -3351,7 +3354,7 @@ window.run = function() {
 
 			if (trades.length === 0) {return;}
 
-			isLimited = (isLimited && !isGoldTrigger) ? 0.4 : 1;
+			isLimited = (isLimited && !isGoldTrigger) ? 0.3 + 0.1 * vitruvian : 1;
 			// Figure out how much we can currently trade
 			let maxTrades = Math.floor(tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited);
 
@@ -3428,7 +3431,7 @@ window.run = function() {
 
 			let noCache = options.auto.cache.cacheSum.manpower;
 			const tradeNet = {};
-			let amt = (isGoldTrigger || !noCache) ? 0.01 : 0.7 - renaissance;
+			let amt = (isGoldTrigger || !noCache) ? 0.01 : 1 - 0.4 * vitruvian;
 			for (let res in resMap) {
 				let number = resMap[res].value - cacheSummary[res];
 				if (number) {
@@ -4761,7 +4764,7 @@ window.run = function() {
 				if (cultrueTri > 0.9 && cultrueTri < 2 && (resMap['manpower'].perTickCached < 14 || !navigation)) {
 					force = true;
 				}
-				if (!game.calendar.festivalDays && resMap['unobtainium'].value) {autoMax = 0;}
+				if (!game.calendar.festivalDays && resMap['unobtainium'].value && Science.get('drama').unlocked) {autoMax = 0;}
 			}
 
 			let religion = resMap['gold'].maxValue < 500 || game.religion.getRU('solarRevolution').on || game.religion.faith < 2000;
@@ -4901,7 +4904,6 @@ window.run = function() {
 					}
 				};
 				if (!cacheUpg.cache && !Craft.oxidation && !game.ironWill) {
-					forceSteel('steelSaw');
 					forceSteel('steelAxe');
 					forceSteel('steelArmor');
 				}
@@ -6335,6 +6337,14 @@ window.run = function() {
 		return +(Math.round(+(n + "e+2")) + "e-2");
 	};
 
+	// css
+	let Css = {
+		cursor:'pointer',
+		display:'inline-block',
+		float: 'right',
+		paddingRight:'5px',
+		textShadow:'3px 3px 4px gray'
+	};
 	// 工艺 资源
 	let setStockWarning = function(name, value, forReset = false) {
 		// simplest way to ensure it doesn't stick around too often; always do
@@ -6432,11 +6442,7 @@ window.run = function() {
 		let del = $('<div/>', {
 			id: 'resource-delete-' + name,
 			text: i18n('resources.del'),
-			css: {cursor: 'pointer',
-				display: 'inline-block',
-				float: 'right',
-				paddingRight: '5px',
-				textShadow: '3px 3px 4px gray'},
+			css: Css
 		});
 
 		if (forReset) {container.append(label, stock, del);} else {container.append(label, stock, consume, del);}
@@ -6549,12 +6555,13 @@ window.run = function() {
 			let idPrefix = forReset ? '#resource-reset-' : '#resource-';
 			let Res = game.resPool.resources;
 			let Resources = options.auto.resources;
+			let Filter = ['elderBox','burnedParagon','blackcoin','gflops','hashrates','wrappingPaper','kittens','paragon','alicorn','zebras'];
 			for (let i in Res) {
 				let res = Res[i];
 				let name = res.name;
 				let autoRes = Resources[name];
 				autoRes = autoRes && autoRes.enabled;
-				if (!forReset && (res.persists || autoRes)) {continue;}
+				if (!forReset && (Filter.indexOf(res.name) > -1 || autoRes)) {continue;}
 				// Show only new resources that we don't have in the list and that are
 				// visible. This helps cut down on total size.
 				if (name && $(idPrefix + name).length === 0) {
@@ -6719,11 +6726,7 @@ window.run = function() {
 						id: 'set-' + itemName + '-subTrigger',
 						text: i18n('ui.trigger'),
 						title: addi[itemName].subTrigger,
-						css: {cursor: 'pointer',
-							display: 'inline-block',
-							float: 'right',
-							paddingRight: '5px',
-							textShadow: '3px 3px 4px gray'}
+						css: Css
 					}).data('option', addi[itemName]);
 
 					(function (itemName, triggerButton) {
@@ -6828,13 +6831,7 @@ window.run = function() {
 				button = $('<div/>', {
 					id: 'toggle-items-' + toggleName,
 					text: i18n('ui.items'),
-					css: {
-						cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'
-					}
+					css: Css
 				});
 
 				element.append(button);
@@ -6892,11 +6889,7 @@ window.run = function() {
 					id: 'trigger-' + toggleName,
 					text: i18n('ui.trigger'),
 					title: auto.trigger,
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'}
+					css: Css
 				});
 
 				triggerButton.on('click', function () {
@@ -6928,13 +6921,7 @@ window.run = function() {
 				const resources = $('<div/>', {
 					id: 'toggle-resource-controls',
 					text: i18n('ui.craft.resources'),
-					css: {
-						cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'
-					},
+					css: Css
 				});
 
 				const resourcesList = getResourceOptions();
@@ -6957,13 +6944,7 @@ window.run = function() {
 					id: 'toggle-addition-controls',
 					text: i18n('ui.faith.addtion'),
 					title: "太阳教团的自动化项目",
-					css: {
-						cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '2px 2px 5px gray'
-					},
+					css: Css
 				});
 
 				const additionList = getAdditionOptions();
@@ -7040,11 +7021,7 @@ window.run = function() {
 			let button = $('<div/>', {
 				id: 'toggle-seasons-' + name,
 				text: i18n('trade.seasons'),
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'},
+				css: Css
 			});
 
 			let list = $('<ul/>', {
@@ -7227,29 +7204,25 @@ window.run = function() {
 					css: {display: 'none', paddingLeft: '20px'}
 				});
 
+				let wikiButton = $('<a/>', {
+					id: 'toggle-upgrade-policies-wiki',
+					text: '百科政策推荐',
+					href: 'https://petercheney.gitee.io/baike/?file=000-%E7%8C%AB%E5%9B%BD%E8%90%8C%E6%96%B0%E6%8C%87%E5%AF%BC/02-%E6%94%BF%E7%AD%96%E6%95%88%E6%9E%9C%E8%A7%A3%E6%9E%90#%E5%86%85%E4%BA%8B',
+					target: '_blank',
+					css: Css
+				});
+
 				let loadButton = $('<div/>', {
-						id: 'toggle-upgrade-policies-load',
-						text: i18n('ui.upgrade.policies.load'),
-						css: {
-							cursor:'pointer',
-							display:'inline-block',
-							float:'right',
-							paddingRight:'5px',
-							textShadow:'3px 3px 4px gray'}
-					}
-				);
+					id: 'toggle-upgrade-policies-load',
+					text: i18n('ui.upgrade.policies.load'),
+					css: Css
+				});
 
 				let showButton = $('<div/>', {
-						id: 'toggle-upgrade-policies-show',
-						text: i18n('ui.upgrade.policies.show'),
-						css: {
-							cursor:'pointer',
-							display:'inline-block',
-							float:'right',
-							paddingRight:'5px',
-							textShadow:'3px 3px 4px gray'}
-					}
-				);
+					id: 'toggle-upgrade-policies-show',
+					text: i18n('ui.upgrade.policies.show'),
+					css: Css
+				});
 				// resetBuildList.append(getResetOption(item, 'build', options.auto.build.items[item]));
 
 				loadButton.on('click', function() {
@@ -7274,7 +7247,7 @@ window.run = function() {
 					list.append(getPoliciesOptions());
 				});
 
-				element.append(showButton, loadButton, list);
+				element.append(showButton, loadButton, wikiButton, list);
 			}
 
 			if (option.subTrigger !== undefined && name === 'missions') {
@@ -7282,11 +7255,7 @@ window.run = function() {
 					id: 'set-' + name + '-subTrigger',
 					text: i18n('ui.trigger'),
 					title: option.subTrigger,
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'}
+					css: Css
 				}).data('option', option);
 
 				triggerButton.on('click', function () {
@@ -7395,11 +7364,7 @@ window.run = function() {
 				id: 'set-' + name + '-max',
 				text: i18n('ui.max', [option.max]),
 				title: option.max,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
+				css: Css
 			}).data('option', option);
 
 			maxButton.on('click', function () {
@@ -7537,11 +7502,7 @@ window.run = function() {
 				id: 'set-reset-' + type + '-' + name + '-min',
 				text: i18n('ui.min', [option.triggerForReset]),
 				title: option.triggerForReset,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
+				css: Css
 			}).data('option', option);
 
 			minButton.on('click', function () {
@@ -7572,11 +7533,7 @@ window.run = function() {
 					id: 'set-timeSkip-subTrigger',
 					text: i18n('ui.trigger'),
 					title: option.subTrigger,
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'}
+					css: Css
 				}).data('option', option);
 				triggerButton.on('click', function () {
 					let value;
@@ -7598,11 +7555,7 @@ window.run = function() {
 					id: 'set-timeSkip-maximum',
 					text: i18n('ui.maximum'),
 					title: option.max,
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'}
+					css: Css
 				}).data('option', option);
 				maximumButton.on('click', function () {
 					let value;
@@ -7623,11 +7576,7 @@ window.run = function() {
 				let cyclesButton = $('<div/>', {
 					id: 'toggle-cycle-' + name,
 					text: i18n('ui.cycles'),
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'},
+					css: Css
 				});
 
 				let cyclesList = $('<ul/>', {
@@ -7641,11 +7590,7 @@ window.run = function() {
 				let seasonsButton = $('<div/>', {
 					id: 'toggle-seasons-' + name,
 					text: i18n('trade.seasons'),
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'},
+					css: Css
 				});
 
 
@@ -7711,13 +7656,7 @@ window.run = function() {
 					id: 'set-' + name + '-subTrigger',
 					text: i18n('ui.trigger'),
 					title: option.subTrigger,
-					css: {
-						cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'
-					}
+					css: Css
 				}).data('option', option);
 
 				triggerButton.on('click', function () {
@@ -7810,11 +7749,7 @@ window.run = function() {
 				let loadKS = $('<div/>', {
 					id: 'loadKS',
 					text: "导入配置",
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'}
+					css: Css
 				}).data('option', option);
 
 				loadKS.on('click', function () {
@@ -7910,11 +7845,7 @@ window.run = function() {
 					id: 'set-' + name + '-subTrigger',
 					text: i18n('ui.trigger'),
 					title: option.subTrigger,
-					css: {cursor: 'pointer',
-						display: 'inline-block',
-						float: 'right',
-						paddingRight: '5px',
-						textShadow: '3px 3px 4px gray'}
+					css: Css
 				}).data('option', option);
 
 				triggerButton.on('click', function () {
@@ -7992,11 +7923,7 @@ window.run = function() {
 				id: 'set-' + name + '-max',
 				text: i18n('ui.max', [option.max]),
 				title: option.max,
-				css: {cursor: 'pointer',
-					display: 'inline-block',
-					float: 'right',
-					paddingRight: '5px',
-					textShadow: '3px 3px 4px gray'}
+				css: Css
 			}).data('option', option);
 
 			(function (iname) {
@@ -8037,12 +7964,7 @@ window.run = function() {
 			let traitShowButton = $('<div/>', {
 				id: 'toggle-leaderTrait' + name,
 				text: i18n('$village.trait.filter.all'),
-				css: {
-					cursor:'pointer',
-					display:'inline-block',
-					float:'right',
-					paddingRight:'5px',
-					textShadow:'3px 3px 4px gray'}
+				css: Css
 			});
 
 			for (i in window["com"]["nuclearunicorn"].game.village.Kitten().traits) {
@@ -8062,12 +7984,7 @@ window.run = function() {
 			let jobShowButton = $('<div/>', {
 				id: 'toggle-leaderJob' + name,
 				text: i18n('$village.panel.job'),
-				css: {
-					cursor:'pointer',
-					display:'inline-block',
-					float:'right',
-					paddingRight:'5px',
-					textShadow:'3px 3px 4px gray'}
+				css: Css
 			});
 
 			for (i in game.village.jobs) {
@@ -8368,7 +8285,7 @@ window.run = function() {
 
 			if (trueYears > 0) {
 				let realTime = game.toDisplaySeconds(trueYears * seasonsPerYear * daysPerSeason * Calendar.ticksPerDay / game.ticksPerSecond);
-				summary('总共 ' + realTime + ' 的小喵种田时间');
+				if (realTime) {summary('总共 ' + realTime + ' 的小喵种田时间');}
 			}
 		}
 
@@ -8377,7 +8294,6 @@ window.run = function() {
 		if (!filter.enabled || !filter.items['craftFilter'].enabled || !filter.items['buildFilter'].enabled
 			|| game.console.filters['faith'].enabled || game.console.filters['astronomicalEvent'].enabled) {
 			game.msg('喵喵提示：游戏(珂学家)日志消耗性能会比较多', "alert");
-			summary(equal);
 		}
 
 		// 处理耗时
@@ -8396,6 +8312,7 @@ window.run = function() {
 			};
 			summary(i18n('time.ks', [totalTicks, displaySecond(ksTime), Math.round(ksTime * numberFix / totalTicks) / numberFix]));
 			// if (gameTime) {summary(i18n('time.game', [diplaySecond(gameTime)]));}
+			summary(equal);
 		}
 		// Clear out the old activity
 		resetActivitySummary();
