@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.47';
+	const version = '15.49';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2550,7 +2550,7 @@ window.run = function() {
 						let paragon = Math.max(1 + game.prestige.getParagonProductionRatio(), 2) / 2;
 						ratio = resMap['compedium'].value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 1e6;
 						ratio |= craftManager.getTickVal(resMap['concrate']) > 600 * paragon;
-						if (ratio && items.dataCenter.enabled) {
+						if (ratio && items.dataCenter.enabled && game.space.getBuilding('moonOutpost').val > 2) {
 							if (winterProd >= game.resPool.energyCons + 150 && !energyActive && resPercent('science') > 0.8) {
 								return upgradeBuilding('library', libraryMeta);
 							}
