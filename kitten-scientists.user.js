@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.50';
+	const version = '15.51';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1504,7 +1504,7 @@ window.run = function() {
 				let minerItem = options.auto.distribute.items.miner;
 				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && kittenLength) {sim.removeJob('woodcutter');}
 
-				if (farmerCatnip && woodcutter > 2) {
+				if (farmerCatnip && woodcutter > 2 && game.science.get("agriculture").researched) {
 					for (let i = kittenLength - 1; i > 0; i--) {
 						let kitten = Kittens[i];
 						if (kitten.isLeader || kitten.job === 'farmer') {continue;}
@@ -2546,9 +2546,9 @@ window.run = function() {
 				}
 
 				let libraryMeta = game.bld.getBuildingExt('library').meta;
-				let scienceBldMax = 0.1 * libraryMeta.totalEffectsCached.scienceMax / (1 + Production);
 				if (libraryMeta.stage === 0) {
 					if (libraryMeta.stages[1].stageUnlocked) {
+						let scienceBldMax = 0.1 * libraryMeta.totalEffectsCached.scienceMax / (1 + Production);
 						let ratio = 1 + game.bld.get('biolab').val * 0.01;
 						let paragon = Math.max(1 + game.prestige.getParagonProductionRatio(), 2) / 2;
 						ratio = resMap['compedium'].value * 3 > scienceBldMax / ratio && game.bld.getEffect('scienceMax') > 1e6;
@@ -5808,7 +5808,7 @@ window.run = function() {
 				if (resMap['ship'].value < 30 && race.embassyLevel < 10 && !game.ironWill) {return false;}
 				let production = 1 + game.prestige.getParagonProductionRatio();
 				if (resMap['concrate'].value < 100 * production && race.embassyLevel > 10 && resMap['concrate'].value && resMap['titanium'].value > 30 * production || (spice && game.calendar.festivalDays)) {doTrade = true;}
-				if (resMap['concrate'].value > 1000 * (1 + solar) && titaniumTri < 0.8) {prof = false;}
+				if (resMap['concrate'].value > 250 * (1 + solar) * (1 + production) && titaniumTri < 0.8) {prof = false;}
 			}
 			let titanium = resMap['titanium'];
 			if (name === 'griffins') {
@@ -6505,6 +6505,7 @@ window.run = function() {
 
 		(function (del, forReset) {
 			del.on('click', function () {
+				if (title === '毛皮') {return;}
 				if (window.confirm(i18n('resources.del.confirm', [title]))) {
 					container.remove();
 					removeResourceControl(name, forReset);
