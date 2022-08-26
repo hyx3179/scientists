@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.53';
+	const version = '15.54';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -294,6 +294,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.smelter': '神学前，冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
+			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站',
 			'summary.auto.spaceTrigger': '小猫发展飞快，把星图留给探索碧池星',
 			'summary.auto.steamworks': '小猫曰：蒸汽工房要与磁电机成双成对',
 			'summary.auto.steelAxe': '存着钢换个喵喵自用的精钢斧',
@@ -1413,10 +1414,10 @@ window.run = function() {
 			if (game.science.get('civil').researched && leader) {
 				let Distribute = options.auto.distribute;
 				let optionLeader = Distribute.items.leader;
-				let countDown = this.leaderTimer;
+				let countDown = this.leaderTimer > 600;
 				// 20分钟
-				if (optionLeader.enabled && leader.trait.name === optionLeader.leaderTrait || countDown > 600) {
-					if (village.jobs[5].unlocked) {leader.exp += 0.1 + 5 * game.getEffect("skillXP");}
+				if (optionLeader.enabled && leader.trait.name === optionLeader.leaderTrait || countDown) {
+					if (!countDown) {leader.exp += 0.1 + 5 * game.getEffect("skillXP");}
 					let rank = leader.rank;
 					let gold = this.craftManager.getValueAvailable('gold', true);
 
@@ -1428,7 +1429,7 @@ window.run = function() {
 						census.renderGovernment(census.container);
 						census.update();
 						this.leader = leader.rank;
-						if (optionLeader.enabled && leader.trait === optionLeader.leaderTrait) {this.leaderTimer = 1;}
+						this.leaderTimer = 0;
 						storeForSummary('gold', 25 + 25 * rank, 'resConsume');
 						storeForSummary('promote', 1);
 						msgSummary('changeLeader', true);
@@ -2285,7 +2286,7 @@ window.run = function() {
 					// 印刷机 光刻机
 					if (resMap['oil'].value < 7.5e4 && !geodesy) {
 						noup = noup.concat(['offsetPress','photolithography']);
-						if (resPercent('coal') > 0.8 && resPercent('oil') < 0.95 && !orbitalGeodesy) {
+						if (resPercent('coal') > 0.7 && resPercent('oil') < 0.95 && !orbitalGeodesy) {
 							noup = noup.concat(['fuelInjectors', 'pyrolysis', 'combustionEngine']);
 						}
 					}
@@ -2414,7 +2415,7 @@ window.run = function() {
 				let subTrigger = upgrades.missions.subTrigger;
 				let missionsLength = game.space.meta[0].meta.length;
 				let manu = game.workshop.get('spaceManufacturing').researched;
-				if (subTrigger === 4 && resMap['alicorn'].value && manu && resMap['starchart'].value > 1e5) {
+				if (subTrigger === 4 && resMap['starchart'].value > 2e6) {
 					subTrigger = 7;
 					if (resMap['relic'].value > 26) {subTrigger = 12;}
 				}
@@ -2716,7 +2717,7 @@ window.run = function() {
 				let temple = items['temple'];
 				if (!revolutionRatio) {
 					Brewery.max = 22;
-					items['chapel'].max = 65;
+					items['chapel'].max = Math.max(Math.floor(resMap['culture'].value * 1e-4), 65);
 					temple.max = 35;
 				}
 				let templeVal = game.bld.getBuildingExt('temple').meta.val;
@@ -2861,7 +2862,7 @@ window.run = function() {
 						broadcastTower.max = (bTowerMax === -1) ? 20 : Math.min(20, bTowerMax);
 					}
 				} else {
-					broadcastTower.max = 8 + 52 * !revolutionRatio;
+					broadcastTower.max = 8 + 100 * !revolutionRatio;
 				}
 				if (resMap['starchart'].value > 1e4 && !spaceManufacturing && !game.calendar.festivalDays && !game.ironWill && Production > 1) {
 					items['observatory'].max = 70;
@@ -2967,6 +2968,7 @@ window.run = function() {
 					builds['researchVessel'].enabled = false;
 					if (builds['spaceStation'].enabled) {
 						$('#toggle-spaceStation').click();
+						msgSummary('spaceStation');
 					}
 				} else if (!trigger && keepStar && !game.space.meta[0].meta[3].val && starchartVal < 2200) {
 					trigger = 9;
@@ -3344,6 +3346,8 @@ window.run = function() {
 			for (name in items)  {
 				if (name === 'nagas' && skipNagas) {continue;}
 				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 1) {continue;}
+				if (name === 'lizards' && solarRevolution > 0.1) {continue;}
+				if (name === 'sharks' && solarRevolution > 1) {continue;}
 				trade = items[name];
 
 				// Check if the race is in season, enabled, unlocked, and can actually afford it
@@ -3364,7 +3368,6 @@ window.run = function() {
 					trades.push(name);
 				} else if (trade.limited && solar && Moon && glass) {
 					if (name === 'sharks' && race.embassyLevel < 10) {continue;}
-					if (name === 'lizards') {continue;}
 					if (tradeManager.getProfitability(name)) {
 						trades.push(name);
 						isLimited = true;
@@ -3385,7 +3388,7 @@ window.run = function() {
 
 			if (trades.length === 0) {return;}
 
-			isLimited = (isLimited && !isGoldTrigger) ? 0.3 + 0.1 * vitruvian : 1;
+			isLimited = (isLimited && !isGoldTrigger) ? 0.3 + 0.1 * vitruvian + 0.1 *!solarRevolution : 1;
 			// Figure out how much we can currently trade
 			let maxTrades = Math.floor(tradeManager.getLowestTradeAmount(undefined, true, false) * isLimited);
 
@@ -4388,10 +4391,10 @@ window.run = function() {
 					if (id === 'oilWell') {
 						let meta = game.bld.getBuildingExt(id).meta.val;
 						let oil = resMap['oil'];
-						let Val = resMap['oil'].val;
+						let Val = resMap['oil'].value;
 						if (meta < 8 || oil.maxValue < 2e4) {break;}
 						if (oil.maxValue > 55e3 && Val > 3e4 && meta < 199) {count = Math.floor(count * 0.5);}
-						if (game.bld.getBuildingExt('calciner').meta.val > 17 && !orbitalGeodesy && Val < 3.5e4) {return count;}
+						if (game.bld.getBuildingExt('calciner').meta.val > 19 && !orbitalGeodesy && Val < 3e4) {return count;}
 					}
 				// falls through
 				case 'quarry' :
@@ -4631,9 +4634,10 @@ window.run = function() {
 			game.resPool.addResEvent(craft.name, craftAmt);
 			// storeForSummary(craft.name, craftAmt, 'resGain');
 			if (craft.upgrades) {cacheUpgrades(craft.upgrades);}
-			game.stats.getStat("totalCrafts").val++;
-			game.stats.getStatCurrent("totalCrafts").val++;
-			game.stats.getStat("totalClicks").val += 1;
+			let stats = game.stats;
+			stats.getStat("totalCrafts").val++;
+			stats.getStatCurrent("totalCrafts").val++;
+			stats.getStat("totalClicks").val += 1;
 
 			let iname = resMap[name].title;
 
@@ -4709,7 +4713,7 @@ window.run = function() {
 					afterGeodesyNumber += 43;
 					if (tt < 6 && geodesy) {afterGeodesyNumber += 257 - 6 * tt * tt;}
 				}
-				let forceShipVal = (geodesy) ? afterGeodesyNumber : 36 / Math.max(0.2, Math.log1p(solar));
+				let forceShipVal = (geodesy) ? afterGeodesyNumber : 30 / Math.max(0.167, Math.log1p(solar));
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6;
 				force = force && shipValue < forceShipVal && oxi;
 			}
@@ -5394,7 +5398,7 @@ window.run = function() {
 				}
 				case 'steel': {
 					let Auto = options.auto;
-					limRat = (Auto.craft.oxidation) ? 1 : limRat;
+					limRat = (Auto.craft.oxidation) ? 1 : 0.65;
 					break;
 				}
 				case 'eludium': {
@@ -8451,7 +8455,7 @@ window.run = function() {
 		let optionsTitleElement = $('<a/>', {
 			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
 				fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px'},
-			text: version,
+			text: 'V' + version,
 			target: '_blank',
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
 		});
