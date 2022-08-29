@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.55';
+	const version = '15.56';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -181,7 +181,7 @@ window.run = function() {
 
 			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，她才不会心痛了',
 			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}',
-			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了? 喵喵已经逃跑了 ﾚ(ﾟ∀ﾟ;)ﾍ=3=3',
+			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ﾚ(ﾟ∀ﾟ;)ﾍ=3=3 !',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
 			'craft.unlimited': '触发资源：{1}{0}',
@@ -1539,7 +1539,7 @@ window.run = function() {
 			let tt = game.religion.transcendenceTier;
 			let scholar = game.workshop.get('spaceManufacturing').researched
 				|| (game.challenges.isActive("blackSky") && game.workshop.get('orbitalGeodesy').researched)
-				|| (resMap['eludium'].value && game.calendar.year < 10);
+				|| (resMap['unobtainium'].value && tt);
 			expect = expect && expect > 5 && revolution < expect * 0.3 && village.jobs[5].unlocked && !anarchy;
 			for (let i = village.jobs.length - 1; i >= 0; i--) {
 				let job = village.jobs[i];
@@ -1607,7 +1607,10 @@ window.run = function() {
 						if (val < maxKS) {msgSummary('scholar');}
 					}
 				}
-				if (name === 'miner' && !game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
+				if (name === 'miner') {
+					if (!game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
+					if (!game.workshop.get('geodesy').researched) {maxKS = Math.round(maxKS * 0.9);}
+				}
 				if (name === 'priest') {
 					if (limited && maxKS === 3) {
 						limited = false;
@@ -2375,11 +2378,12 @@ window.run = function() {
 			if (upgrades.policies.enabled && game["libraryTab"].visible) {
 				// write a function to make breaking big loop easier
 				(function () {
-					const policies = game.science.policies;
+					const Science = game.science;
+					const policies = Science.policies;
 					let lastIndex = i = 0;
 					const length = policies.length;
 					const toResearch = [];
-					let ratio = (game.science.get('astronomy').researched) ? 1 : 3;
+					let ratio = (Science.get('astronomy').researched || !Science.get('philosophy').researched) ? 1 : 3;
 
 					// A **little** more efficient than game.science.getPolicy if options.policies is right order
 					for (i in options.policies) {
@@ -2640,10 +2644,13 @@ window.run = function() {
 				let winterTick = craftManager.getPotentialCatnip(false);
 				let machinery = science.get('machinery').researched;
 				let astronomy = science.get('astronomy');
-				let set = game.stats.getStat("totalResets").val && !astronomy.researched;
-				if (scienceTrigger < 0.98 && set && (!machinery || astronomy.unlocked) && resMap['minerals'].value) {
-					items['academy'].max = 6 * (Production + 1);
-					msgSummary('academy');
+				if (scienceTrigger < 0.98 && (!machinery || astronomy.unlocked) && resMap['minerals'].value) {
+					let set = game.stats.getStat("totalResets").val && !astronomy.researched;
+					if (set) {
+						items['academy'].max = 6 * (Production + 1);
+						if (game.getEffect('maxKittens') < 12 && Production > 1.5) {items['academy'].max = 0;}
+						if (astronomy.unlocked) {msgSummary('academy');}
+					}
 				}
 				// 粮仓
 				if (spaceManufacturing && items['barn'].max < 16 && revolutionRatio) {items['barn'].max = -1;}
@@ -3332,7 +3339,7 @@ window.run = function() {
 			let challenge = game.challenges.anyChallengeActive();
 			let vitruvian = game.prestige.getPerk('vitruvianFeline').researched;
 			let solar = solarRevolution || (challenge && !faithVal) || resMap['gold'].maxValue < 470;
-			let skipNagas = !game.ironWill && game.workshop.get('spaceManufacturing').researched && solarRevolution > 2;
+			let skipNagas = !game.ironWill && game.workshop.get('spaceManufacturing').researched && solarRevolution && resMap['concrate'].value > 1e4 / (1 + solarRevolution);
 			let glass = game.religion.getRU("stainedGlass").on || !solarRevolution || faithVal < 200;
 			// 优先太阳革命
 			let faithValue = resMap['faith'].value;
@@ -3638,7 +3645,7 @@ window.run = function() {
 
 			// 铸币厂
 			let mint = game.bld.getBuildingExt('mint').meta;
-			if (mint.on !== mint.val && resMap['manpower'].maxValue > 2e4) {
+			if (mint.on !== mint.val && resMap['manpower'].maxValue > 3e4) {
 				mint.on = mint.val;
 			}
 			if (mint.on > 1 && resMap['manpower'].maxValue < 2e4 && !game.challenges.isActive("pacifism")) {
@@ -4771,8 +4778,10 @@ window.run = function() {
 					}
 				}
 				if (react || (resPercent('iron') > 0.89 && resMap['titanium'].maxValue < 3500 * reactRatio)) {force = true;}
-				let templeRes = resMap['faith'].maxValue < 750 && resMap['gold'].value > 30 && resMap['manuscript'].value < 17;
-				if (templeRes && resMap[name].value < 23 && ratio > 2.8) {force = true;}
+				if (resMap[name].value < 23) {
+					let templeRes = resMap['faith'].maxValue < 750 && resMap['gold'].value > 30 && resMap['manuscript'].value < 17;
+					if (templeRes && resMap[name].value < 23 && (ratio > 2.8 || resMap['iron'].value / 125 * ratio > 10)) {force = true;}
+				}
 				if (!shipValue && ratio > 3 && resMap['starchart'].value >= 25 && resValue < 150) {
 					autoMax = Math.ceil(Math.min(resMap['iron'].value / 100, (150 - resValue) / ratio));
 					force = true;
@@ -5819,7 +5828,7 @@ window.run = function() {
 			for (let mat in materials) {
 				if (mat === 'ivory') {continue;}
 				tick = this.craftManager.getTickVal(this.craftManager.getResource(mat), rrTrade);
-				if (tick < 0) {return false;}
+				if (tick <= 0) {return false;}
 				cost += materials[mat] / tick;
 			}
 
@@ -5829,7 +5838,7 @@ window.run = function() {
 				let res = resMap[prod];
 				tick = this.craftManager.getTickVal(res);
 				if (tick === 'ignore') {continue;}
-				if (tick <= 0) {doTrade = true;}
+				if (tick < 0) {doTrade = true;}
 				profit += (res.maxValue > 0) ? Math.min(output[prod], Math.max(res.maxValue - res.value, 0)) / tick : output[prod] / tick;
 			}
 			let prof = true;
@@ -5932,7 +5941,7 @@ window.run = function() {
 				let titanProb = Math.min(0.15 + shipCount * 0.0035, 1);
 				//let modifier = (shipCount < 230) ? Math.log(shipCount) * shipCount * 0.00084 - 0.01 : 1;
 				output["titanium"] = (1.5 + shipCount * 0.03) * (1 + zebraRelationModifierTitanium) * titanProb * successRat;
-				if (game.religion.getSolarRevolutionRatio() < 1 && shipCount < 50 && game.getEffect('titaniumPerTickAutoprod') < 0.003) {output["titanium"] = 0;}
+				if (game.religion.getSolarRevolutionRatio() < 1 && shipCount < 50 && game.getEffect('titaniumPerTickAutoprod') < 0.003) {output["titanium"] *= 0.5;}
 			}
 
 			let spiceChance = (race.embassyPrices) ? 0.35 * (1 + 0.01 * race.embassyLevel) : 0.35;
