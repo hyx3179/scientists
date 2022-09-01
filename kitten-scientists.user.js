@@ -3592,7 +3592,7 @@ window.run = function() {
 							let noSkip = true;
 							let Sharks = name === 'sharks' && solarFactor > 1.5;
 							let Dragons = name === 'dragons' && !game.getEffect('uraniumPerTick');
-							let Zebras = name === 'zebras' && embassyVal < 14 + solarFactor - 10 * Zebras && game.science.get('astronomy').researched;
+							let Zebras = name === 'zebras' && embassyVal < 14 + solarFactor - 10 && game.science.get('astronomy').researched;
 							if (b || Zebras || Dragons || Sharks) {
 								noSkip = false;
 							}
