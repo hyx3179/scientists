@@ -2295,7 +2295,7 @@ window.run = function() {
 					}
 					if (!geodesy) {
 						// 冷藏
-						noop = noop.concat(['seti','refrigeration']);
+						noop.push('seti');
 						// 没测地学过滤 钛金锯
 						if (revolutionRatio < 6 && resStarchart.value > 400) {noop.push('titaniumSaw');}
 						// 印刷机 光刻机
@@ -2308,7 +2308,12 @@ window.run = function() {
 						if (revolutionRatio > 4 && !orbitalGeodesy && resPercent('coal') > 0.4) {noop.push('fuelInjectors');}
 					}
 					// 工厂
-					if (game.bld.getBuildingExt('factory').meta.val < 3) {noop.push('factoryLogistics');}
+					if (game.bld.getBuildingExt('factory').meta.val < 3) {
+						noop.push('factoryLogistics');
+						if (resPercent('oil') > 0.7) {
+							noop = noop.concat(['oilDistillation', 'pumpjack','oilRefinery']);
+						}
+					}
 					// 微型亚空间
 					if (!game.workshop.get('mWReactor').researched) {
 						noop = noop.concat(['eludiumReflectors', 'amBases', 'coldFusion', 'amReactors','cryocomputing']);
@@ -2331,9 +2336,6 @@ window.run = function() {
 					// 反应堆槽
 					if (!game.bld.getBuildingExt('reactor').meta.val || resMap['ship'].value < 169) {
 						noop = noop.concat(['reactorVessel', 'enrichedUranium']);
-						if (resPercent('oil') > 0.7) {
-							noop = noop.concat(['oilDistillation', 'pumpjack']);
-						}
 					}
 					// 太阳能卫星
 					if (game.space.getBuilding('sattelite').val < 6) {
@@ -2368,7 +2370,7 @@ window.run = function() {
 							'unobtainiumHuts','eludiumHuts', 'geodesy','register','unobtainiumDrill','assistance',
 							'astrophysicists','register']);
 					} else if (!game.workshop.get('concreteHuts').researched) {
-						noop = noop.concat(['concreteWarehouses', 'concreteBarns', 'barges', 'seti']);
+						noop = noop.concat(['concreteWarehouses', 'concreteBarns', 'barges', 'seti', 'refrigeration']);
 					}
 				}
 
@@ -4756,7 +4758,7 @@ window.run = function() {
 			if (name === 'ship' && limited) {
 				force = shipValue < 85 || resMap['science'].maxValue > 1e5;
 				let solar = game.religion.getSolarRevolutionRatio();
-				let tt = game.religion.transcendenceTier
+				let tt = game.religion.transcendenceTier;
 				let forceShipVal = 30 / Math.max(0.17, Math.log1p(solar));
 				if (game.bld.getBuildingExt('calciner').meta.val) {forceShipVal *= 0.9;}
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6;
