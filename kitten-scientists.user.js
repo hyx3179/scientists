@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.60';
+	const version = '15.61';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -208,7 +208,7 @@ window.run = function() {
 			'act.accelerate': '固有时制御，二倍速!',
 			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
 			'act.accelerate.slow': '不行了，猫猫要减速了',
-			'act.accelerate.fine': '没关系，{0} 已经很厉害了',
+			'act.accelerate.fine': '没关系，{0}已经很厉害了',
 			'summary.accelerate': '小猫加速时间 {0} 次',
 			'option.time.skip': '时间跳转',
 			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
@@ -746,7 +746,7 @@ window.run = function() {
 				items: {
 					style:              {enabled: true,                    misc: true, label: i18n('option.style')},
 					hunt:               {enabled: true,  subTrigger: 0.96, require: 'manpower', misc: true, label: i18n('option.hunt')},
-					buildEmbassies:     {enabled: true,  subTrigger: 0.94, require: 'culture', misc: true, label: i18n('option.embassies')},
+					buildEmbassies:     {enabled: true,  subTrigger: 0.95, require: 'culture', misc: true, label: i18n('option.embassies')},
 					festival:           {enabled: true,                    misc: true, label: i18n('option.festival')},
 					promote:            {enabled: true,                    misc: true, label: i18n('option.promote')},
 					autofeed:           {enabled: true,                    misc: true, label: i18n('option.autofeed')},
@@ -990,11 +990,14 @@ window.run = function() {
 			this.time = performance.now();
 			let auto = options.auto;
 			let subOptions = auto.options;
-			if (subOptions.enabled && subOptions.items.observe.enabled)                     {this.observeStars();}
-			// && subOptions.items.festival.enabled
-			if (subOptions.enabled)                                                         {this.holdFestival();}
+			let miscEnabled = subOptions.enabled;
+			let items = subOptions.items;
+			if (miscEnabled && items.observe.enabled)                                       {this.observeStars();}
+			// && items.festival.enabled
+			if (miscEnabled)                                                                {this.holdFestival();}
 			if (auto.timeCtrl.enabled)                                                      {refresh += ~~this.timeCtrl();}
-			if (subOptions.enabled && subOptions.items.autofeed.enabled)                    {this.autofeed();}
+			if (miscEnabled && items.autofeed.enabled)                                      {this.autofeed();}
+			if (miscEnabled && items.promote.enabled)                                       {this.promote();}
 			if (auto.trade.enabled)                                                         {this.trade();}
 			if (auto.upgrade.enabled)                                                       {refresh += ~~this.upgrade();}
 			if (auto.build.enabled)                                                         {refresh += ~~this.build();}
@@ -1002,12 +1005,11 @@ window.run = function() {
 			if (auto.faith.enabled)                                                         {refresh += ~~this.worship();}
 			if (refresh > 0 || auto.cache.upgrade)                                          {this.gameUpgrade();}
 			if (auto.craft.enabled)                                                         {this.craft();}
-			if (subOptions.enabled && subOptions.items.hunt.enabled)                        {this.delay();}
+			if (miscEnabled && items.hunt.enabled)                                          {this.delay();}
 			if (auto.time.enabled)                                                          {refresh += ~~this.chrono();}
-			if (subOptions.enabled && subOptions.items.crypto.enabled)                      {this.crypto();}
+			if (miscEnabled && items.crypto.enabled)                                        {this.crypto();}
 			if (options.copyTrait)                                                          {this.setTrait();}
-			if (subOptions.enabled && subOptions.items.promote.enabled)                     {this.promote();}
-			if (subOptions.enabled)                                                         {refresh += ~~this.miscOptions();}
+			if (miscEnabled)                                                                {refresh += ~~this.miscOptions();}
 			if (auto.distribute.enabled)                                                    {refresh += ~~this.distribute();}
 			if (refresh > 0)                                                                {this.delay('render');}
 			this.calculateTime();
@@ -1257,7 +1259,7 @@ window.run = function() {
 			// Tempus Fugit
 			if (optItem.accelerateTime.enabled && game.science.get("calendar").researched) {
 				const tf = resMap['temporalFlux'];
-				if (tf.value >= Math.max(tf.maxValue * optItem.accelerateTime.subTrigger, 1) && !game.time.isAccelerated) {
+				if (tf.value >= Math.max(tf.maxValue * optItem.accelerateTime.subTrigger, 5) && !game.time.isAccelerated) {
 					game.time.isAccelerated = true;
 					this.accelerateTime = performance.now();
 					iactivity('act.accelerate', [], 'accelerateFilter');
@@ -1267,6 +1269,7 @@ window.run = function() {
 					engine.stop(false);
 					if (options.auto.engine.enabled) {
 						if (options.interval === 2000) {
+							this.accelerateTime = performance.now();
 							iactivity('act.accelerate.acl');
 						} else {
 							let aTime = this.accelerateTime;
@@ -1274,7 +1277,8 @@ window.run = function() {
 								let total = (performance.now() - aTime) / 1000;
 								let Time = game.toDisplaySeconds(total);
 								if (Time && total < 300) {
-									iactivity('act.accelerate.fine', [Time]);
+									let msg = game.msg(i18n('act.accelerate.fine', [Time]), null, null, true);
+									$(msg.span).css('color', "#ff589c");
 								}
 								this.accelerateTime = 0;
 							}
@@ -1427,7 +1431,7 @@ window.run = function() {
 		promote: function () {
 			let village = game.village;
 			let leader = village.leader;
-			if (game.science.get('civil').researched && leader) {
+			if (leader) {
 				let Distribute = options.auto.distribute;
 				let optionLeader = Distribute.items.leader;
 				let countDown = this.leaderTimer > 600;
@@ -1435,20 +1439,27 @@ window.run = function() {
 				if (optionLeader.enabled && leader.trait.name === optionLeader.leaderTrait || countDown) {
 					if (!countDown) {leader.exp += 0.1 + 5 * game.getEffect("skillXP");}
 					let rank = leader.rank;
-					let gold = this.craftManager.getValueAvailable('gold', true);
+					let goldStock = this.craftManager.getStock('gold');
+					let gold = resMap['gold'].value - goldStock;
 
 					// game.village.sim.goldToPromote will check gold
 					// game.village.sim.promote check both gold and exp
-					if (village.sim.goldToPromote(rank, rank + 1, gold)[0] && village.sim.promote(leader, rank + 1) === 1 && leader.rank >= this.leader) {
-						let census = game['villageTab'].censusPanel.census;
-						iactivity('act.promote', [rank + 1, 25 + 25 * rank], 'leaderFilter');
-						census.renderGovernment(census.container);
-						census.update();
-						this.leader = leader.rank;
-						this.leaderTimer = 0;
-						storeForSummary('gold', 25 + 25 * rank, 'resConsume');
-						storeForSummary('promote', 1);
-						msgSummary('changeLeader', true);
+					if (rank >= this.leader && village.sim.expToPromote(rank, rank + 1, leader.exp)[0]) {
+						if (village.sim.goldToPromote(rank, rank + 1, gold)[0]) {
+							if (village.sim.promote(leader, rank + 1) === 1) {
+								let census = game['villageTab'].censusPanel.census;
+								iactivity('act.promote', [rank + 1, 25 + 25 * rank], 'leaderFilter');
+								census.renderGovernment(census.container);
+								census.update();
+								this.leader = leader.rank;
+								this.leaderTimer = 0;
+								storeForSummary('gold', 25 + 25 * rank, 'resConsume');
+								storeForSummary('promote', 1);
+								msgSummary('changeLeader', true);
+							}
+						} else if (!goldStock) {
+							options.auto.cache.stocks['gold'] = 25 * rank + 25;
+						}
 					}
 				} else {
 					this.leaderTimer++;
@@ -1640,7 +1651,10 @@ window.run = function() {
 						msgSummary('defaultPriest');
 					}
 					if (resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
-					if (!revolution && tt > 3 && maxKS === 3 && val < 3) {val = 0;}
+					if (!revolution) {
+						if (tt > 3 && maxKS === 3 && val < 3) {val = 0;}
+						if (tt < 3) {maxKS = 1;}
+					}
 					if (!woodcutter) {
 						limited = true;
 						maxKS = 0;
@@ -2024,7 +2038,7 @@ window.run = function() {
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep || fPraise) {
 				let msgPraise = praiseLess && !forceStep && rate < 0.98 && !timeSkipAdore;
-				if (msgPraise && (Date.now() > option.autoPraise.time + 4e5 || !activitySummary.other['praise.msg'])) {
+				if (msgPraise && (Date.now() > option.autoPraise.time + 4e5 || !activitySummary.other['praise.msg']) && solarRatio) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
 					activity(i18n('summary.praise.msg', [expectSolar]));
@@ -2314,7 +2328,7 @@ window.run = function() {
 						if (!orbitalGeodesy) {
 							if (game.getEffect('calcinerRatio') > 1) {noop.push('fuelInjectors');}
 							if (resMap['oil'].value > 35e3) {}
-							noop = noop.concat(['titaniumWarehouses','titaniumBarns']);
+							noop = noop.concat(['titaniumWarehouses','titaniumBarns','reinforcedWarehouses']);
 						}
 					}
 					if (!geodesy) {
@@ -2333,7 +2347,7 @@ window.run = function() {
 					}
 					// 工厂
 					if (game.bld.getBuildingExt('factory').meta.val < 3) {
-						noop.push('factoryLogistics');
+						noop = noop.concat(['factoryLogistics', 'refrigeration']);
 						if (resPercent('oil') > 0.7) {
 							noop = noop.concat(['oilDistillation', 'pumpjack','oilRefinery']);
 						}
@@ -2394,7 +2408,7 @@ window.run = function() {
 							'unobtainiumHuts','eludiumHuts', 'geodesy','register','unobtainiumDrill','assistance',
 							'astrophysicists','register']);
 					} else if (!game.workshop.get('concreteHuts').researched) {
-						noop = noop.concat(['concreteWarehouses', 'concreteBarns', 'barges', 'seti', 'refrigeration']);
+						noop = noop.concat(['concreteWarehouses', 'concreteBarns', 'barges', 'seti']);
 					}
 				}
 
@@ -2773,10 +2787,10 @@ window.run = function() {
 				if (!revolutionRatio) {
 					Brewery.max = 22;
 					items['chapel'].max = Math.max(Math.floor(resMap['culture'].value * 1e-4), 65);
-					temple.max = 35;
+					temple.max = 35 - 28 * !geodesy;
 					let smelterVal = game.bld.getBuildingExt('smelter').meta.val;
 					if (smelterVal) {
-						if (resMap['wood'].perTickCached * 2 < smelterVal || resMap['minerals'].perTickCached < smelterVal) {
+						if (resMap['wood'].perTickCached * 2 < smelterVal || resMap['minerals'].perTickCached < smelterVal - 3 * hasLeader) {
 							smelter.max = 0;
 							msgSummary('smelter');
 						}
@@ -2838,6 +2852,7 @@ window.run = function() {
 					msgSummary('tradepost', true);
 					if (!orbitalGeodesy && templeVal > 25) {temple.enabled = false;}
 				}
+
 				// 神学前 交易所神殿
 				if (!theology && science.get('philosophy').researched && goldTri < 0.96 && !atheism) {
 					let one = game.village.happiness < 4 && templeVal === 1 && game.prestige.getPerk('renaissance').researched;
@@ -4409,8 +4424,7 @@ window.run = function() {
 					}
 					break;
 				case 'aqueduct': {
-					let catnipTick = this.crafts.getPotentialCatnip(false);
-					if (catnipTick < 2 || game.challenges.isActive('winterIsComing')) {
+					if ((this.crafts.getPotentialCatnip(false) < 2 && resPercent('catnip') < 0.5) || game.challenges.isActive('winterIsComing')) {
 						break;
 					} else if (!spaceManufacturing) {
 						count = Math.floor(count * 0.4);
@@ -4418,11 +4432,14 @@ window.run = function() {
 				}
 				// falls through
 				case 'library': {
-					let scienceMetaCache = game.science.metaCache;
-					if (id === 'library' && !scienceMetaCache['writing'].unlocked) {break;}
+					if (id === 'library' && !game.science.get('writing').unlocked) {break;}
 				}
 				// falls through
 				case 'academy':
+					if (id === 'academy' && game.bld.getBuildingExt(id).meta.val > 40 && resPercent('science') < 1 && !orbitalGeodesy) {
+						halfCount = true;
+					}
+				// falls through
 				case 'pasture':
 				case 'barn': {
 					if (id === 'barn' && resMap['minerals'].maxValue < 1600) {
@@ -4526,7 +4543,7 @@ window.run = function() {
 					} else {
 						if (!TitaniumCap) {
 							if (faVal) {
-								count = Math.floor(0.4 * count);
+								count = Math.floor((0.4 + 0.3 * !vitruvianFeline) * count);
 								halfCount = true;
 								msgSummary('factory');
 							} else {
@@ -4770,7 +4787,10 @@ window.run = function() {
 			// Safeguard if materials for craft cannot be determined.
 			if (!materials) {return 0;}
 			// 跳过资源达到无限的情况
-			if (resMap[name].value === Infinity) { return 0; }
+			let ResMap = resMap[name];
+			let maxValue = ResMap.maxValue;
+			let value = ResMap.value;
+			if (value === Infinity) { return 0; }
 
 			let resValue = this.getValueAvailable(name, true);
 			let i, force, delta;
@@ -4812,9 +4832,6 @@ window.run = function() {
 			let indexMax;
 			let cache = options.auto.cache;
 
-			let ResMap = resMap[name];
-			let maxValue = ResMap.maxValue;
-			let value = ResMap.value;
 			if (name === 'beam' || name === 'slab') {
 				i = Object.keys(materials)[0];
 				if (resPercent(i) < 2) {
@@ -4855,9 +4872,10 @@ window.run = function() {
 					force = true;
 				}
 				if (resValue < 150) {
-					if (resMap[name].value < 23) {
-						let templeRes = resMap['faith'].maxValue < 750 && resMap['gold'].value > 30 && resMap['manuscript'].value < 17;
-						if (templeRes && resMap[name].value < 23 && (ratio > 2.8 || resMap['iron'].value / 125 * ratio > 10)) {force = true;}
+					if (resMap['faith'].maxValue < 750 && resMap['gold'].value > 30 && value < templePriceRatio * 15 &&
+						(ratio > 2.8 || resMap['iron'].value / 125 * ratio > 10 || game.village.leader.rank > 3)) {
+						force = true;
+						autoMax = 1;
 					}
 					if (!shipValue && ratio > 3 && resMap['starchart'].value > 24) {
 						autoMax = Math.ceil(Math.min(resMap['iron'].value / 100, (150 - resValue) / ratio));
@@ -4889,17 +4907,18 @@ window.run = function() {
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript > 0) {
 						let buildTemple = (i === 16 && game.village.happiness < 4 && temple.val === 1 && ratio > 4);
-						buildTemple = buildTemple || resMap['faith'].maxValue > 750 || resMap['gold'].value < 50;
+						buildTemple = buildTemple || resMap['faith'].maxValue > 750 || value > 20;
 						price = (buildTemple) ? price : 10 * templePriceRatio;
-						let craftPrices = (game.science.getPolicy("tradition").researched) ? 20 : 25;
 						autoMax = Math.ceil((price - resValue) / ratio);
-						let resVal = this.getValueAvailable('parchment', true);
-						// 文化 this.getValueAvailable('culture', true);
-						if (resVal > autoMax * craftPrices && autoMax >= 1 && resMap['culture'].value > craftPrices * 16 * autoMax) {
-							cache.science = (cacheManuscript > 0) ? cache.science : meta.label;
-							cache.science = (buildTemple) ? cache.science : "神殿";
-							msgScience('manuscript');
-							cache.resources['manuscript'] = 0;
+						let tradition = (game.getEffect('manuscriptCultureCost')) ? 1 : 0;
+						if (autoMax >= 1) {
+							let parchmentVal = this.getValueAvailable('parchment', true);
+							if (parchmentVal > autoMax * (25 - 5 * tradition) && resMap['culture'].value > (400 - 100 * tradition) * autoMax) {
+								cache.science = (cacheManuscript > 0) ? cache.science : meta.label;
+								cache.science = (buildTemple) ? cache.science : "神殿";
+								msgScience('manuscript');
+								cache.resources['manuscript'] = 0;
+							}
 						}
 						break;
 					}
@@ -4910,10 +4929,10 @@ window.run = function() {
 				if (!game.calendar.festivalDays && resMap['unobtainium'].value && Science.get('drama').unlocked) {autoMax = 0;}
 			}
 
-			let religion = resMap['gold'].maxValue < 500 || game.religion.getRU('solarRevolution').on || game.religion.transcendenceTier;
-			if (name === 'compedium' && limited && navigation && religion) {
+			if (name === 'compedium' && limited && navigation) {
 				let cacheCompedium = cache.resources['compedium'];
 				indexMax = (cacheCompedium) ? 19 : 27;
+				if (!aboveTrigger && ratio < 3) {autoMax = 0;}
 				for (i = 18; i < indexMax; i++) {
 					if (game.prestige.getPerk("numerology").researched && !game.calendar.festivalDays && game.science.get("drama").unlocked) {break;}
 					let meta = scienceMeta.meta[i];
@@ -4946,7 +4965,6 @@ window.run = function() {
 				if (!Science.get('metalurgy').researched && cultureTri > 0.98 && resValue < 100 && scienceTri > 0.98) {
 					force = true;
 				}
-				if (!aboveTrigger && ratio < 3) {autoMax = 0;}
 			}
 
 			if (name === 'blueprint' && limited && Science.get('electricity').researched) {
@@ -4989,9 +5007,11 @@ window.run = function() {
 					autoMax = 1;
 				}
 				if (!navigation) {
-					if (resValue > 300) {limited = true;}
-					if (resValue > 500) {
-						autoMax = 0;
+					if (resValue > 300) {
+						limited = true;
+						if (resValue > 500) {
+							autoMax = 0;
+						}
 						msgSummary('parchment');
 					}
 				}
@@ -5022,8 +5042,10 @@ window.run = function() {
 				let steelValAva = this.getValueAvailable('steel');
 				// let ironHut = !game.ironWill && resMap['iron'].maxValue > 3000 && this.getUnResearched('ironwood');
 				// ironHut = resValue > 250 * ratio || ironHut;
-				let ironCoalRatio = 0.3 * Math.min(1, resMap['coal'].perTickCached / resMap['iron'].perTickCached);
-				if (resMap['plate'].value < 1.25 * ironCoalRatio * resMap['steel'].value && !Craft.oxidation && Craft.items['plate'].enabled && steelValAva) {amount = 0;}
+				let ironCoalRatio = Math.max(1 * !navigation, 0.3 * Math.min(1, resMap['coal'].perTickCached / resMap['iron'].perTickCached));
+				if (resMap['plate'].value < 1.25 * ironCoalRatio * resMap['steel'].value && !Craft.oxidation && Craft.items['plate'].enabled && steelValAva) {
+					amount = 0;
+				}
 				let cacheUpg = options.auto.upgrade.items.upgrades;
 				let forceSteel = (name, prices) => {
 					let workshopMeta;
@@ -5280,22 +5302,25 @@ window.run = function() {
 				let stock = 0;
 				switch (name) {
 					case 'wood': {
-						if (this.getUnResearched('ironwood') && resMap['iron'].value > 3e3 && kittens > 20) {stock += 15e3;}
+						if (this.getUnResearched('ironwood') && resMap['iron'].value > 2800 && kittens > 20) {stock += 15e3;}
 						if (game.bld.get('hut').val < 23 && workshop.get('concreteHuts').researched && !iw && !game.getEffect("priceRatio") && !resMap['uranium'].value && resPercent(name) < 1) {stock += 587e3;}
 						break;
 					}
 					case 'iron': {
-						let lumberMill = game.bld.get('lumberMill').val > 19 - 40 * game.getEffect("priceRatio");
-						let a = resMap['gold'].value < 50 && lumberMill;
+						let priceRatio = game.getEffect("priceRatio");
+						let lumberMill = game.bld.get('lumberMill').val > 19 - 40 * priceRatio;
+						let a = resMap['gold'].value < 50 + 25 * (priceRatio > -0.02) && lumberMill;
 						if (game.bld.getBuildingExt('temple').meta.on > 2 || resMap['faith'].maxValue > 749 || a || resMap['plate'].value > 18) {
+							let val = resMap[name].value;
+							let maxVal = resMap[name].maxValue;
 							let stockIron = (isStock, price, upg) => {
-								if (isStock && resMap['iron'].value < 1e4 && kittens < 115) {
+								if (isStock && val < 1e4 && kittens < 115) {
 									msgForStock(price, upg, name);
 								}
 							};
-							let reinforcedSaw = this.getUnResearched('reinforcedSaw') && resMap[name].value > 200 && resMap[name].maxValue > 1e3;
-							let crossbow = this.getUnResearched('crossbow') && lumberMill && resMap[name].maxValue > 1500;
-							let ironwood = this.getUnResearched('ironwood') && resMap[name].value > 750 && resMap[name].maxValue > 3000
+							let reinforcedSaw = this.getUnResearched('reinforcedSaw') && val > 200 && maxVal > 1e3;
+							let crossbow = this.getUnResearched('crossbow') && lumberMill && maxVal > 1500;
+							let ironwood = this.getUnResearched('ironwood') && val > 700 && maxVal > 3000
 								&& resMap['science'].maxValue > 3e4 && kittens > 20;
 
 							stockIron(reinforcedSaw, 1000, 'reinforcedSaw');
@@ -5565,6 +5590,7 @@ window.run = function() {
 					break;
 				}
 				case 'compedium':
+					limRat = (solar) ? limRat : 0.3;
 					limRat = (game.science.get('architecture').unlocked) ? limRat : 0;
 					limRat = (resMap['manuscript'].value > Math.max(10e3, 100 * templeFactor)) ? 0.9 : limRat;
 					if (res.value * 10 > Math.max(2e4, this.getCompendiaMax()) && resPercent('science') === 1) {limRat = 0;}
