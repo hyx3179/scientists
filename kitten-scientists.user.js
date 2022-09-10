@@ -1828,7 +1828,7 @@ window.run = function() {
 							}
 							if (game.calendar.day < 1 && !game.calendar.season && Math.random() < 0.1) {
 								game.diplomacy.unlockElders();
-								game.diplomacy.updateTab();
+								game['diplomacyTab'].updateTab();
 							}
 						}
 
@@ -2954,9 +2954,9 @@ window.run = function() {
 				let titaniumMap = resMap['titanium'];
 				let biolab = items['biolab'];
 				if (!geodesy && !orbitalGeodesy) {
-					if (!game.ironWill && titaniumMap.value > 1 && mansion.max) {
-						mansion.max = 6 * (1 + revolutionRatio);
-						items['quarry'].max = 6 * (1 + revolutionRatio);
+					if (!game.ironWill && mansion.max) {
+						mansion.max = 5 * (1 + revolutionRatio) * (1 + Production);
+						items['quarry'].max = 5 * (1 + revolutionRatio) * (1 + Production);
 						if (calciner.max === 25) {mansion.max = 0;}
 					}
 					if (resMap['alloy'].value > 25 && science.get('biology').researched) {
@@ -4625,7 +4625,7 @@ window.run = function() {
 				// falls through
 				case 'mansion':
 					vitruvianFeline = vitruvianFeline || (!vitruvianFeline && Workshop.get('geodesy').researched && game.village.sim.kittens.length > 140);
-					if (!spaceManufacturing && game.stats.getStat("totalResets").val > 1 && !TitaniumCap && vitruvianFeline) {
+					if (!spaceManufacturing && game.prestige.getParagonProductionRatio() > 1 && !TitaniumCap && vitruvianFeline) {
 						msgSummary('mansion');
 						halfCount = true;
 					}
@@ -4859,16 +4859,16 @@ window.run = function() {
 			let Craft = options.auto.craft;
 			let ratio = game.getResCraftRatio(craft.name) + 1;
 			let trigger = Craft.trigger;
-			let shipValue = resMap['ship'].value;
 			if (name === 'ship' && limited) {
+				let shipValue = resMap['ship'].value;
 				force = shipValue < 85 || resMap['science'].maxValue > 95e3;
 				let solar = game.religion.getSolarRevolutionRatio();
 				let tt = game.religion.transcendenceTier;
 				let forceShipVal = 30 / Math.max(0.17, Math.log1p(solar));
-				if (game.bld.getBuildingExt('calciner').meta.val > 1) {forceShipVal *= 0.9;}
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6;
 				if (!oxi) {force = false;}
 				if (force) {
+					if (game.bld.getBuildingExt('calciner').meta.val > 1) {forceShipVal *= 0.9;}
 					if (geodesy) {
 						forceShipVal = 243;
 						if (game.religion.faithRatio && resMap['science'].maxValue > 11e4) {
@@ -4957,7 +4957,7 @@ window.run = function() {
 						force = true;
 						autoMax = 1;
 					}
-					if (!shipValue && ratio > 3 && resMap['starchart'].value > 24) {
+					if (!resMap['ship'].value && ratio > 3 && resMap['starchart'].value > 24) {
 						autoMax = Math.ceil(Math.min(resMap['iron'].value / 100, (150 - resValue) / ratio));
 						force = true;
 					}
