@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.64';
+	const version = '15.65';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1275,12 +1275,13 @@ window.run = function() {
 					if (options.auto.engine.enabled) {
 						if (options.interval === 2000) {
 							iactivity('act.accelerate.acl');
+							this.accelerateTime = performance.now();
 						} else {
 							let aTime = this.accelerateTime;
 							if (aTime) {
 								let total = (performance.now() - aTime) / 1000;
 								let Time = game.toDisplaySeconds(total);
-								if (Time && total < 180) {
+								if (Time && total < 61) {
 									Time = Time.substring(0, Time.length - 1);
 									let msg = game.msg(i18n('act.accelerate.fine',[Time]), null, null, true);
 									$(msg.span).css('color', "#ff589c");
@@ -1543,7 +1544,7 @@ window.run = function() {
 				let minerItem = options.auto.distribute.items.miner;
 				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && kittenLength) {sim.removeJob('woodcutter');}
 
-				if (farmerCatnip && woodcutter > 2 && game.science.get("agriculture").researched) {
+				if (resMap["catnip"].value + 5000 * (catnipTick - 0.85) < 0 && game.science.get("agriculture").researched) {
 					for (let i = kittenLength - 1; i > 0; i--) {
 						let kitten = Kittens[i];
 						if (kitten.isLeader || kitten.job === 'farmer') {continue;}
@@ -2177,7 +2178,7 @@ window.run = function() {
 
 			let cryochambers = builds['cryochambers'];
 			let cryochambersMax = cryochambers.max;
-			let cryoLimited = game.bld.getgetBuildingExt("chronosphere").meta.on + game.getEffect("cryochamberSupport");
+			let cryoLimited = game.bld.getBuildingExt("chronosphere").meta.on + game.getEffect("cryochamberSupport");
 			cryochambers.max = (cryochambersMax === -1) ? cryoLimited : Math.min(cryoLimited, cryochambersMax);
 			let RR = builds['ressourceRetrieval'];
 			let rrMax = RR.max;
@@ -2360,7 +2361,7 @@ window.run = function() {
 						if (!orbitalGeodesy) {
 							if (game.getEffect('calcinerRatio') > 1) {noop.push('fuelInjectors');}
 							if (resMap['oil'].value > 35e3) {}
-							noop = noop.concat(['titaniumWarehouses','titaniumBarns','reinforcedWarehouses']);
+							noop = noop.concat(['titaniumWarehouses','titaniumBarns']);
 						}
 					}
 					if (!geodesy) {
@@ -2515,7 +2516,7 @@ window.run = function() {
 					if (resMap['relic'].value > 26) {subTrigger = 12;}
 				}
 				let index = 0;
-				let skip = !orbitalGeodesy && !game.ironWill && !geodesy;
+				let skip = !orbitalGeodesy && !geodesy && !resMap['unobtainium'].value;
 				let GCPanel = spaceTab.GCPanel;
 				if (!GCPanel) {spaceTab.render();}
 				const missions = game.space.meta[0].meta;
@@ -2577,8 +2578,8 @@ window.run = function() {
 					if (resMap["ship"].value >= 1) {unlockRace('zebras');}
 					if (resMap["ship"].value >= 100 && resMap["science"].maxValue > 125000) {unlockRace('spiders');}
 					if (game.science.get("nuclearFission").researched) {unlockRace('dragons');}
-					if (!game["diplomacyTab"].racePanels.length || maxRaces === 'render') {game["diplomacyTab"].render();}
 				}
+				if (!game["diplomacyTab"].racePanels.length || maxRaces === 'render') {game["diplomacyTab"].render();}
 			}
 
 			if (upgrades.buildings.enabled) {
@@ -2747,7 +2748,7 @@ window.run = function() {
 				let pasture = items['pasture'];
 				if (!game["workshopTab"].visible && science.get('animal').researched) {
 					smelter.max = 0;
-					if (pasture.max === 150 && !game.challenges.isActive('winterIsComing')) {
+					if (pasture.max === 150 && !game.challenges.isActive('winterIsComing') && winterTick > 4) {
 						pasture.enabled = false;
 						msgSummary('pasture');
 					}
@@ -3476,10 +3477,6 @@ window.run = function() {
 			let trade, race, name, require;
 			let items = optionTrade.items;
 			for (name in items)  {
-				if (name === 'nagas' && skipNagas) {continue;}
-				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 0.7 && resPercent('uranium') > 0.1) {continue;}
-				if (name === 'lizards' && solarRevolution > 0.2) {continue;}
-				if (name === 'sharks' && !challenge && solarRevolution > 3) {continue;}
 				trade = items[name];
 
 				// Check if the race is in season, enabled, unlocked, and can actually afford it
@@ -3487,6 +3484,10 @@ window.run = function() {
 				if (!race.unlocked) {continue;}
 				if (!game["diplomacyTab"].racePanels[index]) {game["diplomacyTab"].render();}
 				index++;
+				if (name === 'nagas' && skipNagas) {continue;}
+				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 0.7 && resPercent('uranium') > 0.1) {continue;}
+				if (name === 'lizards' && solarRevolution > 0.2) {continue;}
+				if (name === 'sharks' && !challenge && solarRevolution > 3) {continue;}
 				if (!trade.enabled) {continue;}
 				let Season = trade[season];
 				if (!Season) {continue;}
@@ -4450,13 +4451,13 @@ window.run = function() {
 			let moonM = game.space.getProgram('moonMission');
 			let revolution = game.religion.getSolarRevolutionRatio();
 			switch (id) {
-				case 'mine':
-					if (id === 'mine' && vitruvianFeline && !game.bld.getBuildingExt('logHouse').meta.val && game.bld.getBuildingExt(id).meta.val > 0) {
-						if (!game.ironWill) {
-							halfCount = true;
-						}
-					}
-					break;
+				// case 'mine':
+				// 	if (id === 'mine' && vitruvianFeline && !game.bld.getBuildingExt('logHouse').meta.val && game.bld.getBuildingExt(id).meta.val > 0) {
+				// 		if (!game.ironWill) {
+				// 			halfCount = true;
+				// 		}
+				// 	}
+				// 	break;
 				case 'field':
 					if (game.bld.getBuildingExt(id).meta.val > 35 + 85 * vitruvianFeline) {
 						if (game.getEffect('scienceRatio') < 0.5) {
@@ -5436,21 +5437,22 @@ window.run = function() {
 					}
 					case 'steel': {
 						let blackSky = game.challenges.isActive("blackSky");
+						let val = resMap[name].value;
 						let steelAxe = this.getUnResearched('steelAxe') && resMap['coal'].value > 3000;
-						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 30 || resMap[name].value > 10)) {msgForStock(75, 'steelAxe', name);}
+						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 30 || val > 10)) {msgForStock(75, 'steelAxe', name);}
 						// 精钢锯
-						let steelSaw = this.getUnResearched('steelSaw') && resMap[name].value > 250 && !resMap['titanium'].value && !blackSky;
+						let steelSaw = this.getUnResearched('steelSaw') && val > 250 && !resMap['titanium'].value && !blackSky;
 						if (steelSaw) {msgForStock(750, 'steelSaw', name);}
 						// 氧化反应
 						if (options.auto.craft.oxidation && this.getUnResearched('oxidation')) {stock += 5000;}
 
-						if (blackSky && !resMap['titanium'].perTickCached && resMap['steel'].value < 1100 && resMap['oil'].value > 6e3) {
+						if (blackSky && !resMap['titanium'].perTickCached && val < 1100 && resMap['oil'].value > 6e3) {
 							stock += 1100;
 						}
 
 						let cacheSteel = options.auto.cache.resUpg['steel'];
 						if (cacheSteel) {stock += cacheSteel;}
-						if (cacheAlloy) {stock += cacheAlloy * 75 / (1 + game.getEffect("craftRatio"));}
+						if (cacheAlloy) {stock +=  Math.max(0, cacheAlloy - resMap['alloy'].value) * 75 / (1 + game.getEffect("craftRatio"));}
 						break;
 					}
 					case 'titanium': {
@@ -5664,7 +5666,8 @@ window.run = function() {
 					let logistics = this.getUnResearched('logistics') && resMap['scaffold'].value > 1e3;
 					let fuelInjectors = this.getUnResearched('fuelInjectors') && resMap['oil'].value > 1e4 && resPercent('coal') < 0.5 && res.value < 250 && resMap['titanium'].value > 200;
 					let offsetPress = this.getUnResearched('offsetPress') && resMap['oil'].value > 15e3 && solar < 1;
-					limRat = (fuelInjectors || logistics || offsetPress) ? 0.75 : 0.3;
+					let more = game.getEffect('calcinerRatio') && solar > 2;
+					limRat = (fuelInjectors || logistics || offsetPress) ? 0.75 : 0.3 + 0.15 * more;
 					limRat = (res.value > Math.max(500, 20 * factor)) ? 5e-3 : limRat;
 					limRat = (steamworks.val || game.science.get('chemistry').researched || (game.challenges.isActive("pacifism") && res.value < 50)) ? limRat : 0;
 					break;
