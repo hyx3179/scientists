@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.65';
+	const version = '15.66';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -277,7 +277,7 @@ window.run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
-			'summary.auto.ksHelp3': '初始的默认设置下纯挂机大概370年左右130猫口+新约外传',
+			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概370年左右130猫口+新约外传',
 			'summary.auto.ksHelp4': '小喵选项 => 恢复初始默认配置，可以恢复到初始推荐的配置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
@@ -367,7 +367,7 @@ window.run = function() {
 			'summary.separator': ' ',
 			'summary.day': '天',
 			'summary.days': '天',
-			'summary.head': '你醒啦，这是猫国过去 {0} 的总结',
+			'summary.head': '你醒啦，看看你的猫国过去 {0} 的总结',
 			'summary.show': '小猫总结',
 		},
 	};
@@ -1544,7 +1544,7 @@ window.run = function() {
 				let minerItem = options.auto.distribute.items.miner;
 				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && kittenLength) {sim.removeJob('woodcutter');}
 
-				if (resMap["catnip"].value + 5000 * (catnipTick - 0.85) < 0 && game.science.get("agriculture").researched) {
+				if (farmerCatnip && catnipTick < 0 && game.science.get("agriculture").researched) {
 					for (let i = kittenLength - 1; i > 0; i--) {
 						let kitten = Kittens[i];
 						if (kitten.isLeader || kitten.job === 'farmer') {continue;}
@@ -1624,6 +1624,8 @@ window.run = function() {
 							maxKS = Math.min(18, maxKS);
 						}
 					}
+					let woodRes = resMap['wood'];
+					if (woodRes.maxValue / woodRes.perTickCached < 10) {maxKS = 0;}
 				}
 				if (name === 'geologist') {
 					let geodesy = game.workshop.get("geodesy").researched;
@@ -1667,9 +1669,11 @@ window.run = function() {
 						if (val < Math.min(25, maxKS)) {
 							maxKS *= 4;
 						}
-					} else {
+					} else if (tt < 5) {
 						maxKS = Math.round(maxKS * 0.9);
 					}
+					let miner = resMap['minerals'];
+					if (miner.maxValue / miner.perTickCached < 10) {maxKS = 0;}
 				}
 				if (name === 'priest') {
 					if (limited && maxKS === 3) {
@@ -2726,7 +2730,7 @@ window.run = function() {
 				if (revolutionRatio < 50) {
 					let number = (resMap['starchart'].value > 1e5) ? 200 : 300;
 					scienceBuild('observatory', number + game.getEffect('timeRatio') + Math.pow(3, Production), 0.95);
-					scienceBuild('academy', Math.max(22 * (Production + 1), 100), 0.98);
+					scienceBuild('academy', 22 * (Production + 1), 0.98);
 					scienceBuild('biolab', 200, 0.99);
 				}
 
@@ -2809,7 +2813,7 @@ window.run = function() {
 
 				// 解锁磁电机才会造蒸汽工房
 				let steamW = items['steamworks'];
-				if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.val && !game.ironWill) {
+				if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.on && !game.ironWill) {
 					if (game.bld.getBuildingExt('steamworks').meta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
 						msgSummary('steamworks');
 						steamW.enabled = false;
@@ -5180,6 +5184,7 @@ window.run = function() {
 						if (steelVal < 125) {amount += 1;}
 						let minAmount = Math.min(resMap['coal'].value, resMap['iron'].value) * 0.01;
 						if (amount > minAmount || Craft.oxidation) {amount = minAmount;}
+						if (calVal === 47 && !game.getEffect('productionRatio') && resMap['uranium'].value > 250) {amount = 0;}
 					}
 					forceSteel('oxidation');
 					let titanium = resMap['titanium'].value;
@@ -8688,7 +8693,7 @@ window.run = function() {
 				if (game.getEffect('priceRatio') > -0.03 && game.religion.transcendenceTier < 4) {
 					msgSummary('ksHelp', false, 'noFilter');
 					msgSummary('ksHelp2', false, 'noFilter');
-					if (!game.stats.getStat("totalResets").val && game.religion.faith > 5e4) {msgSummary('ksHelp3', false, 'noFilter');}
+					if (!game.stats.getStat("totalResets").val && game.religion.faith > 1e4) {msgSummary('ksHelp3', false, 'noFilter');}
 					msgSummary('ksHelp4', false, 'noFilter');
 				}
 			} else {
