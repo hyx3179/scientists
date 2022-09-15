@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.67';
+	const version = '15.68';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -256,7 +256,7 @@ window.run = function() {
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
 			'summary.auto.academy': '小猫当科学快满了才会继续建造研究院',
-			'summary.auto.aqueduct': '猫薄荷吃的有点腻，水渠真不熟',
+			'summary.auto.aqueduct': '心中无水渠，发展自然神',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
 			'summary.auto.biology': '喵喵喵嫌弃镁有钛，跳过困难的生物学',
@@ -1669,7 +1669,7 @@ window.run = function() {
 				if (name === 'miner') {
 					if (!game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
 					if (game.workshop.get('geodesy').researched) {
-						if (val < Math.min(25, maxKS)) {
+						if (val < Math.min(25, maxKS) && !scholar) {
 							maxKS *= 4;
 						}
 					} else if (tt < 5) {
@@ -2753,18 +2753,17 @@ window.run = function() {
 				let pasture = items['pasture'];
 				if (!game["workshopTab"].visible && science.get('animal').researched) {
 					smelter.max = 0;
-					if (pasture.max === 150 && !game.challenges.isActive('winterIsComing') && winterTick > 4) {
+					if (pasture.max === 150 && !game.challenges.isActive('winterIsComing') && (winterTick > 4 || resMap['minerals'].value > 400)) {
 						pasture.enabled = false;
 						msgSummary('pasture');
 					}
 				}
 				if (theology) {
-					msgSummary('pasture', true);
+
 				} else {
 					let pastureMeta = game.bld.getBuildingExt('pasture').meta;
-					if (pastureMeta.val > 10) {
-						pasture.max = 7 + game.bld.getBuildingExt('library').meta.val;
-						msgSummary('pasture');
+					if (pastureMeta.val > 10 ) {
+						pasture.max = 6 + game.bld.getBuildingExt('library').meta.val;
 					}
 					let hutVal = game.bld.getBuildingExt('hut').meta.val - 2;
 					let library = items['library'];
@@ -2837,8 +2836,12 @@ window.run = function() {
 					items['chapel'].max = Math.max(Math.floor(resMap['culture'].value * 1e-4), 65);
 					temple.max = 37 - 28 * !geodesy - 2 * hasLeader;
 					let smelterVal = game.bld.getBuildingExt('smelter').meta.val;
+					if (winterTick > 10 * game.village.happiness * (2 - 1 * hasLeader)) {
+						pasture.max = 0;
+						msgSummary('pasture');
+					}
 					if (smelterVal) {
-						if (resMap['wood'].perTickCached * 2 < smelterVal || resMap['minerals'].perTickCached < smelterVal - 3 * theology) {
+						if (resMap['wood'].perTickCached * 2 < smelterVal || resMap['minerals'].perTickCached < smelterVal + 1 - 3 * theology) {
 							smelter.max = 0;
 							msgSummary('smelter');
 						}
@@ -2977,6 +2980,7 @@ window.run = function() {
 						msgSummary('mansion', true);
 						msgSummary('scienceBld', true);
 						msgSummary('smelter', true);
+						if (revolutionRatio > 0.1) {msgSummary('pasture', true);}
 					} else if (resPercent('titanium') < 0.8) {
 						biolab.max = Math.max(20 - revolutionRatio - Production, 0);
 						if (!geodesy) {
@@ -4446,7 +4450,6 @@ window.run = function() {
 		count: function(id, count) {
 			if (!count) {return;}
 			let halfCount;
-			let solarMeta = Religion.getRU('solarRevolution');
 			let Workshop = game.workshop;
 			let geodesy = Workshop.get('geodesy').researched;
 			let orbitalGeodesy = Workshop.get('orbitalGeodesy').researched;
@@ -4487,7 +4490,7 @@ window.run = function() {
 					}
 					break;
 				case 'aqueduct': {
-					if ((this.crafts.getPotentialCatnip(false) < 5 && resPercent('catnip') < 0.6) || game.challenges.isActive('winterIsComing')) {
+					if ((this.crafts.getPotentialCatnip(false) < 3 * game.village.happiness && resPercent('catnip') < 0.6) || game.challenges.isActive('winterIsComing')) {
 						break;
 					} else if (!spaceManufacturing) {
 						count = Math.floor(count * 0.4);
@@ -4500,7 +4503,7 @@ window.run = function() {
 				}
 				// falls through
 				case 'academy':
-					if (id === 'academy' && game.bld.getBuildingExt(id).meta.val > 40 && resPercent('science') < 1 && !orbitalGeodesy) {
+					if (id === 'academy' && resMap['paragon'].value && game.bld.getBuildingExt(id).meta.val > 20 + 20 * vitruvianFeline && resPercent('science') < 1 && !orbitalGeodesy) {
 						halfCount = true;
 					}
 				// falls through
@@ -6466,7 +6469,7 @@ window.run = function() {
 				}
 			});
 		});
-		kittenStorage.items['toggle-leaderJob-farmer'] = true;
+		kittenStorage.items['toggle-leaderJob-woodcutter'] = true;
 		kittenStorage.items['toggle-leaderTrait-manager'] = true;
 
 		if (!game.ironWill) {
