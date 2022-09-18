@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.70';
+	const version = '15.71';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -281,6 +281,7 @@ window.run = function() {
 			'summary.auto.ksHelp4': '小喵选项 => 恢复初始默认配置，可以恢复到初始推荐的配置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
+			'summary.auto.leaderGold': '猫猫领袖在偷你的钱',
 			'summary.auto.leaderPriest': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
 			'summary.auto.logHouse': '为了喵喵的幸福，需要更多上演[所有的狗去天堂]的剧场',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
@@ -1470,6 +1471,7 @@ window.run = function() {
 							}
 						} else if (!goldStock && rank > 0) {
 							options.auto.cache.stocks['gold'] = 25 * rank + 25;
+							msgSummary('leaderGold');
 						}
 					}
 				} else {
@@ -1624,7 +1626,7 @@ window.run = function() {
 				if (name === 'woodcutter') {
 					if (game.getEffect('rankLeaderBonusConversion')) {
 						let leader = village.leader;
-						if (leader && leader.job === 'woodcutter' && revolution < 0.4 && leader.rank > 3) {
+						if (leader && leader.job === 'woodcutter' && revolution < 0.4 && leader.rank > 2) {
 							maxKS = Math.min(18, maxKS);
 						}
 					}
@@ -1666,7 +1668,7 @@ window.run = function() {
 					if (resPercent('science') > moreScholar && val || !woodcutter || (woodcutter < 2 && !resMap['paragon'].value)) {
 						maxKS = 0;
 					} else if (moreScholar > 0.29) {
-						maxKS = Math.max(maxKS, 24 - 11 * (moreScholar < 0.5));
+						maxKS = Math.max(maxKS, 24 - 14 * (moreScholar < 0.5) - 1 * (revolution < 0.4));
 						if (val > 8 && val < maxKS) {msgSummary('scholar');}
 					}
 				}
@@ -2396,7 +2398,8 @@ window.run = function() {
 					if (game.bld.getBuildingExt('factory').meta.val < 3) {
 						noop = noop.concat(['factoryLogistics', 'refrigeration']);
 						if (resPercent('oil') > 0.7) {
-							noop = noop.concat(['oilDistillation', 'pumpjack','oilRefinery']);
+							if (game.getResourcePerTick('oil', true) > 0.5 || !geodesy) {noop.push('pumpjack');}
+							noop = noop.concat(['oilDistillation','oilRefinery']);
 						}
 					}
 					// 微型亚空间
@@ -2721,7 +2724,8 @@ window.run = function() {
 				let items = JSON.parse(JSON.stringify(options.auto.build.items));
 
 				let scienceMap = resMap['science'];
-				let scienceTrigger = scienceMap.value / scienceMap.maxValue;
+				let scienceMax = scienceMap.maxValue;
+				let scienceTrigger = scienceMap.value / scienceMax;
 				let scienceBuild = (name, max, trigger) => {
 					let bld = items[name];
 					let bldMax = bld.max;
@@ -2821,13 +2825,27 @@ window.run = function() {
 
 				// 解锁磁电机才会造蒸汽工房
 				let steamW = items['steamworks'];
-				if (!game.challenges.isActive("pacifism") && !game.bld.getBuildingExt('magneto').meta.on && !game.ironWill) {
-					if (game.bld.getBuildingExt('steamworks').meta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
-						msgSummary('steamworks');
-						steamW.enabled = false;
+				let magnetoMeta = game.bld.getBuildingExt('magneto').meta;
+				// 铸币厂
+				if (!game.challenges.isActive("pacifism")) {
+					let mint = items['mint'];
+					let manpower = resMap['manpower'].maxValue;
+					let mintV = game.bld.getBuildingExt('mint').meta.val;
+					if (manpower <= 2e4 && !game.workshop.get("unobtainiumDrill").researched) {
+						mint.enabled = false;
+					} else if (!mintV || !sattelite) {
+						mint.max = 2;
+					} else if (!orbitalGeodesy) {
+						mint.enabled = false;
 					}
-				} else {
-					msgSummary('steamworks', true);
+					if (!magnetoMeta.on && !game.ironWill) {
+						if (game.bld.getBuildingExt('steamworks').meta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
+							msgSummary('steamworks');
+							steamW.enabled = false;
+						}
+					} else {
+						msgSummary('steamworks', true);
+					}
 				}
 				// 无节日不造酿酒厂
 				let Brewery = items['brewery'];
@@ -2933,7 +2951,7 @@ window.run = function() {
 					let uranium = resMap['uranium'].value > 250;
 					let oil = resMap['oil'].value > 35e3;
 					let amt = 21 + 10 * uranium + 5 * oil;
-					if (scienceMap.maxValue < 2e5 || resMap['oil'].maxValue < 5e4) {
+					if (scienceMax < 2e5 || resMap['oil'].maxValue < 5e4) {
 						amt = Math.min(10 + Production * 3 + 2 * Math.sqrt(revolutionRatio), amt);
 					}
 					calciner.max = (calcinerMax === -1) ? amt : Math.min(amt, calcinerMax);
@@ -2942,9 +2960,10 @@ window.run = function() {
 					items['warehouse'].max = 54 - 200 * priceRatio + 50 * vitruvianFeline;
 				}
 
-				let oilTick = game.getResourcePerTick('oil', true);
+				let calcinerMeta = game.bld.getBuildingExt('calciner').meta;
+				let oilTick = resMap['oil'].perTickCached - 0.24 * calcinerMeta.val - 0.05 * magnetoMeta.val;
 				if (oilTick < 0.5) {
-					calciner.max = 1 + geodesy;
+					calciner.max = 1 + geodesy + 1 * (Production > 1);
 					if (oilTick < 0.1) {items['magneto'].max = 0;}
 				}
 
@@ -2971,7 +2990,7 @@ window.run = function() {
 				let biolab = items['biolab'];
 				if (!geodesy && !orbitalGeodesy) {
 					if (!game.ironWill && mansion.max) {
-						mansion.max = 5 * (1 + revolutionRatio) * (1 + Production);
+						mansion.max = Math.max(16, 5 * (1 + revolutionRatio) * (1 + Production));
 						items['quarry'].max = 5 * (1 + revolutionRatio) * (1 + Production);
 						if (calciner.max === 25) {mansion.max = 0;}
 					}
@@ -2990,7 +3009,7 @@ window.run = function() {
 						msgSummary('smelter', true);
 						if (revolutionRatio > 0.1) {msgSummary('pasture', true);}
 					} else if (resPercent('titanium') < 0.8) {
-						biolab.max = Math.max(20 - revolutionRatio - Production, 0);
+						biolab.max = Math.max(20 - revolutionRatio - Production - 5 * (scienceMax > 25e4) - 5 * (!vitruvianFeline), 0);
 						if (!geodesy) {
 							mansion.max = Math.max(Math.floor(17 * (Production + 1)), 135 - game.village.maxKittens);
 						}
@@ -3024,20 +3043,6 @@ window.run = function() {
 					items['ziggurat'].max = 1;
 				}
 
-				// 铸币厂
-				if (!game.challenges.isActive("pacifism")) {
-					let mint = items['mint'];
-					let manpower = resMap['manpower'].maxValue;
-					let mintV = game.bld.getBuildingExt('mint').meta.val;
-					if (manpower <= 2e4 && !game.workshop.get("unobtainiumDrill").researched) {
-						mint.enabled = false;
-					} else if (!mintV || !sattelite) {
-						mint.max = 2;
-					} else if (!orbitalGeodesy) {
-						mint.enabled = false;
-					}
-				}
-
 				// 挑战等3个传送仪一起造
 				if (priceRatio && resMap['unobtainium'].value < 8794 && game.calendar.futureSeasonTemporalParadox < 0 && !game.getEffect('resStasisRatio')) {
 					items['chronosphere'].enabled = false;
@@ -3052,7 +3057,6 @@ window.run = function() {
 				}
 
 				// 黑暗天空造煅烧炉
-				let calcinerMeta = game.bld.getBuildingExt('calciner').meta;
 				if (blackSky && options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerMeta.val) {
 					buildManager.built("calciner", undefined, 1);
 				}
@@ -4684,7 +4688,7 @@ window.run = function() {
 				let catnipTick = this.crafts.getPotentialCatnip(false);
 				let anarchy = game.challenges.isActive("anarchy");
 				let happy = game.village.happiness;
-				let noFarmer = Catnip.value < 5e3 + happy * 100 && Catnip.perTickCached < 1.7 * happy * (1 + 2 * anarchy) && (!game.science.get('agriculture').researched || anarchy)
+				let noFarmer = Catnip.value < 5e3 + happy * 100 && Catnip.perTickCached < 1.7 * happy * (1 + 2 * anarchy) && (!game.science.get('agriculture').researched || anarchy);
 				let forceCat = catnipTick < 1 && Catnip.value + catnipTick * 1000 * (resPercent('catnip') < 0.1) - 1000;
 				if ((noFarmer || forceCat) && !geodesy) {
 					count = 0;
@@ -5428,19 +5432,20 @@ window.run = function() {
 		},
 		getAutoStocks: function () {
 			let workshop = game.workshop;
-			let cache = options.auto.cache;
+			let auto = options.auto;
+			let cache = auto.cache;
 			cache.stocks = {};
 			if (workshop.get('spaceManufacturing').researched) {return;}
 			let orbGeodesy = workshop.get('orbitalGeodesy').researched;
 			let leader = game.village.leader;
 			let iw = game.ironWill;
 			let kittens = game.village.sim.kittens.length;
-			let cacheAlloy = options.auto.cache.resUpg['alloy'];
+			let cacheAlloy = cache.resUpg['alloy'];
 			let msgForStock = (price, name, res) => {
 				cache.stocks[res] += price;
 				msgSummary(name);
 			};
-			['wood','minerals','iron', 'alloy', 'steel', 'titanium', 'gear', 'beam', 'blueprint'].forEach((name) => {
+			['wood','minerals','iron', 'alloy', 'titanium', 'steel', 'gear', 'beam', 'blueprint'].forEach((name) => {
 				cache.stocks[name] = 0;
 				let stock = 0;
 				switch (name) {
@@ -5491,7 +5496,7 @@ window.run = function() {
 						let steelAxe = this.getUnResearched('steelAxe') && resMap['coal'].value > 3000;
 						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 30 || val > 10)) {msgForStock(75, 'steelAxe', name);}
 						// 精钢锯
-						let steelSaw = this.getUnResearched('steelSaw') && val > 250 && !resMap['titanium'].value && !blackSky;
+						let steelSaw = this.getUnResearched('steelSaw') && val > 250 && !cache.stocks['titanium'] && !blackSky;
 						if (steelSaw) {msgForStock(750, 'steelSaw', name);}
 						// 氧化反应
 						if (options.auto.craft.oxidation && this.getUnResearched('oxidation')) {stock += 5000;}
@@ -5500,7 +5505,9 @@ window.run = function() {
 							stock += 1100;
 						}
 
-						let cacheSteel = options.auto.cache.resUpg['steel'];
+						let upg = auto.upgrade.items.upgrades;
+						if (upg.cache === 'concreteHuts') {stock += 750;}
+						let cacheSteel = cache.resUpg['steel'];
 						if (cacheSteel) {stock += cacheSteel;}
 						if (cacheAlloy) {stock +=  Math.max(0, cacheAlloy - resMap['alloy'].value) * 75 / (1 + game.getEffect("craftRatio"));}
 						break;
@@ -5514,10 +5521,19 @@ window.run = function() {
 						let cal = Revolution < 2.5 && (Val > 2 || resMap['titanium'].value > 100) && leader;
 						let anarchy = game.challenges.isActive("anarchy") && Revolution < 6;
 						let geodesy = this.getUnResearched('geodesy');
-						if (geodesy && resMap['starchart'].value > 450 && (cal || anarchy)) {stock += 250;}
+						if (geodesy && resMap['starchart'].value > 420 && (cal || anarchy)) {stock += 250;}
+						let geodesyResearched = game.workshop.get('geodesy').researched;
+						//采矿钻
+						if (geodesyResearched) {
+							let miningDrill = this.getUnResearched('miningDrill');
+							if (miningDrill && resMap['titanium'].value > 675) {
+								let upg = options.auto.upgrade.items.upgrades;
+								if (!upg.cache) {upg.cache = 'concreteHuts';}
+							}
+						}
 						// 混凝土小屋
 						if (this.getUnResearched('concreteHuts') && !iw && resMap['concrate'].value > 45 && resMap['science'].maxValue > 12e4 && resMap['uranium'].value < 250) {
-							if ((game.workshop.get('geodesy').researched && resMap['titanium'].value > 750) || (geodesy && resMap['titanium'].value > 1e3)) {
+							if ((geodesyResearched && resMap['titanium'].value > 750) || (geodesy && resMap['titanium'].value > 1e3)) {
 								stock += 3e3;
 								let upg = options.auto.upgrade.items.upgrades;
 								if (!upg.cache) {upg.cache = 'concreteHuts';}
@@ -5569,9 +5585,10 @@ window.run = function() {
 				let resPerTick = this.getPotentialCatnip(false);
 				let catnipTick = (game.calendar.season !== 0 || this.getResource(name).maxValue * trigger < value || game.getResourcePerTick("catnip", true) < 0);
 				if (resPerTick < 0 && catnipTick) {
-					// let calendar = game.calendar;
-					// let a = (3 - calendar.season + 100 - calendar.day) * 1000 * game.calcResourcePerTick('catnip');
+					let calendar = game.calendar;
+					let now = game.calcResourcePerTick('catnip');
 					stock -= resPerTick * 1500;
+					if (now > 0) {stock = Math.max(0, stock - 10 * game.calcResourcePerTick('catnip') * (!calendar.season) * (100 - calendar.day));}
 					// 4000秒
 					if (options.auto.options.catnipMsg + 40e5 < Date.now() || !activitySummary.other['auto.craftCatnip']) {
 						if (game.stats.getStat("totalResets").val < 5) {activity(i18n('msg.catnip'));}
@@ -6853,7 +6870,7 @@ window.run = function() {
 					game[tab].render();
 				}
 			});
-			(() => {
+			let iOpt = () => {
 				let buildOption, spaceOption, build, buildItem;
 				// Grab button labels for religion options
 				let religionM = new ReligionManager();
@@ -6902,7 +6919,9 @@ window.run = function() {
 						items[spaceOption].label = title;
 					}
 				}
-			})();
+			};
+			iOpt();
+			iOpt = null;
 		}
 
 		let getAvailableResourceOptions = function (forReset) {
