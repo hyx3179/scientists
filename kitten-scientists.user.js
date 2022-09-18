@@ -1494,14 +1494,15 @@ window.run = function() {
 			// 缺少猫薄荷
 			let resKitten = resMap["kittens"];
 			let resCatnip = resMap["catnip"];
+			let catnipVal = resCatnip.value;
 			let happiness = village.happiness;
 			let currentKitten = resKitten.value;
 			let catnipTick = this.craftManager.getPotentialCatnip(false);
 			let negative = (1000 + 3000 * (resPercent('catnip') < 0.2)) * (catnipTick - 0.85 * (happiness * !anarchy - 1));
-			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 4) || resMap["catnip"].value + negative < 0;
+			let winterCatnip = (catnipTick <= 0.85 * happiness && currentKitten < 4) || catnipVal + negative < 0;
 			let normalWinterCatnip = (winterCatnip || (village.jobs[1].value === 0 && distributeItem['farmer'].enabled));
 			let religionCatnip = options.auto.distribute;
-			let farmerCatnip = religionCatnip.religion || (normalWinterCatnip && resCatnip.value <= resCatnip.maxValue);
+			let farmerCatnip = religionCatnip.religion || (normalWinterCatnip && catnipVal <= resCatnip.maxValue);
 			// 分配领袖
 			if (leaderMeta.enabled && game.science.get('civil').researched && !anarchy && !options.copyTrait) {
 				let traitName = leaderMeta.leaderTrait;
@@ -1551,12 +1552,14 @@ window.run = function() {
 				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && kittenLength) {sim.removeJob('woodcutter');}
 
 				if (farmerCatnip && catnipTick < 0 && game.science.get("agriculture").researched) {
-					for (let i = kittenLength - 1; i > 0; i--) {
-						let kitten = Kittens[i];
-						if (kitten.isLeader || kitten.job === 'farmer') {continue;}
-						village.unassignJob(kitten);
-						freeKittens = village.getFreeKittens();
-						break;
+					if (catnipVal + (100 + 100 * (resPercent('catnip') < 0.2)) * (catnipTick - 0.85 * (happiness * !anarchy - 1))) {
+						for (let i = kittenLength - 1; i > 0; i--) {
+							let kitten = Kittens[i];
+							if (kitten.isLeader || kitten.job === 'farmer') {continue;}
+							village.unassignJob(kitten);
+							freeKittens = village.getFreeKittens();
+							break;
+						}
 					}
 				} else {
 					return refreshRequired;
@@ -3008,11 +3011,14 @@ window.run = function() {
 						msgSummary('scienceBld', true);
 						msgSummary('smelter', true);
 						if (revolutionRatio > 0.1) {msgSummary('pasture', true);}
-					} else if (resPercent('titanium') < 0.8) {
-						biolab.max = Math.max(20 - revolutionRatio - Production - 5 * (scienceMax > 25e4) - 5 * (!vitruvianFeline), 0);
-						if (!geodesy) {
-							mansion.max = Math.max(Math.floor(17 * (Production + 1)), 135 - game.village.maxKittens);
+					} else {
+						if (resPercent('titanium') < 0.8) {
+							biolab.max = Math.max(20 - revolutionRatio - Production - 5 * (scienceMax > 25e4) - 5 * (!vitruvianFeline), 0);
+							if (!geodesy) {
+								mansion.max = Math.max(Math.floor(17 * (Production + 1)), 135 - game.village.maxKittens);
+							}
 						}
+						items['ziggurat'].max = 10 + 15 * (game.workshop.get('unobtainiumDrill').researched) + 10 * vitruvianFeline + revolutionRatio;
 					}
 				}
 
