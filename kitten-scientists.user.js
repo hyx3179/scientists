@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.75';
+	const version = '15.76';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -249,7 +249,7 @@ window.run = function() {
 			'ui.close': '关闭',
 
 			'auto.countdown': '{0} 秒后将会自动启用珂学家',
-			'auto.tip': '你可以通过取消 "首次自启珂学家" 以取消此次自动开启',
+			'auto.tip': '你可以通过取消 "首次自动启用珂学家" 以取消此次自动开启',
 
 			'option.fix.cry': '修复冷冻仓',
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
@@ -769,7 +769,7 @@ window.run = function() {
 					donate:             {enabled: false,                   misc: true, label: '显示捐赠原作者图标'},
 					useWorkers:         {enabled: false,                   misc: true, label: i18n('option.useWorkers')},
 					wiki:               {enabled: false,                   misc: true, label: '珂学家使用说明书（百科链接🐱）'},
-					autoScientists:     {enabled: false,                   misc: true, label: '首次自启珂学家'},
+					autoScientists:     {enabled: false,                   misc: true, label: '首次自动启用珂学家'},
 				}
 			},
 			distribute: {
@@ -1648,12 +1648,12 @@ window.run = function() {
 				}
 				if (name === 'geologist') {
 					let geodesy = game.workshop.get("geodesy").researched;
-					if (tt > 7 && !anarchy) {maxKS = Math.min(maxKS, 30);}
+					if (tt > 8 && !anarchy) {maxKS = Math.min(maxKS, 30);}
 					if (!geodesy && resMap['iron'].perTickCached < 50) {
 						maxKS = Math.round(maxKS * 0.5);
 						if (resPercent('coal') > 0.97) {maxKS = 0;}
 					}
-					if (tt < 7 && geodesy) {
+					if (tt < 8 && geodesy) {
 						maxKS = Math.max(50, maxKS);
 						if (val >= 40 && val < 50) {
 							let msg = msgSummary('geologist');
@@ -1669,7 +1669,7 @@ window.run = function() {
 				}
 				if (name === 'scholar') {
 					let moreScholar = 0.29;
-					if (val > 2 && !resMap['coal'].value) {maxKS *= 0.6;}
+					if (!resMap['coal'].value && val > 2) {maxKS *= 0.5;}
 					if (!atheism && !resMap['faith'].value && resMap['science'].value > 2e4) {maxKS = 0;}
 					if (game.workshop.get('rotaryKiln').researched) {
 						moreScholar = 0.45;
@@ -2070,7 +2070,7 @@ window.run = function() {
 			let solarRevolution = religion.getRU('solarRevolution').on;
 
 			// 彩色玻璃
-			let glass = stainedGlassOn || resMap['gold'].value < 200 || game.getEffect('culturePerTickBase') < 0.9;
+			let glass = stainedGlassOn || resMap['gold'].value < 190 || game.getEffect('culturePerTickBase') < 0.9;
 			// 大教堂
 			let basilica = religion.getRU("basilica").on || resMap['gold'].value < 675 || resourceFaith.perTickCached < 2.8
 				|| game.getEffect('culturePerTickBase') < 2.7;
@@ -2090,7 +2090,8 @@ window.run = function() {
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep || fPraise) {
 				let msgPraise = praiseLess && !forceStep && rate < 0.98 && !timeSkipAdore;
-				if (msgPraise && (Date.now() > option.autoPraise.time + 4e5 || !activitySummary.other['praise.msg']) && solarRatio) {
+				let times = (tt < 5) ? 2e5 : 4e5;
+				if (msgPraise && (Date.now() > option.autoPraise.time + times || !activitySummary.other['praise.msg']) && solarRatio) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
 					activity(i18n('summary.praise.msg', [expectSolar]));
@@ -2307,7 +2308,7 @@ window.run = function() {
 								if (!nanotechnology && titanium < 10e3) {continue;}
 								break;
 							case 'drama': {
-								if (craftManager.getTickVal(parchment, true) < 3 && parchment.value < 15e3 && !resMap['eludium'].value) {
+								if (resMap['manpower'].perTickCached < 14 && parchment.value < 15e3 && !resMap['eludium'].value) {
 									if (parchment.value > 5000) {msgSummary('drama');}
 									continue;
 								}
@@ -2697,7 +2698,7 @@ window.run = function() {
 						let ratio = resMap['compedium'].value * 3 > scienceBldMax / (1 + game.bld.getBuildingExt('biolab').meta.val * 0.01)
 							&& game.bld.getEffect('scienceMax') > 3e4 * (1 + Production) * (1 + revolutionRatio);
 						ratio |= craftManager.getTickVal(resMap['concrate']) > 600 * paragon;
-						if (ratio && items.dataCenter.enabled && resMap['eludium'].value) {
+						if (ratio && items.dataCenter.enabled && resMap['eludium'].value > 20) {
 							if (winterProd >= game.resPool.energyCons + 150 && !energyActive && resPercent('science') > 0.8) {
 								return upgradeBuilding('library', libraryMeta);
 							}
@@ -2802,7 +2803,7 @@ window.run = function() {
 
 				} else {
 					let pastureMeta = game.bld.getBuildingExt('pasture').meta;
-					if (pastureMeta.val > 10 ) {
+					if (pastureMeta.val > 10) {
 						pasture.max = 6 + game.bld.getBuildingExt('library').meta.val;
 					}
 					let hutVal = game.bld.getBuildingExt('hut').meta.val - 2;
@@ -2810,8 +2811,8 @@ window.run = function() {
 					library.max = (hutVal > 0) ? Math.floor(hutVal * 11) : library.max;
 					if (machinery && resPercent('wood') < 0.9 && !game.ironWill) {library.max = 45;}
 					if (Production && winterTick > 4 && hutVal < 4 && hutVal > 1) {
-						if (Religion.transcendenceTier > 10 && !machinery) {
-							if (winterTick > 5) {pasture.max = 0;}
+						if (Religion.transcendenceTier > 9 && !machinery) {
+							if (winterTick > 5 && game.village.jobs[0].value > 1) {pasture.max = 0;}
 							items['barn'].max = 0;
 						}
 						if (!science.get('construction').researched) {
@@ -2821,10 +2822,14 @@ window.run = function() {
 								pasture.max = 13;
 							}
 							if (hutVal === 3) {
-								library.max = 30 - 2 *Production;
+								library.max = 30 - 2 * Production;
 								items['academy'].max = 5;
+								if (!game.bld.getBuildingExt('logHouse').meta.val && vitruvianFeline && !game.ironWill) {
+									items['mine'].max = 10;
+								}
 							}
 						}
+						if (resMap['parchment'].value > 3 && !resMap['culture'].value) {items['workshop'].max = 0;}
 					}
 				}
 
@@ -2883,7 +2888,7 @@ window.run = function() {
 
 				// 神殿
 				let temple = items['temple'];
-				if (hasLeader &&!game.getEffect('unobtainiumPerTickSpace') && resMap['faith'].maxValue < 8000) {
+				if (hasLeader && !game.getEffect('unobtainiumPerTickSpace') && resMap['faith'].maxValue < 8000) {
 					temple.max = Math.max(21 + 10 * orbitalGeodesy, 10 * (1 + revolutionRatio));
 				}
 				// 无、低太阳革命
@@ -2930,7 +2935,7 @@ window.run = function() {
 						|| !Religion.getRU("sunAltar").on
 						|| (revolutionRatio > 3 && !sattelite && game.getEffect('faithRatioReligion') < 0.2);
 					if (religionRU && revolutionRatio) {
-						temple.max = 24 - 3 * Production - 2 * (revolutionRatio > 3) - 3 * hasLeader;
+						temple.max = 25 - 3 * Production - 2 * (revolutionRatio > 3) - 4 * hasLeader;
 						let val = 17 + 2 * templeVal - 5 * Production - 3 * Math.sqrt(revolutionRatio) - 2 * hasLeader;
 						if (!game.ironWill) {val = Math.max(val, 12);}
 						tradepost.max = val;
@@ -2946,7 +2951,7 @@ window.run = function() {
 					if (options.auto.faith.items.solarRevolution.enabled && resMap['faith'].maxValue > 750 && resMap['gold'].maxValue > 530) {
 						if (science.get('philosophy').researched) {
 							msgSummary('temple');
-							temple.max = Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio())) + 2 * !hasLeader;
+							temple.max = Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio()));
 							if (resMap['gold'].value > 530) {
 								temple.max = templeVal + 1;
 							}
@@ -3035,6 +3040,7 @@ window.run = function() {
 					if (titaniumMore && !mansion.max && resPercent('titanium') === 1) {
 						mansion.max = 45;
 					}
+					if (revolutionRatio > 0.1) {msgSummary('pasture', true);}
 					if (spaceManufacturing) {
 						msgSummary('biolab', true);
 						msgSummary('mansion', true);
@@ -3049,6 +3055,7 @@ window.run = function() {
 							}
 						}
 						items['ziggurat'].max = 10 + 15 * (game.workshop.get('unobtainiumDrill').researched) + 10 * vitruvianFeline + revolutionRatio;
+						if (revolutionRatio && game.getEffect('faithRatioReligion') < 0.2) {tradepost.max = 58;}
 					}
 				}
 
@@ -4517,13 +4524,6 @@ window.run = function() {
 			let moonM = game.space.getProgram('moonMission');
 			let revolution = Religion.getSolarRevolutionRatio();
 			switch (id) {
-				// case 'mine':
-				// 	if (id === 'mine' && vitruvianFeline && !game.bld.getBuildingExt('logHouse').meta.val && game.bld.getBuildingExt(id).meta.val > 0) {
-				// 		if (!game.ironWill) {
-				// 			halfCount = true;
-				// 		}
-				// 	}
-				// 	break;
 				case 'pasture':
 					if (geodesy && !orbitalGeodesy) {halfCount = true;}
 					break;
@@ -4555,7 +4555,7 @@ window.run = function() {
 						} else {
 							if (!game.calendar.festivalDays) {count = 0;}
 							if (!orbitalGeodesy) {
-								count *= 0.34;
+								count *= 0.4 - 0.06 * geodesy;
 								halfCount = true;
 							}
 						}
@@ -4617,22 +4617,22 @@ window.run = function() {
 				// falls through
 				case 'oilWell':
 					if (id === 'oilWell') {
-						let meta = game.bld.getBuildingExt(id).meta.val;
+						let val = game.bld.getBuildingExt(id).meta.val;
 						let oil = resMap['oil'];
-						let Val = oil.value;
+						let value = oil.value;
 						let maxVal = oil.maxValue;
-						if (meta < 9 || oil.maxValue < 2e4) {break;}
+						if (val < 9 || oil.maxValue < 2e4) {break;}
 						if (!spaceManufacturing) {
 							let cal = game.getEffect("calcinerRatio");
 							if (cal > 1) {
-								if ((!orbitalGeodesy && Val < 3e4) || (cal > 2 && maxVal < 5e4)) {return count;}
+								if ((!orbitalGeodesy && value < 3e4) || (cal > 2 && maxVal < 5e4)) {return count;}
 							}
-							if (meta < 199) {
-								if (maxVal > 90e3) {
-									count = Math.floor(count * 0.5);
-								} else if (maxVal > 20e3 && cal < 2) {
-									halfCount = true;
-								}
+						}
+						if (val < 199) {
+							if (maxVal > 90e3) {
+								count = Math.floor(count * 0.5);
+							} else if (maxVal > 20e3 && game.getEffect("calcinerRatio") < 2) {
+								halfCount = true;
 							}
 						}
 					}
@@ -4667,7 +4667,7 @@ window.run = function() {
 					break;
 				case 'logHouse':{
 					let am = game.bld.getBuildingExt('amphitheatre').meta;
-					if (am.val < 5 && !am.stage && am.unlocked && game.village.happiness < 3 && game.village.maxKittens > 26) {
+					if (am.val < 5 && !am.stage && am.unlocked && game.village.happiness < 3 && game.village.maxKittens > 25) {
 						msgSummary('logHouse');
 						return 0;
 					}
@@ -4692,7 +4692,7 @@ window.run = function() {
 					} else {
 						if (!TitaniumCap) {
 							if (faVal) {
-								if (geodesy && Workshop.get("nuclearSmelters").researched && faVal < 12) {return count;}
+								if (geodesy && Workshop.get("nuclearSmelters").researched && faVal < 12 && !vitruvianFeline) {return count;}
 								count = Math.floor((0.4 + 0.3 * !vitruvianFeline) * count);
 								halfCount = true;
 								msgSummary('factory');
@@ -4966,7 +4966,7 @@ window.run = function() {
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6;
 				if (!oxi) {force = false;}
 				if (force) {
-					if (game.bld.getBuildingExt('calciner').meta.val > 1) {forceShipVal *= 0.9;}
+					if (game.bld.getBuildingExt('calciner').meta.val > 2) {forceShipVal *= 0.9;}
 					if (geodesy && (resMap['science'].maxValue > 119e3 || shipValue < 200)) {
 						forceShipVal = 243;
 						if (Religion.faith > 1e5 && resMap['science'].maxValue > 11e4) {
@@ -5052,7 +5052,7 @@ window.run = function() {
 				}
 				//  || (resPercent('iron') > 0.89 && resMap['titanium'].maxValue < 3500 * reactRatio)
 				if (react) {
-					autoMax = Math.min((5000 * reactRatio - resValue) / ratio, resMap['iron'].value / 125);
+					autoMax = Math.min(Math.ceil((5000 * reactRatio - resValue) / ratio), resMap['iron'].value / 125);
 					force = true;
 				}
 				if (resValue < 150) {
@@ -5215,7 +5215,7 @@ window.run = function() {
 			}
 			// 羊皮纸
 			if (name === 'parchment') {
-				limited = ratio < 2.1;
+				limited = ratio < 2.2 - game.getEffect("priceRatio") + 0.2 * renaissance;
 				if (ratio > 3 && resMap['furs'].value < 200) {return;}
 				if (resMap['minerals'].value > 500 * ratio) {
 					if ((value < 6.1 && ratio > 1.5) || (value < 10 && ratio > 2)) {
@@ -5224,7 +5224,7 @@ window.run = function() {
 					}
 				}
 				if (!navigation) {
-					if (resValue > 200) {
+					if (resValue > 120) {
 						limited = true;
 						if (resValue > 400) {autoMax = 1;}
 						if (resValue > 500) {autoMax = 0;}
@@ -5264,8 +5264,9 @@ window.run = function() {
 							amount = 0;
 						}
 					}
-					if (!game.getEffect('warehouseRatio') && value < 50 && resMap['iron'].value > 700 && resMap['science'].maxValue > 3e4) {
+					if (!game.getEffect('warehouseRatio') && value < 50 && resMap['plate'].value > 50 && resMap['science'].maxValue > 3e4) {
 						force = true;
+						amount = 1;
 					}
 				}
 				let cacheUpg = options.auto.upgrade.items.upgrades;
@@ -5316,12 +5317,12 @@ window.run = function() {
 					let titanium = resMap['titanium'].value;
 					// 氧化反应
 					if (oxid) {
-						let Amt = Math.ceil((5000 - resValue) / ratio);
+						let Amt = Math.ceil((5000 - resValue) / ratio - 1);
 						// 15分钟 5 * 60 * 15
 						let coalR = (Amt * 100 - resMap['coal'].value) / resMap['coal'].perTickCached;
 						let ironR = (Amt * 100 - resMap['iron'].value) / resMap['iron'].perTickCached;
 						let startGame = resMap['science'].value > 2e4 || resMap['starchart'].value < 1e4;
-						let T = 6000 - 1500 * !geodesy + 1000 * (calVal > 4);
+						let T = 6000 - 1500 * !geodesy + 200 * (calVal > 2) + 300 * (calVal > 3) + + 500 * (calVal > 4);
 						if (coalR < T && ironR < T && startGame) {
 							Craft.oxidation = true;
 							msgSummary('oxidation');
@@ -5344,7 +5345,7 @@ window.run = function() {
 					if (flu && !cacheUpg.cache) {
 						let amt = Math.ceil((200 - alloyVal) / ratio);
 						// 2分钟 5 * 60 * 2
-						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 600 || calVal > 14;
+						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 600 || calVal > 13;
 						if (amt > 0 && calVal > 6 && b) {
 							options.auto.cache.resUpg['alloy'] = 200;
 							cacheUpg.cache = 'fluidizedReactors';
@@ -5596,7 +5597,7 @@ window.run = function() {
 						if (upg.cache === 'miningDrill' && Titanium.value > 1750) {stock += 750;}
 						let cacheSteel = cache.resUpg['steel'];
 						if (cacheSteel) {stock += cacheSteel;}
-						if (cacheAlloy) {stock +=  Math.max(0, cacheAlloy - resMap['alloy'].value) * 75 / (1 + game.getEffect("craftRatio"));}
+						if (cacheAlloy) {stock += Math.max(0, cacheAlloy - resMap['alloy'].value) * 75 / (1 + game.getEffect("craftRatio"));}
 						break;
 					}
 					case 'titanium': {
@@ -5605,10 +5606,10 @@ window.run = function() {
 						if (this.getUnResearched('rotaryKiln') && ((Val > 20 && workshop.get('geodesy').researched) || orbGeodesy)) {msgForStock(5000, 'rotaryKiln', name);}
 
 						let Revolution = Religion.getSolarRevolutionRatio();
-						let cal = Revolution < 2.5 && (Val > 2 || Titanium.value > 100) && leader;
+						let cal = Revolution < 3 && (Val || Titanium.value > 100) && leader;
 						let anarchy = game.challenges.isActive("anarchy") && Revolution < 6;
 						let geodesy = this.getUnResearched('geodesy');
-						if (geodesy && resMap['starchart'].value > 420 && (cal || anarchy)) {stock += 250;}
+						if (geodesy && resMap['starchart'].value > 400 && (cal || anarchy)) {stock += 250;}
 						let geodesyResearched = game.workshop.get('geodesy').researched;
 						//采矿钻
 						if (geodesyResearched) {
@@ -6259,7 +6260,7 @@ window.run = function() {
 					prof = autumnIron && titaniumTri < 0.3;
 				}
 
-				let glass = resMap['gold'].value > 200 || (doTrade && resMap['faith'].value > 450);
+				let glass = resMap['gold'].value > 200 || (resMap['faith'].value > 40 && Religion.faith > 1e4);
 				if (glass && !Religion.getRU("stainedGlass").on && solar) {return;}
 				if (Religion.getRU("basilica").on) {
 					if (titanium.value < 30 || options.auto.cache.resUpg['alloy'] < 1e3) {
@@ -6277,10 +6278,12 @@ window.run = function() {
 					}
 				}
 				if (Workshop.get("geodesy").researched) {
-					if ((game.getEffect('calcinerRatio') && titanium.value < 5e3) || this.craftManager.getUnResearched("concreteHuts") || Workshop.get("miningDrill").researched || !this.craftManager.getValueAvailable('titanium', true)) {
+					// 待定采矿钻
+					if (game.getEffect('calcinerRatio') < 2.7 || this.craftManager.getUnResearched("concreteHuts")) {
 						doTrade = true;
 					}
 				}
+				if (titanium.value && !this.craftManager.getValueAvailable('titanium', true)) {doTrade = true;}
 				if (!Workshop.get('caravanserai').researched && solar < 4 && output['titanium'] < 1) {return false;}
 				doTrade = (doTrade || (spice && game.calendar.festivalDays));
 			}
