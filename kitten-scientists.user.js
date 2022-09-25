@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '15.76';
+	const version = '15.77';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -294,6 +294,7 @@ window.run = function() {
 			'summary.auto.oxidation': '别急，你先别急，小猫为了氧化反应把钢全存起来了',
 			'summary.auto.parchment': '还未研究地质学，小猫咪用不了那么多毛皮，毛皮存起来了',
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了',
+			'summary.auto.physics': '声学更配猫咪哦',
 			'summary.auto.railgun': '喵喵想用电磁炮了，就多了亿点点猎人',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
@@ -301,7 +302,7 @@ window.run = function() {
 			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血',
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
-			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船',
+			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛',
 			'summary.auto.smelter': '太阳革命前，冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站',
 			'summary.auto.spaceTrigger': '小猫发展飞快，把星图留给探索碧池星',
@@ -431,13 +432,13 @@ window.run = function() {
 			// split form faith to make "Best Unicorn Building" easily
 			unicorn: {
 				items: {
-					unicornPasture:     {require: false,         enabled: true,  variant: 'zp', label: i18n('$buildings.unicornPasture.label'), checkForReset: true, triggerForReset: -1},
-					unicornTomb:        {require: false,         enabled: false, variant: 'z',  label: i18n('$religion.zu.unicornTomb.label'), checkForReset: true, triggerForReset: -1},
-					ivoryTower:         {require: false,         enabled: false, variant: 'z',  label: i18n('$religion.zu.ivoryTower.label'), checkForReset: true, triggerForReset: -1},
-					ivoryCitadel:       {require: false,         enabled: false, variant: 'z',  label: i18n('$religion.zu.ivoryCitadel.label'), checkForReset: true, triggerForReset: -1},
-					skyPalace:          {require: false,         enabled: false, variant: 'z',  label: i18n('$religion.zu.skyPalace.label'), checkForReset: true, triggerForReset: -1},
-					unicornUtopia:      {require: 'gold',        enabled: false, variant: 'z',  label: i18n('$religion.zu.unicornUtopia.label'), checkForReset: true, triggerForReset: -1},
-					sunspire:           {require: 'gold',        enabled: false, variant: 'z',  label: i18n('$religion.zu.sunspire.label'), checkForReset: true, triggerForReset: -1},
+					unicornPasture:     {require: false,         enabled: true, variant: 'zp', label: i18n('$buildings.unicornPasture.label'), checkForReset: true, triggerForReset: -1},
+					unicornTomb:        {require: false,         enabled: true, variant: 'z',  label: i18n('$religion.zu.unicornTomb.label'), checkForReset: true, triggerForReset: -1},
+					ivoryTower:         {require: false,         enabled: true, variant: 'z',  label: i18n('$religion.zu.ivoryTower.label'), checkForReset: true, triggerForReset: -1},
+					ivoryCitadel:       {require: false,         enabled: true, variant: 'z',  label: i18n('$religion.zu.ivoryCitadel.label'), checkForReset: true, triggerForReset: -1},
+					skyPalace:          {require: false,         enabled: true, variant: 'z',  label: i18n('$religion.zu.skyPalace.label'), checkForReset: true, triggerForReset: -1},
+					unicornUtopia:      {require: 'gold',        enabled: true, variant: 'z',  label: i18n('$religion.zu.unicornUtopia.label'), checkForReset: true, triggerForReset: -1},
+					sunspire:           {require: 'gold',        enabled: true, variant: 'z',  label: i18n('$religion.zu.sunspire.label'), checkForReset: true, triggerForReset: -1},
 				}
 			},
 			faith: {
@@ -1807,7 +1808,7 @@ window.run = function() {
 				let blackPyramid = religion.getZU("blackPyramid");
 				let sunspire = religion.getZU('sunspire').on;
 				let renaissance = game.prestige.getPerk('renaissance').researched;
-				let storeUnicorn = !renaissance || !tearHave || zigguratOn > 30;
+				let storeUnicorn = !renaissance || !tearHave || zigguratOn > 27;
 				if (btn && storeUnicorn) {
 					let oneTear = !tearHave && unicorns >= 1000 && zigguratOn && !game.ironWill;
 					let buttonPrices;
@@ -2299,7 +2300,10 @@ window.run = function() {
 								if (titanium < 10e3 || start) {continue;}
 								break;
 							case 'physics':
-								if (acousticsR && (resMap['compedium'].value < 120 || resMap['steel'].value < 100)) {continue;}
+								if (acousticsR && (resMap['compedium'].value < 120 || resMap['steel'].value < 100)) {
+									msgSummary('physics');
+									continue;
+								}
 								break;
 							case 'particlePhysics':
 								if (!nanotechnology && titanium < 2000) {continue;}
