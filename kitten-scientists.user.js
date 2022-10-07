@@ -16,8 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	// const version = 'V15.82';
-	const version = '🚩';
+	const version = 'V15.83';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -285,7 +284,7 @@ window.run = function() {
 			'summary.auto.ksHelp4': '小喵选项 => 恢复初始默认配置，可以恢复到初始推荐的配置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
-			'summary.auto.leaderGold': '猫猫领袖偷点黄金自用',
+			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用',
 			'summary.auto.leaderPriest': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
 			'summary.auto.logHouse': '为了喵喵的幸福，需要更多上演[所有的狗去天堂]的剧场',
 			'summary.auto.lower': '未研究轨道测地学，小猫为了发展更快，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
@@ -1470,7 +1469,7 @@ window.run = function() {
 								let census = game['villageTab'].censusPanel.census;
 								iactivity('act.promote', [rank + 1, 25 + 25 * rank], 'leaderFilter');
 								census.renderGovernment(census.container);
-								census.update();
+								game['villageTab'].censusPanel.census.update();
 								this.leader = leader.rank;
 								this.leaderTimer = 0;
 								this.toolText = 0;
@@ -2043,7 +2042,13 @@ window.run = function() {
 					// 并当赞美群星赞美太阳后恢复的加成过少时会取消赞美群星
 					let lessRatio = Math.min(expectSolarRevolutionRatio - 45 - tt, maxSolarRevolution * 90 + 3 * tt, maxSolarRevolution * 94);
 					let solarAdore = solarRevolutionAfterAdore * 100 <= Math.max(1, lessRatio);
-					if (solarAdore) {booleanForAdore = false;}
+					if (solarAdore) {
+						booleanForAdore = false;
+					} else {
+						if (solarRatio < solarRevolutionAfterAdore + 0.2 && solarRevolutionAfterAdore < 9.6 && solarRevolutionAfterAdore > 4) {
+							booleanForAdore = false;
+						}
+					}
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 100) / 100;
 					let filter = !rrVal || !voidOrder;
 					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar'] && filter && solarAdore) {
@@ -2166,12 +2171,16 @@ window.run = function() {
 			// 神印
 			let marker = Religion.getZU("marker");
 			if (!Religion.getZU("blackPyramid").getEffectiveValue(game)) {
-				if ( marker.unlocked) {
+				if (marker.unlocked) {
 					copyBuilds['marker'].enabled = false;
 					if (game.resPool.hasRes(marker.prices)) {
 						msgSummary('marker');
 
 					}
+				}
+				// 黑金字塔
+				if (Religion.getZU("sunspire").val < 2) {
+					copyBuilds['blackPyramid'].enabled = false;
 				}
 			} else if (!solarMeta.on) {
 				copyBuilds['blackPyramid'].enabled = false;
@@ -2578,10 +2587,13 @@ window.run = function() {
 				let subTrigger = upgrades.missions.subTrigger;
 				let missionsLength = game.space.meta[0].meta.length;
 				let manu = game.workshop.get('spaceManufacturing').researched;
-				if (subTrigger === 4 && (resMap['starchart'].value > Math.min(1e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
+				if (subTrigger === 4) {
+					if (resMap['starchart'].value > 1e5) {subTrigger = 5;}
+					if ((resMap['starchart'].value > Math.min(1e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
 					|| resMap['alicorn'].value)) {
-					subTrigger = 7;
-					if (resMap['relic'].value > 26) {subTrigger = 12;}
+						subTrigger = 7;
+						if (resMap['relic'].value > 26) {subTrigger = 12;}
+					}
 				}
 				let index = 0;
 				let skip = !orbitalGeodesy && !geodesy && !resMap['unobtainium'].value;
@@ -4742,7 +4754,7 @@ window.run = function() {
 					break;
 				case 'biolab':
 					if (spaceManufacturing) {
-						halfCount = true;
+						if (resMap['starchart'].value < 1e6) {halfCount = true;}
 					} else {
 						count = 1;
 					}
