@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.87';
+	const version = 'V15.88';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -79,7 +79,7 @@ window.run = function() {
 			'upgrade.tech': '{1}研究了 {0}',
 			'upgrade.policy': '小猫通过了 {0} 法案',
 
-			'festival.hold': '呜呼，小猫的节日开始了',
+			'festival.hold': '呜呼，小猫开趴了',
 			'festival.extend': '小猫加了一年钟',
 
 			'build.embassy': '在 {1} 设立了 {0} 个大使馆',
@@ -191,7 +191,7 @@ window.run = function() {
 			'distribute.limited': '分配 {0} 的数量不会超过Max',
 			'distribute.leaderJob': '领袖工作为 {0} ',
 			'distribute.leaderTrait': '领袖的特质为 {0} ',
-			'distribute.unlimited': '分配 {0} 的数量允许超过MAX',
+			'distribute.unlimited': '总Max数量分配完后， {0} 的数量允许超过MAX',
 			'distribute.makeLeader': '分配领袖',
 			'act.distribute': '抓住一只空闲猫猫分配为 {0}',
 			'act.distribute.catnip': '担心你的猫猫没有猫薄荷吸并强制分配到农民',
@@ -4644,7 +4644,7 @@ window.run = function() {
 				case 'workshop':
 					if (!orbitalGeodesy && vitruvianFeline) {
 						let am = game.bld.getBuildingExt('amphitheatre').meta;
-						if (resMap['parchment'].value > 3 * Math.pow(am.stages[0].priceRatio + game.getEffect('priceRatio'), am.val) && am.val < 8 + 5 * (priceRatio < -0.08) && resPercent('minerals') < 0.9 && !game.ironWill) {
+						if (!am.stage && resMap['parchment'].value > 3 * Math.pow(am.stages[0].priceRatio + game.getEffect('priceRatio'), am.val) && am.val < 8 + 5 * (priceRatio < -0.08) && resPercent('minerals') < 0.9 && !game.ironWill) {
 							halfCount = true;
 						}
 					}
@@ -4671,7 +4671,7 @@ window.run = function() {
 				case 'mint':
 					if (resPercent('gold') < 0.95 && game.getEffect('manpowerPerTickCon') < -2) {
 						halfCount = true;
-						count *= 0.2 + 0.1 * spaceManufacturing;
+						count *= 0.2 + 0.1 * spaceManufacturing + 0.1 * TitaniumCap;
 					}
 					break;
 				case 'field':
