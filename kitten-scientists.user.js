@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.88';
+	const version = 'V15.89';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -305,7 +305,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛',
-			'summary.auto.smelter': '太阳革命前，冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
+			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站',
 			'summary.auto.spaceStationStar': '小猫咪再等等亿点点时间就会造空间站了，小猫是懂星图的',
 			'summary.auto.spaceTrigger': '小猫发展飞快，把星图留给探索碧池星',
@@ -1693,8 +1693,8 @@ window.run = function() {
 					}
 				}
 				if (name === 'miner') {
-					if (!game.science.get('writing').researched) {maxKS = Math.round(maxKS * 0.3);}
-					if (!game.science.get('civil').researched && resMap['kittens'].value < 11) {maxKS = 1;}
+					if (!game.science.get('writing').researched && val > 1) {maxKS = Math.round(maxKS * 0.3);}
+					if (!game.science.get('civil').researched && resMap['kittens'].value < 10) {maxKS = 1;}
 					if (game.workshop.get('geodesy').researched) {
 						if (val < Math.min(25, maxKS) && !scholar) {
 							maxKS *= 4;
@@ -6409,11 +6409,15 @@ window.run = function() {
 			let titanium = resMap['titanium'];
 			let titaniumVal = titanium.value;
 			if (name === 'griffins') {
-				if (resMap['ship'].value && season !== 2 && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
-				if (titaniumVal < 500 && season === 2 && solar > 1.3 && solar) {prof = false;}
-				if (game.challenges.isActive("blackSky") && titaniumVal < 500 && Religion.getRU("basilica").on && season === 2) {doTrade = true;}
-				// 缺铁贸易狮鹫
-				if (resMap['steel'].value > 5 * resMap['plate'].value && titaniumVal > 500 && season === 2) {doTrade = true;}
+				if (season === 2) {
+					if (resMap['iron'].value < 1200 && resMap['gold'].value > 100 + 60 * game.getEffect('priceRatio') && !game.science.get('theology').researched && game.getEffect('priceRatio') > -0.05 && resPercent('iron') < 0.9) {doTrade = true;}
+					if (titaniumVal < 500 && solar > 1.3 && solar) {prof = false;}
+					if (game.challenges.isActive("blackSky") && titaniumVal < 500 && Religion.getRU("basilica").on ) {doTrade = true;}
+					// 缺铁贸易狮鹫
+					if (resMap['steel'].value > 5 * resMap['plate'].value && titaniumVal > 500) {doTrade = true;}
+				} else {
+					if (resMap['ship'].value && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
+				}
 				doTrade = doTrade || spice && game.calendar.festivalDays;
 			}
 			if (name === 'zebras') {
