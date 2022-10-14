@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.89';
+	const version = 'V15.90';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -3135,7 +3135,7 @@ window.run = function() {
 				}
 
 				// 挑战等3个传送仪一起造
-				if (priceRatio && resMap['unobtainium'].value < 1e4 && game.calendar.futureSeasonTemporalParadox < 0 && !game.getEffect('resStasisRatio')) {
+				if (priceRatio && resMap['unobtainium'].value < 13e3 && game.calendar.futureSeasonTemporalParadox < 0 && !game.getEffect('resStasisRatio')) {
 					items['chronosphere'].enabled = false;
 				}
 				// AI核心
@@ -6412,13 +6412,13 @@ window.run = function() {
 				if (season === 2) {
 					if (resMap['iron'].value < 1200 && resMap['gold'].value > 100 + 60 * game.getEffect('priceRatio') && !game.science.get('theology').researched && game.getEffect('priceRatio') > -0.05 && resPercent('iron') < 0.9) {doTrade = true;}
 					if (titaniumVal < 500 && solar > 1.3 && solar) {prof = false;}
-					if (game.challenges.isActive("blackSky") && titaniumVal < 500 && Religion.getRU("basilica").on ) {doTrade = true;}
+					if (game.challenges.isActive("blackSky") && titaniumVal < 500 && Religion.getRU("basilica").on) {doTrade = true;}
 					// 缺铁贸易狮鹫
 					if (resMap['steel'].value > 5 * resMap['plate'].value && titaniumVal > 500) {doTrade = true;}
 				} else {
 					if (resMap['ship'].value && (resMap['ship'].value > 200 || game.getEffect("productionRatio"))) {prof = false;}
 				}
-				doTrade = doTrade || spice && game.calendar.festivalDays;
+				doTrade = (doTrade || (spice && game.calendar.festivalDays));
 			}
 			if (name === 'zebras') {
 				let calciner = game.bld.getBuildingExt('calciner').meta.val;
