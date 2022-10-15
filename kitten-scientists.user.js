@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.90';
+	const version = 'V15.91';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2459,6 +2459,7 @@ window.run = function() {
 					// 微型亚空间
 					if (!game.workshop.get('mWReactor').researched) {
 						noop = noop.concat(['eludiumReflectors', 'amBases', 'coldFusion', 'amReactors','cryocomputing']);
+						if(Production > 1) {noop.push('lhc');}
 					}
 					// 星链 上行
 					if (game.bld.getBuildingExt('library').meta.stage === 0) {
@@ -2466,7 +2467,7 @@ window.run = function() {
 					}
 					// 加速器
 					if (game.bld.getBuildingExt('accelerator').meta.val < 5) {
-						noop = noop.concat(['darkEnergy', 'stasisChambers', 'voidEnergy', 'tachyonAccelerators', 'lhc', 'assistance']);
+						noop = noop.concat(['darkEnergy', 'stasisChambers', 'voidEnergy', 'tachyonAccelerators', 'lhc']);
 						if (Production > 4) {
 							noop = noop.concat(['stoneBarns', 'reinforcedBarns', 'titaniumBarns', 'alloyBarns', 'concreteBarns', 'titaniumWarehouses', 'alloyWarehouses', 'concreteWarehouses', 'storageBunkers', 'stasisChambers', 'voidEnergy', 'darkEnergy']);
 						}
@@ -2486,7 +2487,7 @@ window.run = function() {
 					}
 					// 太阳能卫星
 					if (game.space.getBuilding('sattelite').val < 6) {
-						noop = noop.concat(['solarSatellites', 'satelliteRadio']);
+						noop = noop.concat(['solarSatellites', 'satelliteRadio', 'assistance']);
 					}
 					// 星图产出
 					if (resStarchart.perTickCached) {
@@ -3259,7 +3260,7 @@ window.run = function() {
 					}
 					// 电梯
 					if (!game.getEffect('lunarOutpostRatio') && unobtainiumTri !== 1) {
-						builds['spaceElevator'].max = 8 + Production;
+						builds['spaceElevator'].max = 8 + Production - 4 * (resMap['unobtainium'].maxValue < 500);
 						if ((!vitruvianFeline && unobtainiumTri < 0.5)
 							|| (!solarRevolution && !game.ironWill && !Workshop.get('astrophysicists').researched)) {
 							builds['spaceElevator'].max = 0;
@@ -4812,7 +4813,7 @@ window.run = function() {
 							halfCount = true;
 						}
 					} else {
-						count = 1;
+						if (priceRatio && resMap['starchart'].value < 1e6) {halfCount = true;}
 					}
 					break;
 				case 'factory': {
@@ -5090,10 +5091,11 @@ window.run = function() {
 				force = value < 100 || resMap['science'].maxValue > 95e3 || Science.get('archeology').researched;
 				let solar = Religion.getSolarRevolutionRatio();
 				let tt = Religion.transcendenceTier;
-				let forceShipVal = 30 / Math.max(0.17, Math.log1p(solar)) + 2 * solar;
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6 || !value;
 				if (!oxi) {force = false;}
 				if (force) {
+					let forceShipVal = 30 / Math.max(0.17, Math.log1p(solar)) + 2 * solar;
+					if (solar < 0.15) {forceShipVal = Math.min(16 / Math.log1p(solar), 176);}
 					// if (game.bld.getBuildingExt('calciner').meta.val > 2) {forceShipVal *= 0.9;}
 					if (geodesy && (resMap['science'].maxValue > 119e3 || value < 200)) {
 						forceShipVal = 243;
@@ -6410,7 +6412,7 @@ window.run = function() {
 			let titaniumVal = titanium.value;
 			if (name === 'griffins') {
 				if (season === 2) {
-					if (resMap['iron'].value < 1200 && resMap['gold'].value > 100 + 60 * game.getEffect('priceRatio') && !game.science.get('theology').researched && game.getEffect('priceRatio') > -0.05 && resPercent('iron') < 0.9) {doTrade = true;}
+					if (resMap['iron'].value < 1200 && resMap['gold'].value > 100 + 600 * game.getEffect('priceRatio') && !game.science.get('theology').researched && game.getEffect('priceRatio') > -0.05 && resPercent('iron') < 0.9) {doTrade = true;}
 					if (titaniumVal < 500 && solar > 1.3 && solar) {prof = false;}
 					if (game.challenges.isActive("blackSky") && titaniumVal < 500 && Religion.getRU("basilica").on) {doTrade = true;}
 					// 缺铁贸易狮鹫
@@ -6451,7 +6453,7 @@ window.run = function() {
 				if (geodesy) {
 					// 待定采矿钻
 					let cal = game.getEffect('calcinerRatio');
-					if (cal && cal< 2.7 || this.craftManager.getUnResearched("concreteHuts")) {
+					if ((cal && cal < 2.7) || this.craftManager.getUnResearched("concreteHuts") || (game.getEffect('productionRatio') && titaniumVal * 1.35 < resMap['plate'].value && resPercent('titanium') < 0.93)) {
 						doTrade = true;
 					}
 				}
