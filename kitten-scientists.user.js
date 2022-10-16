@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.91';
+	const version = 'V15.92';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2420,7 +2420,7 @@ window.run = function() {
 					// 过滤测地学
 					isFilter = revolutionRatio > 6 || orbitalGeodesy;
 					if (isFilter && !game.space.meta[0].meta[3].val && resStarchart.value < 1700) {
-						noop = noop.concat(['geodesy','seti']);
+						if (!resMap['unobtainium'].value) {noop = noop.concat(['geodesy','seti']);}
 						if (!orbitalGeodesy) {
 							if (game.getEffect('calcinerRatio') > 1) {noop.push('fuelInjectors');}
 							// if (resMap['oil'].value > 35e3) {}
@@ -2491,7 +2491,7 @@ window.run = function() {
 					}
 					// 星图产出
 					if (resStarchart.perTickCached) {
-						if (game.challenges.isActive('blackSky') && resStarchart.perTickCached < 1) {
+						if (resStarchart.perTickCached < 1 && game.challenges.isActive('blackSky')) {
 							noop = noop.concat(['geodesy']);
 						}
 					} else {
