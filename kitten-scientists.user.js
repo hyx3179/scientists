@@ -220,7 +220,7 @@ window.run = function() {
 			'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
-			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n如果资源回复后资源一直是满的，建议过滤大部分日志\n\n故长挂推荐：触发条件500，单次数量1，周期全勾',
+			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n如果资源回复后资源一直是满的，建议过滤大部分日志\n\n故长挂推荐：触发条件300，单次数量1，周期全勾',
 			'summary.time.skip': '跳过 {0} 年',
 
 			'option.time.reset': '重启时间线 (弃用)',
@@ -262,7 +262,7 @@ window.run = function() {
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
-			'summary.auto.biology': '喵喵喵嫌弃镁有钛，跳过困难的生物学',
+			'summary.auto.biology': '喵喵喵只因你镁有钛，跳过困难的生物学',
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>科学和工坊升级换到科学家领袖，比如神学的科学价格变为19K等等',
@@ -2424,7 +2424,7 @@ window.run = function() {
 						if (!orbitalGeodesy) {
 							if (game.getEffect('calcinerRatio') > 1) {noop.push('fuelInjectors');}
 							// if (resMap['oil'].value > 35e3) {}
-							noop = noop.concat(['titaniumWarehouses','titaniumBarns', 'titaniumSaw','cadSystems']);
+							noop = noop.concat(['titaniumWarehouses','titaniumBarns','steelSaw','titaniumSaw','cadSystems']);
 						}
 					}
 					if (!geodesy) {
@@ -2477,7 +2477,7 @@ window.run = function() {
 						noop = noop.concat(['machineLearning', 'aiBases']);
 						let ship = resMap['ship'].value < 5e4;
 						if (Production > 4) {
-							noop = noop.concat(['storageBunkers', 'tachyonAccelerators', 'darkEnergy']);
+							noop = noop.concat(['storageBunkers', 'tachyonAccelerators', 'darkEnergy','eludiumReflectors']);
 						}
 						if (ship) {noop.push('thoriumEngine');}
 					}
@@ -2503,6 +2503,7 @@ window.run = function() {
 					// 钍反应堆
 					if (resMap['thorium'].value < 1.1e5 || game.resPool.energyProd - game.resPool.energyCons > 400) {
 						noop.push('thoriumReactors');
+						if (Production > 3 && resStarchart.value < 1e5) {noop.push('eludiumReflectors');}
 					}
 					// 天体观测仪
 					isFilter = resMap['science'].maxValue > 2e5 / (1 + revolutionRatio) && resStarchart.value < 2075;
@@ -4762,7 +4763,7 @@ window.run = function() {
 						let oil = resMap['oil'];
 						let value = oil.value;
 						let maxVal = oil.maxValue;
-						if (val < 9 || oil.maxValue < 2e4) {break;}
+						if (val < 9 + vitruvianFeline || oil.maxValue < 2e4) {break;}
 						if (!spaceManufacturing) {
 							let cal = game.getEffect("calcinerRatio");
 							if (cal > 1) {
@@ -5478,7 +5479,7 @@ window.run = function() {
 						if (a > 0 && isCache) {
 							options.auto.cache.resUpg['alloy'] = 1000;
 							cacheUpg.cache = 'orbitalGeodesy';
-							if (!cacheUpg.cache) {activity(i18n('craft.CacheSteel', ['轨道测地学']));}
+							if (cacheUpg.cache !== 'orbitalGeodesy') {activity(i18n('craft.CacheSteel', ['轨道测地学']));}
 						}
 					}
 					// 流化反应器
