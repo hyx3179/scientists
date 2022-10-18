@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.93';
+	const version = 'V15.94';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -220,7 +220,7 @@ window.run = function() {
 			'time.skip.cycle.disable': '停止在 {0} 跳转时间并禁止跳过该周期',
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
-			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n如果资源回复后资源一直是满的，建议过滤大部分日志\n\n故长挂推荐：触发条件300，单次数量1，周期全勾',
+			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n如果资源回复后资源一直是满的，建议过滤大部分日志\n\n故长挂推荐：触发条件200，单次数量1，周期全勾',
 			'summary.time.skip': '跳过 {0} 年',
 
 			'option.time.reset': '重启时间线 (弃用)',
@@ -656,7 +656,7 @@ window.run = function() {
 				enabled: false,
 				items: {
 					accelerateTime:     {enabled: true,  subTrigger: 1,     misc: true, label: i18n('option.accelerate')},
-					timeSkip:           {enabled: true, subTrigger: 300,     misc: true, label: i18n('option.time.skip'), maximum: 1,
+					timeSkip:           {enabled: true, subTrigger: 200,     misc: true, label: i18n('option.time.skip'), maximum: 1,
 						0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true,
 						spring: true, summer: false, autumn: false, winter: false,
 						wait: false, adore: false, craft: false, moonMsg: -1},
@@ -767,7 +767,7 @@ window.run = function() {
 					promote:            {enabled: true,                    misc: true, label: i18n('option.promote')},
 					autofeed:           {enabled: true,                    misc: true, label: i18n('option.autofeed')},
 					observe:            {enabled: true,                    misc: true, label: i18n('option.observe')},
-					filterGame:         {enabled: true,  subTrigger: 300,  misc: true, label: '游戏日志过滤'},
+					filterGame:         {enabled: true,  subTrigger: 200,  misc: true, label: '游戏日志过滤'},
 					crypto:             {enabled: false, subTrigger: 1e6,  misc: true, label: i18n('option.crypto')},
 					fixCry:             {enabled: false,                   misc: true, label: i18n('option.fix.cry')},
 					//_steamworks:        {enabled: true,                   misc: true, label: i18n('option.steamworks')},
@@ -1386,8 +1386,10 @@ window.run = function() {
 				let moonBoolean = optItem.timeSkip[5];
 				if (moonBoolean && prestige && optItem.timeSkip.wait === false && booleanForHeat) {
 					optItem.timeSkip.wait = 1;
-					iactivity('summary.moon', [1]);
-					storeForSummary('moon', 1);
+					if (currentCycle === 5) {
+						iactivity('summary.moon', [1]);
+						storeForSummary('moon', 1);
+					}
 				}
 
 				let yearsPerCycle = game.calendar.yearsPerCycle;
@@ -2344,14 +2346,17 @@ window.run = function() {
 								}
 							}
 								break;
+							case 'antimatter':
+								if (Production > 2 && !game.getEffect('beaconRelicsPerDay') || !game.workshop.get('chronoforge').researched) {continue;}
+								break;
+							case 'terraformation':
+								if (Production > 2 && (!aqueductMeta.stage || resMap['sorrow'].maxValue < 17)) {continue;}
+								break;
 							case 'cryptotheology':
 								if (relic < 105 && resMap['antimatter'].value < 4000) {continue;}
 								break;
 							case 'blackchain':
 								if (relic < 1e6) {continue;}
-								break;
-							case 'antimatter':
-								if (!game.workshop.get('chronoforge').researched) {continue;}
 								break;
 						}
 					}
@@ -2503,7 +2508,10 @@ window.run = function() {
 					// 钍反应堆
 					if (resMap['thorium'].value < 1.1e5 || game.resPool.energyProd - game.resPool.energyCons > 400) {
 						noop.push('thoriumReactors');
-						if (Production > 2 && resStarchart.value < 1e5) {noop.push('eludiumReflectors');}
+						if (Production > 2) {
+							noop.push('amBases');
+							if (resStarchart.value < 1e5){noop.push('eludiumReflectors');}
+						}
 						let hut = game.getEffect('priceRatio');
 						if (hut && hut > - 0.07) {noop.push('astrophysicists');}
 					}
@@ -2676,7 +2684,8 @@ window.run = function() {
 				let items = options.auto.build.items;
 				let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 				let energyActive = game.challenges.isActive("energy");
-				let energy = (winterProd && winterProd - 10 - 5 * Production - 30 * (revolutionRatio > 9) < game.resPool.energyCons)
+				let start = 1000 * (resMap['starchart'].value > 2e6);
+				let energy = (winterProd - 10 - 5 * Production - 30 * (revolutionRatio > 9) - start < game.resPool.energyCons)
 					|| energyActive;
 				let pastures = (pastureMeta.stage === 0) ? pastureMeta.val : 0;
 				let aqueducts = (aqueductMeta.stage === 0) ? aqueductMeta.val : 0;
@@ -2815,8 +2824,10 @@ window.run = function() {
 						}
 					}
 				};
-				if (revolutionRatio < 50) {
-					let number = (resMap['starchart'].value > 1e4) ? 150 : 300;
+
+				let starchartVal = resMap['starchart'].value;
+				if (revolutionRatio < 50 && starchartVal < 2e6) {
+					let number = (starchartVal > 1e4) ? 150 : 300;
 					scienceBuild('observatory', number + game.getEffect('timeRatio') + Math.pow(3.2, Production), 0.95);
 					scienceBuild('academy', 22 * (Production + 1), 0.98);
 					scienceBuild('biolab', 200, 0.99);
@@ -3125,7 +3136,7 @@ window.run = function() {
 				} else {
 					broadcastTower.max = 8 + 100 * !revolutionRatio;
 				}
-				if (resMap['starchart'].value > 1e4 && !spaceManufacturing && !game.calendar.festivalDays && !iw && Production > 1) {
+				if (starchartVal > 1e4 && !spaceManufacturing && !game.calendar.festivalDays && !iw && Production > 1) {
 					items['observatory'].max = 70;
 					items['chapel'].max = 10;
 					items['factory'].max = 0;
@@ -4756,7 +4767,7 @@ window.run = function() {
 							if (vitruvianFeline && !game.science.get('astronomy').researched && resMap['faith'].value) {
 								halfCount = true;
 							}
-						} else if (resPercent('iron') < 0.5 - 3 * priceRatio) {
+						} else if (!spaceManufacturing && resPercent('iron') < 0.5 - 3 * priceRatio) {
 							halfCount = true;
 							msgSummary('lumberMill');
 						}
@@ -5362,7 +5373,7 @@ window.run = function() {
 			// 羊皮纸
 			if (name === 'parchment') {
 				limited = ratio < 2.2 - game.getEffect("priceRatio") + 0.2 * renaissance;
-				if (ratio > 3 && resMap['furs'].value < 200) {return;}
+				if (ratio > 2 && resMap['furs'].value < 350) {return;}
 				if (resMap['minerals'].value > 600 * (1 - priceRatio)) {
 					if ((value < 6.1 && ratio > 1.5) || (value < 10 && ratio > 2)) {
 						force = true;
