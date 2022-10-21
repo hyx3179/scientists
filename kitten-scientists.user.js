@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.96';
+	const version = 'V15.97';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1638,7 +1638,7 @@ window.run = function() {
 						msgSummary('hunter', true);
 					}
 					let manpowerRes = resMap['manpower'];
-					if (manpowerRes.maxValue / manpowerRes.perTickCached < 7) {maxKS = 0;}
+					if (manpowerRes.maxValue / manpowerRes.perTickCached < 20) {maxKS = 0;}
 				}
 				// 无神论
 				if (atheism) {
@@ -1654,7 +1654,7 @@ window.run = function() {
 						}
 					}
 					let woodRes = resMap['wood'];
-					if (woodRes.maxValue / woodRes.perTickCached < 10) {maxKS = 0;}
+					if (woodRes.maxValue / woodRes.perTickCached < 30) {maxKS = 0;}
 				}
 				if (name === 'geologist') {
 					let geodesy = game.workshop.get("geodesy").researched;
@@ -1706,7 +1706,7 @@ window.run = function() {
 						maxKS = Math.round(maxKS * 0.9);
 					}
 					let miner = resMap['minerals'];
-					if (miner.maxValue / miner.perTickCached < 10) {maxKS = 0;}
+					if (miner.maxValue / miner.perTickCached < 20) {maxKS = 0;}
 				}
 				if (name === 'priest') {
 					if (limited && maxKS === 3) {
@@ -1828,7 +1828,7 @@ window.run = function() {
 					// 精炼5悲伤
 					if (bls) {
 						msgSummary('bls');
-						if (resMap['tears'].value >= 10e3) {
+						if (tearHave >= 10e3) {
 							resMap['tears'].value -= 10e3;
 							resMap['sorrow'].value += 1;
 							activity('小喵把眼泪炼成悲伤');
@@ -2051,7 +2051,7 @@ window.run = function() {
 					if (solarAdore) {
 						booleanForAdore = false;
 					} else {
-						if (solarRatio < solarRevolutionAfterAdore + 0.2 && solarRevolutionAfterAdore < 9.6 && solarRevolutionAfterAdore > 4) {
+						if (solarRatio < solarRevolutionAfterAdore + 0.3 && solarRevolutionAfterAdore < 9.6 && solarRevolutionAfterAdore > 4) {
 							booleanForAdore = false;
 						}
 					}
@@ -2180,11 +2180,10 @@ window.run = function() {
 			let marker = Religion.getZU("marker");
 			if (!Religion.getZU("blackPyramid").getEffectiveValue(game)) {
 				if (marker.unlocked) {
-					copyBuilds['marker'].enabled = false;
-					if (game.resPool.hasRes(marker.prices)) {
-						msgSummary('marker');
-
-					}
+					let marker = copyBuilds['marker'];
+					marker.enabled = false;
+					if (game.resPool.hasRes(marker.prices)) {msgSummary('marker');}
+					if (resMap['burnedParagon'].value < 2e6) {marker.max = Math.max(80, marker.max);}
 				}
 				// 黑金字塔
 				if (Religion.getZU("sunspire").val < 2) {
@@ -3410,6 +3409,8 @@ window.run = function() {
 			const craftsItem = ['ship','parchment','beam','wood','slab','alloy','gear','concrate','steel','plate','scaffold','tanker','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
 			let trigger = options.auto.craft.trigger;
 			let craftUnlock = !game.science.get("construction").researched || !game.bld.getBuildingExt('workshop').meta.on;
+			let ironPer = resPercent('iron') === 1;
+			let lesstTri = trigger === 0.95 && Workshop.get('orbitalGeodesy').researched;
 			let amount, craft, require;
 
 			this.setTrait('metallurgist');
@@ -3425,13 +3426,14 @@ window.run = function() {
 				// Ensure that we have reached our cap
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.getCraft(name).unlocked) {continue;}
-				if (trigger === 0.95) {
-					if (Workshop.get('orbitalGeodesy').researched && trigger === 0.95) {trigger = 0.9;}
-					if (name === 'uranium') {trigger = 1;}
-					if (name === 'iron' && Workshop.get('spaceManufacturing').researched) {trigger = 1;}
+				let newTrigger = trigger;
+				if (lesstTri) {
+					newTrigger = 0.9;
+					if (name === 'uranium') {newTrigger = 1;}
+					if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
 				}
 				// Craft the resource if we meet the trigger requirement
-				if (require === 'noRequire' || (require.value / require.maxValue >= trigger && require.value <= 2 * require.maxValue)) {
+				if (require === 'noRequire' || (require.value / require.maxValue >= newTrigger && require.value <= 2 * require.maxValue)) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, require.name);
 				} else if (craft.limited) {
 					amount = manager.getLowestCraftAmount(name, craft.limited, craft.limRat, false);
@@ -3664,7 +3666,7 @@ window.run = function() {
 				if (name === 'nagas' && skipNagas) {continue;}
 				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 0.7 && resPercent('uranium') > 0.1) {continue;}
 				if (name === 'lizards' && solarRevolution > 0.2) {continue;}
-				if (name === 'sharks' && !challenge && solarRevolution > 3) {continue;}
+				if (name === 'sharks' && !challenge && solarRevolution > 3 && !trade.limited) {continue;}
 				if (!trade.enabled) {continue;}
 				let Season = trade[season];
 				if (!Season) {continue;}
@@ -3733,7 +3735,7 @@ window.run = function() {
 			let Dragons = tradesLength > 1 && !TC &&
 				((!solarRevolution && game.getEffect('unobtainiumPerTickSpace')) || resPercent('uranium') > 0.4);
 			let Zebras = resMap['plate'].value > 10 * resMap['steel'].value && titaniumTri > 0.5 && resMap['titanium'].value > 1e4;
-			let oneTrade = Calendar.season === 2 && titaniumTri > 0.5 + 0.4 * spaceManufacturing;
+			let oneTrade = Calendar.season > 1 && titaniumTri > 0.5 + 0.4 * spaceManufacturing;
 			const tradesDone = {};
 			while (trades.length > 0 && maxTrades >= 1) {
 				if (maxTrades < trades.length) {
@@ -3953,7 +3955,7 @@ window.run = function() {
 			if (mint.on !== mint.val && resMap['manpower'].maxValue > 4e4) {
 				mint.on = mint.val;
 			}
-			if (mint.on > 1 && resMap['manpower'].maxValue < 2e4 && !game.challenges.isActive("pacifism")) {
+			if (mint.on > 1 && resMap['manpower'].maxValue < 25e3 && !game.challenges.isActive("pacifism")) {
 				if (!game.opts.enableRedshift) {
 					mint.on = 0;
 					msg('mint');
@@ -5349,6 +5351,14 @@ window.run = function() {
 						if (resMap['titanium'].value > 3e3 && maxVal > 119e3 && !workshop.get("concreteHuts").researched && resMap['kittens'].maxValue) {autoMax = 0;}
 					}
 				}
+				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.004) {
+					let compendiaMax =  this.getCompendiaMax();
+					let compediumVal = value * 10;
+					if (compediumVal < Math.max(2e4, compendiaMax)) {
+						force = aboveTrigger;
+						autoMax = (compendiaMax - compediumVal) / (ratio * 10);
+					}
+				}
 			}
 
 			// 蓝图
@@ -5385,6 +5395,16 @@ window.run = function() {
 				if (!Science.get('metalurgy').researched && resValue < 60 && scienceTri > 0.98 && resMap['science'].maxValue > 119e3) {
 					force = true;
 					autoMax = 1;
+				}
+				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.004) {
+					let compendiaMax =  this.getCompendiaMax();
+					let compediumVal = resMap['compedium'].value * 10;
+					if (compediumVal > Math.max(2e4, compendiaMax)) {
+						autoMax = (compediumVal - compendiaMax) / 250;
+						force = aboveTrigger;
+					} else {
+						useRatio = 0.1;
+					}
 				}
 			}
 
@@ -6067,11 +6087,9 @@ window.run = function() {
 					limRat = (solar) ? limRat : 0.3;
 					limRat = (game.science.get('architecture').unlocked) ? limRat : 0;
 					limRat = (resMap['manuscript'].value > Math.max(10e3, 100 * templeFactor)) ? 0.9 : limRat;
-					if (res.value * 10 > Math.max(2e4, this.getCompendiaMax()) && resPercent('science') === 1) {limRat = 0;}
 					break;
 				case 'blueprint':
 					limRat = (game.science.get('industrialization').unlocked) ? limRat : 0;
-					if (resMap['compedium'].value * 10 > Math.max(2e4, this.getCompendiaMax()) && resPercent('science') === 1) {limRat = 1;}
 					break;
 				case 'scaffold': {
 					let val = res.value;
@@ -6600,22 +6618,25 @@ window.run = function() {
 
 			if (race === null || options.auto.trade.items[name].allowCapped) {return amount;}
 
+			let plateMore = resMap['plate'].value > resMap['steel'].value || !trigConditions;
+
 			// Loop through the items obtained by the race, and determine
 			// which good has the most space left. Once we've determined this,
 			// reduce the amount by this capacity. This ensures that we continue to trade
 			// as long as at least one resource has capacity, and we never over-trade.
 
 			let tradeOutput = this.getAverageTrade(race);
-			for (let s in race.sells) {
-				let item = race.sells[s].name;
+			let sells = race.sells;
+			for (let s in sells) {
+				let item = sells[s].name;
 				let resource = this.craftManager.getResource(item);
-				let max = 0;
 
 				// No need to process resources that don't cap
 				if (!resource.maxValue) {continue;}
 
-				max = tradeOutput[item];
-				let capacity = Math.max((resource.maxValue - resource.value - Math.max(0, (options.interval / 200 + 2) * resource.perTickCached)) / max, 0);
+				let max = tradeOutput[item];
+				let factor = (plateMore || item !== 'iron') ? 1 : 0;
+				let capacity = Math.max((resource.maxValue - resource.value - Math.max(0, factor * (options.interval / 200 + 2) * resource.perTickCached)) / max, 0);
 				highestCapacity = (capacity < highestCapacity) ? highestCapacity : capacity;
 			}
 
