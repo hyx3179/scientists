@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.97';
+	const version = 'V15.97.5';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1710,7 +1710,7 @@ window.run = function() {
 				}
 				if (name === 'priest') {
 					if (limited && maxKS === 3) {
-						limited = false;
+						$("#toggle-limited-priest").click();
 						msgSummary('defaultPriest');
 					}
 					if (resMap['starchart'].value > 1e4 && revolution < 3) {maxKS = Math.max(maxKS, 20);}
@@ -2177,13 +2177,13 @@ window.run = function() {
 				noMax.forEach(index => {copyBuilds[index].max = -1;});
 			}
 			// 神印
-			let marker = Religion.getZU("marker");
 			if (!Religion.getZU("blackPyramid").getEffectiveValue(game)) {
+				let marker = Religion.getZU("marker");
 				if (marker.unlocked) {
-					let marker = copyBuilds['marker'];
-					marker.enabled = false;
+					let markerBld = copyBuilds['marker'];
+					markerBld.enabled = false;
 					if (game.resPool.hasRes(marker.prices)) {msgSummary('marker');}
-					if (resMap['burnedParagon'].value < 2e6) {marker.max = Math.max(80, marker.max);}
+					if (resMap['burnedParagon'].value < 2e6) {markerBld.max = Math.max(80, markerBld.max);}
 				}
 				// 黑金字塔
 				if (Religion.getZU("sunspire").val < 2) {
