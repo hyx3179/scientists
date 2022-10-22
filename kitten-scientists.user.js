@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.97.5';
+	const version = 'V15.98';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1747,9 +1747,10 @@ window.run = function() {
 			const levi = game.diplomacy.get("leviathans");
 			const nCorn = resMap["necrocorn"];
 			if (!(levi.unlocked && nCorn.value > 0)) {return;}
-			if (levi.energy === game.diplomacy.getMarkerCap()) {return;}
+			let cap = game.diplomacy.getMarkerCap();
+			if (levi.energy >= cap) {return;}
 			if (nCorn.value >= 1) {
-				game.diplomacy.feedElders();
+				game.diplomacy.feedElders(Math.min(nCorn.value, cap - levi.energy));
 				iactivity('act.feed', [] , 'unicornSacrificeFilter');
 				storeForSummary('feed', 1);
 			} else if (0.25 * (1 + game.getEffect("corruptionBoostRatio")) < 1) {
@@ -2051,7 +2052,7 @@ window.run = function() {
 					if (solarAdore) {
 						booleanForAdore = false;
 					} else {
-						if (solarRatio < solarRevolutionAfterAdore + 0.3 && solarRevolutionAfterAdore < 9.6 && solarRevolutionAfterAdore > 4) {
+						if (solarRatio < solarRevolutionAfterAdore + 0.3 && solarRevolutionAfterAdore < 9.7 && solarRevolutionAfterAdore > 4) {
 							booleanForAdore = false;
 						}
 					}
@@ -2177,20 +2178,30 @@ window.run = function() {
 				noMax.forEach(index => {copyBuilds[index].max = -1;});
 			}
 			// 神印
-			if (!Religion.getZU("blackPyramid").getEffectiveValue(game)) {
+			if (Religion.getZU("blackPyramid").getEffectiveValue(game)) {
+				if (!solarMeta.on) {
+					copyBuilds['blackPyramid'].enabled = false;
+				}
+				let rrr = game.getEffect('relicRefineRatio');
+				if (rrr < 35 && game.getEffect('beaconRelicsPerDay')) {
+					copyBuilds['blackObelisk'].max = 2 * rrr;
+				}
+			} else {
 				let marker = Religion.getZU("marker");
 				if (marker.unlocked) {
 					let markerBld = copyBuilds['marker'];
 					markerBld.enabled = false;
-					if (game.resPool.hasRes(marker.prices)) {msgSummary('marker');}
-					if (resMap['burnedParagon'].value < 2e6) {markerBld.max = Math.max(80, markerBld.max);}
+					if (game.resPool.hasRes(marker.prices)) {
+						msgSummary('marker');
+					}
+					if (resMap['burnedParagon'].value < 2e6) {
+						markerBld.max = Math.max(80, markerBld.max);
+					}
 				}
 				// 黑金字塔
 				if (Religion.getZU("sunspire").val < 2) {
 					copyBuilds['blackPyramid'].enabled = false;
 				}
-			} else if (!solarMeta.on) {
-				copyBuilds['blackPyramid'].enabled = false;
 			}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
@@ -2346,6 +2357,9 @@ window.run = function() {
 									continue;
 								}
 							}
+								break;
+							case 'quantumCryptography':
+								if (game.getEffect('relicRefineRatio') < 2 && game.religion.getZU("blackPyramid").on) {continue;}
 								break;
 							case 'antimatter':
 								if (Production > 2 && !game.getEffect('beaconRelicsPerDay') || !game.workshop.get('chronoforge').researched) {continue;}
@@ -2801,6 +2815,7 @@ window.run = function() {
 				let Production = game.prestige.getParagonProductionRatio();
 				let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
 				let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
+				let sattelite = game.space.getBuilding('sattelite').on;
 
 				let solarMeta = Religion.getRU('solarRevolution');
 				let revolutionRatio = Religion.getSolarRevolutionRatio();
@@ -2829,8 +2844,8 @@ window.run = function() {
 				};
 
 				let starchartVal = resMap['starchart'].value;
-				if (revolutionRatio < 50 && starchartVal < 2e6) {
-					let number = (starchartVal > 1e4) ? 150 : 300;
+				if (revolutionRatio < 50 && (starchartVal < 2e6 || sattelite < 10)) {
+					let number = (starchartVal > 1e4) ? 100 : 300;
 					scienceBuild('observatory', number + game.getEffect('timeRatio') + Math.pow(3.2, Production), 0.95);
 					scienceBuild('academy', 22 * (Production + 1), 0.98);
 					scienceBuild('biolab', 200, 0.99);
@@ -2908,7 +2923,6 @@ window.run = function() {
 				}
 				// 没铀不造反应堆
 				let reactor = items['reactor'];
-				let sattelite = game.space.getBuilding('sattelite').on;
 				if (!spaceManufacturing && (resMap['titanium'].maxValue > 125000 || (!sattelite && vitruvianFeline))) {reactor.max = 25 + 10 * blackSky;}
 				if (resMap['uranium'].value < 100) {reactor.max = 0;}
 
@@ -3410,7 +3424,7 @@ window.run = function() {
 			let trigger = options.auto.craft.trigger;
 			let craftUnlock = !game.science.get("construction").researched || !game.bld.getBuildingExt('workshop').meta.on;
 			let ironPer = resPercent('iron') === 1;
-			let lesstTri = trigger === 0.95 && Workshop.get('orbitalGeodesy').researched;
+			let lessTri = trigger === 0.95 && Workshop.get('orbitalGeodesy').researched;
 			let amount, craft, require;
 
 			this.setTrait('metallurgist');
@@ -3427,7 +3441,7 @@ window.run = function() {
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.getCraft(name).unlocked) {continue;}
 				let newTrigger = trigger;
-				if (lesstTri) {
+				if (lessTri) {
 					newTrigger = 0.9;
 					if (name === 'uranium') {newTrigger = 1;}
 					if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
@@ -3762,6 +3776,7 @@ window.run = function() {
 					if (Zebras) {minTrades = Math.floor(0.3 * minTrades);}
 					if (oneTrade) {minTrades = Math.min(Math.ceil(solarRevolution), minTrades);}
 				}
+				if (name === 'sharks' && goldTrigger >= 0.98) {minTrades = Math.floor(0.5 * minTrades);}
 				if (!tradesDone[name]) {tradesDone[name] = 0;}
 				tradesDone[name] += minTrades;
 				maxTrades -= minTrades;
@@ -3955,7 +3970,7 @@ window.run = function() {
 			if (mint.on !== mint.val && resMap['manpower'].maxValue > 4e4) {
 				mint.on = mint.val;
 			}
-			if (mint.on > 1 && resMap['manpower'].maxValue < 25e3 && !game.challenges.isActive("pacifism")) {
+			if (mint.on > 1 && resMap['manpower'].maxValue < 22e3 && !game.challenges.isActive("pacifism")) {
 				if (!game.opts.enableRedshift) {
 					mint.on = 0;
 					msg('mint');
@@ -5406,6 +5421,8 @@ window.run = function() {
 						useRatio = 0.1;
 					}
 				}
+				// 开局
+				if (resMap['unobtainium'].value && Science.get('rocketry').researched && !Science.get('drama').researched) {autoMax = 0;}
 			}
 
 			// 混凝土
@@ -5680,8 +5697,8 @@ window.run = function() {
 			if (!preTrade) {
 				let ratio = 1;
 				if (name === 'unobtainium' && Religion.getSolarRevolutionRatio() > 9) {
-					ratio = 0.6 - Math.max(0.3, 2 * game.getEffect('shatterTCGain'));
-					if (game.calendar.cycle === 5) {ratio -= 0.25;}
+					ratio = 0.7 - Math.max(0.4, 2 * game.getEffect('shatterTCGain'));
+					if (game.calendar.cycle === 5 && resPercent(name) > 0.4) {ratio -= 0.25;}
 				}
 				prod += this.cacheManager.getResValue(name) * ratio;
 			}
@@ -6442,7 +6459,7 @@ window.run = function() {
 			let race = this.getRace(name);
 			if (name === 'leviathans') {
 				// if (game.time.getCFU("ressourceRetrieval").val && resPercent('unobtainium') > 0.6) {return true;}
-				if (race.duration < 400 && (resMap['relic'].value < 5 || resMap['timeCrystal'].value < 200) && resPercent('unobtainium') > 0.5) {return true;}
+				if (race.duration < 400 && (resMap['relic'].value < 5 || resMap['timeCrystal'].value < 200)) {return true;}
 			}
 			let solar = Religion.getSolarRevolutionRatio();
 			let materials = this.getMaterials(name);
@@ -9211,7 +9228,6 @@ window.run = function() {
 
 	saveToKittenStorage();
 
-	i18nLang.messages['time.reset.instructional'] = '重启时间线将使游戏从零开始。统计和成就将会保留，也可能获得各种游戏奖励。<br><br>此时重置，重置后将会得到奖励:';
 	const autoOpen = function () {
 		if (!options.auto.engine.enabled && options.auto.options.items.autoScientists.enabled) {
 			let countdown = (options.countdown);
