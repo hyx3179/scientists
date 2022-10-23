@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.98';
+	const version = 'V15.99';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -355,7 +355,7 @@ window.run = function() {
 			'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
 			'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
 
-			'summary.festival': '举办了 {0} 次节日',
+			'summary.festival': '举办了 {0} 次节日喵',
 			'summary.stars': '观测了 {0} 次天文事件',
 			'summary.praise': '赞美太阳了 {0} 次，共积累了 {1} 虔诚',
 			'summary.hunt': '派出了 {0} 批可爱的小猫',
@@ -1980,6 +1980,7 @@ window.run = function() {
 						let x = needNextLevel;
 						let blackObelisk = religion.getTU("blackObelisk").val;
 						let obeliskRatio = ((tt + 1) * 5 * blackObelisk + 1000) / (tt * 5 * blackObelisk + 1000);
+						if (game.getEffect('shatterTCGain') > 0.07) {obeliskRatio = 1;}
 						let k = adoreIncreaseRatio * obeliskRatio;
 						let epiphanyRecommend = (1 - k + Math.sqrt(80 * (k * k - 1) * x + (k - 1) * (k - 1))) * k / (40 * (k + 1) * (k + 1) * (k - 1)) + x + x / (k * k - 1);
 
@@ -2183,7 +2184,7 @@ window.run = function() {
 					copyBuilds['blackPyramid'].enabled = false;
 				}
 				let rrr = game.getEffect('relicRefineRatio');
-				if (rrr < 35 && game.getEffect('beaconRelicsPerDay')) {
+				if (rrr < 50 && game.getEffect('beaconRelicsPerDay')) {
 					copyBuilds['blackObelisk'].max = 2 * rrr;
 				}
 			} else {
@@ -5697,8 +5698,8 @@ window.run = function() {
 			if (!preTrade) {
 				let ratio = 1;
 				if (name === 'unobtainium' && Religion.getSolarRevolutionRatio() > 9) {
-					ratio = 0.7 - Math.max(0.4, 2 * game.getEffect('shatterTCGain'));
-					if (game.calendar.cycle === 5 && resPercent(name) > 0.4) {ratio -= 0.25;}
+					ratio = 0.75 - Math.min(0.4, 2 * game.getEffect('shatterTCGain'));
+					if (game.calendar.cycle === 5 && resPercent(name) > 0.8) {ratio -= 0.25;}
 				}
 				prod += this.cacheManager.getResValue(name) * ratio;
 			}
@@ -6044,7 +6045,7 @@ window.run = function() {
 					break;
 				}
 				case 'eludium': {
-					let RR = game.time.getCFU("ressourceRetrieval").on > 5;
+					let RR = game.getEffect('shatterTCGain') > 0.05;
 					limRat = (RR) ? 0.1 : 0.6;
 					limRat = (res.value < 125 && game.getEffect('hutPriceRatio') > -1.06) ? 1 : limRat;
 					break;
@@ -6096,14 +6097,14 @@ window.run = function() {
 					chapel = Math.pow(chapel.priceRatio + priceRatio, chapel.val);
 					let brewery = Bld.getBuildingExt('brewery').meta;
 					if (resMap['culture'].maxValue > 750 * Math.pow(brewery.priceRatio + priceRatio, brewery.val) && resPercent('culture') > 0.5) {
-						limRat = (resMap['parchment'].value > Math.max(1e6, 260 * chapel) && reactor.val) ? 1 : limRat;
+						if (resMap['parchment'].value > Math.max(1e6, 260 * chapel) && reactor.val) {limRat = 1;}
 					}
 					break;
 				}
 				case 'compedium':
 					limRat = (solar) ? limRat : 0.3;
 					limRat = (game.science.get('architecture').unlocked) ? limRat : 0;
-					limRat = (resMap['manuscript'].value > Math.max(10e3, 100 * templeFactor)) ? 0.9 : limRat;
+					// limRat = (resMap['manuscript'].value > Math.max(10e3, 100 * templeFactor)) ? 0.8 : limRat;
 					break;
 				case 'blueprint':
 					limRat = (game.science.get('industrialization').unlocked) ? limRat : 0;
