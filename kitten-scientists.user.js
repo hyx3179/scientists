@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.99';
+	const version = 'V15.100';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1561,14 +1561,22 @@ window.run = function() {
 					}
 				}
 			}
-			let miner = village.jobs[4];
 			let woodcutter = village.getJob('woodcutter').value;
 			if (!freeKittens) {
 				let minerItem = distributeItem.miner;
-				if (minerItem.enabled && miner.unlocked && !miner.value && woodcutter > 1 && kittenLength) {sim.removeJob('woodcutter');}
+				if (minerItem.enabled && woodcutter > 1 && kittenLength) {
+					let miner = village.jobs[4];
+					if (miner.unlocked && !miner.value) {sim.removeJob('woodcutter');}
+				}
+				// if (distributeItem.scholar.enabled && woodcutter > 3 && kittenLength) {
+				// 	let miner = village.jobs[2];
+				// 	if (miner.unlocked && !miner.value) {sim.removeJob('woodcutter');}
+				// 	sim.removeJob('woodcutter');
+				// }
 
 				if (farmerCatnip && catnipTick < 0 && game.science.get("agriculture").researched) {
-					if (catnipVal + (200 + 200 * (resPercent('catnip') < 0.2)) * (game.getResourcePerTick('catnip', true) - 0.85 * (happiness * !anarchy - 1))) {
+					let b = game.getResourcePerTick('catnip', true) - 0.85 * Math.max(1, happiness * !anarchy - 1);
+					if (catnipVal + 100 * catnipTick < 0 || catnipVal + 1000 * b < 0) {
 						for (let i = kittenLength - 1; i > 0; i--) {
 							let kitten = Kittens[i];
 							if (kitten.isLeader || kitten.job === 'farmer') {continue;}
@@ -3009,11 +3017,11 @@ window.run = function() {
 						msgSummary('caravanserai');
 					 }
 				}
-				let expect = options.auto.faith.addition.autoPraise.expect;
+				// let expect = options.auto.faith.addition.autoPraise.expect;
 				if (geodesy) {
 					if (hasLeader && !orbitalGeodesy && resMap['kittens'].maxValue < 130 && game.workshop.get('concreteHuts').researched) {
-						buildManager.built('hut', undefined, 1);
-						buildManager.built('logHouse', undefined, 1);
+						if (items['hut'].enabled) {buildManager.built('hut', undefined, 1);}
+						if (items['logHouse'].enabled) {buildManager.built('logHouse', undefined, 1);}
 					}
 				} else {
 					let religionRU = !Religion.getRU("sunAltar").on || !Religion.getRU("sunAltar").on
@@ -4725,7 +4733,7 @@ window.run = function() {
 					}
 					break;
 				case 'field':
-					if (!orbitalGeodesy && game.bld.getBuildingExt(id).meta.val > 35 + 85 * vitruvianFeline) {
+					if (!orbitalGeodesy && game.bld.getBuildingExt(id).meta.val > 50 + 85 * vitruvianFeline) {
 						if (resMap['catnip'].value < 3e3 + game.village.happiness * 100) {
 							count = Math.floor(count * 0.3);
 							halfCount = true;
@@ -5925,7 +5933,10 @@ window.run = function() {
 					let calendar = game.calendar;
 					let now = game.calcResourcePerTick('catnip');
 					stock -= resPerTick * 1500;
-					if (now > 0) {stock = Math.max(0, stock - 10 * game.calcResourcePerTick('catnip') * (!calendar.season) * (100 - calendar.day));}
+					if (now > 0) {
+						let number = (calendar.season < 3) ? 100 * (2 - calendar.season) + 100 - calendar.day : 0;
+						stock = Math.max(0, stock - 10 * game.calcResourcePerTick('catnip') * number);
+					}
 					// 4000秒
 					if (options.auto.options.catnipMsg + 40e5 < Date.now() || !activitySummary.other['auto.craftCatnip']) {
 						if (game.stats.getStat("totalResets").val < 5) {activity(i18n('msg.catnip'));}
@@ -6894,7 +6905,7 @@ window.run = function() {
 		toggles.forEach((name) => {
 			$("#items-list-" + name).find("input[id^='toggle-']").each(function () {
 				let dom = $(this);
-				if ($(this).attr("type") !== 'radio') {
+				if (dom.attr("type") !== 'radio') {
 					kittenStorage.items[dom.attr("id")] = dom.prop("checked");
 				}
 			});
