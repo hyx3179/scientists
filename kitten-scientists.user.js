@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.100';
+	const version = 'V15.101';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1576,7 +1576,7 @@ window.run = function() {
 
 				if (farmerCatnip && catnipTick < 0 && game.science.get("agriculture").researched) {
 					let b = game.getResourcePerTick('catnip', true) - 0.85 * Math.max(1, happiness * !anarchy - 1);
-					if (catnipVal + 100 * catnipTick < 0 || catnipVal + 1000 * b < 0) {
+					if ((catnipVal + 25 * catnipTick < 0 && game.calendar.day > 90) || catnipVal + 1000 * b < 0) {
 						for (let i = kittenLength - 1; i > 0; i--) {
 							let kitten = Kittens[i];
 							if (kitten.isLeader || kitten.job === 'farmer') {continue;}
@@ -1704,8 +1704,8 @@ window.run = function() {
 					}
 				}
 				if (name === 'miner') {
-					if (!game.science.get('writing').researched && val > 1) {maxKS = Math.round(maxKS * 0.3);}
-					if (!game.science.get('civil').researched && resMap['kittens'].value < 10) {maxKS = 1;}
+					if (!game.science.get('writing').researched && val > 1 && tt) {maxKS = Math.round(maxKS * 0.3);}
+					if (!game.science.get('civil').researched && resMap['kittens'].value < 10 && tt) {maxKS = 1;}
 					if (game.workshop.get('geodesy').researched) {
 						if (val < Math.min(25, maxKS) && !scholar) {
 							maxKS *= 4;
@@ -1713,8 +1713,8 @@ window.run = function() {
 					} else if (tt < 5) {
 						maxKS = Math.round(maxKS * 0.9);
 					}
-					let miner = resMap['minerals'];
-					if (miner.maxValue / miner.perTickCached < 20) {maxKS = 0;}
+					let mineral = resMap['minerals'];
+					if (mineral.maxValue / mineral.perTickCached < 20) {maxKS = 0;}
 				}
 				if (name === 'priest') {
 					if (limited && maxKS === 3) {
@@ -2919,6 +2919,7 @@ window.run = function() {
 						}
 						if (resMap['parchment'].value > 3 && !resMap['culture'].value) {items['workshop'].max = 0;}
 					}
+					if (!science.get('currency').researched) {items['academy'].max = 1 + Production;}
 				}
 
 				// 工坊
@@ -2994,6 +2995,7 @@ window.run = function() {
 						pasture.max = 0;
 						msgSummary('pasture');
 					}
+					if (resMap['wood'].perTickCached < 0.08 && !game.ironWill) {smelter.max = 0;}
 					if (smelterVal) {
 						if (resMap['wood'].perTickCached * 2 < smelterVal + 0.5 * !machinery || resMap['minerals'].perTickCached < smelterVal + 1 - 3 * theology - Production - 5 * (astronomy.researched) + priceRatio) {
 							smelter.max = 0;
@@ -3192,6 +3194,7 @@ window.run = function() {
 				}
 				if (!game.getEffect('aiCoreProductivness') && resMap['burnedParagon'].value < 2e4) {
 					items['aiCore'].max = 25;
+					items['chronosphere'].max = 17;
 				}
 				// 黑暗天空造煅烧炉
 				if (blackSky && options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerMeta.val) {
@@ -4677,21 +4680,23 @@ window.run = function() {
 			switch (id) {
 				case 'hut':
 				case 'logHouse':{
-					let Catnip = resMap['catnip'];
-					let catnipTick = this.crafts.getPotentialCatnip(false);
-					let anarchy = game.challenges.isActive("anarchy");
 					let happy = game.village.happiness;
-					let noFarmer = Catnip.value < 3e3 + happy * 100 && Catnip.perTickCached < 1.7 * happy * (1 + 2 * anarchy) && (!game.science.get('agriculture').researched || anarchy);
-					let forceCat = catnipTick < 1 && Catnip.value + catnipTick * 1000 * (resPercent('catnip') < 0.1) - 1000 < 0;
-					if ((noFarmer || forceCat) && !geodesy) {
-						count = 0;
-						msgSummary('kittens');
-					} else {
+					if (geodesy) {
 						msgSummary('kittens', true);
+					} else {
+						let Catnip = resMap['catnip'];
+						let catnipTick = this.crafts.getPotentialCatnip(false);
+						let anarchy = game.challenges.isActive("anarchy");
+						let forceCat = catnipTick < 1 && Catnip.value + catnipTick * 1000 * (resPercent('catnip') < 0.1) - 1000 < 0;
+						let noFarmer = Catnip.value < 5e3 - 2e3 * !game.calendar.season + happy * 100 && Catnip.perTickCached < 1.7 * happy * (1 + 2 * anarchy) && (!game.science.get('agriculture').researched || anarchy);
+						if (noFarmer || forceCat) {
+							count = 0;
+							msgSummary('kittens');
+						}
 					}
 					if (id === 'logHouse') {
 						let am = game.bld.getBuildingExt('amphitheatre').meta;
-						if (am.val < 5 && !am.stage && am.unlocked && game.village.happiness < 3 && game.village.maxKittens > 25) {
+						if (am.val < 5 && !am.stage && am.unlocked && happy < 3 && game.village.maxKittens > 25) {
 							msgSummary('logHouse');
 							return 0;
 						}
@@ -4772,11 +4777,11 @@ window.run = function() {
 				}
 				// falls through
 				case 'academy':
-					if (id === 'academy' && resMap['paragon'].value && resPercent('science') < 1 && !orbitalGeodesy) {
+					if (id === 'academy' && resPercent('science') < 1 && !orbitalGeodesy) {
 						//count *= 1 - 0.3 * vitruvianFeline;
-						if (game.bld.getBuildingExt(id).meta.val > 20 + 20 * vitruvianFeline) {
+						if (game.bld.getBuildingExt(id).meta.val > 10 + 20 * vitruvianFeline) {
 							halfCount = true;
-							count *= 0.9;
+							if (priceRatio) {count *= 0.9;}
 						}
 						if (vitruvianFeline && revolution < 1) {count *= 0.5;}
 					}
@@ -5442,7 +5447,7 @@ window.run = function() {
 			// 羊皮纸
 			if (name === 'parchment') {
 				limited = ratio < 2.2 - game.getEffect("priceRatio") + 0.2 * renaissance;
-				if (ratio > 2 && resMap['furs'].value < 350) {return;}
+				if (ratio > 2 && resMap['furs'].value < 350 || ratio < 1.12) {return;}
 				if (resMap['minerals'].value > 600 * (1 - priceRatio)) {
 					if ((value < 6.1 && ratio > 1.5) || (value < 10 && ratio > 2)) {
 						force = true;
@@ -5687,7 +5692,8 @@ window.run = function() {
 				let tcRefineRatio = 0.04 * (1 + game.getEffect("tcRefineRatio"));
 				aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
 				let aliChanceTick = Math.min(aliChance, 1) * 0.2;
-				prod += (aliChanceTick + alicornTick) * tcRefineRatio;
+				prod = (aliChanceTick + alicornTick) * tcRefineRatio;
+				if (game.getEffect('antimatterProduction')) {prod *= 5;}
 			}
 			if (res.craftable) {
 				let minProd = Number.MAX_VALUE;
@@ -5794,8 +5800,9 @@ window.run = function() {
 						let lumberMill = game.bld.getBuildingExt('lumberMill').meta;
 						let temple = game.bld.getBuildingExt('temple').meta;
 						let a = resMap['gold'].value < 50 * Math.pow(priceRatio + temple.priceRatio, temple.val);
-						lumberMill = lumberMill.val > 19 - 40 * priceRatio;
-						if (temple.on > 2 || resMap['faith'].maxValue > 749 || (a && lumberMill) || resMap['plate'].value > 18) {
+						let lum =  50 * Math.pow(priceRatio + lumberMill.priceRatio, lumberMill.val) > 400;
+						lumberMill = lumberMill.val > 18 - 40 * priceRatio;
+						if (temple.on > 2 || resMap['faith'].maxValue > 749 || (a && lumberMill) || resMap['plate'].value > 18 || (lum && !priceRatio)) {
 							let val = resMap[name].value;
 							let maxVal = resMap[name].maxValue;
 							let stockIron = (isStock, price, upg) => {
@@ -6092,7 +6099,7 @@ window.run = function() {
 					let more = game.getEffect('calcinerRatio') && solar > 2;
 					limRat = (fuelInjectors || logistics) ? 0.75 : 0.3 + 0.15 * more;
 					limRat = (res.value > Math.max(500, 20 * factor)) ? 5e-3 : limRat;
-					limRat = (steamworks.val || game.science.get('chemistry').researched || (game.challenges.isActive("pacifism") && res.value < 50)) ? limRat : 0;
+					limRat = (steamworks.val || game.science.get('chemistry').researched || (!resMap['furs'].unlocked && res.value < 50)) ? limRat : 0;
 					break;
 				}
 				case 'kerosene':
@@ -6471,7 +6478,8 @@ window.run = function() {
 			let race = this.getRace(name);
 			if (name === 'leviathans') {
 				// if (game.time.getCFU("ressourceRetrieval").val && resPercent('unobtainium') > 0.6) {return true;}
-				if (race.duration < 400 && (resMap['relic'].value < 5 || resMap['timeCrystal'].value < 200)) {return true;}
+				let a = resMap['relic'].value < 5 || resMap['timeCrystal'].value < 200 * (1 + 50 * game.getEffect('shatterTCGain'));
+				if (race.duration < 800 && a) {return true;}
 			}
 			let solar = Religion.getSolarRevolutionRatio();
 			let materials = this.getMaterials(name);
