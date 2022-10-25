@@ -5693,7 +5693,7 @@ window.run = function() {
 				aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
 				let aliChanceTick = Math.min(aliChance, 1) * 0.2;
 				prod = (aliChanceTick + alicornTick) * tcRefineRatio;
-				if (game.getEffect('antimatterProduction')) {prod *= 5;}
+				if (game.getEffect('antimatterProduction')) {prod *= 0.3;}
 			}
 			if (res.craftable) {
 				let minProd = Number.MAX_VALUE;
