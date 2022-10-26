@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.101';
+	const version = 'V15.102';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -3038,7 +3038,7 @@ window.run = function() {
 					}
 					// 测地学 交易所
 					if (!revolutionRatio) {
-						tradepost.max = 40 - 25 * (Production > 4) - 5 * hasLeader - 5 * atheism;
+						tradepost.max = 40 - 25 * (Production > 4) - 5 * hasLeader - 5 * atheism - 7 * !Production;
 					}
 				}
 				// 太阳革命前不造交易所和神殿
@@ -3047,15 +3047,15 @@ window.run = function() {
 						let templeCeil = (activitySummary.other['auto.changeLeader']) ? 0 : 1;
 						if (resMap['faith'].maxValue > 750 - 75 * templeCeil && resMap['gold'].maxValue > 530 - 50 * templeCeil) {
 							msgSummary('temple');
-							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 2 * !hasLeader;
-							if (resMap['gold'].value > 530 && resPercent('gold') > 0.5) {
+							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 2 * !hasLeader + !Production;
+							if (resMap['gold'].value > Math.min(560, resMap['gold'].maxValue - 30)) {
 								temple.max = templeVal + 1;
 							}
 						}
 					}
 					if (Religion.transcendenceTier) {
 						tradepost.max = 18 - 2 * Production + 1 * (resMap['kittens'].value < 60) - 2 * hasLeader - 1 * (resMap['kittens'].value > 70);
-						if (resMap['gold'].value > 525) {tradepost.max = Math.min(18, game.bld.getBuildingExt('tradepost').meta.val + 1);}
+						if (resMap['gold'].value > 570) {tradepost.max = Math.min(18, game.bld.getBuildingExt('tradepost').meta.val + 1);}
 					}
 					msgSummary('tradepost');
 				} else if (theology) {
@@ -3435,9 +3435,14 @@ window.run = function() {
 			const craftsItem = ['ship','parchment','beam','wood','slab','alloy','gear','concrate','steel','plate','scaffold','tanker','manuscript','compedium','blueprint','kerosene','megalith','eludium','thorium'];
 			let trigger = options.auto.craft.trigger;
 			let craftUnlock = !game.science.get("construction").researched || !game.bld.getBuildingExt('workshop').meta.on;
-			let ironPer = resPercent('iron') === 1;
-			let lessTri = trigger === 0.95 && Workshop.get('orbitalGeodesy').researched;
-			let amount, craft, require;
+			let amount, craft, require, lessTri, ironPer, begin;
+
+			let autoDefault = trigger === 0.95;
+			if (autoDefault) {
+				lessTri = Workshop.get('orbitalGeodesy').researched;
+				ironPer = resPercent('iron') === 1;
+				begin = !resMap['paragon'].value;
+			}
 
 			this.setTrait('metallurgist');
 			this.setTrait('engineer');
@@ -3453,10 +3458,15 @@ window.run = function() {
 				//if (current && current.value > craft.max) {continue;}
 				if (!manager.getCraft(name).unlocked) {continue;}
 				let newTrigger = trigger;
-				if (lessTri) {
-					newTrigger = 0.9;
-					if (name === 'uranium') {newTrigger = 1;}
-					if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
+				if (autoDefault) {
+					if (lessTri) {
+						newTrigger = 0.9;
+						if (name === 'thorium') {newTrigger = 1;}
+						if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
+					}
+					if (begin) {
+						if (name === 'slab' || name === 'beam') {newTrigger = 0.985;}
+					}
 				}
 				// Craft the resource if we meet the trigger requirement
 				if (require === 'noRequire' || (require.value / require.maxValue >= newTrigger && require.value <= 2 * require.maxValue)) {
@@ -3691,7 +3701,7 @@ window.run = function() {
 				index++;
 				if (name === 'nagas' && skipNagas) {continue;}
 				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 0.7 && resPercent('uranium') > 0.1) {continue;}
-				if (name === 'lizards' && solarRevolution > 0.2) {continue;}
+				if (name === 'lizards' && solarRevolution > 0.1) {continue;}
 				if (name === 'sharks' && !challenge && solarRevolution > 3 && !trade.limited) {continue;}
 				if (!trade.enabled) {continue;}
 				let Season = trade[season];
@@ -5164,7 +5174,9 @@ window.run = function() {
 			let ratio = game.getResCraftRatio(craft.name) + 1;
 			let trigger = Craft.trigger;
 			if (name === 'ship' && limited) {
-				force = value < 100 || resMap['science'].maxValue > 95e3 || Science.get('archeology').researched;
+				let scienceMax = resMap['science'].maxValue;
+				force = scienceMax > 45e3 && (value < 100 || scienceMax > 95e3 || Science.get('archeology').researched);
+				if (scienceMax < 55e3 && resMap['titanium'].unlocked && value > 40) {force = false;}
 				let solar = Religion.getSolarRevolutionRatio();
 				let tt = Religion.transcendenceTier;
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6 || !value;
@@ -5173,10 +5185,10 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(solar)) + 5 * solar;
 					if (solar < 0.15) {forceShipVal = Math.min(16 / Math.log1p(solar), 176);}
 					// if (game.bld.getBuildingExt('calciner').meta.val > 2) {forceShipVal *= 0.9;}
-					if (geodesy && (resMap['science'].maxValue > 119e3 || value < 200)) {
+					if (geodesy && (scienceMax > 119e3 || value < 200)) {
 						msgSummary('shipGeodesy');
 						forceShipVal = 243;
-						if (Religion.faith > 9e4 && resMap['science'].maxValue > 11e4) {
+						if (Religion.faith > 9e4 && scienceMax > 11e4) {
 							if (tt < 6 && geodesy) {forceShipVal = -103 * tt + 750 - 250 * !tt;}
 						}
 					}
@@ -5837,7 +5849,7 @@ window.run = function() {
 						let steelAxe = this.getUnResearched('steelAxe') && resMap['coal'].value > 3000;
 						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 30 || val > 10)) {msgForStock(75, 'steelAxe', name);}
 						// 精钢锯
-						let steelSaw = this.getUnResearched('steelSaw') && val > 250 && !cache.stocks['titanium'] && !blackSky;
+						let steelSaw = this.getUnResearched('steelSaw') && val > 250 && !cache.stocks['titanium'] && !blackSky && resMap['science'].maxValue > 50e3;
 						if (steelSaw) {msgForStock(750, 'steelSaw', name);}
 						// 氧化反应
 						if (options.auto.craft.oxidation && this.getUnResearched('oxidation')) {stock += 5000;}
@@ -6509,6 +6521,7 @@ window.run = function() {
 				if (!resMap['concrate'].unlocked && !game.ironWill) {prof = false;}
 				if (race.embassyLevel < 10 && !game.ironWill) {return false;}
 				let production = 1 + game.prestige.getParagonProductionRatio();
+				if (spice && production < 1) {prof = true;}
 				let Val = resMap['concrate'].value;
 				if (Val < 100 * production * (1 + solar) && race.embassyLevel > 10 && Val && (resMap['titanium'].value > 30 * production || (spice && game.calendar.festivalDays) || Val < 50)) {doTrade = true;}
 				if (Val > 250 * (1 + solar) * production * (1 + solar) && titaniumTri < 0.8 && resMap['slab'].value > 3e3) {prof = false;}
@@ -6552,8 +6565,12 @@ window.run = function() {
 				let geodesy = Workshop.get("geodesy").researched;
 				if (season === 1) {
 					if (geodesy && resPercent('titanium') < 0.5 && resMap['slab'].value > 1e4) {doTrade = true;}
-					if (resMap['ship'].value > 240) {
-						if (resMap['steel'].value > resMap['plate'].value || titaniumTri < 0.5) {doTrade = true;}
+					let shipVal = resMap['ship'].value;
+					if (shipVal > 40) {
+						if (titaniumVal < 5 && resMap['science'].maxValue < 55e3) {doTrade = true;}
+						if (resMap['ship'].value > 240) {
+							if (resMap['steel'].value > resMap['plate'].value || titaniumTri < 0.5) {doTrade = true;}
+						}
 					}
 				}
 				if (geodesy) {
