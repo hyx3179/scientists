@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.102';
+	const version = 'V15.103';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -280,7 +280,7 @@ window.run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
-			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概340年左右 130猫口 + 新约外传',
+			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概330年左右 130猫口 + 新约外传',
 			'summary.auto.ksHelp4': '小喵选项 => 恢复初始默认配置，可以恢复到初始推荐的配置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
@@ -1585,9 +1585,8 @@ window.run = function() {
 							break;
 						}
 					}
-				} else {
-					return refreshRequired;
 				}
+				if (!freeKittens) {return refreshRequired;}
 			}
 
 			if (farmerCatnip && game.science.get("agriculture").researched) {
@@ -1668,7 +1667,7 @@ window.run = function() {
 					let geodesy = game.workshop.get("geodesy").researched;
 					if (tt > 9 && !anarchy) {maxKS = Math.min(maxKS, Math.max(30, 44 - tt));}
 					if (!geodesy && resMap['iron'].perTickCached < 50) {
-						maxKS = Math.round(maxKS * 0.5);
+						maxKS = Math.round(maxKS * 0.25);
 						if (resPercent('coal') > 0.97) {maxKS = 0;}
 					}
 					if (tt < 9 && geodesy) {
@@ -2325,7 +2324,8 @@ window.run = function() {
 								break;
 							case 'biology': {
 								let maxValue = resMap['science'].maxValue;
-								if ((maxValue < 123e3 && game.getEffect('hunterRatio') <= 3.5) || (maxValue > 123e3 && titanium < 5000)){
+								let a = geodesy || !activitySummary.other['auto.changeLeader'];
+								if ((maxValue < 123e3 && a) || (maxValue > 123e3 && titanium < 5000)){
 									msgSummary('biology');
 									continue;
 								}
@@ -3095,7 +3095,7 @@ window.run = function() {
 				}
 
 				let calcinerMeta = game.bld.getBuildingExt('calciner').meta;
-				let oilTick = resMap['oil'].perTickCached - 0.024 * calcinerMeta.val;
+				let oilTick = resMap['oil'].perTickCached - 0.024 * calcinerMeta.val + game.getEffect('oilPerTick');
 				if (oilTick < 0.5) {
 					calciner.max = 1 + geodesy + 1 * (Production > 1);
 					if (oilTick < 0.1) {items['magneto'].max = 0;}
@@ -3124,12 +3124,12 @@ window.run = function() {
 				let biolab = items['biolab'];
 				if (!geodesy && !orbitalGeodesy) {
 					if (!iw && mansion.max) {
-						mansion.max = Math.min(16, 5 * (1 + revolutionRatio) * (1 + Production) + 2 * (resMap['ship'].value > 100) + 2 * (game.getEffect('hunterRatio') > 3.5));
+						mansion.max = Math.min(16, 5 * (1 + revolutionRatio) * (1 + Production) + 5 * (resMap['ship'].value > 100) + 2 * (game.getEffect('hunterRatio') > 3.5));
 						items['quarry'].max = revolutionRatio + Production + 5;
 						if (calciner.max === 25) {mansion.max = 0;}
 					}
 					if (resMap['alloy'].value > 25 && science.get('biology').researched) {
-						biolab.max = 2;
+						biolab.max = 0;
 						msgSummary('biolab');
 					}
 				} else {
@@ -6146,7 +6146,7 @@ window.run = function() {
 					let craftObservatory = val < 50 * factor && resMap['iron'].value > 750 * factor;
 					let scienceMax = resMap['science'].maxValue;
 					let leader = game.village.leader;
-					let logistics = res.value < 1e3 && this.getUnResearched('logistics') && leader && leader.rank > 2 && scienceMax > 1e5;
+					let logistics = res.value < 1e3 && this.getUnResearched('logistics') && leader && leader.rank > 2 && scienceMax > 98e3;
 					// || resMap['beam'].value > 20 * resMap['slab'].value
 					let forShip = resMap['plate'].value > 150 && val < 100;
 					limRat = (craftObservatory || logistics || forShip) ? 0.75 + 0.1 * (scienceMax < 6e4) : limRat;
@@ -6500,7 +6500,7 @@ window.run = function() {
 			for (let mat in materials) {
 				if (mat === 'ivory') {continue;}
 				tick = this.craftManager.getTickVal(this.craftManager.getResource(mat), rrTrade);
-				if (mat === 'slab' && solar > 0.03) {tick *= 1.05;}
+				if (mat === 'slab' && solar > 0.03) {tick *= 1.04;}
 				if (tick <= 0) {return false;}
 				cost += materials[mat] / tick;
 			}
