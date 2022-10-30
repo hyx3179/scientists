@@ -16,7 +16,8 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.103';
+	// 	const version = 'V15.103';
+	const version = '🎃';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2193,9 +2194,9 @@ window.run = function() {
 				let rrr = game.getEffect('relicRefineRatio');
 				if (rrr < 50 && game.getEffect('beaconRelicsPerDay')) {
 					copyBuilds['blackObelisk'].max = 2 * rrr;
+					let Num = game['nummon'];
+					if (Num && Num.getBestRelicBuilding().indexOf('核心') === -1) {copyBuilds['blackCore'].max = 0;}
 				}
-				let a = 2 * Math.floor(rrr / 13);
-				copyBuilds['blackCore'].max = a + rrr * 0.2 * (rrr > 14);
 			} else {
 				let marker = Religion.getZU("marker");
 				if (marker.unlocked) {
@@ -2539,7 +2540,10 @@ window.run = function() {
 						noop.push('thoriumReactors');
 						if (Production > 2) {
 							noop.push('amBases');
-							if (resStarchart.value < 1e5) {noop.push('eludiumReflectors');}
+							if (resStarchart.value < 1e5) {
+								noop.push('eludiumReflectors');
+								noop.push('eludiumCracker');
+							}
 						}
 						let hut = game.getEffect('priceRatio');
 						if (hut && hut > - 0.07) {noop.push('astrophysicists');}
@@ -3127,7 +3131,7 @@ window.run = function() {
 				let biolab = items['biolab'];
 				if (!geodesy && !orbitalGeodesy) {
 					if (!iw && mansion.max) {
-						mansion.max = Math.min(16, 5 * (1 + revolutionRatio) * (1 + Production) + 5 * (resMap['ship'].value > 100) + 2 * (game.getEffect('hunterRatio') > 3.5));
+						mansion.max = 12 - priceRatio;
 						items['quarry'].max = revolutionRatio + Production + 5;
 						if (calciner.max === 25) {mansion.max = 0;}
 					}
@@ -3444,7 +3448,7 @@ window.run = function() {
 			if (autoDefault) {
 				lessTri = Workshop.get('orbitalGeodesy').researched;
 				ironPer = resPercent('iron') === 1;
-				begin = !resMap['paragon'].value;
+				begin = resMap['paragon'].value < 100;
 			}
 
 			this.setTrait('metallurgist');
@@ -5660,7 +5664,7 @@ window.run = function() {
 			}
 
 			if (name === 'eludium' && limited && !aboveTrigger) {
-				if (huntTime && game.time.getCFU("ressourceRetrieval").on > 8 - renaissance * 2) {
+				if (huntTime && game.time.getCFU("ressourceRetrieval").on > 8 - renaissance) {
 					amount = Math.max(amount, 1);
 				}
 			}
@@ -5708,7 +5712,7 @@ window.run = function() {
 				aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
 				let aliChanceTick = Math.min(aliChance, 1) * 0.2;
 				prod = (aliChanceTick + alicornTick) * tcRefineRatio;
-				if (game.getEffect('antimatterProduction') > 20) {prod *= 4;}
+				if (game.getEffect('antimatterProduction') > 25 && resPercent('unobtainium') < 0.8) {prod *= 20;}
 			}
 			if (res.craftable) {
 				let minProd = Number.MAX_VALUE;
