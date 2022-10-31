@@ -16,8 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	// 	const version = 'V15.103';
-	const version = '🎃';
+	const version = 'V15.106';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -281,8 +280,8 @@ window.run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
-			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概330年左右 130猫口 + 新约外传',
-			'summary.auto.ksHelp4': '小喵选项 => 恢复初始默认配置，可以恢复到初始推荐的配置',
+			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概300年左右 130猫口 + 新约外传',
+			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需勾大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用',
@@ -1670,6 +1669,7 @@ window.run = function() {
 					if (!geodesy && resMap['iron'].perTickCached < 50) {
 						maxKS = Math.round(maxKS * 0.25);
 						if (resPercent('coal') > 0.97) {maxKS = 0;}
+						if (game.science.get('drama').unlocked && resPercent('coal') > 0.9) {maxKS = 1;}
 					}
 					if (tt < 9 && geodesy) {
 						maxKS = Math.max(50 - tt, maxKS);
@@ -1680,7 +1680,6 @@ window.run = function() {
 							}
 						}
 					}
-					if (!game.science.get('drama').unlocked && !geodesy && resPercent('coal') > 0.5) {maxKS = 1;}
 					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
 					if (maxKS > 1 && resPercent('gold') >= 1) {maxKS = 1;}
 					if (!woodcutter) {maxKS = 0;}
@@ -2444,10 +2443,6 @@ window.run = function() {
 					}
 					// 太阳革命
 					if (!revolutionRatio && resMap['faith'].maxValue >= 750 && Religion.faith > 1000) {noop.push('caravanserai');}
-					// 缺电过滤碳封存
-					if (game.resPool.energyProd - game.resPool.energyCons < 15) {
-						noop = noop.concat(['carbonSequestration', 'pumpjack']);
-					}
 					// 过滤钛升级
 					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.02 && resMap['ship'].value < 50 && revolutionRatio > 2.4) {
 						noop = noop.concat(['titaniumAxe','silos','astrolabe','titaniumBarns','alloyAxe','alloyArmor','alloyBarns','alloyWarehouses']);
@@ -2487,7 +2482,7 @@ window.run = function() {
 					if (game.bld.getBuildingExt('factory').meta.val < 3) {
 						noop = noop.concat(['factoryLogistics', 'refrigeration', 'barges']);
 						if (resPercent('oil') > 0.7) {
-							if (game.getResourcePerTick('oil', true) > 0.5 || !geodesy) {noop.push('pumpjack');}
+							if (Production > 1.5) {noop.push('pumpjack');}
 							noop = noop.concat(['oilDistillation','oilRefinery']);
 						}
 					}
@@ -3098,7 +3093,7 @@ window.run = function() {
 					calciner.max = (calcinerMax === -1) ? amt : Math.min(amt, calcinerMax);
 					if (!game.workshop.get('fluidizedReactors').researched) {calciner.max = 20;}
 					if (!game.workshop.get('oxidation').researched) {calciner.max = 5 + revolutionRatio + 0.2 * Production;}
-					items['warehouse'].max = 45 - 200 * priceRatio + 50 * (priceRatio < -0.07) + 5 * (science.get('electricity').researched);
+					items['warehouse'].max = 45 - 200 * priceRatio + 50 * (priceRatio < -0.07) + 5 * (science.get('electricity').researched) + Production;
 				}
 
 				let calcinerMeta = game.bld.getBuildingExt('calciner').meta;
@@ -3448,7 +3443,7 @@ window.run = function() {
 			if (autoDefault) {
 				lessTri = Workshop.get('orbitalGeodesy').researched;
 				ironPer = resPercent('iron') === 1;
-				begin = resMap['paragon'].value < 100;
+				begin = game.prestige.getParagonProductionRatio() < 1.5;
 			}
 
 			this.setTrait('metallurgist');
@@ -3536,6 +3531,11 @@ window.run = function() {
 		},
 		observeStars: function () {
 			let calendar = game.calendar;
+			let a = game.ironWill || !activitySummary.other['auto.changeLeader'];
+			if (a) {
+				let Res = resMap['catnip'];
+				game.resPool.addRes(Res, Res.perTickCached + 10);
+			}
 			if (calendar.observeBtn != null) {
 				let sci = resMap['science'].value;
 				let star = resMap['starchart'].value;
@@ -3548,7 +3548,7 @@ window.run = function() {
 				if (afterStar) {msg += '，获得了 ' + afterStar + ' 个星图';}
 				iactivity('act.observe', [msg], 'astronomicalEventFilter');
 				let ratio = 1;
-				if (Math.random() < 0.15) {
+				if (Math.random() < 0.2 && a) {
 					let node = dojo.byId("observeButton");
 					calendar.observeBtn = dojo.create("input", {
 						id: "observeBtn",
@@ -3561,10 +3561,6 @@ window.run = function() {
 				storeForSummary('science', afterSci * ratio, 'resGain');
 				storeForSummary('starchart', afterStar * ratio, 'resGain');
 				storeForSummary('stars', 1);
-			}
-			if (game.ironWill || !activitySummary.other['auto.changeLeader']) {
-				let Res = resMap['catnip'];
-				game.resPool.addRes(Res, Res.perTickCached + 10);
 			}
 		},
 		hunt: function () {
@@ -4874,7 +4870,7 @@ window.run = function() {
 					if (id === 'harbor') {
 						let harborVal = game.bld.getBuildingExt(id).meta.val;
 						let reactorVal = game.bld.getBuildingExt('reactor').meta.val;
-						if (harborVal < 6 && revolution < 1) {return 1;}
+						if (revolution < 1 && harborVal < 6 + 2 * (revolution > 0.1)) {return 1;}
 						if (harborVal < 15) {
 							msgSummary('harbor');
 							halfCount = true;
@@ -5365,10 +5361,11 @@ window.run = function() {
 							let price = (cacheCompedium || meta.prices[1].val);
 							autoMax = Math.ceil((price - resValue) / ratio);
 							let resVal = this.getValueAvailable('manuscript', true);
-							let scienceCheck = scienceVal > 1e4 * autoMax || scienceTri >= 1;
+							// let scienceCheck = scienceVal > 1e4 * autoMax || scienceTri >= 1;
+							let scienceCheck = scienceVal > 1e4 * autoMax;
 							if (resVal > autoMax * 50 && autoMax >= 1 && scienceCheck) {
 								cache.science = (cacheCompedium > 0) ? cache.science : meta.label;
-								if (scienceTri < 1) {msgScience('compedium');}
+								if (scienceTri <= 1) {msgScience('compedium');}
 								cache.resources['manuscript'] = 0;
 								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 1) {
@@ -9236,11 +9233,14 @@ window.run = function() {
 			message('可爱的猫猫珂学家提示设置库存会影响挂机效率');
 		}
 		// 提示网络缓存
-		if (location.origin.indexOf('cheney') < 0 && location.origin.indexOf('lolita') < 0 && !options.net) {
-			setTimeout(()=> {
-				message('珂学家在Cheney的网站可以在没网的时候加载');
-				options.net = true;
-			}, 1000);
+		if (!options.net) {
+			options.net = true;
+			msgSummary('ksHelp4');
+			if (location.origin.indexOf('cheney') < 0 && location.origin.indexOf('lolita') < 0) {
+				setTimeout(()=> {
+					message('珂学家在Cheney的网站可以在没网的时候加载');
+				}, 1000);
+			}
 		}
 	};
 
