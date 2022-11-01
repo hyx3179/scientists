@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.106';
+	const version = 'V15.107';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2166,8 +2166,8 @@ window.run = function() {
 				if (!glass && resMap['science'].maxValue > 65e3) {copyBuilds['scholasticism'].enabled = false;}
 			}
 			// 圣殿骑士
-			if (!game.ironWill && game.getEffect('faithRatioReligion') < 0.2) {
-				copyBuilds['templars'].enabled = false;
+			if (!game.ironWill && game.getEffect('faithRatioReligion') < 0.8) {
+				if (!game.getEffect('unobtainiumPerTickSpace')) {copyBuilds['templars'].enabled = false;}
 				if (!Religion.getRU("templars").on && resMap['faith'].value > 3e3 && Religion.faith > 75e3) {msgSummary('templars');}
 				if (tt > 8 && !game.getEffect('calcinerRatio')) {
 					copyBuilds['sunAltar'].enabled = false;
@@ -3288,9 +3288,10 @@ window.run = function() {
 					let spaceStation = 3e3 * Math.pow(1.12, station) * (1 + 0.2 * vitruvianFeline + 8 * !solarRevolution);
 					let FiveSattelite = 2300 * Math.pow(1.12, sattelite);
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {builds['sattelite'].max = sattelite + 1;}
+					if (!unobtainiumTick) {builds['sattelite'].max = 9 + 6 * blackSky;}
 					// 反应堆
 					let one = game.getEffect('productionRatio') < 0.6 && unobtainiumTri > 0 && solarRevolution > 5;
-					if ((starchartVal < FiveSattelite && solarRevolution < 2 && (!game.space.meta[0].meta[3].val || sattelite))
+					if ((starchartVal < FiveSattelite && solarRevolution < 2 && sattelite && !game.space.meta[0].meta[3].val)
 						|| !game.workshop.get('orbitalGeodesy').researched || one) {builds['sattelite'].max = 0;}
 					if (starchartVal > spaceStation) {bldSpaceStation.max = station + 1;}
 					if (starchartVal < spaceStation || game.challenges.isActive("energy") || !unobtainiumTick) {
@@ -3324,7 +3325,6 @@ window.run = function() {
 					let uranium = game.getResourcePerTick('uranium', true);
 					// 月球前哨
 					if ((unobtainiumTick && uranium < 0.7) || resPercent('unobtainium') === 1) {builds['moonOutpost'].max = 0;}
-					if (!unobtainiumTick) {builds['sattelite'].max = 9 + 6 * blackSky;}
 					let storage = game.prestige.getParagonStorageRatio();
 					// 月球基地
 					if (unobtainiumTri < 0.9) {
@@ -4916,7 +4916,7 @@ window.run = function() {
 								let production = game.getEffect('productionRatio');
 								if (revolution && Workshop.get("nuclearSmelters").researched) {
 									if (production > 0.6 || geodesy) {
-										if (faVal < 11 + production - 2 * vitruvianFeline) {return count;}
+										if (faVal < 12 + production - 3 * vitruvianFeline) {return count;}
 									}
 								}
 								count *= 0.7 + (2 + 3 * (faVal > 6)) * priceRatio;
@@ -5709,7 +5709,7 @@ window.run = function() {
 				aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
 				let aliChanceTick = Math.min(aliChance, 1) * 0.2;
 				prod = (aliChanceTick + alicornTick) * tcRefineRatio;
-				if (game.getEffect('antimatterProduction') > 25 && resPercent('unobtainium') < 0.8) {prod *= 20;}
+				if (game.getEffect('antimatterProduction') > 25 && resPercent('unobtainium') < 0.7) {prod *= 20;}
 			}
 			if (res.craftable) {
 				let minProd = Number.MAX_VALUE;
@@ -6581,7 +6581,7 @@ window.run = function() {
 					if (solar && !basilica) {return false;}
 					// 待定采矿钻
 					let cal = game.getEffect('calcinerRatio');
-					if ((cal && cal < 2.7) || this.craftManager.getUnResearched("concreteHuts") || (game.getEffect('productionRatio') && titaniumVal * 1.35 < resMap['plate'].value && resPercent('titanium') < 0.93)) {
+					if ((cal && cal < 2.7) || this.craftManager.getUnResearched("concreteHuts") || (game.getEffect('productionRatio') && titaniumVal * 1.35 < resMap['plate'].value && resPercent('titanium') < 0.93) || resPercent('iron') < 0.2) {
 						doTrade = true;
 					}
 				}
