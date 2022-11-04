@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.109';
+	const version = 'V15.110';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2168,7 +2168,7 @@ window.run = function() {
 			}
 			// 圣殿骑士
 			if (!game.ironWill && game.getEffect('faithRatioReligion') < 0.8) {
-				if (!resMap['eludium'].value && tt < 7) {copyBuilds['templars'].enabled = false;}
+				if (resMap['unobtainium'].maxValue < 350 && tt < 7) {copyBuilds['templars'].enabled = false;}
 				if (!Religion.getRU("templars").on && resMap['faith'].value > 3e3 && Religion.faith > 75e3) {msgSummary('templars');}
 				if (tt > 8 && !game.getEffect('calcinerRatio')) {
 					copyBuilds['sunAltar'].enabled = false;
@@ -2893,7 +2893,7 @@ window.run = function() {
 				if (!theology) {
 					let pastureMeta = game.bld.getBuildingExt('pasture').meta;
 					if (pastureMeta.val > 10) {
-						pasture.max = 6 + game.bld.getBuildingExt('library').meta.val;
+						pasture.max = (1 + 3 * priceRatio) * (6 - Production + game.bld.getBuildingExt('library').meta.val);
 					}
 					let hutVal = game.bld.getBuildingExt('hut').meta.val - 2;
 					let library = items['library'];
@@ -3037,7 +3037,7 @@ window.run = function() {
 				} else {
 					let religionRU = !Religion.getRU("sunAltar").on || !Religion.getRU("sunAltar").on
 						|| !Religion.getRU("sunAltar").on
-						|| priceRatio < -0.04 && vitruvianFeline
+						|| priceRatio < -0.04 && !vitruvianFeline
 						|| (revolutionRatio > 3 && !sattelite && game.getEffect('faithRatioReligion') < 0.2);
 					if (religionRU && revolutionRatio) {
 						temple.max = 25 - 8.5 * (priceRatio < 0) - 2 * (revolutionRatio > 3) - 4 * hasLeader;
@@ -3134,7 +3134,8 @@ window.run = function() {
 				let biolab = items['biolab'];
 				if (!geodesy && !orbitalGeodesy) {
 					if (!iw && mansion.max) {
-						mansion.max = 12 - priceRatio;
+						mansion.max = 12 - priceRatio - Production;
+						if (Production && starchartVal > 100) {mansion.max -= 7;}
 						items['quarry'].max = revolutionRatio + Production + 5;
 						if (calciner.max === 25) {mansion.max = 0;}
 					}
@@ -3174,11 +3175,11 @@ window.run = function() {
 				// 广播塔
 				let broadcastTower = items['broadcastTower'];
 				if (game.space.getProgram('moonMission').on && resPercent('titanium') > 0.9) {
-					if (resPercent('titanium') !== 1 && resMap['starchart'].value < 1e6) {
+					if (resPercent('titanium') !== 1 && starchartVal < 1e6) {
 						let bTowerMax = broadcastTower.max;
 						broadcastTower.max = (bTowerMax === -1) ? 20 : Math.min(20, bTowerMax);
 					}
-				} else if (resMap['starchart'].value < 1e6) {
+				} else if (starchartVal < 1e6) {
 					broadcastTower.max = 8 + 100 * !revolutionRatio;
 				}
 				if (starchartVal > 1e4 && !spaceManufacturing && !game.calendar.festivalDays && !iw && Production > 1) {
@@ -3293,8 +3294,9 @@ window.run = function() {
 					let Production = game.prestige.getParagonProductionRatio();
 					let unobtainiumTri = resPercent('unobtainium');
 					let station = game.space.getBuilding('spaceStation').val;
-					let spaceStation = 3e3 * Math.pow(1.12, station) * (1 + 0.2 * vitruvianFeline + 8 * !solarRevolution);
-					let FiveSattelite = 2300 * Math.pow(1.12, sattelite);
+					let moreKitten = - 0.6 * !vitruvianFeline * (game.getEffect('hutPriceRatio') < -1);
+					let spaceStation = 3e3 * Math.pow(1.12, station) * (0.7 + 0.5 * vitruvianFeline + 8 * !solarRevolution + moreKitten);
+					let FiveSattelite = 2300 * Math.pow(1.12, sattelite) * (1 - moreKitten);
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {builds['sattelite'].max = sattelite + 1;}
 					if (!unobtainiumTick) {builds['sattelite'].max = 9 + 6 * blackSky;}
 					// 反应堆
@@ -3321,8 +3323,8 @@ window.run = function() {
 					}
 					// 电梯
 					if (!game.getEffect('lunarOutpostRatio') && unobtainiumTri !== 1) {
-						builds['spaceElevator'].max = 8 + Production - 4 * (resMap['unobtainium'].maxValue < 500);
-						if ((!vitruvianFeline && unobtainiumTri < 0.5)
+						builds['spaceElevator'].max = 7 + Production - 6 * (resMap['unobtainium'].maxValue < 350) + vitruvianFeline;
+						if ((!vitruvianFeline && unobtainiumTri < 0.5 - 10 * priceRatio)
 							|| (!solarRevolution && !game.ironWill && !Workshop.get('astrophysicists').researched)) {
 							builds['spaceElevator'].max = 0;
 						}
@@ -4833,7 +4835,7 @@ window.run = function() {
 				// falls through
 				case 'lumberMill':
 					if (id === 'lumberMill') {
-						if (game.bld.getBuildingExt(id).meta.val < 55 - 12 * vitruvianFeline - 10 * !geodesy) {
+						if (game.bld.getBuildingExt(id).meta.val < 55 - 10 * !geodesy + 200 * priceRatio) {
 							if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.1 && resMap['iron'].maxValue > 1200) {
 								count = 0;
 							}
@@ -7447,7 +7449,8 @@ window.run = function() {
 				css: {display: 'none', paddingLeft: '20px'}
 			});
 
-			if (toggleName === 'distribute') {return list;}
+			let filter = ['distribute', 'space','time'];
+			if (filter.indexOf(toggleName) !== -1) {return list;}
 			let disableAll = $('<div/>', {
 				id: 'toggle-all-items-' + toggleName,
 				text: i18n('ui.disable.all'),
