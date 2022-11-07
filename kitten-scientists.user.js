@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.111';
+	const version = 'V15.112';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -282,7 +282,7 @@ window.run = function() {
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
 			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概300年左右 130猫口 + 新约外传',
-			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需勾大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
+			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需外面大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用，氪金就能变强',
@@ -1668,11 +1668,15 @@ window.run = function() {
 				if (name === 'geologist') {
 					let geodesy = game.workshop.get("geodesy").researched;
 					if (tt > 9 && !anarchy) {maxKS = Math.min(maxKS, Math.max(30, 44 - tt));}
-					if (!geodesy && resMap['iron'].perTickCached < 50) {
-						maxKS = Math.round(maxKS * 0.25 + tt * 0.01);
-						if (resPercent('coal') > 0.97) {maxKS = 0;}
-						if (game.science.get('drama').unlocked && resPercent('coal') > 0.9) {maxKS = 1;}
+					if (!geodesy) {
+						if (resMap['iron'].perTickCached < 20) {
+							maxKS = Math.round(maxKS * 0.25 + tt * 0.01);
+							if (resPercent('coal') > 0.97) {maxKS = 0;}
+						} else {
+							maxKS = Math.min(20, maxKS);
+						}
 					}
+					if (game.science.get('drama').unlocked && resPercent('coal') > 0.9) {maxKS = 1;}
 					if (tt < 9 && geodesy) {
 						maxKS = Math.max(50 - tt, maxKS);
 						if (val >= 40 && val < 50) {
@@ -1689,7 +1693,7 @@ window.run = function() {
 				if (name === 'scholar') {
 					let moreScholar = 0.28;
 					if (!resMap['coal'].value && val > 2) {maxKS *= 0.4;}
-					if (!resMap['starchart'].value && !atheism && resMap['science'].value > 3e3 + 1e4 * (resMap['faith'].value > 0)) {maxKS = 0;}
+					if (!resMap['starchart'].value && !atheism && resMap['science'].value > 3e3 + 1e4 * (val > 4)) {maxKS = 0;}
 					if (game.workshop.get('rotaryKiln').researched) {
 						moreScholar = 0.45;
 					}
@@ -1705,7 +1709,9 @@ window.run = function() {
 					}
 				}
 				if (name === 'miner') {
-					if (!game.science.get('currency').researched && val > 1 && tt) {maxKS = Math.round(maxKS * 0.3);}
+					if (!game.science.get('writing').researched && val > 1 && tt) {
+						maxKS = Math.round(maxKS * 0.3 + 0.4 * game.science.get('currency').researched);
+					}
 					if (!game.science.get('civil').researched && resMap['kittens'].value < 11 && val > 1) {maxKS = 1;}
 					if (game.workshop.get('geodesy').researched) {
 						if (val < Math.min(25, maxKS) && !scholar) {
@@ -2169,7 +2175,7 @@ window.run = function() {
 			}
 			// 圣殿骑士
 			if (!game.ironWill && game.getEffect('faithRatioReligion') < 0.8) {
-				if (resMap['unobtainium'].maxValue < 350 && tt < 7) {copyBuilds['templars'].enabled = false;}
+				if (resMap['unobtainium'].maxValue < 350 || tt > 14) {copyBuilds['templars'].enabled = false;}
 				if (!Religion.getRU("templars").on && resMap['faith'].value > 3e3 && Religion.faith > 75e3) {msgSummary('templars');}
 				if (tt > 8 && !game.getEffect('calcinerRatio')) {
 					copyBuilds['sunAltar'].enabled = false;
@@ -2448,12 +2454,15 @@ window.run = function() {
 					// 太阳革命
 					if (!revolutionRatio && resMap['faith'].maxValue >= 750 && Religion.faith > 1000) {noop.push('caravanserai');}
 					// 过滤钛升级
-					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.02 && resMap['ship'].value < 50 && revolutionRatio > 2.4) {
-						noop = noop.concat(['titaniumAxe','silos','astrolabe','titaniumBarns','alloyAxe','alloyArmor','alloyBarns','alloyWarehouses']);
+					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.02 && resMap['ship'].value < 50 && revolutionRatio > 1.6) {
+						noop.push('titaniumAxe');
+						if (revolutionRatio > 2.26) {
+							noop = noop.concat(['titaniumAxe','silos','astrolabe','titaniumBarns','alloyAxe','alloyArmor','alloyBarns','alloyWarehouses']);
+						}
 					}
 					// 过滤测地学
 					isFilter = revolutionRatio > 6 || orbitalGeodesy;
-					if (isFilter && !game.space.meta[0].meta[3].val && resStarchartVal.value < 1700) {
+					if (isFilter && !game.space.meta[0].meta[3].val && resStarchartVal < 1700) {
 						if (!resMap['unobtainium'].value) {noop = noop.concat(['geodesy','seti']);}
 						if (!orbitalGeodesy) {
 							if (game.getEffect('calcinerRatio') > 1) {noop.push('fuelInjectors');}
@@ -2466,9 +2475,9 @@ window.run = function() {
 						// 筒仓
 						noop.push('silos');
 						// 没测地学过滤 钛金锯
-						if (revolutionRatio < 6 && resStarchartVal.value > 300) {
+						if (revolutionRatio < 6 && resStarchartVal > 300) {
 							noop.push('titaniumSaw');
-							noop.push('pumpjack');
+							if (!game.getEffect('calcinerRatio')) {noop.push('pumpjack');}
 						}
 						// 印刷机 光刻机
 						if (resMap['oil'].value < 7.5e4 && !orbitalGeodesy) {
@@ -2529,7 +2538,7 @@ window.run = function() {
 						noop = noop.concat(['solarSatellites', 'satelliteRadio', 'assistance']);
 					}
 					// 星图产出
-					if (resStarchartVal.perTickCached) {
+					if (resStarchart.perTickCached) {
 						if (resStarchartVal.perTickCached < 1 && game.challenges.isActive('blackSky')) {
 							noop = noop.concat(['geodesy']);
 						}
@@ -2540,11 +2549,11 @@ window.run = function() {
 					let magneto = game.bld.getBuildingExt('magneto').meta;
 					if (magneto.val && magneto.on === magneto.val) {noop.push('carbonSequestration');}
 					// 钍反应堆
-					if (resMap['thorium'].value < 1.1e5 || game.resPool.energyProd - game.resPool.energyCons > 800) {
+					if (resMap['thorium'].value < 2e5 || game.resPool.energyProd - game.resPool.energyCons > 800) {
 						noop.push('thoriumReactors');
 						if (Production > 2) {
 							noop.push('amBases');
-							if (resStarchartVal.value < 1e5) {
+							if (resStarchartVal < 2e5) {
 								noop.push('eludiumReflectors');
 								noop.push('eludiumCracker');
 							}
@@ -2553,7 +2562,7 @@ window.run = function() {
 						if (hut && hut > - 0.07) {noop.push('astrophysicists');}
 					}
 					// 天体观测仪
-					isFilter = resMap['science'].maxValue > 120e3 + 70 * geodesy && resStarchartVal.value < 2075;
+					isFilter = resMap['science'].maxValue > 120e3 + 70e3 * geodesy && resStarchartVal < 2075;
 					if (isFilter || resMap['titanium'].value < 5 + 10 * revolutionRatio) {
 						noop = noop.concat(['astrolabe','unobtainiumReflectors','lhc','titaniumMirrors']);
 					}
@@ -4017,7 +4026,7 @@ window.run = function() {
 			if (mint.on !== mint.val && resMap['manpower'].maxValue > 4e4) {
 				mint.on = mint.val;
 			}
-			if (mint.on > 1 && resMap['manpower'].maxValue < 22e3 && !game.challenges.isActive("pacifism")) {
+			if (mint.on > 1 && resMap['manpower'].maxValue < 19e3 && !game.challenges.isActive("pacifism")) {
 				if (!game.opts.enableRedshift) {
 					mint.on = 0;
 					msg('mint');
@@ -4944,7 +4953,7 @@ window.run = function() {
 							if (faVal) {
 								let production = game.getEffect('productionRatio');
 								if (revolution && Workshop.get("nuclearSmelters").researched) {
-									if (production > 0.6 || geodesy) {
+									if (production > 0.6 || (geodesy && priceRatio > -0.08)) {
 										if (faVal < 12 + production - 3 * vitruvianFeline) {return count;}
 									}
 								}
@@ -5460,7 +5469,7 @@ window.run = function() {
 							let scienceCheck = scienceVal > 2.5e4 * autoMax || scienceTri >= 1;
 							if (resVal > autoMax * 25 && autoMax >= 1 && scienceCheck) {
 								cache.science = meta.label;
-								msgScience('blueprint');
+								if (scienceTri < 1) {msgScience('blueprint');}
 								cache.resources['manuscript'] = 0;
 								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 1) {
@@ -5632,14 +5641,17 @@ window.run = function() {
 						}
 					}
 					// 流化反应器
-					if (flu && !cacheUpg.cache) {
-						let amt = Math.ceil((200 - alloyVal) / ratio);
-						// 2分钟 5 * 60 * 2
-						let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 600 || calVal > 13;
-						if (amt > 0 && calVal > 6 && b) {
-							options.auto.cache.resUpg['alloy'] = 200;
-							cacheUpg.cache = 'fluidizedReactors';
-							activity(i18n('craft.CacheSteel', ['流化反应器']));
+					if (flu) {
+						let cache = cacheUpg.cache;
+						if (!cache || cache === 'geodesy') {
+							let amt = Math.ceil((200 - alloyVal) / ratio);
+							// 2分钟 5 * 60 * 2
+							let b = titanium > amt * 10 || resMap['alloy'].value > 100 || (amt * 10 - titanium) / resMap['titanium'].perTickCached < 600 || calVal > 13;
+							if (amt > 0 && calVal > 6 && b) {
+								options.auto.cache.resUpg['alloy'] = 200;
+								cacheUpg.cache = 'fluidizedReactors';
+								activity(i18n('craft.CacheSteel', ['流化反应器']));
+							}
 						}
 					}
 					let Drill = this.getUnResearched('miningDrill');
@@ -5672,7 +5684,11 @@ window.run = function() {
 						if (!ti || (ti && resMap['titanium'].value - price > ti.stock)) {
 							amount = amt;
 							force = true;
-							if (Religion.getSolarRevolutionRatio() < 5.5 || price > 25) {activity(i18n('craft.forceSteel', [workshopMeta.label]));}
+							if (Religion.getSolarRevolutionRatio() < 5.5 || price > 25) {
+								if (!options.auto.upgrade.items.upgrades.cache) {
+									activity(i18n('craft.forceSteel', [workshopMeta.label]));
+								}
+							}
 						}
 					}
 				};
@@ -8028,14 +8044,15 @@ window.run = function() {
 					id: 'items-list-policies',
 					css: {display: 'none', paddingLeft: '20px'}
 				});
-				let autoList = $('<ul/>', {
-					id: '自动推荐政策',
-					css: {display: 'none', paddingLeft: '20px'}
+				let autoList = $('<label/>', {
+					'for': 'toggle-limited-autoPolicy',
+					text: '自动推荐政策(待更新)'
 				});
+				// todo
 
 				let wikiButton = $('<a/>', {
 					id: 'toggle-upgrade-policies-wiki',
-					text: '百科政策推荐',
+					text: '政策推荐',
 					href: 'https://petercheney.gitee.io/baike/?file=000-%E7%8C%AB%E5%9B%BD%E8%90%8C%E6%96%B0%E6%8C%87%E5%AF%BC/02-%E6%94%BF%E7%AD%96%E6%95%88%E6%9E%9C%E8%A7%A3%E6%9E%90#%E5%86%85%E4%BA%8B',
 					target: '_blank',
 					css: Css
