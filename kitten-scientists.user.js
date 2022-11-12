@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.113';
+	const version = 'V15.114';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -3235,7 +3235,7 @@ window.run = function() {
 						} else {
 							items['aiCore'].max = 0;
 						}
-						items['chronosphere'].max = 18;
+						items['chronosphere'].max = 20;
 					}
 				}
 				// 黑暗天空造煅烧炉
@@ -3317,14 +3317,23 @@ window.run = function() {
 						if (!builds['heatsink'].enabled) {
 							$('#toggle-heatsink').click();
 						}
-						if (!options.auto.timeCtrl.enabled) {
+						let Auto = options.auto;
+						let timeCtrl = Auto.timeCtrl;
+						if (!timeCtrl.enabled) {
 							$('#toggle-timeCtrl').click();
 						}
-						if (!options.auto.timeCtrl.items.timeSkip.enabled) {
+						if (!timeCtrl.timeCtrl.items.timeSkip.enabled) {
 							$('#toggle-timeSkip').click();
 						}
-						if (!options.auto.build.items.chronosphere.enabled) {
+						if (!Auto.build.items.chronosphere.enabled) {
 							$('#toggle-chronosphere').click();
+						}
+						let worship = Auto.faith.items;
+						if (!worship.marker.enabled) {
+							$('#toggle-marker').click();
+						}
+						if (!worship.blackPyramid.enabled) {
+							$('#toggle-blackPyramid').click();
 						}
 					}
 				} else if (!trigger && keepStar && !game.space.meta[0].meta[3].val && starchartVal < 2400) {
@@ -5820,10 +5829,10 @@ window.run = function() {
 			if (prod <= 0 && ignore) {return 'ignore';}
 			if (!preTrade) {
 				let ratio = 1;
-				if (name === 'unobtainium' && Religion.getSolarRevolutionRatio() > 9) {
-					ratio = 0.75 - Math.min(0.4, 2 * game.getEffect('shatterTCGain'));
-					if (game.calendar.cycle === 5 && resPercent(name) > 0.8) {ratio -= 0.25;}
-				}
+				// if (name === 'unobtainium' && Religion.getSolarRevolutionRatio() > 9) {
+				// 	ratio = 0.75 - Math.min(0.4, 2 * game.getEffect('shatterTCGain'));
+				// 	if (game.calendar.cycle === 5 && resPercent(name) > 0.8) {ratio -= 0.25;}
+				// }
 				prod += this.cacheManager.getResValue(name) * ratio;
 			}
 			return prod;
@@ -6615,15 +6624,20 @@ window.run = function() {
 			}
 			let output = this.getAverageTrade(race);
 			let profit = 0;
+			let season = game.calendar.season;
 			for (let prod in output) {
 				let res = resMap[prod];
 				tick = this.craftManager.getTickVal(res);
-				if (tick === 'ignore' || !tick || prod === 'catnip') {continue;}
+				if (tick === 'ignore' || !tick) {continue;}
+				if (prod === 'catnip') {
+					if (resPercent('catnip') > 0.1 || season < 2) {
+						continue;
+					}
+				}
 				if (tick < 0) {doTrade = true;}
 				profit += (res.maxValue > 0) ? Math.min(output[prod], Math.max(res.maxValue - res.value, 0)) / tick : output[prod] / tick;
 			}
 			let prof = true;
-			let season = game.calendar.season;
 			let spice = resMap['spice'].value + 100 * game.getResourcePerTick('spice', true) < 0;
 			let titaniumTri = resPercent('titanium');
 			if (name === 'nagas') {
