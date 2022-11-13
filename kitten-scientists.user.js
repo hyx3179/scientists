@@ -3322,7 +3322,7 @@ window.run = function() {
 						if (!timeCtrl.enabled) {
 							$('#toggle-timeCtrl').click();
 						}
-						if (!timeCtrl.timeCtrl.items.timeSkip.enabled) {
+						if (!timeCtrl.items.timeSkip.enabled) {
 							$('#toggle-timeSkip').click();
 						}
 						if (!Auto.build.items.chronosphere.enabled) {
