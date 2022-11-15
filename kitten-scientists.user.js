@@ -2622,7 +2622,7 @@ window.run = function() {
 					let ratio = (Science.get('astronomy').researched || (resMap['burnedParagon'].value < 1e4 && resMap['culture'].value < 400) || game.getEffect('priceRatio') > -0.03) ? 1 : 3;
 					// let recommendPolicies = ["clearCutting",];
 					let policiesList = options.policies;
-					if (upgrades.policies.auto.enabled) {
+					/* if (upgrades.policies.auto.enabled) {
 						let normal = "sustainability";
 						// "extravagance" "epicurianism" "isolationism"
 						/* let a = ["liberty", "republic", "liberalism", "diplomacy", "culturalExchange", "epicurianism", "extravagance","mysticism","clearCutting", "fullIndustrialization"];
@@ -2640,7 +2640,7 @@ window.run = function() {
 
 						}
 						*/
-					}
+					// }
 
 					// A **little** more efficient than game.science.getPolicy if options.policies is right order
 					for (i in policiesList) {
