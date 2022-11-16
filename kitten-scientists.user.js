@@ -753,9 +753,9 @@ window.run = function() {
 			upgrade: {
 				enabled: false,
 				items: {
-					techs:     {enabled: true, limited: true},
-					upgrades:  {enabled: true, limited: true, cache: false},
-					policies:  {enabled: false},
+					techs:     {enabled: true,  limited: true},
+					upgrades:  {enabled: true,  limited: true, cache: false},
+					policies:  {enabled: false, auto: false },
 					races:     {enabled: true},
 					missions:  {enabled: true, subTrigger: 4},
 					buildings: {enabled: true},
@@ -2620,47 +2620,65 @@ window.run = function() {
 					const length = policies.length;
 					const toResearch = [];
 					let ratio = (Science.get('astronomy').researched || (resMap['burnedParagon'].value < 1e4 && resMap['culture'].value < 400) || game.getEffect('priceRatio') > -0.03) ? 1 : 3;
-					// let recommendPolicies = ["clearCutting",];
 					let policiesList = options.policies;
-					/* if (upgrades.policies.auto.enabled) {
-						let normal = "sustainability";
-						// "extravagance" "epicurianism" "isolationism"
-						/* let a = ["liberty", "republic", "liberalism", "diplomacy", "culturalExchange", "epicurianism", "extravagance","mysticism","clearCutting", "fullIndustrialization"];
-						let b = ["liberty", "authocracy", "isolationism", "zebraRelationsAppeasement", "cityOnAHill", "epicurianism", "extravagance""mysticism", "clearCutting", "sustainability"]
-						if (priceRatio) {
-							if (resMap['burnedParagon'].value > 1e4) {
-							monarchy
+					if (upgrades.policies.auto) {
+						policiesList = '';
+						if (!game.challenges.anyChallengeActive()) {
+							policiesList = ["clearCutting","outerSpaceTreaty",'extravagance','epicurianism'];
+							let first = 'liberty';
+							let environment = 'sustainability';
+							let leader = 'authocracy';// autocracy
+							let zebras = '';
+							let trade = 'isolationism';
+							let tradeNext = 'cityOnAHill';
+							let philosophy = 'rationality';
+							// "extravagance" "epicurianism" "isolationism"
+							// let a = ["liberty", "republic", "liberalism", "diplomacy", "culturalExchange", "epicurianism", "extravagance","mysticism","clearCutting", "fullIndustrialization"];
+							//let b = ["liberty", "authocracy", "isolationism", "zebraRelationsAppeasement", "cityOnAHill", "epicurianism", "extravagance""mysticism", "clearCutting", "sustainability"]
+							if (resMap['ship'].value > 50) {
+								zebras = 'zebraRelationsAppeasement';
+								if (game.diplomacy.get('leviathans').unlocked) {
+									zebras = 'zebraRelationsBellicosity';
+								}
 							}
-							mysticism
-						 if (priceRatio < -0.06) {
-
-						 }
-						} else {
-						'tradition',sustainability
-
+							if (priceRatio) {
+								philosophy = 'mysticism';
+								if (priceRatio < -0.06) {
+									zebras = '';
+									environment = 'fullIndustrialization';
+									trade = 'diplomacy';
+									tradeNext = 'knowledgeSharing';
+								}
+								if (resMap['burnedParagon'].value > 1e4) {
+									first = 'tradition';
+									leader = 'monarchy';
+									tradeNext = 'culturalExchange';
+								}
+							} else {
+								first = 'tradition';
+							}
+							policiesList.push(first, environment, leader, trade, tradeNext, philosophy);
+							if (zebras) {
+								policiesList.push(zebras);
+							}
+							// console.log(policiesList)
 						}
-						*/
-					// }
+					 }
 
-					// A **little** more efficient than game.science.getPolicy if options.policies is right order
+					let policyMetaCache = game.science.policyMetaCache;
 					for (i in policiesList) {
 						let targetName = policiesList[i];
-						for (let j in policies) {
-							j = parseInt(j); // fuck js
-							let policy = policies[(j + lastIndex) % length];
-							if (policy.name === targetName) {
-								lastIndex = j + lastIndex + 1;
-								if (!policy.researched) {
-									if (policy.blocked) {break;}
-									if (policy.unlocked) {
-										if (policy.requiredLeaderJob === undefined ||
-											(game.village.leader != null && game.village.leader.job === policy.requiredLeaderJob)
-										) {
-											toResearch.push(policy);
-										}
+						let policy = policyMetaCache[targetName];
+						if (policy) {
+							if (!policy.researched) {
+								if (policy.blocked) {continue;}
+								if (policy.unlocked) {
+									if (policy.requiredLeaderJob === undefined ||
+										(game.village.leader != null && game.village.leader.job === policy.requiredLeaderJob)
+									) {
+										toResearch.push(policy);
 									}
 								}
-								break;
 							}
 						}
 					}
@@ -3435,7 +3453,7 @@ window.run = function() {
 
 					let uranium = game.getResourcePerTick('uranium', true);
 					// 月球前哨
-					if ((unobtainiumTick && uranium < 0.7) || resPercent('unobtainium') === 1) {
+					if ((unobtainiumTick && uranium < 1) || resPercent('unobtainium') === 1) {
 						builds['moonOutpost'].max = 0;
 					}
 					let storage = game.prestige.getParagonStorageRatio();
@@ -5513,9 +5531,9 @@ window.run = function() {
 							let resVal = this.getValueAvailable('manuscript', true);
 							// let scienceCheck = scienceVal > 1e4 * autoMax || scienceTri >= 1;
 							let scienceCheck = scienceVal > 1e4 * autoMax;
-							if (resVal > autoMax * 50 && autoMax >= 1 && scienceCheck) {
+							if (resVal > autoMax * 50 && autoMax >= 1) {
 								cache.science = (cacheCompedium > 0) ? cache.science : meta.label;
-								if (scienceTri <= 1) {msgScience('compedium');}
+								if (scienceTri <= 1 && scienceCheck) {msgScience('compedium');}
 								cache.resources['manuscript'] = 0;
 								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 1) {
@@ -5573,9 +5591,9 @@ window.run = function() {
 							autoMax = Math.ceil((blueprint.val - resValue) / ratio);
 							let resVal = this.getValueAvailable('compedium', true);
 							let scienceCheck = scienceVal > 2.5e4 * autoMax || scienceTri >= 1;
-							if (resVal > autoMax * 25 && autoMax >= 1 && scienceCheck) {
+							if (resVal > autoMax * 25 && autoMax >= 1) {
 								cache.science = meta.label;
-								if (scienceTri < 1) {msgScience('blueprint');}
+								if (scienceTri < 1 && scienceCheck) {msgScience('blueprint');}
 								cache.resources['manuscript'] = 0;
 								cache.resources['compedium'] = 0;
 							} else if (autoMax >= 1) {
@@ -8155,11 +8173,31 @@ window.run = function() {
 					id: 'items-list-policies',
 					css: {display: 'none', paddingLeft: '20px'}
 				});
-				let autoList = $('<label/>', {
-					'for': 'toggle-limited-autoPolicy',
-					text: '自动推荐政策(待更新)'
+				let autoLabel = $('<label/>', {
+					'for': 'toggle-autoPolicy',
+					text: '自动推荐政策'
 				});
-				// todo
+
+				let autoInput = $('<input/>', {
+					id: 'toggle-autoPolicy',
+					type: 'checkbox'
+				}).data('option', option);
+
+				if (option.auto) {
+					autoInput.prop('checked', true);
+				}
+
+				autoInput.on('change', function () {
+					if (autoInput.is(':checked') && !option.limited) {
+						option.limited = true;
+						imessage('upgrade.limited', [iname]);
+					} else if ((!autoInput.is(':checked')) && option.limited) {
+						option.limited = false;
+						imessage('upgrade.unlimited', [iname]);
+					}
+					kittenStorage.items[autoInput.attr('id')] = option.auto;
+					saveToKittenStorage();
+				});
 
 				let wikiButton = $('<a/>', {
 					id: 'toggle-upgrade-policies-wiki',
@@ -8204,7 +8242,7 @@ window.run = function() {
 					getPoliciesOptions().forEach(element=>{list.append(element);});
 				});
 
-				element.append(showButton, loadButton, wikiButton, autoList, list);
+				element.append(showButton, loadButton, wikiButton, autoInput, autoLabel, list);
 			}
 
 			if (option.subTrigger !== undefined && name === 'missions') {
@@ -9497,6 +9535,12 @@ window.loadTest = function () {
 		// 暂定资源进度条
 		if (localStorage['zh.kgp.enable'] !== 'disable') {
 			$('<style id="KGPBorder">.res-table { border-spacing: 0 3px; }</style>').appendTo('head');
+		}
+		let policies = game.science.policies;
+		game.science.policyMetaCache = {};
+		for (let i in policies) {
+			let pol = policies[i];
+			game.science.policyMetaCache[pol.name] = pol;
 		}
 		// Kittens loaded, run Kitten Scientist's Automation Engine
 		window.run();
