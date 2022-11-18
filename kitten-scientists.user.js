@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.116';
+	const version = 'V15.117';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2277,6 +2277,20 @@ window.run = function() {
 			cryochambers.max = (cryochambersMax === -1) ? cryoLimited : Math.min(cryoLimited, cryochambersMax);
 			let RR = builds['ressourceRetrieval'];
 			let rrMax = RR.max;
+			let blastFurnace = builds['blastFurnace'];
+			if (resMap['timeCrystal'].value < 1e10) {
+				blastFurnace.max = 4;
+				if (game.getEffect('shatterTCGain') > 0.05) {
+					blastFurnace.max = 127.35 * game.getEffect('shatterTCGain') + 11.393;
+				}
+				let paragon = resMap['paragon'].value + resMap['burnedParagon'].value;
+				if (paragon < 1e7 && game.calendar.trueYear() < 2e3) {
+					rrMax = 33;
+					if (paragon < 2e4) {
+						rrMax = 18;
+					}
+				}
+			}
 			RR.max = (rrMax === -1) ? 100 : Math.min(100, rrMax);
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
@@ -3622,6 +3636,7 @@ window.run = function() {
 					if (lessTri) {
 						newTrigger = 0.9;
 						if (name === 'thorium') {newTrigger = 1;}
+						if (name === 'eludium') {newTrigger = 0.98;}
 						if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
 					}
 					if (begin) {
@@ -4833,11 +4848,7 @@ window.run = function() {
 			// 建造建筑
 			group[7].val += amount;
 
-			if (amount === 1) {
-				iactivity('act.build', [label], 'buildFilter');
-			} else{
-				iactivity('act.builds', [label, amount], 'buildFilter');
-			}
+			iactivity('act.builds', [label, amount], 'buildFilter');
 		},
 		count: function(id, count) {
 			if (!count) {return;}
@@ -6652,10 +6663,11 @@ window.run = function() {
 					rightPrice *= (1 - game.getLimitedDR(game.getEffect('oilReductionRatio'), 0.75));
 					priceRatio = 1.05;
 				}
+				let resValue = this.craftManager.getValueAvailable(name, true);
 				if (source === 'time' && name === 'timeCrystal') {
-					rightPrice += 200;
+					resValue -= 300;
 				}
-				if (this.craftManager.getValueAvailable(name, true) < rightPrice * Math.pow(priceRatio, data.val)) {return false;}
+				if (resValue < rightPrice * Math.pow(priceRatio, data.val)) {return false;}
 			}
 			return true;
 		}
