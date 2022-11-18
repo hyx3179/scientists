@@ -2289,7 +2289,7 @@ window.run = function() {
 				metaData[name] = buildManager.getBuild(name, build.variant);
 			}
 
-			const buildList = bulkManager.bulk(builds, metaData, trigger, time);
+			const buildList = bulkManager.bulk(builds, metaData, trigger, 'time');
 
 			for (let entry in buildList) {
 				let build = buildList[entry];
