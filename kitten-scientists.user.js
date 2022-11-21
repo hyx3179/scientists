@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.117';
+	const version = 'V15.118';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1581,7 +1581,7 @@ window.run = function() {
 
 				if (farmerCatnip && catnipTick < 0 && game.science.get("agriculture").researched) {
 					let b = game.getResourcePerTick('catnip', true) - 0.85 * Math.max(1, happiness * !anarchy - 1);
-					if ((catnipVal + 25 * catnipTick < 0 && game.calendar.day > 92) || catnipVal + 1000 * b < 0) {
+					if ((catnipVal + 25 * catnipTick < 0 && game.calendar.day > 92) || catnipVal + 1000 * b < 0 || religionCatnip.religion) {
 						for (let i = kittenLength - 1; i > 0; i--) {
 							let kitten = Kittens[i];
 							if (kitten.isLeader || kitten.job === 'farmer') {continue;}
@@ -2184,6 +2184,10 @@ window.run = function() {
 					copyBuilds['sunAltar'].enabled = false;
 					copyBuilds['goldenSpire'].enabled = false;
 					copyBuilds['scholasticism'].enabled = false;
+				}
+				if (tt < 8 && resMap['paragon'].values > 10) {
+					copyBuilds['basilica'].max = 1;
+					copyBuilds['templars'].max = 1;
 				}
 			}
 
@@ -2893,8 +2897,6 @@ window.run = function() {
 			const bulkManager = this.bulkManager;
 			let trigger = options.auto.build.trigger;
 			let refreshRequired = 0;
-			let geodesy = game.workshop.get('geodesy').researched;
-			let hasLeader = game.village.leader !== null;
 			let buildIterate = {};
 			let copyItem;
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
@@ -2908,10 +2910,12 @@ window.run = function() {
 				let priceRatio = game.getEffect("priceRatio");
 				let vitruvianFeline = priceRatio < -0.06;
 				let atheism = game.challenges.isActive('atheism');
+				let hasLeader = game.village.leader !== null;
 
 				let Production = game.prestige.getParagonProductionRatio();
-				let orbitalGeodesy = game.workshop.get('orbitalGeodesy').researched;
-				let spaceManufacturing = game.workshop.get('spaceManufacturing').researched;
+				let geodesy = Workshop.get('geodesy').researched;
+				let orbitalGeodesy = Workshop.get('orbitalGeodesy').researched;
+				let spaceManufacturing = Workshop.get('spaceManufacturing').researched;
 				let sattelite = game.space.getBuilding('sattelite').on;
 
 				let solarMeta = Religion.getRU('solarRevolution');
@@ -3318,20 +3322,8 @@ window.run = function() {
 				}
 			}
 
-			const metaData = {};
 			builds = copyItem || builds;
-			for (let name in builds) {
-				let build = builds[name];
-				let meta = buildManager.getBuild(build.name || name).meta;
-				if (meta.almostLimited && hasLeader) {
-					if (resPercent('titanium') < 0.5 || resMap['kittens'].maxValue < 110 || !geodesy) {
-						build.enabled = false;
-					}
-				}
-				if (meta.stage !== build.stage) {build.enabled = false;}
-				metaData[name] = meta;
-			}
-
+			let metaData = buildManager.getMetaDataList(builds);
 			const buildList = bulkManager.bulk(builds, metaData, trigger, 'bonfire');
 
 			if (buildList) {
@@ -3348,7 +3340,19 @@ window.run = function() {
 
 			// 低优先度的后计算资源数量
 			if (JSON.stringify(buildIterate) !== "{}") {
-				refreshRequired += this.build(buildIterate);
+				metaData = buildManager.getMetaDataList(buildIterate);
+				let buildList2 = bulkManager.bulk(buildIterate, metaData, trigger, 'bonfire');
+				if (buildList2) {
+					for (let i = 0; i < buildList2.length; i++) {
+						let count = buildList2[i].count;
+						let id = buildList2[i].id;
+						count = buildManager.count(id, count);
+						if (count > 0) {
+							buildManager.built(buildList2[i].name || id, buildList2[i].stage, count);
+							refreshRequired += 1;
+						}
+					}
+				}
 			}
 
 			return refreshRequired;
@@ -5168,6 +5172,23 @@ window.run = function() {
 					return buttons[i];
 				}
 			}
+		},
+		getMetaDataList: function (list) {
+			let metaData = {};
+			let skip = !Workshop.get('geodesy').researched || resPercent('titanium') < 0.5 || resMap['kittens'].maxValue < 110;
+			let hasLeader = game.village.leader !== null;
+			for (let name in list) {
+				let build = list[name];
+				let meta = this.getBuild(build.name || name).meta;
+				if (meta.almostLimited && hasLeader) {
+					if (skip) {
+						build.enabled = false;
+					}
+				}
+				if (meta.stage !== build.stage) {build.enabled = false;}
+				metaData[name] = meta;
+			}
+			return metaData;
 		},
 		getSumPrices: function (build, price) {
 			let currentRatio = (build.priceRatio) ? build.priceRatio : build.stages[build.stage].priceRatio;
@@ -7203,6 +7224,7 @@ window.run = function() {
 	let loadFromKittenStorage = function () {
 		let saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
 		if (!saved || saved.version > kittenStorageVersion) {
+			game.msg('项目内已经帮你勾选好了')
 			return initializeKittenStorage();
 		}
 
