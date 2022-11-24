@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.118';
+	const version = 'V15.119';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -263,7 +263,7 @@ window.run = function() {
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.blackCore': '活祭之猫的黑之核心不是特别适合呐',
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
-			'summary.auto.biology': '喵喵喵只因你镁有钛，跳过困难的生物学',
+			'summary.auto.biology': '哎呦，只因你镁有钛，跳过困难的生物学',
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>科学和工坊升级换到科学家领袖，比如神学的科学价格变为19K等等',
@@ -621,8 +621,8 @@ window.run = function() {
 					spaceBeacon:    {require: 'antimatter',  enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
 					// Yarn
-					terraformingStation: {require: 'antimatter',  enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
-					hydroponics:         {require: 'kerosene',    enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
+					terraformingStation: {require: 'antimatter',  enabled: false, max:0, checkForReset: true, triggerForReset: -1},
+					hydroponics:         {require: 'kerosene',    enabled: false, max:0, checkForReset: true, triggerForReset: -1},
 
 					// Umbra
 					hrHarvester:    {require: 'antimatter',  enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
@@ -2416,8 +2416,7 @@ window.run = function() {
 								if (relic < 105 && resMap['antimatter'].value < 4000) {continue;}
 								break;
 							case 'blackchain':
-								if (relic < 1e6) {continue;}
-								break;
+								continue;
 						}
 					}
 
@@ -2443,9 +2442,8 @@ window.run = function() {
 					let resStarchart = resMap['starchart'];
 					let resStarchartVal = resStarchart.value;
 					let isFilter;
-					noop = ['biofuel','gmo','invisibleBlackHand'];
+					noop = ['biofuel','gmo','invisibleBlackHand','steelPlants'];
 					if (game.getEffect('shatterTCGain') < 0.05) {
-						noop.push('steelPlants');
 						if (Production > 2) {noop = noop.concat(['amReactors','amReactorsMK2','amDrive']);}
 					}
 					if (!pastureMeta.on || pastureMeta.stage === 0) {
@@ -2576,8 +2574,7 @@ window.run = function() {
 					if (resMap['thorium'].value < 2e5 || game.resPool.energyProd - game.resPool.energyCons > 600) {
 						noop.push('thoriumReactors');
 						if (Production > 2) {
-							noop.push('amBases');
-							noop.push('coldFusion');
+							noop.push('amBases','coldFusion');
 							if (resStarchartVal < 2e5) {
 								noop.push('eludiumReflectors');
 								noop.push('eludiumCracker');
@@ -3476,9 +3473,13 @@ window.run = function() {
 							}
 						}
 					} else if (!solarRevolution) {
-						builds['spaceElevator'].max = 30;
+						builds['spaceElevator'].max = 40;
 					}
 
+					// 星球改造站
+					if (resPercent('antimatter') < 0.8) {
+						builds['terraformingStation'].enabled = false;
+					}
 					let uranium = game.getResourcePerTick('uranium', true);
 					// 月球前哨
 					if ((unobtainiumTick && uranium < 1) || resPercent('unobtainium') === 1) {
@@ -3501,7 +3502,7 @@ window.run = function() {
 						builds['planetCracker'].max = 7 * (starchartVal > 1e5);
 					}
 					// 流体切割
-					if (starchartVal < 3e4 * (1 + solarRevolution * solarRevolution)) {
+					if (starchartVal < Math.min(3e4 * (1 + solarRevolution * solarRevolution), 1e7)) {
 						builds['hydrofracturer'].max = 100 * game.getEffect('spaceRatio') * (1 + 5 * priceRatio) - Production - solarRevolution - 23 * blackSky;
 					}
 					if (!solarRevolution) {
@@ -5439,9 +5440,8 @@ window.run = function() {
 					if (!value && resMap['slab'].value > 3) {force = true;}
 					if (name === 'slab') {
 						if (!resMap['concrate'].unlocked && game.science.get('mechanization').researched && resMap['steel'].value > 25) {
-							let number = Math.ceil((2500 - resValue) / ratio);
-							if (number > 0 && resMap['minerals'].value > number * 250) {
-								autoMax = number;
+							if (resMap['minerals'].value > 2500) {
+								autoMax = 1;
 								force = true;
 							}
 						}
@@ -6233,6 +6233,7 @@ window.run = function() {
 
 			let Bld = game.bld;
 			let reactor = Bld.getBuildingExt('reactor').meta;
+			let reactorVal = reactor.val;
 			let priceRatio = game.getEffect("priceRatio");
 			let renaissance = priceRatio < -0.07;
 			let steamworks = Bld.getBuildingExt("steamworks").meta;
@@ -6263,13 +6264,13 @@ window.run = function() {
 					let resVal = res.value;
 					let start = resMap['faith'].maxValue < 750 && resVal < 51 && resMap['gold'].value > 35;
 					let scaffold = resMap['scaffold'].value;
-					limRat = (scaffold || start || (reactor.val && resVal < 2500)) ? limRat : 5e-3;
+					limRat = (scaffold || start || (reactorVal && resVal < 2500)) ? limRat : 5e-3;
 					limRat = (scaffold < 500 || (scaffold > 500 && resVal < 615)) ? limRat : 0.1;
 					limRat = (scaffold > 2500 && res.value > 2500 * (1 + solar) * (1 + 0.05 * reactor.on) * (1 + solar)) ? 0.04 : limRat;
 					break;
 				}
 				case 'ship': {
-					let shipLimit = 5 * reactor.val + 225;
+					let shipLimit = 5 * reactorVal + 225;
 					let titaniumMax = resMap['titanium'].maxValue;
 					let satnav = !piscine.on && space.getBuilding('sattelite').val < 9 && res.value;
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
@@ -6296,7 +6297,7 @@ window.run = function() {
 					let calcinerVal = Bld.getBuildingExt('calciner').meta.val;
 					factor = Math.pow(magneto.priceRatio + priceRatio, magneto.val);
 					limRat = (steamworks.on < magneto.on || calcinerVal < 2 || (calcinerVal < 3 && !resMap['titanium'].value < 22 - solar)) ? 0.45 : 0.76;
-					let Reactor = !reactor.val && magneto.val > 31;
+					let Reactor = !reactorVal && magneto.val > 31;
 					limRat = (res.value > Math.max(1250, 10 * factor) && options.auto.build.items.magneto.enabled || Reactor) ? 0.01 : limRat;
 					let blackSky = calcinerVal < 6 && game.challenges.isActive('blackSky');
 					limRat = ((resMap['titanium'].value < 17 && !calcinerVal) || blackSky || !game.science.get('electricity').researched) ? 0 : limRat;
@@ -6316,7 +6317,7 @@ window.run = function() {
 				case 'megalith': {
 					let ziggurat = Bld.getBuildingExt('ziggurat').meta;
 					factor = Math.pow(ziggurat.priceRatio + priceRatio, ziggurat.val);
-					let reactorFactor = Math.pow(reactor.priceRatio + priceRatio, reactor.val);
+					let reactorFactor = Math.pow(reactor.priceRatio + priceRatio, reactorVal);
 					limRat = (game.workshop.get('spaceManufacturing').researched) ? limRat : 0.15;
 					limRat = (res.value > Math.max(100, 50 * factor)) ? 5e-3 : limRat;
 					limRat = (resMap['plate'].value < Math.max(5000, 50 * reactorFactor)) ? 0.1 : limRat;
@@ -6328,10 +6329,10 @@ window.run = function() {
 				case 'concrate': {
 					let moon = space.getBuilding('moonOutpost').val;
 					moon = 150 * Math.pow(1.12, moon);
-					factor = Math.pow(reactor.priceRatio + priceRatio, reactor.val);
+					factor = Math.pow(reactor.priceRatio + priceRatio, reactorVal);
 					let dataCenter = Bld.getBuildingExt('library').meta;
 					let dataFactor = Math.pow(dataCenter.priceRatio + priceRatio, dataCenter.val) * dataCenter.stage;
-					limRat = (reactor.val) ? 0.6 : 0.15;
+					limRat = (reactorVal) ? 0.6 : 0.15;
 					limRat = (res.value > Math.max(moon, 50 * factor, 10 * dataFactor)) ? 0.01 : limRat;
 					break;
 				}
@@ -6355,12 +6356,12 @@ window.run = function() {
 					break;
 				case 'manuscript': {
 					limRat = (game.prestige.getPerk("numeromancy").researched && !game.calendar.festivalDays && game.science.get("drama").unlocked) ? 0.25 : 0.49;
-					limRat = (reactor.val) ? 0.4 : limRat;
+					limRat = (reactorVal) ? 0.4 : limRat;
 					let chapel = Bld.getBuildingExt('chapel').meta;
 					chapel = Math.pow(chapel.priceRatio + priceRatio, chapel.val);
 					let brewery = Bld.getBuildingExt('brewery').meta;
 					if (resMap['culture'].maxValue > 750 * Math.pow(brewery.priceRatio + priceRatio, brewery.val) && resPercent('culture') > 0.5) {
-						if (resMap['parchment'].value > Math.max(1e6, 260 * chapel) && reactor.val) {limRat = 1;}
+						if (resMap['parchment'].value > Math.max(1e6, 260 * chapel) && reactorVal) {limRat = 1;}
 					}
 					break;
 				}
@@ -6728,7 +6729,7 @@ window.run = function() {
 			if (name === 'leviathans') {
 				// if (game.time.getCFU("ressourceRetrieval").val && resPercent('unobtainium') > 0.6) {return true;}
 				let a = resMap['relic'].value < 5 || resMap['timeCrystal'].value < 200 * (1 + 50 * game.getEffect('shatterTCGain'));
-				if (race.duration < 800 && a) {return true;}
+				if (a) {return true;}
 			}
 			let solar = Religion.getSolarRevolutionRatio();
 			let materials = this.getMaterials(name);
@@ -7224,7 +7225,7 @@ window.run = function() {
 	let loadFromKittenStorage = function () {
 		let saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
 		if (!saved || saved.version > kittenStorageVersion) {
-			game.msg('项目内已经帮你勾选好了')
+			game.msg('项目内已经帮你勾选好了');
 			return initializeKittenStorage();
 		}
 
