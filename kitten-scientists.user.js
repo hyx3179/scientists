@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.119';
+	const version = 'V15.120';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -618,7 +618,7 @@ window.run = function() {
 					cryostation:    {require: 'eludium',     enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
 					// Kairo
-					spaceBeacon:    {require: 'antimatter',  enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+					spaceBeacon:    {require: 'antimatter',  enabled: true, max:50, checkForReset: true, triggerForReset: -1},
 
 					// Yarn
 					terraformingStation: {require: 'antimatter',  enabled: false, max:0, checkForReset: true, triggerForReset: -1},
@@ -1330,6 +1330,7 @@ window.run = function() {
 					if (radiate > 3) {radiate = 50;}
 					timeSkipMaximum = Math.ceil(Math.max(radiate, timeSkipMaximum));
 				}
+				// timeSkipMaximum = 50;
 				const subTrigger = optItem.timeSkip.subTrigger;
 				let cost = Math.max(subTrigger, this.craftManager.getStock('timeCrystal'), timeSkipMaximum);
 
@@ -1571,7 +1572,15 @@ window.run = function() {
 				let minerItem = distributeItem.miner;
 				if (minerItem.enabled && woodcutter > 1 && kittenLength) {
 					let miner = village.jobs[4];
-					if (miner.unlocked && !miner.value) {sim.removeJob('woodcutter');}
+					if (miner.unlocked && !miner.value) {
+						for (let i = kittenLength - 1; i > 0; i--) {
+							let kitten = Kittens[i];
+							if (kitten.isLeader || kitten.job !== 'woodcutter') {continue;}
+							village.unassignJob(kitten);
+							freeKittens = village.getFreeKittens();
+							break;
+						}
+					}
 				}
 				// if (distributeItem.scholar.enabled && woodcutter > 3 && kittenLength) {
 				// 	let miner = village.jobs[2];
@@ -2029,7 +2038,10 @@ window.run = function() {
 							}
 							for (let i = 0; i < religion.transcendenceUpgrades.length; i++) {
 								let upgrade = religion.transcendenceUpgrades[i];
-								if (!upgrade.unlocked && tt >= upgrade.tier && upgrade.name !== 'mausoleum') {
+								if (!game.getFeatureFlag("MAUSOLEUM_PACTS") && upgrade.name === 'mausoleum') {
+									continue;
+								}
+								if (!upgrade.unlocked && tt >= upgrade.tier) {
 									upgrade.unlocked = true;
 									refreshRequired = 1;
 								}
@@ -2285,7 +2297,7 @@ window.run = function() {
 			if (resMap['timeCrystal'].value < 1e10) {
 				blastFurnace.max = 4;
 				if (game.getEffect('shatterTCGain') > 0.05) {
-					blastFurnace.max = 127.35 * game.getEffect('shatterTCGain') + 11.393;
+					blastFurnace.max = Math.round(127.35 * game.getEffect('shatterTCGain') + 11.393);
 				}
 				let paragon = resMap['paragon'].value + resMap['burnedParagon'].value;
 				if (paragon < 1e7 && game.calendar.trueYear() < 2e3) {
@@ -2547,7 +2559,7 @@ window.run = function() {
 						noop = noop.concat(['machineLearning', 'aiBases']);
 						let ship = resMap['ship'].value < 5e4;
 						if (Production > 4) {
-							noop = noop.concat(['storageBunkers', 'tachyonAccelerators', 'darkEnergy','eludiumReflectors']);
+							noop = noop.concat(['storageBunkers', 'tachyonAccelerators', 'darkEnergy','eludiumReflectors','amBases']);
 						}
 						if (ship) {noop.push('thoriumEngine');}
 					}
@@ -2574,10 +2586,9 @@ window.run = function() {
 					if (resMap['thorium'].value < 2e5 || game.resPool.energyProd - game.resPool.energyCons > 600) {
 						noop.push('thoriumReactors');
 						if (Production > 2) {
-							noop.push('amBases','coldFusion');
+							noop.push('coldFusion');
 							if (resStarchartVal < 2e5) {
-								noop.push('eludiumReflectors');
-								noop.push('eludiumCracker');
+								noop.push('eludiumReflectors','amBases','eludiumCracker');
 							}
 						}
 						let hut = game.getEffect('priceRatio');
@@ -3301,6 +3312,9 @@ window.run = function() {
 							items['aiCore'].max = 0;
 						}
 						items['chronosphere'].max = 20;
+					}
+					if (game.science.get("paradoxalKnowledge").researched) {
+						items['chronosphere'].max = game.getEffect('gflopsPerTickBase') * 50;
 					}
 				}
 				// 黑暗天空造煅烧炉
@@ -4558,19 +4572,11 @@ window.run = function() {
 					storeForSummary('哲学家小猫祷告了 ' + label, amount, 'faith');
 					return iactivity('act.sun.discovers.leader', [label, amount], 'faithBuildFilter');
 				}
-				if (amount === 1) {
-					iactivity('act.sun.discover', [label], 'faithBuildFilter');
-				} else {
-					iactivity('act.sun.discovers', [label, amount], 'faithBuildFilter');
-				}
+				iactivity('act.sun.discovers', [label, amount], 'faithBuildFilter');
 				storeForSummary('小猫祷告了 ' + label, amount, 'faith');
 			} else {
 				storeForSummary(label, amount, 'build');
-				if (amount === 1) {
-					iactivity('act.build', [label], 'buildFilter');
-				} else {
-					iactivity('act.builds', [label, amount], 'buildFilter');
-				}
+				iactivity('act.builds', [label, amount], 'buildFilter');
 			}
 		},
 		getBuild: function (name, variant) {
@@ -4633,11 +4639,7 @@ window.run = function() {
 			storePrices(button.model.prices);
 			storeForSummary(label, amount, 'build');
 
-			if (amount === 1) {
-				iactivity('act.build', [label], 'buildFilter');
-			} else {
-				iactivity('act.builds', [label, amount], 'buildFilter');
-			}
+			iactivity('act.builds', [label, amount], 'buildFilter');
 		},
 		getBuild: function (name, variant) {
 			if (variant === 'chrono') {
@@ -5244,11 +5246,7 @@ window.run = function() {
 			storeForSummary(label, amount, 'build');
 			game.stats.getStat("totalClicks").val += 1;
 
-			if (amount === 1) {
-				iactivity('act.build', [label], 'spaceFilter');
-			} else {
-				iactivity('act.builds', [label, amount], 'spaceFilter');
-			}
+			iactivity('act.builds', [label, amount], 'spaceFilter');
 		},
 		getBuild: function (name) {
 			return game.space.getBuilding(name);
@@ -5404,7 +5402,7 @@ window.run = function() {
 						msgSummary('shipGeodesy');
 						forceShipVal = Math.min(243 + 5 * tt + solar, 300);
 						if (Religion.faith > 9e4 && scienceMax > 11e4) {
-							if (tt < 6 && geodesy) {forceShipVal = -103 * tt + 750 - 250 * !tt;}
+							if (tt < 6 && geodesy) {forceShipVal = -103 * tt + 740 - 250 * !tt;}
 						}
 					}
 					if (value < forceShipVal && ratio > 3) {
@@ -5469,8 +5467,6 @@ window.run = function() {
 				}
 			}
 
-			let itemHunt = options.auto.options.items.hunt;
-			let huntTime = itemHunt.time === 'fullIron' && itemHunt.enabled;
 			if (name === 'plate' && limited) {
 				let coalTick = game.getResourcePerTick('coal', true);
 				let reactMeta = game.bld.getBuildingExt('reactor').meta;
@@ -5506,7 +5502,8 @@ window.run = function() {
 					}
 				}
 				// 有资源回复燃烧时间水晶全部用完铁
-				if (huntTime) {force = true;}
+				let itemHunt = options.auto.options.items.hunt;
+				if (itemHunt.time === 'fullIron' && itemHunt.enabled) {force = true;}
 			}
 
 			let scienceVal = this.getValueAvailable('science', true);
@@ -5838,6 +5835,7 @@ window.run = function() {
 					msgSummary('oxidation', true);
 				}
 				// 资源回复满的铁触发消耗完铁
+				let itemHunt = options.auto.options.items.hunt;
 				if (itemHunt.time && resPercent('iron') > 0.98) {itemHunt.time = 'fullIron';}
 			}
 
@@ -5881,7 +5879,7 @@ window.run = function() {
 			}
 
 			if (name === 'eludium' && limited && !aboveTrigger) {
-				if (huntTime && game.time.getCFU("ressourceRetrieval").on > 11 - renaissance) {
+				if (game.time.getCFU("ressourceRetrieval").on > 11 - renaissance) {
 					amount = Math.max(amount, 1);
 				}
 			}
