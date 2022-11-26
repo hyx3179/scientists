@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.120';
+	const version = 'V15.121';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -221,7 +221,7 @@ window.run = function() {
 			'time.skip.season.enable': '启用在 {0} 跳转时间',
 			'time.skip.season.disable': '停止在 {0} 跳转时间',
 			'time.skip.trigger.set': '拥有时间水晶数量大于该触发值才会燃烧时间水晶，取值范围为正整数。\n注意会计算时间水晶库存\n周期默认全勾就行，珂学家会自动判断是否停在红月\n每2秒烧水晶次数固定为 0.04x时计炉(无千禧年0.02)，故单次数量进一法就行\n如果资源回复后资源一直是满的，建议过滤大部分日志\n\n故长挂推荐：触发条件200，单次数量1，周期全勾',
-			'summary.time.skip': '跳过 {0} 年',
+			'summary.time.skip': '燃烧时间水晶，跳过 {0} 年',
 
 			'option.time.reset': '重启时间线 (弃用)',
 			'status.reset.check.enable': '在重启时间线前检查 {0}',
@@ -482,7 +482,7 @@ window.run = function() {
 					// unicornUtopia:      {require: 'gold',        enabled: false, variant: 'z'},
 					// sunspire:           {require: 'gold',        enabled: false, variant: 'z'},
 					// UNICORN BUILDING END
-					marker:             {require: 'unobtainium', enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
+					marker:             {require: 'unobtainium', enabled: false, max:75, variant: 'z', checkForReset: true, triggerForReset: -1},
 					unicornGraveyard:   {require: false,         enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
 					unicornNecropolis:  {require: false,         enabled: false, max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
 					blackPyramid:       {require: 'unobtainium', enabled: true,  max:-1, variant: 'z', checkForReset: true, triggerForReset: -1},
@@ -499,7 +499,7 @@ window.run = function() {
 					transcendence:      {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
 					// Cryptotheology is variant c.
 					blackObelisk:       {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blackNexus:         {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackNexus:         {require: false,         enabled: false, max:54, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackCore:          {require: false,         enabled: true,  max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					singularity:        {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackLibrary:       {require: false,         enabled: false, max: 0, variant: 'c', checkForReset: true, triggerForReset: -1},
@@ -591,7 +591,7 @@ window.run = function() {
 				trigger: 0,
 				items: {
 					// Cath
-					spaceElevator:  {require: 'unobtainium', enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+					spaceElevator:  {require: 'unobtainium', enabled: true, max:100, checkForReset: true, triggerForReset: -1},
 					sattelite:      {require: 'titanium',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					spaceStation:   {require: 'oil',         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
@@ -2218,7 +2218,7 @@ window.run = function() {
 					copyBuilds['blackPyramid'].enabled = false;
 				}
 				let rrr = game.getEffect('relicRefineRatio');
-				if (rrr < 50 && game.getEffect('beaconRelicsPerDay')) {
+				if (rrr < 60 && game.getEffect('beaconRelicsPerDay')) {
 					copyBuilds['blackObelisk'].max = 1 * (rrr > 35) + rrr;
 					let Num = game['nummon'];
 					if (Num && Num.getBestRelicBuilding().indexOf('核心') === -1) {
@@ -3313,7 +3313,7 @@ window.run = function() {
 						}
 						items['chronosphere'].max = 20;
 					}
-					if (game.science.get("paradoxalKnowledge").researched) {
+					if (game.science.get("paradoxalKnowledge").researched && resMap['unobtainium'].maxValue < 6e9) {
 						items['chronosphere'].max = game.getEffect('gflopsPerTickBase') * 50;
 					}
 				}
@@ -5041,7 +5041,7 @@ window.run = function() {
 							}
 						}
 						if (val < 199) {
-							if (maxVal > 90e3) {
+							if (maxVal > 55e3 + 35e3 * (priceRatio < -0.04)) {
 								count = Math.floor(count * 0.5);
 							} else if (maxVal > 20e3 && game.getEffect("calcinerRatio") < 2) {
 								halfCount = true;
