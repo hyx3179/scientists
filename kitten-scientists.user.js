@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.121';
+	const version = 'V15.122';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -204,7 +204,7 @@ window.run = function() {
 			'act.promote': '花费了 {1} 黄金，小猫领袖被提拔到 {0} 级',
 			'summary.promote': '提拔领袖 {0} 次',
 
-			'ui.trigger.useWorkers.alert': '比如玩别的游戏或者在干别的事情，浏览器可能会慢10倍的速度运行\n勾选后将会在后台满速运行，注意会导致使用内存增多，性能消耗增加。\n电脑不好、内存< 8G的建议禁用\n推荐过滤全部日志会减少性能的消耗。\n\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家\n 最小化浏览器必定会进入后台，游戏和珂学家速度都会慢10倍',
+			'ui.trigger.useWorkers.alert': '比如玩别的游戏或者在干别的事情，浏览器可能会慢10倍的速度运行\n勾选后将会防止浏览器休眠珂学家，注意会导致使用内存增多，性能消耗增加。\n电脑不好、内存< 8G的建议禁用\n推荐过滤全部日志会减少性能的消耗。\n\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家\n 最小化浏览器必定会进入后台(游戏和珂学家速度都会被浏览器减慢10倍)',
 			'ui.timeCtrl': '时间操纵',
 			'option.accelerate': '光阴似箭',
 			'act.accelerate': '固有时制御，二倍速!',
@@ -285,7 +285,7 @@ window.run = function() {
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
 			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概300年左右 130猫口 + 新约外传',
 			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需外面大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
-			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：最好不要设置工程师、在挑战页面挂机可以减少卡顿',
+			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：只要不挂在前台请务必打开后台珂学家<br>最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用，氪金就能变强',
 			'summary.auto.leaderPriest': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
@@ -591,13 +591,13 @@ window.run = function() {
 				trigger: 0,
 				items: {
 					// Cath
-					spaceElevator:  {require: 'unobtainium', enabled: true, max:100, checkForReset: true, triggerForReset: -1},
+					spaceElevator:  {require: 'unobtainium', enabled: true, max:110, checkForReset: true, triggerForReset: -1},
 					sattelite:      {require: 'titanium',    enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 					spaceStation:   {require: 'oil',         enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
 					// Moon
 					moonOutpost:    {require: 'uranium',     enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
-					moonBase:       {require: 'unobtainium', enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
+					moonBase:       {require: 'unobtainium', enabled: true, max:140, checkForReset: true, triggerForReset: -1},
 
 					// Dune
 					planetCracker:  {require: 'science',     enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
@@ -2007,7 +2007,7 @@ window.run = function() {
 						let x = needNextLevel;
 						let blackObelisk = religion.getTU("blackObelisk").val;
 						let obeliskRatio = ((tt + 1) * 5 * blackObelisk + 1000) / (tt * 5 * blackObelisk + 1000);
-						if (game.getEffect('shatterTCGain') > 0.07) {obeliskRatio = 1;}
+						if (game.getEffect('shatterTCGain') > 0.07 && game.calendar.trueYear < 1400) {obeliskRatio = 1;}
 						let k = adoreIncreaseRatio * obeliskRatio;
 						let epiphanyRecommend = (1 - k + Math.sqrt(80 * (k * k - 1) * x + (k - 1) * (k - 1))) * k / (40 * (k + 1) * (k + 1) * (k - 1)) + x + x / (k * k - 1);
 
@@ -3313,8 +3313,11 @@ window.run = function() {
 						}
 						items['chronosphere'].max = 20;
 					}
-					if (game.science.get("paradoxalKnowledge").researched && resMap['unobtainium'].maxValue < 6e9) {
-						items['chronosphere'].max = game.getEffect('gflopsPerTickBase') * 50;
+					if (game.science.get("paradoxalKnowledge").researched && resMap['unobtainium'].maxValue < 7e9 && game.calendar.trueYear < 2e3) {
+						items['chronosphere'].max = Math.max(40, game.getEffect('gflopsPerTickBase') * 50);
+						if (resMap['burnedParagon'].value > 1e4) {
+							items['harbor'].max = 400;
+						}
 					}
 				}
 				// 黑暗天空造煅烧炉
@@ -3480,7 +3483,7 @@ window.run = function() {
 					// 电梯
 					if (!game.getEffect('lunarOutpostRatio')) {
 						if (unobtainiumTri !== 1) {
-							builds['spaceElevator'].max = 7 + Production - 6 * (resMap['unobtainium'].maxValue < 350) + vitruvianFeline;
+							builds['spaceElevator'].max = 7 + Math.min(solarRevolution, Production) - 6 * (resMap['unobtainium'].maxValue < 500) + vitruvianFeline;
 							if ((!vitruvianFeline && unobtainiumTri < 0.5 - 10 * priceRatio)
 								|| (!solarRevolution && !game.ironWill && !Workshop.get('astrophysicists').researched)) {
 								builds['spaceElevator'].max = 0;
