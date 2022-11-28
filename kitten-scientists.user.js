@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.122';
+	const version = 'V15.123';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -504,7 +504,7 @@ window.run = function() {
 					singularity:        {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackLibrary:       {require: false,         enabled: false, max: 0, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackRadiance:      {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blazar:             {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blazar:             {require: false,         enabled: false, max:40, variant: 'c', checkForReset: true, triggerForReset: -1},
 					darkNova:           {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					holyGenocide:       {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 				}
@@ -1326,8 +1326,15 @@ window.run = function() {
 				if (!timeSkipMaximum) {return 0;}
 				let factor = game.challenges.getChallenge("1000Years").researched ? 5 : 10;
 				if (heatNow - 15 * game.getEffect('heatPerTick') < 0.9 * heatMax) {
-					let radiate = 50 / factor * game.getEffect('heatPerTick') / game.getTicksPerSecondUI();
-					if (radiate > 3) {radiate = 50;}
+					let heatTick = game.getEffect('heatPerTick');
+					let radiate = 50 / factor * heatTick / game.getTicksPerSecondUI();
+					if (heatNow < 10 * game.getTicksPerSecondUI() * game.getEffect('heatPerTick')) {
+						if (radiate > 2 && game.calendar.cycle === 5) {
+							radiate = 500;
+						} else {
+							radiate += 1;
+						}
+					}
 					timeSkipMaximum = Math.ceil(Math.max(radiate, timeSkipMaximum));
 				}
 				// timeSkipMaximum = 50;
@@ -1800,7 +1807,7 @@ window.run = function() {
 			let maxCoinPrice = parseFloat(subTrigger[2]);
 
 			if (subTrigger.length !== 3 || !relicTrigger || !minCoinPrice || !maxCoinPrice) {
-				if (!relicTrigger) {relicTrigger = 1e6;}
+				if (!relicTrigger) {relicTrigger = 1e8;}
 				options.auto.options.items.crypto.subTrigger = relicTrigger + "-881-1060";
 				//kittenStorage.items['set-crypto-subTrigger'] = JSON.stringify(relic + "-881-1060");
 				//$("#set-crypto-subTrigger")[0].title = relic;
@@ -2301,7 +2308,7 @@ window.run = function() {
 				}
 				let paragon = resMap['paragon'].value + resMap['burnedParagon'].value;
 				if (paragon < 1e7 && game.calendar.trueYear() < 2e3) {
-					rrMax = 33;
+					rrMax = 32;
 					if (paragon < 2e4) {
 						rrMax = 18;
 					}
@@ -2647,6 +2654,10 @@ window.run = function() {
 					let ratio = (Science.get('astronomy').researched || (resMap['burnedParagon'].value < 1e4 && resMap['culture'].value < 400) || game.getEffect('priceRatio') > -0.03) ? 1 : 3;
 					let policiesList = options.policies;
 					if (upgrades.policies.auto) {
+						if (game.challenges.anyChallengeActive()) {
+							upgrades.policies.enabled = false;
+							$('#toggle-policies').prop("checked", false);
+						}
 						policiesList = [];
 						if (!game.challenges.anyChallengeActive() && !game.ironWill) {
 							let shipVal = resMap['ship'].value;
@@ -6396,7 +6407,7 @@ window.run = function() {
 					break;
 				}
 				case 'tanker':
-					limRat = 0.1;
+					limRat = 0.01;
 					break;
 				case 'thorium':
 					limRat = (res.value) ? 0.01 : 1e-4;
