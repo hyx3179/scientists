@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.123';
+	const version = 'V15.124';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1328,6 +1328,11 @@ window.run = function() {
 				if (heatNow - 15 * game.getEffect('heatPerTick') < 0.9 * heatMax) {
 					let heatTick = game.getEffect('heatPerTick');
 					let radiate = 50 / factor * heatTick / game.getTicksPerSecondUI();
+					let skipCycle = (game.getEffect("shatterTCGain") * (1 + game.getEffect("rrRatio")) > 1) ? 0 : 5;
+					let moreSkip = heatTick > 1 && game.calendar.cycle === skipCycle;
+					if (game.bld.get("aiCore").effects["aiLevel"] < 14 || game.getEffect('aiCoreProductivness')) {
+
+					}
 					if (heatNow < 10 * game.getTicksPerSecondUI() * game.getEffect('heatPerTick')) {
 						if (radiate > 2 && game.calendar.cycle === 5) {
 							radiate = 500;
@@ -2147,7 +2152,7 @@ window.run = function() {
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep || fPraise) {
 				let msgPraise = praiseLess && !forceStep && rate < 0.98 && !timeSkipAdore;
-				let times = (tt < 5) ? 2e5 : 4e5;
+				let times = (tt < 5) ? 1e5 : 4e5;
 				if (msgPraise && (Date.now() > option.autoPraise.time + times || !activitySummary.other['praise.msg']) && solarRatio) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
@@ -2749,7 +2754,7 @@ window.run = function() {
 					}
 				}
 				let index = 0;
-				let skip = !orbitalGeodesy && !geodesy && !resMap['unobtainium'].value;
+				let skip = (!orbitalGeodesy && !resMap['unobtainium'].value) || !geodesy;
 				let GCPanel = spaceTab.GCPanel;
 				if (!GCPanel) {spaceTab.render();}
 				const missions = game.space.meta[0].meta;
@@ -3084,7 +3089,7 @@ window.run = function() {
 					} else if (!orbitalGeodesy) {
 						mint.enabled = false;
 					}
-					if (!spaceManufacturing && magnetoMeta.on < Math.max(1, 6 - Production - 3 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy) && !iw) {
+					if (!spaceManufacturing && magnetoMeta.on < Math.max(1, 7 - Production - 4 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy) && !iw) {
 						// 解锁磁电机才会造蒸汽工房
 						let steamW = items['steamworks'];
 						if (game.bld.getBuildingExt('steamworks').meta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
@@ -4760,7 +4765,7 @@ window.run = function() {
 				storeForSummary(label, scientist, 'upgrade');
 				iactivity('upgrade.upgrade', [label, leader], 'upgradeFilter');
 				let name = upgrade.name;
-				if (name === itemsUpgrades.cache) {
+				if (name === itemsUpgrades.cache || name === 'geodesy') {
 					itemsUpgrades.cache = false;
 					let Upg = options.auto.cache.resUpg;
 					for (let i in options.auto.cache.resUpg) {
@@ -5403,7 +5408,7 @@ window.run = function() {
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6 || !value;
 				if (!oxi) {force = false;}
 				if (force) {
-					let forceShipVal = 40 / Math.max(0.2, Math.log1p(solar)) + 5 * solar;
+					let forceShipVal = 40 / Math.max(0.2, Math.log1p(solar)) + 10 * solar;
 					if (solar < 0.5) {
 						if (solar < 0.2) {
 							forceShipVal = Math.min(16 / Math.log1p(solar), 176);
@@ -6047,7 +6052,7 @@ window.run = function() {
 						let priceRatio = game.getEffect("priceRatio");
 						let lumberMill = game.bld.getBuildingExt('lumberMill').meta;
 						let temple = game.bld.getBuildingExt('temple').meta;
-						let a = resMap['gold'].value < 50 * Math.pow(priceRatio + temple.priceRatio, temple.val);
+						let a = resMap['gold'].value < 50 * Math.pow(priceRatio + temple.priceRatio, temple.val) + 2;
 						let lum =  50 * Math.pow(priceRatio + lumberMill.priceRatio, lumberMill.val) > 400;
 						lumberMill = lumberMill.val > 18 - 40 * priceRatio;
 						if (temple.on > 2 + priceRatio || resMap['faith'].maxValue > 749 || (a && lumberMill) || resMap['plate'].value > 18 || (lum && !priceRatio)) {
@@ -6103,8 +6108,9 @@ window.run = function() {
 					}
 					case 'titanium': {
 						let Val = game.bld.getBuildingExt('calciner').meta.val;
+						let geodesyResearched = game.workshop.get('geodesy').researched;
 						// 回转炉
-						if (this.getUnResearched('rotaryKiln') && game.getEffect('calcinerRatio') && ((Val > 16 && workshop.get('geodesy').researched) || orbGeodesy)) {msgForStock(5000, 'rotaryKiln', name);}
+						if (this.getUnResearched('rotaryKiln') && game.getEffect('calcinerRatio') && ((Val > 16 && geodesyResearched && resMap['ship'].value > 240) || orbGeodesy)) {msgForStock(5000, 'rotaryKiln', name);}
 
 						let Revolution = Religion.getSolarRevolutionRatio();
 						let cal = Revolution < 3.3 && (Val || Titanium.value > 100) && leader;
@@ -6118,7 +6124,6 @@ window.run = function() {
 								upg.cache = 'geodesy';
 							}
 						}
-						let geodesyResearched = game.workshop.get('geodesy').researched;
 						//采矿钻
 						if (geodesyResearched) {
 							let miningDrill = this.getUnResearched('miningDrill');
@@ -6154,7 +6159,7 @@ window.run = function() {
 						// 燃料喷射器 待定
 						if (this.getUnResearched('fuelInjectors') && resMap['oil'].value > 2e4 && (game.getEffect('calcinerRatio') < 1 || resMap['coal'].value < 3e3) && Religion.getSolarRevolutionRatio() < 5) {stock += 250;}
 						// 抽油机
-						let oilFactor = resPercent('oil') < 0.8 || resMap['oil'].perTickCached < 0.7;
+						let oilFactor = (resPercent('oil') < 0.8 && resMap['starchart'].value < 250) || resMap['oil'].perTickCached < 0.7;
 						if (this.getUnResearched('pumpjack') && titaniumVal > 200 && oilFactor) {stock += 125;}
 						if (this.getUnResearched('logistics') && resMap['scaffold'].value > 1000 && leader) {stock += 100;}
 						// 石油加工
@@ -6287,8 +6292,9 @@ window.run = function() {
 					let satnav = !piscine.on && space.getBuilding('sattelite').val < 9 && res.value;
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
-					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && Workshop.get('geodesy').researched && solar < 5) ? 0.7 + 0.17 * (shipValue < 400) : 0.4;
-					limRat = (shipValue > shipLimit * 0.75 && solar > 3 && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
+					let geodesy = Workshop.get('geodesy').researched;
+					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5) ? 0.7 + 0.2 * (shipValue < 350) : 0.4;
+					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
 					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && resMap['starchart'].value < 1e4) ? 0 : limRat;
@@ -7237,7 +7243,7 @@ window.run = function() {
 	let loadFromKittenStorage = function () {
 		let saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
 		if (!saved || saved.version > kittenStorageVersion) {
-			game.msg('项目内已经帮你勾选好了');
+			game.msg('你只需要勾需要的大项目，项目内max和启用已经帮你勾选好了\n默认设置可以一直以最快速度用到毕业\n已经勾选的项目都已经是自动化了');
 			return initializeKittenStorage();
 		}
 
