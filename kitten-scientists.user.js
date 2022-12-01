@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.124';
+	const version = 'V15.125';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -283,7 +283,7 @@ window.run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
-			'summary.auto.ksHelp3': '不更改默认设置下纯自动大概300年左右 130猫口 + 新约外传',
+			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概300年左右 130猫口 + 新约外传',
 			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需外面大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：只要不挂在前台请务必打开后台珂学家<br>最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
@@ -498,9 +498,9 @@ window.run = function() {
 					apocripha:          {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
 					transcendence:      {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
 					// Cryptotheology is variant c.
-					blackObelisk:       {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blackNexus:         {require: false,         enabled: false, max:54, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blackCore:          {require: false,         enabled: true,  max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackObelisk:       {require: true,          enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackNexus:         {require: true,          enabled: false, max:54, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackCore:          {require: true,          enabled: true,  max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					singularity:        {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackLibrary:       {require: false,         enabled: false, max: 0, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackRadiance:      {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
@@ -643,11 +643,11 @@ window.run = function() {
 					// Variants denote whether these buildings fall within the Chronoforge or Void categories.
 					// Chronoforge has variant chrono.
 					temporalBattery:     {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
-					blastFurnace:        {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+					blastFurnace:        {require: true,           enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					timeBoiler:          {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalAccelerator: {require: false,          enabled: false, max: 1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalImpedance:   {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
-					ressourceRetrieval:  {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+					ressourceRetrieval:  {require: true,           enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalPress:       {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 
 					// Void Space has variant void.
