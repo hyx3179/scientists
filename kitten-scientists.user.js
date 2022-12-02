@@ -205,7 +205,7 @@ window.run = function() {
 			'summary.promote': '提拔领袖 {0} 次',
 
 			'ui.trigger.useWorkers.alert': '比如玩别的游戏或者在干别的事情，浏览器可能会慢10倍的速度运行\n勾选后将会防止浏览器休眠珂学家，注意会导致使用内存增多，性能消耗增加。\n电脑不好、内存< 8G的建议禁用\n推荐过滤全部日志会减少性能的消耗。\n\n需满足浏览器支持且游戏选项的web worker启用。\n确认后会自动重新勾选启用珂学家\n 最小化浏览器必定会进入后台(游戏和珂学家速度都会被浏览器减慢10倍)',
-			'ui.timeCtrl': '时间操纵',
+			'ui.timeCtrl': '时间管理',
 			'option.accelerate': '光阴似箭',
 			'act.accelerate': '固有时制御，二倍速!',
 			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
@@ -2212,6 +2212,9 @@ window.run = function() {
 				if (tt < 8 && resMap['paragon'].values > 10) {
 					copyBuilds['basilica'].max = 1;
 					copyBuilds['templars'].max = 1;
+					if (!Workshop.get('spaceManufacturing').researched) {
+						copyBuilds['goldenSpire'].max = 4;
+					}
 				}
 			}
 
@@ -2236,6 +2239,11 @@ window.run = function() {
 					if (Num && Num.getBestRelicBuilding().indexOf('核心') === -1) {
 						copyBuilds['blackCore'].max = 0;
 						msgSummary('blackCore');
+					}
+					if (rrr < 36) {
+						copyBuilds['singularity'].max = 5;
+						copyBuilds['blazar'].max = 1;
+						copyBuilds['blackRadiance'].max = 1;
 					}
 				}
 			} else {
@@ -2754,7 +2762,7 @@ window.run = function() {
 					}
 				}
 				let index = 0;
-				let skip = (!orbitalGeodesy && !resMap['unobtainium'].value) || !geodesy;
+				let skip = !orbitalGeodesy && (!resMap['unobtainium'].value || !geodesy);
 				let GCPanel = spaceTab.GCPanel;
 				if (!GCPanel) {spaceTab.render();}
 				const missions = game.space.meta[0].meta;
@@ -7243,7 +7251,8 @@ window.run = function() {
 	let loadFromKittenStorage = function () {
 		let saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
 		if (!saved || saved.version > kittenStorageVersion) {
-			game.msg('你只需要勾需要的大项目，项目内max和启用已经帮你勾选好了\n默认设置可以一直以最快速度用到毕业\n已经勾选的项目都已经是自动化了');
+			let msg = game.msg('你只需要勾需要的大项目，项目内max和启用已经帮你精心勾选好了\n要对大家...保密哦🤍 \n\n默认设置可以一直以最快速度用到毕业\n已经勾选的项目都已经是自动化了');
+			$(msg.span).css('color', "#ff589c");
 			return initializeKittenStorage();
 		}
 
