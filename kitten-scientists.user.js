@@ -16,7 +16,8 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.125';
+	// const version = 'V15.128';
+	const version = '🕯️';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -279,7 +280,7 @@ window.run = function() {
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
 			'summary.auto.ironFactory': '如果钢的合成数量偏少，推荐关闭煅烧炉的自动化',
 			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋',
-			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂再等等',
+			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂，再等等猫猫米多点',
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
@@ -811,7 +812,7 @@ window.run = function() {
 					buildFilter:             {enabled: false,  label: i18n('filter.build'),     },
 					researchFilter:          {enabled: false,  label: i18n('filter.research'),  },
 					upgradeFilter:           {enabled: false,  label: i18n('filter.upgrade'),   },
-					craftFilter:             {enabled: false,  label: i18n('filter.craft'),     },
+					craftFilter:             {enabled: true,   label: i18n('filter.craft'),     },
 					spaceFilter:             {enabled: false,  label: i18n('filter.space'),     },
 					policyFilter:            {enabled: false,  label: i18n('filter.policy'),    },
 					upgBldFilter:            {enabled: false,  label: i18n('filter.upgBld'),    },
@@ -862,7 +863,8 @@ window.run = function() {
 			let item = filters.items[filter];
 			if (item && item.enabled) {return;}
 		}
-		const color = args.pop();
+		// const color = args.pop();
+		let color = 'black';
 		args[1] = args[1] || 'ks-default';
 
 		// update the color of the message immediately after adding
@@ -2234,7 +2236,10 @@ window.run = function() {
 				}
 				let rrr = game.getEffect('relicRefineRatio');
 				if (rrr < 60 && game.getEffect('beaconRelicsPerDay')) {
-					copyBuilds['blackObelisk'].max = 1 * (rrr > 35) + rrr;
+					if (resMap['burnedParagon'].value < 1e5) {
+						copyBuilds['blackNexus'].max = 36;
+					}
+					copyBuilds['blackObelisk'].max = rrr;
 					let Num = game['nummon'];
 					if (Num && Num.getBestRelicBuilding().indexOf('核心') === -1) {
 						copyBuilds['blackCore'].max = 0;
@@ -3494,7 +3499,7 @@ window.run = function() {
 					// 太空灯塔
 					if (game.getEffect('beaconRelicsPerDay')) {
 						let entanglerMax = entangler.max;
-						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 : entanglerMax;
+						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + 1 * (this.game.bld.getBuildingExt("aiCore").meta.effects["aiLevel"] > 13)) : entanglerMax;
 					} else {
 						if (priceRatio < -0.03 && !blackSky) {
 							builds['spaceBeacon'].enabled = false;
@@ -3523,8 +3528,8 @@ window.run = function() {
 					}
 					let uranium = game.getResourcePerTick('uranium', true);
 					// 月球前哨
-					if ((unobtainiumTick && uranium < 1) || resPercent('unobtainium') === 1) {
-						builds['moonOutpost'].max = 0;
+					if (uranium < 1 || resPercent('unobtainium') >= 1) {
+						builds['moonOutpost'].max = 1;
 					}
 					let storage = game.prestige.getParagonStorageRatio();
 					// 月球基地
