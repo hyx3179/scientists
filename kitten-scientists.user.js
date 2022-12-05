@@ -3499,7 +3499,7 @@ window.run = function() {
 					// 太空灯塔
 					if (game.getEffect('beaconRelicsPerDay')) {
 						let entanglerMax = entangler.max;
-						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + 1 * (this.game.bld.getBuildingExt("aiCore").meta.effects["aiLevel"] > 13)) : entanglerMax;
+						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + 1 * (game.bld.getBuildingExt("aiCore").meta.effects["aiLevel"] > 13)) : entanglerMax;
 					} else {
 						if (priceRatio < -0.03 && !blackSky) {
 							builds['spaceBeacon'].enabled = false;
@@ -9495,7 +9495,7 @@ window.run = function() {
 		// 插入版本号
 		let optionsTitleElement = $('<a/>', {
 			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
-				fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px'},
+				fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px', color: 'black'},
 			text: version,
 			target: '_blank',
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
