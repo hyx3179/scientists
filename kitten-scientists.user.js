@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.128';
+	const version = 'V15.129';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -5453,7 +5453,7 @@ window.run = function() {
 					// if (game.bld.getBuildingExt('calciner').meta.val > 2) {forceShipVal *= 0.9;}
 					if (geodesy && (scienceMax > 119e3 || value < 200)) {
 						if (!tt) {
-							i18nData['zh']['shipGeodesy'] += '<br>偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
+							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
 						}
 						forceShipVal = Math.min(243 + 5 * tt + solar, 300);
 						if (Religion.faith > 9e4 && scienceMax > 11e4) {
@@ -5465,7 +5465,7 @@ window.run = function() {
 							Craft.shipTime = Date.now();
 							let valueExt = game.getDisplayValueExt(forceShipVal);
 							if (!tt) {
-								i18nData['zh']['summary.auto.ship'] += '<br>偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛的几率越大';
+								i18nData['zh']['summary.auto.ship'] = '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ )，斑马拿铁辅料钛偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛的几率越大';
 							}
 							activity(i18n('summary.auto.ship', [valueExt]));
 							activitySummary.other['auto.ship'] = valueExt;
