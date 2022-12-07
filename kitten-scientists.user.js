@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.129';
+	const version = 'V15.130';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -257,9 +257,12 @@ window.run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
+			'summary.auto.150Faith': '你的信仰空了，看看你的宗教',
+			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '天才+懒惰的小猫不愿意有更多的研究院',
 			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏',
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
+			'summary.auto.aqueductCatnip': '水渠，饿饿，饭饭',
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.blackCore': '活祭之猫的黑之核心不是特别适合呐',
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
@@ -646,11 +649,11 @@ window.run = function() {
 					// Variants denote whether these buildings fall within the Chronoforge or Void categories.
 					// Chronoforge has variant chrono.
 					temporalBattery:     {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
-					blastFurnace:        {require: true,           enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+					blastFurnace:        {require: false,          enabled: true,  max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					timeBoiler:          {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalAccelerator: {require: false,          enabled: false, max: 1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalImpedance:   {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
-					ressourceRetrieval:  {require: true,           enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+					ressourceRetrieval:  {require: false,           enabled: true,  max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalPress:       {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 
 					// Void Space has variant void.
@@ -2147,9 +2150,16 @@ window.run = function() {
 			// 无盛典点出阳光赞歌
 			let fR = (1 + game.getUnlimitedDR(epiphany, 0.1) * 0.1);
 			let praiseForSolar = !solarRatio && !voidOrder;
-			let fPraise = resourceFaith.value > (1000 - worship) / fR && worship < 1000;
-			fPraise = fPraise || (resourceFaith.value > (150 - worship) / fR && worship < 150 && !voidOrder);
-			fPraise &= praiseForSolar;
+			let fPraise;
+			if (praiseForSolar) {
+				if (resourceFaith.value > (1000 - worship) / fR && worship < 1000) {
+					fPraise = true;
+					msgSummary('1000Faith');
+				} else if (resourceFaith.value > (150 - worship) / fR && worship < 150) {
+					fPraise = true;
+					msgSummary('150Faith');
+				}
+			}
 			// Praise
 			let fistReset = (solarRevolution || rate < 0.98 || (!voidOrder && resMap['gold'].value < 400));
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
@@ -2198,7 +2208,7 @@ window.run = function() {
 			if (!basilica && copyBuilds['basilica'].enabled) {
 				let glass = Religion.getRU("stainedGlass").on;
 				if (Religion.faith > 15e3 && !glass) {
-					if (game.village.happiness > 1.9) {copyBuilds['sunAltar'].enabled = false;}
+					if (tt > 4) {copyBuilds['sunAltar'].enabled = false;}
 					copyBuilds['goldenSpire'].enabled = false;
 				}
 				if (!glass && resMap['science'].maxValue > 65e3) {copyBuilds['scholasticism'].enabled = false;}
@@ -2334,6 +2344,10 @@ window.run = function() {
 				}
 			}
 			RR.max = (rrMax === -1) ? 100 : Math.min(100, rrMax);
+			// 时间阻抗
+			if (game.calendar.darkFutureYears(true) < 0) {
+				builds['temporalImpedance'].max = 0;
+			}
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
 			//buildManager.manager.render();
 
@@ -2409,7 +2423,7 @@ window.run = function() {
 								if (start) {continue;}
 								break;
 							case 'chemistry':
-								if (Workshop.get('titaniumAxe').researched && !acoustics) {continue;}
+								if ((Workshop.get('titaniumAxe').researched || !resMap['titanium'].value) && !acoustics) {continue;}
 								break;
 							case 'biochemistry':
 								if (titanium < 7000) {continue;}
@@ -2695,10 +2709,7 @@ window.run = function() {
 							let kitten = 'extravagance';
 							let philosophy = 'rationality';
 							let factory = 'fascism';
-							// "extravagance" "epicurianism" "isolationism"
-							// let a = ["liberty", "republic", "liberalism", "diplomacy", "culturalExchange", "epicurianism", "extravagance","mysticism","clearCutting", "fullIndustrialization"];
-							//let b = ["liberty", "authocracy", "isolationism", "zebraRelationsAppeasement", "cityOnAHill", "epicurianism", "extravagance""mysticism", "clearCutting", "sustainability"]
-							if (shipVal > 50) {
+							if (shipVal > 65 + 5 * Production) {
 								zebras = 'zebraRelationsAppeasement';
 							}
 							if (priceRatio) {
@@ -5014,6 +5025,7 @@ window.run = function() {
 					break;
 				case 'aqueduct': {
 					if ((this.crafts.getPotentialCatnip(false) < 4 * game.village.happiness && resPercent('catnip') < 0.6) || game.challenges.isActive('winterIsComing')) {
+						msgSummary('aqueductCatnip');
 						break;
 					} else if (!spaceManufacturing) {
 						if (resMap['slab'].value < 4e5 * (1 + revolution) || (!revolution && resPercent('minerals') < 0.98)) {
@@ -5427,7 +5439,7 @@ window.run = function() {
 			const temple = game.bld.getBuildingExt('temple').meta;
 			let priceRatio = game.getEffect("priceRatio");
 			let templePriceRatio = Math.pow(temple.priceRatio + priceRatio, temple.val);
-			let renaissance = game.prestige.getPerk('renaissance').researched;
+			let renaissance = priceRatio < -0.08;
 
 			let craft = this.getCraft(name);
 			let Craft = options.auto.craft;
@@ -5451,7 +5463,7 @@ window.run = function() {
 						}
 					}
 					// if (game.bld.getBuildingExt('calciner').meta.val > 2) {forceShipVal *= 0.9;}
-					if (geodesy && (scienceMax > 119e3 || value < 200)) {
+					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 850)) {
 						if (!tt) {
 							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
 						}
@@ -5584,7 +5596,7 @@ window.run = function() {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript > 0) {
-						let buildTemple = (i === 16 && game.village.happiness < 4 && temple.val === 1 && ratio > 4);
+						let buildTemple = !Science.get('theology').researched && temple.val >= 1 && ratio > 4 + 5 * temple.val * priceRatio;
 						buildTemple = buildTemple || resMap['faith'].maxValue > 750 || value > 20;
 						let templePrice = 10 * templePriceRatio;
 						price = (buildTemple || value > templePrice) ? price : 10 * templePriceRatio;
