@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.130';
+	const version = 'V15.131';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -102,7 +102,7 @@ window.run = function() {
 			'ui.none': '无',
 			'ui.limit': '限制',
 			'ui.tradeLimit': 'AI计算',
-			'ui.distributeLimit': '超过MAX',
+			'ui.distributeLimit': '限量',
 			'ui.craftLimit': 'AI平衡',
 			'ui.upgradesLimit': '优选',
 			'ui.trigger.filterGame.set': '设置游戏日志数量上限',
@@ -181,7 +181,7 @@ window.run = function() {
 			'filter.enable': '过滤 {0}',
 			'filter.disable': '取消过滤 {0}',
 
-			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了',
+			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了~♪',
 			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}',
 			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ﾚ(ﾟ∀ﾟ;)ﾍ=3=3 !',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
@@ -259,7 +259,7 @@ window.run = function() {
 
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
-			'summary.auto.academy': '天才+懒惰的小猫不愿意有更多的研究院',
+			'summary.auto.academy': '米娜桑，吾等猫类看不上研究院♪呐',
 			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏',
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
 			'summary.auto.aqueductCatnip': '水渠，饿饿，饭饭',
@@ -315,7 +315,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛',
-			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家',
+			'summary.auto.shipGeodesy': '小猫嗅到了♡黄♡金♡の♡味♡道♡呐 ^ ω ^，来点船船抄斑马的家',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站(记得删除时间水晶库存)',
 			'summary.auto.spaceStationStar': '小猫咪再等等亿点点时间就会造空间站了，小猫是懂星图的',
@@ -327,7 +327,7 @@ window.run = function() {
 			'summary.auto.templars': '没有足够的黄金和铁产量拿什么祷告圣殿骑士呢',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
 			'summary.auto.titaniumGeodesy': '小猫打败斑马的最后一步，存着钛点测地学。',
-			'summary.auto.tradepost': '祷告太阳革命前，交易所的建设开摆',
+			'summary.auto.tradepost': '祷告太阳革命前，交易所的建设开摆 ≧ω≦',
 			'summary.auto.tear': '小喵都做了什么?! 独角兽的眼泪加小猫幸福度的捏',
 			'summary.auto.unicorn': '最佳独角兽建筑：{0}',
 			'summary.auto.upgPasture': '当勾选太阳能发电站了，并钛爆仓、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部牧场后，升级太阳能发电站!',
@@ -650,7 +650,7 @@ window.run = function() {
 					// Chronoforge has variant chrono.
 					temporalBattery:     {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					blastFurnace:        {require: false,          enabled: true,  max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
-					timeBoiler:          {require: false,          enabled: false, max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
+					timeBoiler:          {require: false,          enabled: false, max:0,  variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalAccelerator: {require: false,          enabled: false, max: 1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					temporalImpedance:   {require: false,          enabled: false, max: 0, variant: 'chrono', checkForReset: true, triggerForReset: -1},
 					ressourceRetrieval:  {require: false,           enabled: true,  max:-1, variant: 'chrono', checkForReset: true, triggerForReset: -1},
@@ -1978,7 +1978,8 @@ window.run = function() {
 			let maxSolarRevolution = 10 + solarRLimit;
 			let adoreTrigger = option.adore.subTrigger;
 			let triggerSolarRevolution = maxSolarRevolution * adoreTrigger;
-			let epiphanyInc = worship / 1000000 * (tt + 1) * (tt + 1) * 1.01;
+			// 1e-6 * 1.01 = 101e-8;
+			let epiphanyInc = worship * 101e-8 * (tt + 1) * (tt + 1);
 			let epiphanyAfterAdore = epiphany + epiphanyInc;
 			let worshipAfterAdore = 0.01 + resourceFaith.value * (1 + game.getUnlimitedDR(epiphanyAfterAdore, 0.1) * 0.1);
 			let solarRevolutionAfterAdore = game.getLimitedDR(game.getUnlimitedDR(worshipAfterAdore, 1000) / 100, maxSolarRevolution);
@@ -2149,10 +2150,9 @@ window.run = function() {
 
 			// 无盛典点出阳光赞歌
 			let fR = (1 + game.getUnlimitedDR(epiphany, 0.1) * 0.1);
-			let praiseForSolar = !solarRatio && !voidOrder;
 			let fPraise;
-			if (praiseForSolar) {
-				if (resourceFaith.value > (1000 - worship) / fR && worship < 1000) {
+			if (!solarRatio && !voidOrder) {
+				if (resourceFaith.value > (1000 - worship) / fR && worship < 1000 && game.getEffect('faithRatioReligion')) {
 					fPraise = true;
 					msgSummary('1000Faith');
 				} else if (resourceFaith.value > (150 - worship) / fR && worship < 150) {
@@ -2165,7 +2165,7 @@ window.run = function() {
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep || fPraise) {
 				let msgPraise = praiseLess && !forceStep && rate < 0.98 && !timeSkipAdore;
-				let times = (tt < 5) ? 1e5 : 4e5;
+				let times = (transcendenceTier < 5) ? 1e5 : 8e5;
 				if (msgPraise && (Date.now() > option.autoPraise.time + times || !activitySummary.other['praise.msg']) && solarRatio) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
@@ -3504,7 +3504,7 @@ window.run = function() {
 					}
 					// 反应堆
 					let one = game.getEffect('productionRatio') < 0.6 && unobtainiumTri > 0 && solarRevolution > 5;
-					if ((starchartVal < FiveSattelite && solarRevolution < 2 && sattelite && !game.space.meta[0].meta[3].val)
+					if ((starchartVal < FiveSattelite && solarRevolution < 2 && sattelite)
 						|| !game.workshop.get('orbitalGeodesy').researched || one) {
 						builds['sattelite'].max = 0;
 					}
@@ -3899,10 +3899,13 @@ window.run = function() {
 		trade: function () {
 			let cacheSummary = {};
 			let Ratio = (activitySummary.other['auto.changeLeader']) ? 0 : 2;
+			let skip = game.calendar.day < 0;
 			for (let res in resMap) {
 				let Res = resMap[res];
-				game.resPool.addRes(Res, Math.max(Ratio * Res.perTickCached + game.getEffect(res + 'PerTickCon'), 0), false);
 				cacheSummary[res] = Res.value;
+				if (skip || !Res.perTickCached) {continue;}
+				// let limit = Math.max(res.value, res.maxValue || Number.POSITIVE_INFINITY);
+				game.resPool.addRes(Res, Math.max(Ratio * Res.perTickCached + game.getEffect(res + 'PerTickCon'), 0), false);
 			}
 			let i;
 			const craftManager = this.craftManager;
@@ -5566,7 +5569,7 @@ window.run = function() {
 						force = true;
 						autoMax = 1;
 					}
-					if (!resMap['ship'].value && ratio > 3 && resMap['starchart'].value > 24) {
+					if (!resMap['ship'].value && ratio > 3 - priceRatio && resMap['starchart'].value > 24) {
 						autoMax = Math.ceil(Math.min(resMap['iron'].value / 100, (150 - resValue) / ratio));
 						force = true;
 					}
@@ -5663,11 +5666,12 @@ window.run = function() {
 				}
 				// 冶金
 				if (!Science.get('metalurgy').researched && resValue < 100 && scienceTri > 0.98) {
-					if (!Science.get('electricity').researched && resValue < 85 && cultureTri > 0.92) {
+					let maxVal = resMap['science'].maxValue;
+					if ((!Science.get('electricity').researched && resValue < 85 && cultureTri > 0.92)
+						|| (scienceTri === 1 && maxVal > scienceMeta.meta[i].prices[1].val)) {
 						force = true;
 						autoMax = 1;
 					}
-					let maxVal = resMap['science'].maxValue;
 					if (cultureTri > 0.96) {
 						if (maxVal > 81e3) {
 							force = true;
@@ -6364,7 +6368,7 @@ window.run = function() {
 					let titan = value < 2500 && resMap['titanium'].value > 3500;
 					let Temple = temple.on && temple.on < 15 - 3 * renaissance && solar && value < templeFactor * 15;
 					limRat = (game.getEffect('calcinerRatio') || Temple || titan) ? limRat + 0.2 : 0.35;
-					limRat = (value < 150 && navigation.researched && resMap['starchart'].value > 10 && resMap['scaffold'].value > 50) ? 0.92 : limRat;
+					limRat = (value < 150 && navigation.researched && resMap['starchart'].value > 10 && resMap['scaffold'].value > 50 - 100 * priceRatio) ? 0.92 : limRat;
 					limRat = (options.auto.craft.oxidation && !game.workshop.get('oxidation').researched) ? 0 : limRat;
 					break;
 				}
