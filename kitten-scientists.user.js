@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.131';
+	const version = 'V15.132';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -801,7 +801,7 @@ window.run = function() {
 					farmer:     {enabled: true, max: 1, limited: true},
 					scholar:    {enabled: true, max: 9, limited: true},
 					hunter:     {enabled: true, max: 24, limited: true},
-					miner:      {enabled: true, max: 25, limited: true},
+					miner:      {enabled: true, max: 26, limited: true},
 					priest:     {enabled: true, max: 3, limited: false},
 					geologist:  {enabled: true, max: 40, limited: true},
 					// engineer:   {enabled: false, max: 0, limited: false},
@@ -2204,11 +2204,13 @@ window.run = function() {
 			}
 			if (!Religion.getRU('solarchant').on && resMap['faith'].value > 100 && Religion.faith > 150) {buildManager.build("solarchant", "s", 1);}
 			let basilica = Religion.getRU("basilica").on;
-			if (!Religion.getRU("sunAltar").on && basilica) {copyBuilds['goldenSpire'].enabled = false;}
+			if (!Religion.getRU("sunAltar").on && tt > 4) {copyBuilds['goldenSpire'].enabled = false;}
 			if (!basilica && copyBuilds['basilica'].enabled) {
 				let glass = Religion.getRU("stainedGlass").on;
 				if (Religion.faith > 15e3 && !glass) {
-					if (tt > 4) {copyBuilds['sunAltar'].enabled = false;}
+					if (tt > 4) {
+						copyBuilds['sunAltar'].enabled = false;
+					}
 					copyBuilds['goldenSpire'].enabled = false;
 				}
 				if (!glass && resMap['science'].maxValue > 65e3) {copyBuilds['scholasticism'].enabled = false;}
@@ -3139,7 +3141,7 @@ window.run = function() {
 				// 神殿
 				let temple = items['temple'];
 				if (hasLeader && !game.getEffect('unobtainiumPerTickSpace') && resMap['faith'].maxValue < 8000) {
-					temple.max = Math.max(21 + 10 * orbitalGeodesy - Production + 5 * priceRatio, 10 * (1 + revolutionRatio));
+					temple.max = Math.max(21 + 10 * orbitalGeodesy - Production + 5 * priceRatio - 3 * vitruvianFeline, 10 * (1 + revolutionRatio));
 				}
 				// 无、低太阳革命
 				if (revolutionRatio < 0.06) {
@@ -3253,7 +3255,7 @@ window.run = function() {
 				}
 
 				let oilTick = resMap['oil'].perTickCached - 0.024 * calcinerVal;
-				if (oilTick < 0.5) {
+				if (oilTick < 0.5 - 0.1 * vitruvianFeline) {
 					calciner.max = 1 + 1 * (Production > 1);
 					if (calcinerVal) {
 						msgSummary('oilTick');
@@ -3330,7 +3332,7 @@ window.run = function() {
 						}
 						items['ziggurat'].max = 10 + 15 * (game.workshop.get('unobtainiumDrill').researched) + 10 * vitruvianFeline + revolutionRatio;
 						if (revolutionRatio && game.getEffect('faithRatioReligion') < 0.2) {
-							tradepost.max = 36 + Math.max(4 * geodesy, 22 * orbitalGeodesy);
+							tradepost.max = 36 + Math.max(4 * geodesy, 22 * orbitalGeodesy) - 3 * vitruvianFeline;
 						}
 					}
 				}
@@ -3493,7 +3495,7 @@ window.run = function() {
 					let Production = game.prestige.getParagonProductionRatio();
 					let unobtainiumTri = resPercent('unobtainium');
 					let station = game.space.getBuilding('spaceStation').val;
-					let moreKitten = -0.6 * !vitruvianFeline * (game.getEffect('hutPriceRatio') < -1);
+					let moreKitten = (-0.6 - priceRatio) * !vitruvianFeline * (game.getEffect('hutPriceRatio') < -1);
 					let spaceStation = 3e3 * Math.pow(1.12, station) * (0.7 + 0.5 * vitruvianFeline + 8 * !solarRevolution + moreKitten);
 					let FiveSattelite = 2300 * Math.pow(1.12, sattelite) * (1 - moreKitten);
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {
@@ -5118,7 +5120,7 @@ window.run = function() {
 				case 'quarry' :
 					if (Workshop.get('nuclearSmelters').researched && !spaceManufacturing) {
 						if (game.bld.getBuildingExt(id).meta.val < 20 && geodesy) {return;}
-						count *= 0.5;
+						count *= 0.7 - 0.2 * vitruvianFeline;
 						halfCount = true;
 					}
 					checkHalfCount(id);
@@ -5462,7 +5464,7 @@ window.run = function() {
 						if (solar < 0.23) {
 							forceShipVal = Math.min(16 / Math.log1p(solar), 176);
 						} else {
-							forceShipVal = Math.min(21.8 + 5 * solar / Math.log1p(solar), 176);
+							forceShipVal = Math.min(22.8 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.25 * (priceRatio < -0.06));
 						}
 					}
 					// if (game.bld.getBuildingExt('calciner').meta.val > 2) {forceShipVal *= 0.9;}
@@ -5470,7 +5472,7 @@ window.run = function() {
 						if (!tt) {
 							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
 						}
-						forceShipVal = Math.min(243 + 5 * tt + solar, 300);
+						forceShipVal = Math.min(243 + 5 * tt + solar, 400);
 						if (Religion.faith > 9e4 && scienceMax > 11e4) {
 							if (tt < 6 && geodesy) {forceShipVal = -103 * tt + 740 - 250 * !tt;}
 						}
@@ -5599,8 +5601,13 @@ window.run = function() {
 					let meta = scienceMeta.meta[i];
 					let price = cacheManuscript || meta.prices[1].val;
 					if (!meta.researched || cacheManuscript > 0) {
-						let buildTemple = !Science.get('theology').researched && temple.val >= 1 && ratio > 4 + 5 * temple.val * priceRatio;
-						buildTemple = buildTemple || resMap['faith'].maxValue > 750 || value > 20;
+						let buildTemple = resMap['faith'].maxValue > 750 || value > 20;
+						if (!buildTemple && !Science.get('theology').researched) {
+							let templeVal = temple.val;
+							if (templeVal >= 1 && ratio > 4 + Math.pow(templeVal, 3) * 0.08) {
+								buildTemple = true;
+							}
+						}
 						let templePrice = 10 * templePriceRatio;
 						price = (buildTemple || value > templePrice) ? price : 10 * templePriceRatio;
 						autoMax = Math.ceil((price - resValue) / ratio);
@@ -5861,7 +5868,7 @@ window.run = function() {
 						let coalMap = resMap['coal'];
 						// 15分钟 5 * 60 * 15
 						let coalR = (Amt * 100 - coalMap.value) / coalMap.perTickCached;
-						let ironR = (Amt * 100 - ironMap.value) / this.getTickVal(ironMap);
+						let ironR = (Amt * 100 - ironMap.value) / this.getTickVal(ironMap, resMap['ship'].value < 243 && geodesy);
 						let startGame = resMap['science'].value > 2e4 || resMap['starchart'].value < 1e4;
 						let T = 4500 + 200 * (calVal > 2) + 300 * (calVal > 3) + + 500 * (calVal > 4) + 300 * (calVal > 6);
 						if (coalR < T && ironR < T && startGame) {
@@ -6150,8 +6157,9 @@ window.run = function() {
 						let steelAxe = this.getUnResearched('steelAxe') && resMap['coal'].value > 3000;
 						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 30 || val > 10)) {msgForStock(75, 'steelAxe', name);}
 						// 精钢锯
-						let steelSaw = this.getUnResearched('steelSaw') && val > 250 && !cache.stocks['titanium'] && resMap['science'].maxValue > 50e3 && kittens < 85;
-						if (steelSaw) {msgForStock(750, 'steelSaw', name);}
+						if (this.getUnResearched('steelSaw') && val > 250 && !cache.stocks['titanium'] && resMap['science'].maxValue > 50e3 && kittens < 85) {
+							msgForStock(750, 'steelSaw', name);
+						}
 						// 氧化反应
 						if (options.auto.craft.oxidation && this.getUnResearched('oxidation')) {stock += 5000;}
 
@@ -6355,7 +6363,7 @@ window.run = function() {
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
 					let geodesy = Workshop.get('geodesy').researched;
-					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5) ? 0.7 + 0.2 * (shipValue < 350) : 0.4;
+					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5) ? 0.7 + 0.2 * (shipValue < 400 - 50 * renaissance) : 0.4;
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
 					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
