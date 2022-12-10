@@ -5182,7 +5182,7 @@ window.run = function() {
 								let production = game.getEffect('productionRatio');
 								if (revolution) {
 									if (production > 0.6 || (geodesy && priceRatio > -0.08)) {
-										if (faVal < 2 - !production + 10 * Workshop.get("nuclearSmelters").researched + production - 3 * vitruvianFeline - !geodesy + 2 * geodesy) {
+										if (faVal < 2 - !production + 10 * Workshop.get("nuclearSmelters").researched + 2 * production - 3 * vitruvianFeline - !geodesy + 2 * geodesy) {
 											return count;
 										}
 									}
@@ -6188,7 +6188,7 @@ window.run = function() {
 						let Val = game.bld.getBuildingExt('calciner').meta.val;
 						let geodesyResearched = game.workshop.get('geodesy').researched;
 						let calcinerRatio = game.getEffect('calcinerRatio');
-						let titaniumVal = titaniumVal;
+						let titaniumVal = Titanium.value;
 						let items = options.auto.upgrade.items;
 						// 回转炉
 						if (this.getUnResearched('rotaryKiln') && calcinerRatio && ((titaniumVal > 2000 && Val > 16 && geodesyResearched && resMap['ship'].value > 240) || orbGeodesy)) {
