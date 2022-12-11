@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.133';
+	const version = 'V15.134';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -3656,7 +3656,7 @@ window.run = function() {
 					bldSpaceStation.max = 0;
 					builds['terraformingStation'].max = 0;
 				}
-				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && blackOrSolar && game.getEffect("calcinerRatio") > 2) {
+				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && game.getEffect("calcinerRatio") > 2 || (keepStar && !sattelite)) {
 					buildManager.build("sattelite", 1);
 					msgSummary('sattelite');
 				}
@@ -5182,7 +5182,7 @@ window.run = function() {
 								let production = game.getEffect('productionRatio');
 								if (revolution) {
 									if (production > 0.6 || (geodesy && priceRatio > -0.08)) {
-										if (faVal < 2 - !production + 10 * Workshop.get("nuclearSmelters").researched + 2 * production - 3 * vitruvianFeline - !geodesy + 2 * geodesy) {
+										if (faVal < 2 - !production + 10 * Workshop.get("nuclearSmelters").researched + vitruvianFeline * (3 * production - 3) - !geodesy + 2 * geodesy) {
 											return count;
 										}
 									}
@@ -6199,7 +6199,7 @@ window.run = function() {
 						let cal = Revolution < 3.3 && (Val || Titanium.value > 100) && leader;
 						let anarchy = game.challenges.isActive("anarchy") && Revolution < 6;
 						let geodesy = this.getUnResearched('geodesy');
-						if (!iw && geodesy && resMap['starchart'].value > 300 + 50 * !calcinerRatio + 150 * anarchy && (cal || anarchy)) {
+						if (!iw && geodesy && resMap['starchart'].value > 350 - 50 * !calcinerRatio + 150 * anarchy && (cal || anarchy)) {
 							msgForStock(250, 'titaniumGeodesy', name);
 							let upg = items.upgrades;
 							if (!upg.cache) {
