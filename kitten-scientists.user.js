@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.134';
+	const version = 'V15.135';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2140,7 +2140,7 @@ window.run = function() {
 			// 彩色玻璃
 			let glass = stainedGlassOn || resMap['gold'].value < 180 || game.getEffect('culturePerTickBase') < 0.9;
 			// 大教堂
-			let basilica = religion.getRU("basilica").on || resMap['gold'].value < 600 || resourceFaith.perTickCached < 2.8
+			let basilica = religion.getRU("basilica").on || resMap['gold'].value < 600 || resourceFaith.perTickCached < 2
 				|| game.getEffect('culturePerTickBase') < 2.7;
 			praiseLess = !praiseLess && PraiseSubTrigger <= 1;
 			if (solarRevolution && praiseLess && solarRatio < expectSolarRevolutionRatio * 0.01 && glass && basilica) {
@@ -2202,21 +2202,24 @@ window.run = function() {
 			if (!solarMeta.on && Unlocked && faithItems.solarRevolution.enabled && Religion.faith > solarMeta.faith) {
 				buildManager.build("solarRevolution", "s", 1);
 			}
-			if (!Religion.getRU('solarchant').on && resMap['faith'].value > 100 && Religion.faith > 150) {buildManager.build("solarchant", "s", 1);}
 			let basilica = Religion.getRU("basilica").on;
-			if (!Religion.getRU("sunAltar").on && tt > 4) {copyBuilds['goldenSpire'].enabled = false;}
-			if (!basilica && copyBuilds['basilica'].enabled) {
-				let glass = Religion.getRU("stainedGlass").on;
-				if (Religion.faith > 15e3 && !glass) {
-					if (tt > 4) {
-						copyBuilds['sunAltar'].enabled = false;
+			if (!basilica) {
+				if (!Religion.getRU('solarchant').on && resMap['faith'].value > 100 && Religion.faith > 150) {buildManager.build("solarchant", "s", 1);}
+				if (!Religion.getRU("sunAltar").on && tt > 4) {copyBuilds['goldenSpire'].enabled = false;}
+				if (copyBuilds['basilica'].enabled) {
+					let glass = Religion.getRU("stainedGlass").on;
+					if (Religion.faith > 15e3 && !glass) {
+						if (tt > 4) {
+							copyBuilds['sunAltar'].enabled = false;
+						}
+						copyBuilds['goldenSpire'].enabled = false;
 					}
-					copyBuilds['goldenSpire'].enabled = false;
+					if (tt > 7) {
+						copyBuilds['sunAltar'].enabled = false;
+						copyBuilds['goldenSpire'].enabled = false;
+					}
+					if (!glass && resMap['science'].maxValue > 65e3) {copyBuilds['scholasticism'].enabled = false;}
 				}
-				if (tt > 7) {
-					copyBuilds['goldenSpire'].enabled = false;
-				}
-				if (!glass && resMap['science'].maxValue > 65e3) {copyBuilds['scholasticism'].enabled = false;}
 			}
 			// 圣殿骑士
 			if (!game.ironWill && game.getEffect('faithRatioReligion') < 0.8) {
@@ -3626,8 +3629,10 @@ window.run = function() {
 					let ChamberCons = Math.max(50 * (1 + heatsink * 0.01), 5 * containmentChamber);
 					let energyExtra = Prod < Cons + ChamberCons + 2;
 					let sunCycle = game.prestige.getPerk("numerology").researched && (game.calendar.cycle === 3 || game.calendar.cycle === 1);
-					if (antimatter.value + 50 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra || sunCycle) {
-						itemChamber.enabled = false;
+					if (antimatter.value + 75 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra || sunCycle) {
+						if (!vitruvianFeline || (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber < 10 + heatsink)) {
+							itemChamber.enabled = false;
+						}
 						itemHeatsink.enabled = false;
 					}
 					if (Prod < Cons + 20) {
@@ -6836,7 +6841,7 @@ window.run = function() {
 			for (let mat in materials) {
 				if (mat === 'ivory') {continue;}
 				tick = this.craftManager.getTickVal(this.craftManager.getResource(mat), rrTrade);
-				if (mat === 'slab' && solar > 0.03) {tick *= 1.04;}
+				if (mat === 'slab' && solar > 0.03 && solar < 0.5) {tick *= 1.04;}
 				if (tick <= 0) {
 					if (name === 'leviathans' && mat === 'gold') {continue;}
 					return false;
