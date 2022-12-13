@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.135';
+	const version = 'V15.136';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1734,7 +1734,7 @@ window.run = function() {
 					if (resPercent('science') > moreScholar && val || !woodcutter || (woodcutter < 2 && !resMap['paragon'].value)) {
 						maxKS = 0;
 					} else if (moreScholar > 0.28) {
-						maxKS = Math.max(maxKS, Math.min(24, 13 + 12 * (game.getEffect('priceRatio') < -0.07) + 12 * scholar));
+						maxKS = Math.max(maxKS, Math.min(24, 11 + revolution + 12 * (game.getEffect('priceRatio') < -0.07) + 12 * scholar));
 						if (val > 8 && val < maxKS) {msgSummary('scholar');}
 					}
 				}
@@ -2205,7 +2205,6 @@ window.run = function() {
 			let basilica = Religion.getRU("basilica").on;
 			if (!basilica) {
 				if (!Religion.getRU('solarchant').on && resMap['faith'].value > 100 && Religion.faith > 150) {buildManager.build("solarchant", "s", 1);}
-				if (!Religion.getRU("sunAltar").on && tt > 4) {copyBuilds['goldenSpire'].enabled = false;}
 				if (copyBuilds['basilica'].enabled) {
 					let glass = Religion.getRU("stainedGlass").on;
 					if (Religion.faith > 15e3 && !glass) {
@@ -2236,6 +2235,7 @@ window.run = function() {
 					if (!Workshop.get('spaceManufacturing').researched) {
 						copyBuilds['goldenSpire'].max = 4;
 					}
+					if (!Religion.getRU("sunAltar").on && tt > 4) {copyBuilds['goldenSpire'].enabled = false;}
 				}
 			}
 
@@ -3497,7 +3497,9 @@ window.run = function() {
 				let blackOrSolar = blackSky || solarRevolution > 5
 					|| (unobtainiumTick && game.workshop.get('spaceManufacturing').researched);
 				if (trigger) {
-					msgSummary('spaceZero');
+					if (trigger !== 9) {
+						msgSummary('spaceZero');
+					}
 				} else {
 					let Prod = game.resPool.energyProd;
 					let Cons = game.resPool.energyCons;
@@ -3506,8 +3508,10 @@ window.run = function() {
 					let unobtainiumTri = resPercent('unobtainium');
 					let station = game.space.getBuilding('spaceStation').val;
 					let moreKitten = (-0.6 - priceRatio) * !vitruvianFeline * (game.getEffect('hutPriceRatio') < -1);
-					let spaceStation = 3e3 * Math.pow(1.12, station) * (0.7 + 0.5 * vitruvianFeline + 8 * !solarRevolution + moreKitten);
-					let FiveSattelite = 2300 * Math.pow(1.12, sattelite) * (1 - moreKitten);
+					let sattelitePrice = Math.pow(1.08, sattelite);
+					let FiveSattelite = 2300 * sattelitePrice * (1 - moreKitten);
+					let spaceStation = 3e3 * Math.pow(1.12, station) * (8 * !solarRevolution + moreKitten + 0.7
+						+ vitruvianFeline * (-1.2 * (resMap['science'].maxValue < 1e5 * sattelitePrice) + 0.5));
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {
 						builds['sattelite'].max = sattelite + 1;
 					}
@@ -3629,11 +3633,12 @@ window.run = function() {
 					let ChamberCons = Math.max(50 * (1 + heatsink * 0.01), 5 * containmentChamber);
 					let energyExtra = Prod < Cons + ChamberCons + 2;
 					let sunCycle = game.prestige.getPerk("numerology").researched && (game.calendar.cycle === 3 || game.calendar.cycle === 1);
-					if (antimatter.value + 75 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra || sunCycle) {
-						if (!vitruvianFeline || (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber < 10 + heatsink)) {
-							itemChamber.enabled = false;
+					if (antimatter.value + 50 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra || sunCycle) {
+						if (energyExtra ||!vitruvianFeline || !game.getEffect('gflopsConsumption') || sunCycle
+							|| (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber < 10 - heatsink)) {
+							itemHeatsink.enabled = false;
 						}
-						itemHeatsink.enabled = false;
+						itemChamber.enabled = false;
 					}
 					if (Prod < Cons + 20) {
 						bldSpaceStation.max = 0;
@@ -4264,7 +4269,7 @@ window.run = function() {
 
 			// 铸币厂
 			let mint = game.bld.getBuildingExt('mint').meta;
-			if (mint.on !== mint.val && resMap['manpower'].maxValue > 4e4) {
+			if (mint.on !== mint.val && resMap['manpower'].maxValue > 3e4 && resPercent('gold') > 0.5) {
 				mint.on = mint.val;
 			}
 			if (mint.on > 1 && resMap['manpower'].maxValue < 19e3 && !game.challenges.isActive("pacifism")) {
@@ -5187,7 +5192,7 @@ window.run = function() {
 								let production = game.getEffect('productionRatio');
 								if (revolution) {
 									if (production > 0.6 || (geodesy && priceRatio > -0.08)) {
-										if (faVal < 2 - !production + 10 * Workshop.get("nuclearSmelters").researched + vitruvianFeline * (3 * production - 3) - !geodesy + 2 * geodesy) {
+										if (faVal < 2 - !production + 10 * Workshop.get("nuclearSmelters").researched + vitruvianFeline * (4 * production - 3) - !geodesy + 2 * geodesy) {
 											return count;
 										}
 									}
@@ -5929,7 +5934,6 @@ window.run = function() {
 				}
 				if (!oxid) {
 					Craft.oxidation = null;
-					msgSummary('oxidation', true);
 				}
 				// 资源回复满的铁触发消耗完铁
 				let itemHunt = options.auto.options.items.hunt;
@@ -6378,7 +6382,7 @@ window.run = function() {
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
 					let geodesy = Workshop.get('geodesy').researched;
-					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5) ? 0.7 + 0.2 * (shipValue < 400 - 50 * renaissance) : 0.4;
+					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
 					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
@@ -8940,7 +8944,7 @@ window.run = function() {
 				});
 
 				ressetKS.on('click', function () {
-					if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置(最好刷新下页面)\n为了照顾钢铁模式，默认配置小屋、木屋、宅邸默认不勾，请有需要的自行勾上')) {
+					if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置\n已经替你完美配置好不需要你改任何设置\n只需勾上你需要的对应的大项目就是最快速度发展了\n\n为了照顾钢铁模式，默认配置小屋、木屋、宅邸默认不勾，请有需要的自行勾上')) {
 						engine.stop();
 						let cbc = sessionStorage.getItem('options');
 						delete localStorage['cbc.kitten-scientists'];
