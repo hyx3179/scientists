@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.136';
+	const version = 'V15.137';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -260,6 +260,7 @@ window.run = function() {
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
+			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策',
 			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏',
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
 			'summary.auto.aqueductCatnip': '水渠，饿饿，饭饭',
@@ -2107,8 +2108,7 @@ window.run = function() {
 						}
 					}
 					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 100) / 100;
-					let filter = !rrVal || !voidOrder;
-					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar'] && filter && solarAdore) {
+					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar'] && solarAdore && (!rrVal || !voidOrder)) {
 						activity(i18n('summary.adore.solar', [expectSolarRevolutionRatio]));
 						activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
 					}
@@ -2525,7 +2525,7 @@ window.run = function() {
 					}
 					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
 					let pacifism = game.challenges.isActive("pacifism");
-					if (game.bld.getBuildingExt('steamworks').meta.on < 1 + 5 * priceRatio) {
+					if (game.bld.getBuildingExt('steamworks').meta.on < 1 + 50 * priceRatio) {
 						if (!pacifism) {noop = noop.concat(['printingPress','offsetPress','photolithography'], autoM);}
 						if (!game.bld.getBuildingExt('steamworks').meta.on) {noop.push('combustionEngine');}
 					} else if (!game.opts.enableRedshift) {
@@ -2546,7 +2546,7 @@ window.run = function() {
 						}
 					}
 					// 过滤测地学
-					isFilter = revolutionRatio > 6 || orbitalGeodesy;
+					isFilter = revolutionRatio > 8 + 232 * priceRatio || orbitalGeodesy;
 					if (isFilter && !game.space.meta[0].meta[3].val && resStarchartVal < 1700) {
 						if (!resMap['unobtainium'].value) {noop = noop.concat(['geodesy','seti']);}
 						if (!orbitalGeodesy) {
@@ -2641,11 +2641,11 @@ window.run = function() {
 						if (Production > 2) {
 							noop.push('coldFusion');
 							if (resStarchartVal < 2e5) {
-								noop.push('eludiumReflectors','amBases','eludiumCracker');
+								noop.push('amBases','eludiumCracker');
 							}
 						}
-						let hut = game.getEffect('priceRatio');
-						if (hut && hut > - 0.07) {noop.push('astrophysicists');}
+						let hut = game.getEffect('hutPriceRatio');
+						if (hut && hut > - 1.06) {noop.push('astrophysicists');}
 					}
 					// 天体观测仪
 					isFilter = resMap['science'].maxValue > 120e3 + 80e3 * geodesy && resStarchartVal < 2075;
@@ -2703,50 +2703,52 @@ window.run = function() {
 					let ratio = (Science.get('astronomy').researched || (resMap['burnedParagon'].value < 1e4 && resMap['culture'].value < 400) || game.getEffect('priceRatio') > -0.03) ? 1 : 3;
 					let policiesList = options.policies;
 					if (upgrades.policies.auto) {
+						policiesList = [];
 						if (game.challenges.anyChallengeActive()) {
 							upgrades.policies.enabled = false;
 							$('#toggle-policies').prop("checked", false);
-						}
-						policiesList = [];
-						if (!game.challenges.anyChallengeActive() && !game.ironWill) {
-							let shipVal = resMap['ship'].value;
-							policiesList = ["clearCutting","outerSpaceTreaty",'epicurianism','expansionism','necrocracy'];
-							let first = 'liberty';
-							let environment = 'sustainability';
-							let leader = 'authocracy';// autocracy
-							let zebras = '';
-							let trade = 'isolationism';
-							let tradeNext = 'cityOnAHill';
-							let kitten = 'extravagance';
-							let philosophy = 'rationality';
-							let factory = 'fascism';
-							if (shipVal > 65 + 5 * Production) {
-								zebras = 'zebraRelationsAppeasement';
-							}
-							if (priceRatio) {
-								philosophy = 'mysticism';
-								if (priceRatio < -0.06) {
-									zebras = '';
-									environment = 'fullIndustrialization';
-									trade = 'diplomacy';
-									tradeNext = 'knowledgeSharing';
+							msgSummary('anyChallengeActive');
+						} else {
+							if (!game.ironWill) {
+								let shipVal = resMap['ship'].value;
+								policiesList = ["clearCutting","outerSpaceTreaty",'epicurianism','expansionism','necrocracy'];
+								let first = 'liberty';
+								let environment = 'sustainability';
+								let leader = 'authocracy';// autocracy
+								let zebras = '';
+								let trade = 'isolationism';
+								let tradeNext = 'cityOnAHill';
+								let kitten = 'extravagance';
+								let philosophy = 'rationality';
+								let factory = 'fascism';
+								if (shipVal > 65 + 5 * Production) {
+									zebras = 'zebraRelationsAppeasement';
 								}
-								if (resMap['burnedParagon'].value > 1e4) {
+								if (priceRatio) {
+									philosophy = 'mysticism';
+									if (priceRatio < -0.06) {
+										zebras = '';
+										environment = 'fullIndustrialization';
+										trade = 'diplomacy';
+										tradeNext = 'knowledgeSharing';
+									}
+									if (resMap['burnedParagon'].value > 1e4) {
+										first = 'tradition';
+										leader = 'monarchy';
+										tradeNext = 'culturalExchange';
+										factory = 'communism';
+										kitten = 'carnivale';
+									}
+								} else {
 									first = 'tradition';
-									leader = 'monarchy';
-									tradeNext = 'culturalExchange';
-									factory = 'communism';
-									kitten = 'carnivale';
 								}
-							} else {
-								first = 'tradition';
-							}
-							if (game.diplomacy.get('leviathans').unlocked && shipVal > 1e4) {
-								zebras = 'zebraRelationsBellicosity';
-							}
-							policiesList.push(first, environment, leader, trade, tradeNext, philosophy, factory, kitten);
-							if (zebras) {
-								policiesList.push(zebras);
+								if (game.diplomacy.get('leviathans').unlocked && shipVal > 1e4) {
+									zebras = 'zebraRelationsBellicosity';
+								}
+								policiesList.push(first, environment, leader, trade, tradeNext, philosophy, factory, kitten);
+								if (zebras) {
+									policiesList.push(zebras);
+								}
 							}
 						}
 					 }
@@ -3215,7 +3217,7 @@ window.run = function() {
 						let templeCeil = (activitySummary.other['auto.changeLeader']) ? 0 : 1;
 						if (resMap['faith'].maxValue > 750 - 75 * templeCeil && resMap['gold'].maxValue > 500 - 50 * templeCeil) {
 							msgSummary('temple');
-							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 2 * !hasLeader + !Production;
+							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 3 * !hasLeader + !Production;
 							if (resPercent('gold') > 0.961) {
 								temple.max = templeVal + 1;
 							}
@@ -3511,7 +3513,7 @@ window.run = function() {
 					let sattelitePrice = Math.pow(1.08, sattelite);
 					let FiveSattelite = 2300 * sattelitePrice * (1 - moreKitten);
 					let spaceStation = 3e3 * Math.pow(1.12, station) * (8 * !solarRevolution + moreKitten + 0.7
-						+ vitruvianFeline * (-1.2 * (resMap['science'].maxValue < 1e5 * sattelitePrice) + 0.5));
+						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice) + 0.5));
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {
 						builds['sattelite'].max = sattelite + 1;
 					}
@@ -5105,7 +5107,7 @@ window.run = function() {
 							if (vitruvianFeline && !game.science.get('astronomy').researched && resMap['faith'].value) {
 								halfCount = true;
 							}
-						} else if (!spaceManufacturing && resPercent('iron') < 0.5 - 3 * priceRatio) {
+						} else if (resPercent('iron') < 0.5 - 4 * priceRatio + 0.05 * vitruvianFeline + 0.05 * spaceManufacturing) {
 							halfCount = true;
 							msgSummary('lumberMill');
 						}
@@ -5887,7 +5889,7 @@ window.run = function() {
 						let coalR = (Amt * 100 - coalMap.value) / coalMap.perTickCached;
 						let ironR = (Amt * 100 - ironMap.value) / this.getTickVal(ironMap, resMap['ship'].value < 243 && geodesy);
 						let startGame = resMap['science'].value > 2e4 || resMap['starchart'].value < 1e4;
-						let T = 4500 + 200 * (calVal > 2) + 300 * (calVal > 3) + + 500 * (calVal > 4) + 300 * (calVal > 6);
+						let T = 4500 + 200 * (calVal > 2) + 300 * (calVal > 3) + + 500 * (calVal > 4) + 300 * (calVal > 6) + 200 * (calVal > 7);
 						if (coalR < T && ironR < T && startGame) {
 							Craft.oxidation = true;
 							msgSummary('oxidation');
@@ -6382,7 +6384,7 @@ window.run = function() {
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
 					let geodesy = Workshop.get('geodesy').researched;
-					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
+					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5 - 2 * renaissance) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
 					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
@@ -8249,7 +8251,7 @@ window.run = function() {
 			let element = $('<li/>');
 			let elementLabel = iname || option.label || ucfirst(name);
 			let require = option.require;
-			require = (require) ? game.resPool.get(option.require).title : i18n('ui.none');
+			require = (require) ? game.resPool.get(require).title : i18n('ui.none');
 			let titleName = i18n('ui.trigger.resource') + ": " + require;
 			if (option.require === undefined) {
 				titleName = null;
@@ -8351,7 +8353,7 @@ window.run = function() {
 				autoInput.on('change', function () {
 					if (autoInput.is(':checked') && !option.auto) {
 						engine.stop(false);
-						let again = window.confirm('珂学家自动根据Cheney写的萌新指导和政策解析自动点推荐的政策\n不重置的慎用建议看百科\n注意确认后会优先自动的而不是读取的列表(挑战模式自动为空)\n如需想自己选政策请按取消');
+						let again = window.confirm('珂学家自动根据Cheney写的萌新指导和政策解析自动点推荐的政策\n不重置的慎用建议看百科\n注意确认后会优先自动的而不是读取的列表(挑战模式自动会取消勾选政策)\n如需想自己选政策请按取消');
 						if (options.auto.engine.enabled) {
 							engine.start(false);
 						}
