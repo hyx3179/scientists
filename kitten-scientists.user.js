@@ -1735,7 +1735,7 @@ window.run = function() {
 					if (resPercent('science') > moreScholar && val || !woodcutter || (woodcutter < 2 && !resMap['paragon'].value)) {
 						maxKS = 0;
 					} else if (moreScholar > 0.28) {
-						maxKS = Math.max(maxKS, Math.min(24, 11 + revolution + 12 * (game.getEffect('priceRatio') < -0.07) + 12 * scholar));
+						maxKS = Math.max(maxKS, Math.min(24, 11 + revolution + tt * (game.getEffect('priceRatio') < -0.07) + tt * scholar));
 						if (val > 8 && val < maxKS) {msgSummary('scholar');}
 					}
 				}
@@ -2546,7 +2546,7 @@ window.run = function() {
 						}
 					}
 					// 过滤测地学
-					isFilter = revolutionRatio > 8 + 232 * priceRatio || orbitalGeodesy;
+					isFilter = revolutionRatio > 8 + 23.2 * priceRatio || orbitalGeodesy;
 					if (isFilter && !game.space.meta[0].meta[3].val && resStarchartVal < 1700) {
 						if (!resMap['unobtainium'].value) {noop = noop.concat(['geodesy','seti']);}
 						if (!orbitalGeodesy) {
