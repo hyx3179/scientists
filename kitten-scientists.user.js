@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.137';
+	const version = 'V15.138';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -210,7 +210,7 @@ window.run = function() {
 			'act.accelerate': '固有时制御，二倍速!',
 			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
 			'act.accelerate.slow': '不行了，猫猫要减速了',
-			'act.accelerate.fine': '没关系，{0}已经很厉害了',
+			'act.accelerate.fine': '没关系，{0}已经很厉害了🤍',
 			'summary.accelerate': '小猫加速时间 {0} 次',
 			'option.time.skip': '时间跳转',
 			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
@@ -3513,7 +3513,7 @@ window.run = function() {
 					let sattelitePrice = Math.pow(1.08, sattelite);
 					let FiveSattelite = 2300 * sattelitePrice * (1 - moreKitten);
 					let spaceStation = 3e3 * Math.pow(1.12, station) * (8 * !solarRevolution + moreKitten + 0.7
-						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice) + 0.5));
+						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice * 0.7) + 0.5));
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {
 						builds['sattelite'].max = sattelite + 1;
 					}
@@ -3635,11 +3635,11 @@ window.run = function() {
 					let ChamberCons = Math.max(50 * (1 + heatsink * 0.01), 5 * containmentChamber);
 					let energyExtra = Prod < Cons + ChamberCons + 2;
 					let sunCycle = game.prestige.getPerk("numerology").researched && (game.calendar.cycle === 3 || game.calendar.cycle === 1);
+					if (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber < heatsink + 15) {
+						itemChamber.enabled = false;
+					}
 					if (antimatter.value + 50 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra || sunCycle) {
-						if (energyExtra ||!vitruvianFeline || !game.getEffect('gflopsConsumption') || sunCycle
-							|| (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber < 10 - heatsink)) {
-							itemHeatsink.enabled = false;
-						}
+						itemHeatsink.enabled = false;
 						itemChamber.enabled = false;
 					}
 					if (Prod < Cons + 20) {
@@ -6384,7 +6384,7 @@ window.run = function() {
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
 					let geodesy = Workshop.get('geodesy').researched;
-					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5 - 2 * renaissance) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
+					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5 - 2 * renaissance + 3 * (!game.village.leader)) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
 					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
