@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.138';
+	const version = 'V15.139';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -313,7 +313,7 @@ window.run = function() {
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
 			'summary.auto.rotaryKiln': '猫猫看上了<s>回转炉</s>? 减肥旋转滚轮!',
 			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血',
-			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增至24~',
+			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛',
 			'summary.auto.shipGeodesy': '小猫嗅到了♡黄♡金♡の♡味♡道♡呐 ^ ω ^，来点船船抄斑马的家',
@@ -1637,8 +1637,7 @@ window.run = function() {
 			let minRatio = Infinity;
 			let currentRatio = 0;
 			let revolution = Religion.getSolarRevolutionRatio();
-			let scholar = game.workshop.get('spaceManufacturing').researched
-				|| (game.challenges.isActive("blackSky") && game.getEffect('calcinerRatio'))
+			let scholar = (game.challenges.isActive("blackSky") && game.getEffect('calcinerRatio'))
 				|| (resMap['unobtainium'].value && tt > 5);
 			let atheism = game.challenges.isActive("atheism");
 			for (let i = village.jobs.length - 1; i >= 0; i--) {
@@ -1735,7 +1734,7 @@ window.run = function() {
 					if (resPercent('science') > moreScholar && val || !woodcutter || (woodcutter < 2 && !resMap['paragon'].value)) {
 						maxKS = 0;
 					} else if (moreScholar > 0.28) {
-						maxKS = Math.max(maxKS, Math.min(24, 11 + revolution + tt * (game.getEffect('priceRatio') < -0.07) + tt * scholar));
+						maxKS = Math.max(maxKS, Math.min(23, 11 + revolution + tt * (game.getEffect('priceRatio') < -0.07) + tt * scholar));
 						if (val > 8 && val < maxKS) {msgSummary('scholar');}
 					}
 				}
@@ -3513,7 +3512,7 @@ window.run = function() {
 					let sattelitePrice = Math.pow(1.08, sattelite);
 					let FiveSattelite = 2300 * sattelitePrice * (1 - moreKitten);
 					let spaceStation = 3e3 * Math.pow(1.12, station) * (8 * !solarRevolution + moreKitten + 0.7
-						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice * 0.7) + 0.5));
+						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice * 1.5) + 0.5));
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {
 						builds['sattelite'].max = sattelite + 1;
 					}
@@ -5194,7 +5193,7 @@ window.run = function() {
 								let production = game.getEffect('productionRatio');
 								if (revolution) {
 									if (production > 0.6 || (geodesy && priceRatio > -0.08)) {
-										if (faVal < 2 - !production + 10 * Workshop.get("nuclearSmelters").researched + vitruvianFeline * (4 * production - 3) - !geodesy + 2 * geodesy) {
+										if (faVal < 2 - !production + (10 + 50 * priceRatio) * Workshop.get("nuclearSmelters").researched + vitruvianFeline * (4 * production - 3 - 4 * (revolution > 6)) - !geodesy + 2 * geodesy) {
 											return count;
 										}
 									}
