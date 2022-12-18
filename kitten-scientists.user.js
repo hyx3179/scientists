@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.139';
+	const version = 'V15.140';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1486,7 +1486,7 @@ window.run = function() {
 				let countDown = this.leaderTimer > 600;
 				// 20分钟
 				if (optionLeader.enabled && leader.trait.name === optionLeader.leaderTrait || countDown) {
-					if (!countDown) {leader.exp += 0.15 + 5 * game.getEffect("skillXP");}
+					if (!countDown) {leader.exp += 0.15 + 10 * game.getEffect("skillXP");}
 					let rank = leader.rank || 0;
 					let goldStock = this.craftManager.getStock('gold');
 					let gold = resMap['gold'].value - goldStock;
@@ -1909,7 +1909,7 @@ window.run = function() {
 								let tearPrice = 5e3 * Math.pow(1.15, marker);
 								if (tearHave < tearPrice  && sunspire > Math.min(9 + marker, 19)) {tearNeed = Math.min(tearPrice, tearNeed);}
 							}
-							if (game.calendar.day < 1 && !game.calendar.season && Math.random() < 0.1) {
+							if (game.calendar.day < 1 && !game.calendar.season && Math.random() < 0.2) {
 								game.diplomacy.unlockElders();
 								game['diplomacyTab'].updateTab();
 							}
@@ -2090,30 +2090,36 @@ window.run = function() {
 				// 期望太阳革命加成赞美群星
 				let paragonFactor = (production < 2) ? 1 + Math.min(2 / game.prestige.getParagonProductionRatio(), 0.3) : 1;
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
-				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + Math.min(0.6, tt * 0.06) + Math.log1p(solarRLimit) : 1.32;
+				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + Math.min(0.6, tt * 0.05) + Math.log1p(solarRLimit) : 1.32;
 				let expectSolarRevolutionRatio = game.getLimitedDR(paragonFactor * factor * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				let expect = solarRatio * 100 < expectSolarRevolutionRatio;
 				// 低于期望太阳革命加成时日志提醒
-				if (adoreTri === 0.001 && booleanForAdore && expect && tt) {
-					// 并当赞美群星赞美太阳后恢复的加成过少时会取消赞美群星
-					let lessRatio = Math.min(expectSolarRevolutionRatio - 45 - tt, maxSolarRevolution * 90 + 3 * tt, maxSolarRevolution * 94);
-					let solarAdore = solarRevolutionAfterAdore * 100 <= Math.max(1, lessRatio);
-					if (solarAdore) {
-						booleanForAdore = false;
-					} else {
-						if (solarRatio < solarRevolutionAfterAdore + 0.3 && solarRevolutionAfterAdore < 9.7 && solarRevolutionAfterAdore > 4) {
-							booleanForAdore = false;
+				if (adoreTri === 0.001) {
+					if (booleanForAdore && tt) {
+						let activityAdore = activitySummary.other['adore.solar'];
+						if (!activityAdore || expect) {
+							// 并当赞美群星赞美太阳后恢复的加成过少时会取消赞美群星
+							let lessRatio = Math.min(expectSolarRevolutionRatio - 45 - tt, maxSolarRevolution * 90 + 3 * tt, maxSolarRevolution * 94);
+							let solarAdore = solarRevolutionAfterAdore * 100 <= Math.max(1, lessRatio);
+							if (solarAdore) {
+								booleanForAdore = false;
+							} else {
+								if (solarRatio < solarRevolutionAfterAdore + 0.3 && solarRevolutionAfterAdore < 9.7 && solarRevolutionAfterAdore > 4) {
+									booleanForAdore = false;
+								}
+							}
+							expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 100) / 100;
+							if (expectSolarRevolutionRatio !== activityAdore && solarAdore && (!rrVal || !voidOrder)) {
+								activity(i18n('summary.adore.solar', [expectSolarRevolutionRatio]));
+								activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
+							}
 						}
 					}
-					expectSolarRevolutionRatio = Math.floor(expectSolarRevolutionRatio * 100) / 100;
-					if (expectSolarRevolutionRatio !== activitySummary.other['adore.solar'] && solarAdore && (!rrVal || !voidOrder)) {
-						activity(i18n('summary.adore.solar', [expectSolarRevolutionRatio]));
-						activitySummary.other['adore.solar'] = expectSolarRevolutionRatio;
+				} else {
+					if (booleanForAdore) {
+						booleanForAdore = adoreTri * 10 < solarRevolutionAfterAdore;
 					}
-				}
-				if (booleanForAdore && adoreTri !== 0.001) {
-					booleanForAdore = adoreTri * 10 < solarRevolutionAfterAdore;
 				}
 				if ((booleanForAdore && catnipAdore) || forceStep) {
 					if (doAdoreAfterTimeSkip) {options.auto.timeCtrl.items.timeSkip.adore = false;}
@@ -2789,8 +2795,8 @@ window.run = function() {
 					if (chat < 4e5 && game.challenges.anyChallengeActive()) {
 						subTrigger = 5;
 					}
-					if ((chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
-					|| resMap['alicorn'].value > 2)) {
+					if (resMap['antimatter'].value > 60 ||chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
+					|| resMap['alicorn'].value > 2) {
 						subTrigger = 7;
 						if (resMap['relic'].value > 26) {subTrigger = 12;}
 					}
@@ -3922,10 +3928,18 @@ window.run = function() {
 			let skip = game.calendar.day < 0;
 			for (let res in resMap) {
 				let Res = resMap[res];
-				cacheSummary[res] = Res.value;
-				if (skip || !Res.perTickCached) {continue;}
-				// let limit = Math.max(res.value, res.maxValue || Number.POSITIVE_INFINITY);
-				game.resPool.addRes(Res, Math.max(Ratio * Res.perTickCached + game.getEffect(res + 'PerTickCon'), 0), false);
+				let ResVal = Res.value;
+				if (skip || !Res.perTickCached) {
+					cacheSummary[res] = ResVal;
+					continue;
+				}
+				let addVal = Math.min(Res.perTickCached + ResVal, Math.max(ResVal, Res.maxValue || Infinity));
+				if (isNaN(ResVal) || ResVal < 0.0000000001){
+					Res.value = 0;
+				} else {
+					Res.value = addVal;
+				}
+				cacheSummary[res] = addVal;
 			}
 			let i;
 			const craftManager = this.craftManager;
@@ -5821,9 +5835,11 @@ window.run = function() {
 							amount = 0;
 						}
 					}
-					if (!game.getEffect('warehouseRatio') && value < 50 && resMap['plate'].value > 50 && resMap['science'].maxValue > 3e4) {
-						force = true;
-						amount = 1;
+					if (!game.getEffect('warehouseRatio')  && resMap['plate'].value > 50 && resMap['science'].maxValue > 3e4) {
+						if (value < 50) {
+							force = true;
+							amount = 1;
+						}
 						if (Craft.items['scaffold'].enabled && resMap['scaffold'].value < 25) {
 							this.craft('scaffold', 1);
 						}
@@ -5901,9 +5917,9 @@ window.run = function() {
 					if (orb && resMap['oil'].value > 3e4 && resMap['oil'].maxValue > 3.5e4 && resMap['uranium'].value < 1e3 && !flu) {
 						let a = Math.ceil((1000 - alloyVal) / ratio);
 						let isCache = resMap['titanium'].value > a * 10 || (resMap['alloy'].value > 300 && calVal > 20) || (a * 10 - titanium) / resMap['titanium'].perTickCached < 600 || calVal > 19;
-						if (a > 0 && isCache) {
+						if (a > 0 && isCache && cacheUpg.cache !== 'orbitalGeodesy') {
 							options.auto.cache.resUpg['alloy'] = 1000;
-							if (cacheUpg.cache !== 'orbitalGeodesy') {activity(i18n('craft.CacheSteel', ['轨道测地学']));}
+							activity(i18n('craft.CacheSteel', ['轨道测地学']));
 							cacheUpg.cache = 'orbitalGeodesy';
 						}
 					}
@@ -6383,8 +6399,8 @@ window.run = function() {
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
 					let geodesy = Workshop.get('geodesy').researched;
-					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 650) && geodesy && solar < 5 - 2 * renaissance + 3 * (!game.village.leader)) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
-					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5) ? 0.3 : limRat;
+					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 1000 - 350 * satnav) && geodesy && solar < 9 - 2 * renaissance + 3 * (!game.village.leader) - 4 * satnav) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
+					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5 && satnav) ? 0.3 : limRat;
 					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && resMap['starchart'].value < 1e4) ? 0 : limRat;
