@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.140';
+	const version = 'V15.141';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2561,22 +2561,23 @@ window.run = function() {
 						}
 					}
 					if (!geodesy) {
-						noop.push('seti');
 						// 筒仓
-						noop.push('silos');
-						// 没测地学过滤 钛金锯
-						if (revolutionRatio < 6 && resStarchartVal > 300) {
-							noop.push('titaniumSaw');
-							if (!game.getEffect('calcinerRatio')) {noop.push('pumpjack');}
-						}
-						// 印刷机 光刻机
-						if (resMap['oil'].value < 7.5e4 && !orbitalGeodesy) {
-							noop = noop.concat(['offsetPress','photolithography']);
-							if (resPercent('coal') > 0.8 && resPercent('oil') < 0.95) {
-								noop = noop.concat(['fuelInjectors', 'pyrolysis', 'combustionEngine']);
+						noop.push('seti','silos');
+						if (!orbitalGeodesy) {
+							// 没测地学过滤 钛金锯
+							if (revolutionRatio < 6 && resStarchartVal > 300) {
+								noop.push('titaniumSaw');
+								if (!game.getEffect('calcinerRatio')) {noop.push('pumpjack');}
 							}
+							// 印刷机 光刻机
+							if (resMap['oil'].value < 7.5e4) {
+								noop = noop.concat(['offsetPress','photolithography']);
+								if (resPercent('coal') > 0.8 && resPercent('oil') < 0.95) {
+									noop = noop.concat(['fuelInjectors', 'pyrolysis', 'combustionEngine']);
+								}
+							}
+							if (revolutionRatio > 4 && resPercent('coal') > 0.4) {noop.push('fuelInjectors');}
 						}
-						if (revolutionRatio > 4 && !orbitalGeodesy && resPercent('coal') > 0.4) {noop.push('fuelInjectors');}
 						// 投石索
 						if (!resMap['manpower'].value) {noop.push('bolas');}
 						// 货轮
@@ -3933,7 +3934,7 @@ window.run = function() {
 					cacheSummary[res] = ResVal;
 					continue;
 				}
-				let addVal = Math.min(Res.perTickCached + ResVal, Math.max(ResVal, Res.maxValue || Infinity));
+				let addVal = Math.min(Res.perTickCached * Ratio + ResVal, Math.max(ResVal, Res.maxValue || Infinity));
 				if (isNaN(ResVal) || ResVal < 0.0000000001){
 					Res.value = 0;
 				} else {
