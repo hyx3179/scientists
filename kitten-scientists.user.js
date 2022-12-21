@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.141';
+	const version = 'V15.142';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1661,6 +1661,7 @@ window.run = function() {
 					let navigation = manpowerJobRatio <= 0.75 && !game.science.get('navigation').researched;
 					if (maxKS === 24 && game.workshop.get('railgun').researched) {
 						maxKS = 30;
+						if (atheism) {maxKS = 100;}
 						if (val > 23 && val < 30) {msgSummary('railgun');}
 					}
 
@@ -3162,7 +3163,7 @@ window.run = function() {
 				}
 				// 无、低太阳革命
 				if (revolutionRatio < 0.06) {
-					if (Brewery.max !== 4) {Brewery.max = 22;}
+					if (Brewery.max !== 4) {Brewery.max = 30;}
 					items['chapel'].max = 19 - 4 * Production + (resMap['ship'].value > 100) * 60;
 					temple.max = 40 - 28 * !geodesy - 3 * hasLeader - Production;
 					let smelterVal = game.bld.getBuildingExt('smelter').meta.val;
@@ -4048,6 +4049,10 @@ window.run = function() {
 				trade = options.auto.trade.items[name];
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 				let trigConditions = ((!require || requireTrigger <= require.value / require.maxValue) && requireTrigger <= goldTrigger);
+				if (name === 'leviathans') {
+					isLimited = 1;
+				}
+
 				let tradePos = Math.floor(tradeManager.getLowestTradeAmount(name, trade.limited, trigConditions) * isLimited);
 				if (tradePos < 1) {
 					trades.splice(i, 1);
