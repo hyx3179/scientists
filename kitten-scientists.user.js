@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.142';
+	const version = 'V15.143';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -7832,6 +7832,10 @@ window.run = function() {
 				items.prop('checked', true);
 				items.change();
 				list.children().children(':checkbox').change();
+
+				if (toggleName === 'filter' && options.auto.filter.items.miscFilter.enabled) {
+					$('#toggle-miscFilter').click();
+				}
 			});
 
 			list.append(enableAll);
@@ -9307,10 +9311,16 @@ window.run = function() {
 	// 渲染完后把建筑重要建筑排前面
 	let buildItems = options.auto.build.items;
 	options.auto.build.items = Object.assign({
-		amphitheatre:buildItems['amphitheatre'],
-		reactor:buildItems['reactor'],
-		magneto:buildItems['magneto'],
-		steamworks:buildItems['steamworks'],
+		amphitheatre: buildItems['amphitheatre'],
+		reactor: buildItems['reactor'],
+		magneto: buildItems['magneto'],
+		steamworks: buildItems['steamworks'],
+	}, buildItems);
+
+	// 渲染完后把科研船排太空前面
+	buildItems = options.auto.space.items;
+	options.auto.space.items = Object.assign({
+		researchVessel: buildItems['researchVessel'],
 	}, buildItems);
 	buildItems = null;
 
