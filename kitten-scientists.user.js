@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.143';
+	const version = 'V15.144';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -4001,10 +4001,6 @@ window.run = function() {
 				if (!trade.enabled) {continue;}
 				let Season = trade[season];
 				if (!Season) {continue;}
-				let button = tradeManager.getTradeButton(race.name);
-
-				// || !tradeManager.singleTradePossible(name)
-				if (!button) {continue;}
 
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 				if ((!require || requireTrigger <= require.value / require.maxValue) && isGoldTrigger) {
@@ -4112,6 +4108,10 @@ window.run = function() {
 
 			for (let name in tradesDone) {
 				if (tradesDone[name] > 0) {
+					if (!tradeManager.getTradeButton(name)) {
+						game["diplomacyTab"].render();
+						continue;
+					}
 					tradeManager.trade(name, tradesDone[name]);
 				}
 			}
@@ -8883,14 +8883,12 @@ window.run = function() {
 					let style = document.getElementById('toggleCenter').style;
 					if (option.enabled) {
 						document.body.setAttribute('data-ks-style', '');
-						game.ui.fullWidth = true;
 						if (!game.ui.isCenter) {
 							style.display = 'none';
 						}
 					} else {
 						document.body.removeAttribute('data-ks-style');
 						style.display = '';
-						game.ui.fullWidth = undefined;
 					}
 				});
 			}
