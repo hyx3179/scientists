@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.144';
+	const version = 'V15.145';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1740,15 +1740,19 @@ window.run = function() {
 					}
 				}
 				if (name === 'miner') {
-					if (!game.science.get('writing').researched && val > 1 && tt) {
-						maxKS = Math.round(maxKS * 0.3 + 0.4 * game.science.get('currency').researched);
+					if (!game.science.get('writing').researched) {
+						// 货币前少分配
+						if (val > 1 && tt) {
+							maxKS = Math.round(maxKS * 0.3 + 0.4 * game.science.get('currency').researched);
+						}
+
+						if (!game.science.get('civil').researched && resMap['kittens'].value < 11 && val > 1) {maxKS = 1;}
 					}
-					if (!game.science.get('civil').researched && resMap['kittens'].value < 11 && val > 1) {maxKS = 1;}
 					if (game.workshop.get('geodesy').researched) {
 						if (val < Math.min(25, maxKS) && !scholar) {
 							maxKS *= 4;
 						}
-					} else if (tt < 5) {
+					} else if (tt && tt < 5) {
 						maxKS = Math.round(maxKS * 0.9);
 					}
 					let mineral = resMap['minerals'];
@@ -2600,8 +2604,13 @@ window.run = function() {
 					}
 					// 微型亚空间
 					if (!game.workshop.get('mWReactor').researched) {
-						noop.push('eludiumReflectors', 'amBases', 'coldFusion', 'amReactors','cryocomputing');
-						if (Production > 1) {noop.push('lhc');}
+						noop.push('eludiumReflectors', 'amBases', 'coldFusion', 'amReactors','cryocomputing','darkEnergy');
+						if (Production > 1) {
+							noop.push('lhc');
+							if (Production > 2 && revolutionRatio > 4) {
+								noop.push('unobtainiumReflectors', 'astrophysicists');
+							}
+						}
 					}
 					// 星链 上行
 					if (game.bld.getBuildingExt('library').meta.stage === 0) {
@@ -9586,7 +9595,12 @@ window.run = function() {
 				engine.start();
 				msgStock();
 				setTimeout(()=>{
-					if (Engine.enabled) {message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');}
+					if (Engine.enabled) {
+						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
+						if (new Date().getYear() === 123) {
+							message('新年快乐');
+						}
+					}
 				}, 2000);
 				if (game.getEffect('priceRatio') > -0.03 && Religion.transcendenceTier < 4) {
 					msgSummary('ksHelp', false, 'noFilter');
