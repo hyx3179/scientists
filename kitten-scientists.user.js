@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.145';
+	const version = 'V15.146';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -5614,7 +5614,7 @@ window.run = function() {
 							autoMax = 3;
 						}
 					}
-					if (!game.getEffect('warehouseRatio') && value < 50 && resMap['iron'].value > 700 && resMap['science'].maxValue > 3e4) {
+					if (!game.getEffect('warehouseRatio') && value && value < 50 && resMap['iron'].value > 700 && resMap['science'].maxValue > 3e4) {
 						force = true;
 						autoMax = 1;
 					}
@@ -9597,9 +9597,6 @@ window.run = function() {
 				setTimeout(()=>{
 					if (Engine.enabled) {
 						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
-						if (new Date().getYear() === 123) {
-							message('新年快乐');
-						}
 					}
 				}, 2000);
 				if (game.getEffect('priceRatio') > -0.03 && Religion.transcendenceTier < 4) {
