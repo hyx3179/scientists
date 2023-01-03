@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.146';
+	const version = 'V15.147';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -210,7 +210,7 @@ window.run = function() {
 			'act.accelerate': '固有时制御，二倍速!',
 			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
 			'act.accelerate.slow': '不行了，猫猫要减速了',
-			'act.accelerate.fine': '没关系，{0}已经很厉害了🤍',
+			'act.accelerate.fine': '没关系，{0}已经很厉害了 ❤',
 			'summary.accelerate': '小猫加速时间 {0} 次',
 			'option.time.skip': '时间跳转',
 			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
@@ -1569,7 +1569,7 @@ window.run = function() {
 						if (distributeJob.unlocked && distributeJob.value < village.getJobLimit(leaderJobName)) {
 							let correctLeaderKitten = traitKittens.sort(function(a, b) {return b.rank - a.rank === 0 ? b.exp - a.exp : b.rank - a.rank;})[0];
 							let remove;
-							if (correctLeaderKitten.job === 'farmer') {remove = Leader.job;}
+							if (correctLeaderKitten.job === 'farmer' && Leader.job != 'farmer') {remove = Leader.job;}
 							village.unassignJob(correctLeaderKitten);
 							correctLeaderKitten.job = leaderJobName;
 							if (remove) {
