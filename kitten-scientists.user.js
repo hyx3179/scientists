@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.147';
+	const version = 'V15.148';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1723,13 +1723,18 @@ window.run = function() {
 				}
 				if (name === 'scholar') {
 					let moreScholar = 0.28;
-					if (!resMap['coal'].value && val > 2) {maxKS *= 0.4;}
-					if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4)) {maxKS = 0;}
-					if (game.workshop.get('rotaryKiln').researched) {
-						moreScholar = 0.5;
-					}
-					if (!game.getEffect('shatterTCGain') && scholar) {
-						moreScholar = 0.6;
+
+					if (!game.getEffect('shatterTCGain')) {
+						if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4)) {maxKS = 0;}
+						if (game.workshop.get('rotaryKiln').researched) {
+							moreScholar = 0.5;
+						} else if (!tt && resMap['science'].maxValue < 50e3) {
+							maxKS *= 0.8;
+						}
+						if (!resMap['coal'].value && val > 2) {maxKS *= 0.4;}
+						if (scholar) {
+							moreScholar = 0.6;
+						}
 					}
 
 					if (resPercent('science') > moreScholar && val || !woodcutter || (woodcutter < 2 && !resMap['paragon'].value)) {
@@ -2217,17 +2222,18 @@ window.run = function() {
 				if (!Religion.getRU('solarchant').on && resMap['faith'].value > 100 && Religion.faith > 150) {buildManager.build("solarchant", "s", 1);}
 				if (copyBuilds['basilica'].enabled) {
 					let glass = Religion.getRU("stainedGlass").on;
-					if (Religion.faith > 15e3 && !glass) {
-						if (tt > 4) {
+					if (game.village.leader) {
+						copyBuilds['goldenSpire'].enabled = false;
+					}
+					if (!glass) {
+						if (resMap['science'].maxValue > 65e3) {copyBuilds['scholasticism'].enabled = false;}
+						if (Religion.faith > 15e3 && tt > 4) {
 							copyBuilds['sunAltar'].enabled = false;
 						}
-						copyBuilds['goldenSpire'].enabled = false;
 					}
 					if (tt > 7) {
 						copyBuilds['sunAltar'].enabled = false;
-						copyBuilds['goldenSpire'].enabled = false;
 					}
-					if (!glass && resMap['science'].maxValue > 65e3) {copyBuilds['scholasticism'].enabled = false;}
 				}
 			}
 			// 圣殿骑士
@@ -3233,7 +3239,7 @@ window.run = function() {
 						let templeCeil = (activitySummary.other['auto.changeLeader']) ? 0 : 1;
 						if (resMap['faith'].maxValue > 750 - 75 * templeCeil && resMap['gold'].maxValue > 500 - 50 * templeCeil) {
 							msgSummary('temple');
-							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 3 * !hasLeader + !Production;
+							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 3 * !hasLeader + 3 * !Production;
 							if (resPercent('gold') > 0.961) {
 								temple.max = templeVal + 1;
 							}
@@ -5499,8 +5505,10 @@ window.run = function() {
 			let trigger = Craft.trigger;
 			if (name === 'ship' && limited) {
 				let scienceMax = resMap['science'].maxValue;
-				force = scienceMax > 45e3 && (value < 100 || scienceMax > 95e3 || Science.get('archeology').researched);
-				if (scienceMax < 55e3 && resMap['titanium'].unlocked && value > 40) {force = false;}
+				force = scienceMax > 48e3 && (value < 100 || scienceMax > 95e3 || Science.get('archeology').researched);
+				if (scienceMax < 55e3 && resMap['titanium'].unlocked && value > 40) {
+					force = false;
+				}
 				let solar = Religion.getSolarRevolutionRatio();
 				let tt = Religion.transcendenceTier;
 				let oxi = (!workshop.get('oxidation').researched && !Craft.oxidation) || !solar || tt < 6 || !value;
@@ -5514,10 +5522,9 @@ window.run = function() {
 							forceShipVal = Math.min(22.8 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.25 * (priceRatio < -0.06));
 						}
 					}
-					// if (game.bld.getBuildingExt('calciner').meta.val > 2) {forceShipVal *= 0.9;}
 					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 850)) {
 						if (!tt) {
-							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
+							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
 						}
 						forceShipVal = Math.min(243 + 5 * tt + solar, 400);
 						if (Religion.faith > 9e4 && scienceMax > 11e4) {
@@ -5529,7 +5536,7 @@ window.run = function() {
 							Craft.shipTime = Date.now();
 							let valueExt = game.getDisplayValueExt(forceShipVal);
 							if (!tt) {
-								i18nData['zh']['summary.auto.ship'] = '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ )，斑马拿铁辅料钛偷偷告诉你个小秘密，贸易船越多跟斑马贸易获得钛的几率越大';
+								i18nData['zh']['summary.auto.ship'] = '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ )，斑马拿铁辅料钛<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大';
 							}
 							activity(i18n('summary.auto.ship', [valueExt]));
 							activitySummary.other['auto.ship'] = valueExt;
@@ -5802,10 +5809,10 @@ window.run = function() {
 			}
 			// 羊皮纸
 			if (name === 'parchment') {
+				if (ratio > 2 && resMap['furs'].value < 350 || ratio < 2.12 - priceRatio) {return;}
 				limited = ratio < 2.2 - priceRatio + 0.2 * renaissance;
-				if (ratio > 2 && resMap['furs'].value < 350 || ratio < 1.12 - priceRatio) {return;}
 				if (resMap['minerals'].value > 600 * (1 - priceRatio)) {
-					if ((value < 6.1 && ratio > 1.5) || (value < 10 && ratio > 2)) {
+					if ((value < 6.1 && ratio > 1.5) || (value < 12.14 + 25 * priceRatio && ratio > 2)) {
 						force = true;
 						autoMax = 1;
 					}
