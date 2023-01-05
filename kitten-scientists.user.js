@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.148';
+	const version = 'V15.149';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1728,8 +1728,8 @@ window.run = function() {
 						if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4)) {maxKS = 0;}
 						if (game.workshop.get('rotaryKiln').researched) {
 							moreScholar = 0.5;
-						} else if (!tt && resMap['science'].maxValue < 50e3) {
-							maxKS *= 0.8;
+						} else if (!tt && resMap['science'].maxValue < 9550e3) {
+							maxKS *= 0.85;
 						}
 						if (!resMap['coal'].value && val > 2) {maxKS *= 0.4;}
 						if (scholar) {
@@ -3152,7 +3152,7 @@ window.run = function() {
 					} else if (!orbitalGeodesy) {
 						mint.enabled = false;
 					}
-					if (!spaceManufacturing && magnetoMeta.on < Math.max(1, 7 - Production - 4 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy) && !iw) {
+					if (!spaceManufacturing && magnetoMeta.on < Math.max(1, 7 - Production - 4 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy + 2.3 * !Production) && !iw) {
 						// 解锁磁电机才会造蒸汽工房
 						let steamW = items['steamworks'];
 						if (game.bld.getBuildingExt('steamworks').meta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
@@ -3340,7 +3340,7 @@ window.run = function() {
 					if (!iw && mansion.max) {
 						mansion.max = 12 - priceRatio - Production;
 						if (Production && starchartVal > 100) {mansion.max -= 7;}
-						items['quarry'].max = revolutionRatio + Production + 5;
+						items['quarry'].max = revolutionRatio + Production + 5 + !Production;
 						if (calciner.max === 25) {mansion.max = 0;}
 					}
 					if (resMap['alloy'].value > 25 && science.get('biology').researched) {
@@ -5517,12 +5517,12 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 176);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 174);
 						} else {
 							forceShipVal = Math.min(22.8 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.25 * (priceRatio < -0.06));
 						}
 					}
-					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 850)) {
+					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 1e3)) {
 						if (!tt) {
 							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
 						}
@@ -5726,7 +5726,7 @@ window.run = function() {
 					autoMax = 1;
 				}
 				// 冶金
-				if (!Science.get('metalurgy').researched && resValue < 100 && scienceTri > 0.98) {
+				if (!Science.get('metalurgy').researched && resValue < 100 + 200 * !priceRatio * geodesy && scienceTri > 0.98) {
 					let maxVal = resMap['science'].maxValue;
 					if ((!Science.get('electricity').researched && resValue < 85 && cultureTri > 0.92)
 						|| (scienceTri === 1 && maxVal > scienceMeta.meta[i].prices[1].val)) {
@@ -6522,7 +6522,7 @@ window.run = function() {
 				case 'scaffold': {
 					let val = res.value;
 					let observatory = Bld.getBuildingExt('observatory').meta;
-					factor = Math.pow(game.getLimitedDR(observatory.priceRatio + priceRatio, 0.15) + observatory.priceRatio, observatory.val);
+					factor = Math.pow(game.getLimitedDR(priceRatio, 0.1) + 1.1, observatory.val);
 					let craftObservatory = val < 50 * factor && resMap['iron'].value > 750 * factor;
 					let scienceMax = resMap['science'].maxValue;
 					let leader = game.village.leader;
@@ -6533,7 +6533,7 @@ window.run = function() {
 					let navigation = game.science.get('navigation').unlocked;
 					if (game.science.get('navigation').unlocked) {
 						limRat = (resMap['iron'].value > 750 || game.science.get('chemistry').researched) ? limRat : 0;
-						let lowScience = (val < 880 && scienceMax < 110e3 + 9e3 * (resMap['culture'].maxValue > 15e3) && shipValue > 243);
+						let lowScience = (val < 880 && scienceMax < 110e3 + 9e3 * (resMap['culture'].maxValue > 15e3) && shipValue > 243 - 43 * logistics);
 						limRat = (lowScience || (game.getEffect('priceRatio') > -0.06 && forShip)) ? 1 : limRat;
 					} else {
 						limRat = 0;
@@ -9678,7 +9678,7 @@ window.run = function() {
 			msgSummary('ksHelp4');
 			if (location.origin.indexOf('cheney') < 0 && location.origin.indexOf('lolita') < 0) {
 				setTimeout(()=> {
-					message('珂学家在Cheney的网站可以在没网的时候加载');
+					message('该网站下珂学家只会缓存1天，在Cheney的备用站可以永久缓存（没网也能用）');
 				}, 1000);
 			}
 		}
