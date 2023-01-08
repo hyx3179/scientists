@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.149';
+	const version = 'V15.150';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1480,12 +1480,13 @@ window.run = function() {
 		promote: function () {
 			let village = game.village;
 			let leader = village.leader;
+			let Distribute = options.auto.distribute;
+			let optionLeader = Distribute.items.leader;
 			if (leader) {
-				let Distribute = options.auto.distribute;
-				let optionLeader = Distribute.items.leader;
 				let countDown = this.leaderTimer > 600;
+				let optionLeaderEnabled = optionLeader.enabled;
 				// 20分钟
-				if (optionLeader.enabled && leader.trait.name === optionLeader.leaderTrait || countDown) {
+				if (optionLeaderEnabled && leader.trait.name === optionLeader.leaderTrait || countDown) {
 					if (!countDown) {leader.exp += 0.15 + 10 * game.getEffect("skillXP");}
 					let rank = leader.rank || 0;
 					let goldStock = this.craftManager.getStock('gold');
@@ -1514,6 +1515,9 @@ window.run = function() {
 					}
 				} else {
 					this.leaderTimer++;
+				}
+				if (!Distribute.enabled || !optionLeaderEnabled) {
+					return msgSummary('changeLeader');
 				}
 			}
 		},
@@ -2431,7 +2435,8 @@ window.run = function() {
 						let name = upg.name;
 						switch (name) {
 							case 'combustion':
-								if (resMap['science'].maxValue > 15e4 && titanium < 5000 && !game.science.get('metalurgy').researched) {continue;}
+								if (resMap['science'].maxValue > 15e4 && titanium < 5000 && !game.science.get('metalurgy').researched
+									|| resMap['oil'].maxValue < 20e3) {continue;}
 								break;
 							case 'biology': {
 								let maxValue = resMap['science'].maxValue;
@@ -3484,33 +3489,6 @@ window.run = function() {
 						$('#toggle-spaceStation').click();
 						msgSummary('spaceStation');
 					}
-					let years = game.challenges.getChallenge('1000Years');
-					if (!years.on && years.active) {
-						if (!builds['containmentChamber'].enabled) {
-							$('#toggle-containmentChamber').click();
-						}
-						if (!builds['heatsink'].enabled) {
-							$('#toggle-heatsink').click();
-						}
-						let Auto = options.auto;
-						let timeCtrl = Auto.timeCtrl;
-						if (!timeCtrl.enabled) {
-							$('#toggle-timeCtrl').click();
-						}
-						if (!timeCtrl.items.timeSkip.enabled) {
-							$('#toggle-timeSkip').click();
-						}
-						if (!Auto.build.items.chronosphere.enabled) {
-							$('#toggle-chronosphere').click();
-						}
-						let worship = Auto.faith.items;
-						if (!worship.marker.enabled) {
-							$('#toggle-marker').click();
-						}
-						if (!worship.blackPyramid.enabled) {
-							$('#toggle-blackPyramid').click();
-						}
-					}
 				} else if (!trigger && keepStar && !game.space.meta[0].meta[3].val && starchartVal < 2400) {
 					trigger = 9;
 					msgSummary('spaceTrigger');
@@ -3569,6 +3547,35 @@ window.run = function() {
 						}
 						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
 					} else {
+						if (game.calendar.year < 1000) {
+							let years = game.challenges.getChallenge('1000Years');
+							if (!years.on && years.active) {
+								if (!builds['containmentChamber'].enabled) {
+									$('#toggle-containmentChamber').click();
+								}
+								if (!builds['heatsink'].enabled) {
+									$('#toggle-heatsink').click();
+								}
+								let Auto = options.auto;
+								let timeCtrl = Auto.timeCtrl;
+								if (!timeCtrl.enabled) {
+									$('#toggle-timeCtrl').click();
+								}
+								if (!timeCtrl.items.timeSkip.enabled) {
+									$('#toggle-timeSkip').click();
+								}
+								if (!Auto.build.items.chronosphere.enabled) {
+									$('#toggle-chronosphere').click();
+								}
+								let worship = Auto.faith.items;
+								if (!worship.marker.enabled) {
+									$('#toggle-marker').click();
+								}
+								if (!worship.blackPyramid.enabled) {
+									$('#toggle-blackPyramid').click();
+								}
+							}
+						}
 						if (priceRatio < -0.03 && !blackSky) {
 							builds['spaceBeacon'].enabled = false;
 						}
@@ -3759,10 +3766,11 @@ window.run = function() {
 						newTrigger = 0.9;
 						if (name === 'thorium') {newTrigger = 1;}
 						if (name === 'eludium') {newTrigger = 0.98;}
+						// 由于钢会先消耗铁，充分消耗爆仓的铁
 						if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
 					}
 					if (begin) {
-						if (name === 'slab' || name === 'beam') {newTrigger = 0.985;}
+						if (name === 'slab' || name === 'beam') {newTrigger = 0.987;}
 					}
 				}
 				// Craft the resource if we meet the trigger requirement
@@ -4449,11 +4457,6 @@ window.run = function() {
 		},
 		setTrait: function (trait) {
 			let vLeader = game.village.leader;
-			let Auto = options.auto;
-			let distribute = Auto.distribute;
-			if (!Auto.options.items.promote.enabled || !distribute.enabled || !distribute.items.leader.enabled) {
-				if (vLeader) {return msgSummary('changeLeader');}
-			}
 			if (trait) {
 				if (game.science.get('civil').researched && vLeader && !game.challenges.isActive("anarchy")) {
 					let cache = options.auto.cache;
@@ -5517,7 +5520,7 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 174);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 146 + 30 * !resMap['paragon'].value);
 						} else {
 							forceShipVal = Math.min(22.8 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.25 * (priceRatio < -0.06));
 						}
@@ -5726,7 +5729,7 @@ window.run = function() {
 					autoMax = 1;
 				}
 				// 冶金
-				if (!Science.get('metalurgy').researched && resValue < 100 + 200 * !priceRatio * geodesy && scienceTri > 0.98) {
+				if (!Science.get('metalurgy').researched && resValue < 100 + 200 * !priceRatio && scienceTri > 0.98) {
 					let maxVal = resMap['science'].maxValue;
 					if ((!Science.get('electricity').researched && resValue < 85 && cultureTri > 0.92)
 						|| (scienceTri === 1 && maxVal > scienceMeta.meta[i].prices[1].val)) {
@@ -7371,7 +7374,7 @@ window.run = function() {
 	let loadFromKittenStorage = function () {
 		let saved = JSON.parse(localStorage['cbc.kitten-scientists'] || 'null');
 		if (!saved || saved.version > kittenStorageVersion) {
-			let msg = game.msg('你只需要勾需要的大项目，项目内max和启用已经帮你精心勾选好了\n要对大家...保密哦🤍 \n\n默认设置可以一直以最快速度用到毕业\n已经勾选的项目都已经是自动化了');
+			let msg = game.msg('你只需要勾需要的大项目，项目内max和启用Cheney已经帮你精心勾选好了\n要对大家...保密哦🤍 \n\n默认设置可以一直以最快速度用到毕业\n已经勾选的项目都已经是自动化了');
 			$(msg.span).css('color', "#ff589c");
 			return initializeKittenStorage();
 		}
@@ -9361,7 +9364,6 @@ window.run = function() {
 			storeForSummary(price.name, price.val, 'resConsume');
 		}
 	};
-
 
 	let activitySummary;
 	let resetActivitySummary = function () {
