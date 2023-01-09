@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.150';
+	const version = 'V15.151';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2436,7 +2436,7 @@ window.run = function() {
 						switch (name) {
 							case 'combustion':
 								if (resMap['science'].maxValue > 15e4 && titanium < 5000 && !game.science.get('metalurgy').researched
-									|| resMap['oil'].maxValue < 20e3) {continue;}
+									|| (resMap['oil'].maxValue < 20e3 && titanium < 1000)) {continue;}
 								break;
 							case 'biology': {
 								let maxValue = resMap['science'].maxValue;
@@ -2975,7 +2975,7 @@ window.run = function() {
 				let amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
 				if (amphitheatreMeta.stage === 0) {
 					if (amphitheatreMeta.stages[1].stageUnlocked) {
-						if (items['broadcastTower'].enabled && (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 200)) {
+						if (items['broadcastTower'].enabled && (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 300)) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
 						} else {
 							msgSummary('upgAmphitheatre', '', 'upgBldFilter');
@@ -3536,54 +3536,6 @@ window.run = function() {
 						bldSpaceStation.max = 0;
 					}
 
-					// 纠缠站
-					let entangler = builds['entangler'];
-					// 太空灯塔
-					if (game.getEffect('beaconRelicsPerDay')) {
-						let entanglerMax = entangler.max;
-						let factor = 0;
-						if (game.bld.get("aiCore").effects["aiLevel"] > 13 && !game.getEffect('aiCoreProductivness')) {
-							factor = 1;
-						}
-						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
-					} else {
-						if (game.calendar.year < 1000) {
-							let years = game.challenges.getChallenge('1000Years');
-							if (!years.on && years.active) {
-								if (!builds['containmentChamber'].enabled) {
-									$('#toggle-containmentChamber').click();
-								}
-								if (!builds['heatsink'].enabled) {
-									$('#toggle-heatsink').click();
-								}
-								let Auto = options.auto;
-								let timeCtrl = Auto.timeCtrl;
-								if (!timeCtrl.enabled) {
-									$('#toggle-timeCtrl').click();
-								}
-								if (!timeCtrl.items.timeSkip.enabled) {
-									$('#toggle-timeSkip').click();
-								}
-								if (!Auto.build.items.chronosphere.enabled) {
-									$('#toggle-chronosphere').click();
-								}
-								let worship = Auto.faith.items;
-								if (!worship.marker.enabled) {
-									$('#toggle-marker').click();
-								}
-								if (!worship.blackPyramid.enabled) {
-									$('#toggle-blackPyramid').click();
-								}
-							}
-						}
-						if (priceRatio < -0.03 && !blackSky) {
-							builds['spaceBeacon'].enabled = false;
-						}
-						if (blackSky) {
-							builds['spaceBeacon'].enabled = true;
-						}
-						builds['entangler'].enabled = false;
-					}
 					// 电梯
 					if (!game.getEffect('lunarOutpostRatio')) {
 						if (unobtainiumTri !== 1) {
@@ -3675,6 +3627,61 @@ window.run = function() {
 						bldSpaceStation.max = 0;
 						builds['moonOutpost'].max = 0;
 						builds['moonBase'].max = 0;
+					}
+
+					// 纠缠站
+					let entangler = builds['entangler'];
+					// 太空灯塔
+					if (game.getEffect('beaconRelicsPerDay')) {
+						let entanglerMax = entangler.max;
+						let factor = 0;
+						if (game.bld.get("aiCore").effects["aiLevel"] > 13 && !game.getEffect('aiCoreProductivness')) {
+							factor = 1;
+						}
+						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
+						if (energyExtra) {
+							// 构造体
+							builds['tectonic'].enabled = true;
+							// 熔火之心
+							builds['moltenCore'].enabled = true;
+						}
+					} else {
+						if (game.calendar.year < 1000) {
+							let years = game.challenges.getChallenge('1000Years');
+							if (!years.on && years.active) {
+								if (!builds['containmentChamber'].enabled) {
+									$('#toggle-containmentChamber').click();
+								}
+								if (!builds['heatsink'].enabled) {
+									$('#toggle-heatsink').click();
+								}
+								let Auto = options.auto;
+								let timeCtrl = Auto.timeCtrl;
+								if (!timeCtrl.enabled) {
+									$('#toggle-timeCtrl').click();
+								}
+								if (!timeCtrl.items.timeSkip.enabled) {
+									$('#toggle-timeSkip').click();
+								}
+								if (!Auto.build.items.chronosphere.enabled) {
+									$('#toggle-chronosphere').click();
+								}
+								let worship = Auto.faith.items;
+								if (!worship.marker.enabled) {
+									$('#toggle-marker').click();
+								}
+								if (!worship.blackPyramid.enabled) {
+									$('#toggle-blackPyramid').click();
+								}
+							}
+						}
+						if (priceRatio < -0.03 && !blackSky) {
+							builds['spaceBeacon'].enabled = false;
+						}
+						if (blackSky) {
+							builds['spaceBeacon'].enabled = true;
+						}
+						builds['entangler'].enabled = false;
 					}
 
 					// 轨道阵列
@@ -5781,15 +5788,22 @@ window.run = function() {
 								cache.science = meta.label;
 							}
 						}
-						break;
+						if (i !== 33) {
+							break;
+						}
 					}
 				}
 				// 库存
 				if (value - resValue === 150) {autoMax = 0;}
-				// 冶金
-				if (!Science.get('metalurgy').researched && value < 60 && scienceTri > 0.98 && resMap['science'].maxValue > 119e3) {
-					force = true;
-					autoMax = 1;
+				// 火箭学
+				let rocketry = Science.get('rocketry').researched;
+				if (!rocketry) {
+					// 冶金
+					if (!Science.get('metalurgy').researched && value < 60 && scienceTri > 0.98 && resMap['science'].maxValue > 119e3
+						|| (i > 35 && resValue < 200 && scienceTri > 0.98 && cultureTri > 0.98)) {
+						force = true;
+						autoMax = 1;
+					}
 				}
 				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.004) {
 					let compendiaMax =  this.getCompendiaMax();
@@ -5802,7 +5816,7 @@ window.run = function() {
 					}
 				}
 				// 开局
-				if (resMap['unobtainium'].value && Science.get('rocketry').researched && !Science.get('drama').researched) {autoMax = 0;}
+				if (resMap['unobtainium'].value && rocketry && !Science.get('drama').researched) {autoMax = 0;}
 			}
 
 			// 混凝土
