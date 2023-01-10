@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.151';
+	const version = 'V15.152';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2252,8 +2252,9 @@ window.run = function() {
 				if (tt < 8 && resMap['paragon'].values > 10) {
 					copyBuilds['basilica'].max = 1;
 					copyBuilds['templars'].max = 1;
+					copyBuilds['scholasticism'].max = 1;
 					if (!Workshop.get('spaceManufacturing').researched) {
-						copyBuilds['goldenSpire'].max = 4;
+						copyBuilds['goldenSpire'].max = 1;
 					}
 					if (!Religion.getRU("sunAltar").on && tt > 4) {copyBuilds['goldenSpire'].enabled = false;}
 				}
@@ -2727,7 +2728,7 @@ window.run = function() {
 					const policies = Science.policies;
 					const length = policies.length;
 					const toResearch = [];
-					let ratio = (Science.get('astronomy').researched || (resMap['burnedParagon'].value < 1e4 && resMap['culture'].value < 400) || game.getEffect('priceRatio') > -0.03) ? 1 : 3;
+					let ratio = (Science.get('astronomy').researched || (resMap['burnedParagon'].value < 1e4 && resMap['culture'].value < 400) || !game.getEffect('priceRatio')) ? 1 : 3;
 					let policiesList = options.policies;
 					if (upgrades.policies.auto) {
 						policiesList = [];
@@ -3704,7 +3705,7 @@ window.run = function() {
 					bldSpaceStation.max = 0;
 					builds['terraformingStation'].max = 0;
 				}
-				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && game.getEffect("calcinerRatio") > 2 || (keepStar && !sattelite)) {
+				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && game.getEffect("calcinerRatio") > 2 && keepStar || !sattelite) {
 					buildManager.build("sattelite", 1);
 					msgSummary('sattelite');
 				}
