@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.152';
+	const version = 'V15.153';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1744,7 +1744,7 @@ window.run = function() {
 					if (resPercent('science') > moreScholar && val || !woodcutter || (woodcutter < 2 && !resMap['paragon'].value)) {
 						maxKS = 0;
 					} else if (moreScholar > 0.28) {
-						maxKS = Math.max(maxKS, Math.min(23, 11 + revolution + tt * (game.getEffect('priceRatio') < -0.07) + tt * scholar));
+						maxKS = Math.max(maxKS, Math.min(23, (game.getEffect('calcinerRatio') > 2.6) * 3 + 11 + revolution + tt * (game.getEffect('priceRatio') < -0.07) + tt * scholar));
 						if (val > 8 && val < maxKS) {msgSummary('scholar');}
 					}
 				}
@@ -2630,7 +2630,7 @@ window.run = function() {
 					}
 					// 加速器
 					if (game.bld.getBuildingExt('accelerator').meta.val < 5) {
-						noop = noop.concat(['darkEnergy', 'stasisChambers', 'voidEnergy', 'tachyonAccelerators', 'lhc']);
+						noop.push('darkEnergy', 'stasisChambers', 'voidEnergy', 'tachyonAccelerators', 'lhc','assistance');
 						if (Production > 4) {
 							noop = noop.concat(['stoneBarns', 'reinforcedBarns', 'titaniumBarns', 'alloyBarns', 'concreteBarns', 'titaniumWarehouses', 'alloyWarehouses', 'concreteWarehouses', 'storageBunkers', 'stasisChambers', 'voidEnergy', 'darkEnergy']);
 						}
@@ -2650,7 +2650,7 @@ window.run = function() {
 					}
 					// 太阳能卫星
 					if (game.space.getBuilding('sattelite').val < 6) {
-						noop = noop.concat(['solarSatellites', 'satelliteRadio', 'assistance']);
+						noop = noop.concat(['solarSatellites', 'satelliteRadio']);
 					}
 					// 星图产出
 					if (resStarchart.perTickCached) {
@@ -3650,10 +3650,10 @@ window.run = function() {
 						if (game.calendar.year < 1000) {
 							let years = game.challenges.getChallenge('1000Years');
 							if (!years.on && years.active) {
-								if (!builds['containmentChamber'].enabled) {
+								if (!options.auto.space.items['containmentChamber'].enabled) {
 									$('#toggle-containmentChamber').click();
 								}
-								if (!builds['heatsink'].enabled) {
+								if (!options.auto.space.items['heatsink'].enabled) {
 									$('#toggle-heatsink').click();
 								}
 								let Auto = options.auto;
@@ -5239,7 +5239,7 @@ window.run = function() {
 								let production = game.getEffect('productionRatio');
 								if (revolution) {
 									if (production > 0.6 || (geodesy && priceRatio > -0.08)) {
-										if (faVal < 2 - !production + (10 + 50 * priceRatio) * Workshop.get("nuclearSmelters").researched + vitruvianFeline * (4 * production - 3 - 4 * (revolution > 6)) - !geodesy + 2 * geodesy) {
+										if (faVal < 2 - !production + (10 + 50 * priceRatio) * Workshop.get("nuclearSmelters").researched + vitruvianFeline * (4 * production - 3 - 4 * (revolution > 6)) - !geodesy + 3 * geodesy) {
 											return count;
 										}
 									}
@@ -5539,7 +5539,7 @@ window.run = function() {
 						}
 						forceShipVal = Math.min(243 + 5 * tt + solar, 400);
 						if (Religion.faith > 9e4 && scienceMax > 11e4) {
-							if (tt < 6 && geodesy) {forceShipVal = -103 * tt + 740 - 250 * !tt;}
+							forceShipVal = 450 - 100 * priceRatio;
 						}
 					}
 					if (value < forceShipVal && ratio > 3) {
@@ -5789,7 +5789,7 @@ window.run = function() {
 								cache.science = meta.label;
 							}
 						}
-						if (i !== 33) {
+						if (i !== 33 || i !== 42) {
 							break;
 						}
 					}
