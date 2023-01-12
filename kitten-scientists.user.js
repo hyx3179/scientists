@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.153';
+	const version = 'V15.154';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2249,12 +2249,12 @@ window.run = function() {
 					copyBuilds['goldenSpire'].enabled = false;
 					copyBuilds['scholasticism'].enabled = false;
 				}
-				if (tt < 8 && resMap['paragon'].values > 10) {
-					copyBuilds['basilica'].max = 1;
-					copyBuilds['templars'].max = 1;
+				if (tt < 8 && resMap['paragon'].value > 10) {
+					copyBuilds['basilica'].max = 2;
 					copyBuilds['scholasticism'].max = 1;
 					if (!Workshop.get('spaceManufacturing').researched) {
 						copyBuilds['goldenSpire'].max = 1;
+						copyBuilds['templars'].max = 0;
 					}
 					if (!Religion.getRU("sunAltar").on && tt > 4) {copyBuilds['goldenSpire'].enabled = false;}
 				}
@@ -2547,7 +2547,7 @@ window.run = function() {
 					}
 					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
 					let pacifism = game.challenges.isActive("pacifism");
-					if (game.bld.getBuildingExt('steamworks').meta.on < 1 + 50 * priceRatio) {
+					if (game.bld.getBuildingExt('steamworks').meta.on < 1 - 50 * priceRatio) {
 						if (!pacifism) {noop = noop.concat(['printingPress','offsetPress','photolithography'], autoM);}
 						if (!game.bld.getBuildingExt('steamworks').meta.on) {noop.push('combustionEngine');}
 					} else if (!game.opts.enableRedshift) {
@@ -3255,7 +3255,7 @@ window.run = function() {
 						tradepost.max = 18 - 2 * Production + 1 * (resMap['kittens'].value < 60) - 2 * hasLeader - 1 * (resMap['kittens'].value > 70);
 					}
 					if (resPercent('gold') > 0.966) {
-						tradepost.max = Math.min(18, game.bld.getBuildingExt('tradepost').meta.val + 1);
+						tradepost.max = Math.min(18 + Production, game.bld.getBuildingExt('tradepost').meta.val + 1);
 					}
 					msgSummary('tradepost');
 				} else if (theology) {
@@ -5765,39 +5765,44 @@ window.run = function() {
 			// 蓝图
 			if (name === 'blueprint' && limited && Science.get('electricity').researched) {
 				//indexMax = (game.village.maxKittens > 130) ? 44 : 34;
-				for (i = 30; i < 44; i++) {
-					let meta = scienceMeta.meta[i];
-					if (!meta.researched) {
-						let metaName = meta.name;
-						let filterName = ['quantumCryptography', 'blackchain', 'ecology', 'ai'];
-						let prices = meta.prices;
-						if (filterName.indexOf(metaName) > -1 || resMap['science'].maxValue < prices[0].val * 0.95) {
-							continue;
-						}
-						let blueprint = prices[1];
-						if (blueprint.name === name) {
-							autoMax = Math.ceil((blueprint.val - resValue) / ratio);
-							let resVal = this.getValueAvailable('compedium', true);
-							let scienceCheck = scienceVal > 2.5e4 * autoMax || scienceTri >= 1;
-							if (resVal > autoMax * 25 && autoMax >= 1) {
-								cache.science = meta.label;
-								if (scienceTri < 1 && scienceCheck) {msgScience('blueprint');}
-								cache.resources['manuscript'] = 0;
-								cache.resources['compedium'] = 0;
-							} else if (autoMax >= 1) {
-								cache.resources['compedium'] = autoMax * 25;
-								cache.science = meta.label;
+				let rocketry = Science.get('rocketry').researched;
+				// 开局
+				if (resMap['unobtainium'].value && rocketry && !Science.get('drama').researched) {
+					autoMax = 0;
+				} else if (!Science.get('advExogeology').researched) {
+					for (i = 30; i < 44; i++) {
+						let meta = scienceMeta.meta[i];
+						if (!meta.researched) {
+							let metaName = meta.name;
+							let filterName = ['quantumCryptography', 'blackchain', 'ecology', 'ai'];
+							let prices = meta.prices;
+							if (filterName.indexOf(metaName) > -1 || resMap['science'].maxValue < prices[0].val * 0.95) {
+								continue;
 							}
-						}
-						if (i !== 33 || i !== 42) {
-							break;
+							let blueprint = prices[1];
+							if (blueprint.name === name) {
+								autoMax = Math.ceil((blueprint.val - resValue) / ratio);
+								let resVal = this.getValueAvailable('compedium', true);
+								let scienceCheck = scienceVal > 2.5e4 * autoMax || scienceTri >= 1;
+								if (resVal > autoMax * 25 && autoMax >= 1) {
+									cache.science = meta.label;
+									if (scienceTri < 1 && scienceCheck) {msgScience('blueprint');}
+									cache.resources['manuscript'] = 0;
+									cache.resources['compedium'] = 0;
+								} else if (autoMax >= 1) {
+									cache.resources['compedium'] = autoMax * 25;
+									cache.science = meta.label;
+								}
+							}
+							if (i !== 33 || i !== 42) {
+								break;
+							}
 						}
 					}
 				}
 				// 库存
 				if (value - resValue === 150) {autoMax = 0;}
 				// 火箭学
-				let rocketry = Science.get('rocketry').researched;
 				if (!rocketry) {
 					// 冶金
 					if (!Science.get('metalurgy').researched && value < 60 && scienceTri > 0.98 && resMap['science'].maxValue > 119e3
@@ -5816,8 +5821,6 @@ window.run = function() {
 						useRatio = 0.1;
 					}
 				}
-				// 开局
-				if (resMap['unobtainium'].value && rocketry && !Science.get('drama').researched) {autoMax = 0;}
 			}
 
 			// 混凝土
