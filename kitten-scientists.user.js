@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.154';
+	const version = 'V15.155';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2609,7 +2609,7 @@ window.run = function() {
 						noop.push('factoryLogistics', 'refrigeration', 'barges','carbonSequestration');
 						if (resPercent('oil') > 0.7) {
 							if (Production > 1.5) {
-								if (Production > 1.8) {noop.push('pumpjack');}
+								if (Production > 1.8) {noop.push('pumpjack', 'silos');}
 								noop = noop.concat(['oilDistillation','oilRefinery']);
 							}
 						}
@@ -3229,7 +3229,7 @@ window.run = function() {
 						|| (revolutionRatio > 0.3 && !sattelite && game.getEffect('faithRatioReligion') < 0.2);
 					if (religionRU && revolutionRatio) {
 						temple.max = 25 - 8.5 * (priceRatio < 0) - 2 * (revolutionRatio > 3) - 4 * hasLeader;
-						let val = 17 + 2 * templeVal - 5 * Production - 3 * Math.sqrt(revolutionRatio) - 2 * hasLeader + calcinerVal + priceRatio;
+						let val = 17 + 2 * templeVal - 5 * Production - 3 * Math.sqrt(revolutionRatio) - 2 * hasLeader + calcinerVal + 10 * priceRatio;
 						if (!iw) {val = Math.max(Math.min(val, 35), 12);}
 						tradepost.max = val;
 						msgSummary('religion');
@@ -3372,7 +3372,7 @@ window.run = function() {
 						}
 						items['ziggurat'].max = 10 + 15 * (game.workshop.get('unobtainiumDrill').researched) + 10 * vitruvianFeline + revolutionRatio;
 						if (revolutionRatio && game.getEffect('faithRatioReligion') < 0.2) {
-							tradepost.max = 36 + Math.max(4 * geodesy, 22 * orbitalGeodesy) - 3 * vitruvianFeline;
+							tradepost.max = 36 + Math.max(4 * geodesy, 22 * orbitalGeodesy, calcinerVal) - 5 * vitruvianFeline;
 						}
 					}
 				}
@@ -5530,7 +5530,7 @@ window.run = function() {
 						if (solar < 0.23) {
 							forceShipVal = Math.min(16 / Math.log1p(solar), 146 + 30 * !resMap['paragon'].value);
 						} else {
-							forceShipVal = Math.min(22.8 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.25 * (priceRatio < -0.06));
+							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.3 * (priceRatio < -0.06));
 						}
 					}
 					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 1e3)) {
@@ -6442,7 +6442,7 @@ window.run = function() {
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
 					let geodesy = Workshop.get('geodesy').researched;
-					limRat = (shipValue < Math.min((1.5 + solar) * shipLimit, 1000 - 350 * satnav) && geodesy && solar < 9 - 2 * renaissance + 3 * (!game.village.leader) - 4 * satnav) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
+					limRat = (shipValue < Math.min((1.7 + 0.9 * solar) * shipLimit, 1000 - 350 * satnav) && geodesy && solar < 9 - 2 * renaissance + 3 * (!game.village.leader) - 4 * satnav) ? 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) : 0.4;
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5 && satnav) ? 0.3 : limRat;
 					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
@@ -6547,12 +6547,11 @@ window.run = function() {
 					let craftObservatory = val < 50 * factor && resMap['iron'].value > 750 * factor;
 					let scienceMax = resMap['science'].maxValue;
 					let leader = game.village.leader;
-					let logistics = res.value < 1e3 && this.getUnResearched('logistics') && leader && leader.rank > 2 && scienceMax > 98e3;
+					let logistics = val < 1e3 && this.getUnResearched('logistics') && leader && leader.rank > 2 && scienceMax > 98e3;
 					// || resMap['beam'].value > 20 * resMap['slab'].value
 					let forShip = resMap['plate'].value > 150 && val < 100;
 					limRat = (craftObservatory || logistics || forShip) ? 0.75 + 0.1 * (scienceMax < 6e4) : limRat;
-					let navigation = game.science.get('navigation').unlocked;
-					if (game.science.get('navigation').unlocked) {
+					if (navigation.unlocked) {
 						limRat = (resMap['iron'].value > 750 || game.science.get('chemistry').researched) ? limRat : 0;
 						let lowScience = (val < 880 && scienceMax < 110e3 + 9e3 * (resMap['culture'].maxValue > 15e3) && shipValue > 243 - 43 * logistics);
 						limRat = (lowScience || (game.getEffect('priceRatio') > -0.06 && forShip)) ? 1 : limRat;
