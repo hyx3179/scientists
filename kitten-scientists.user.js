@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.156';
+	const version = 'V15.157';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -260,7 +260,7 @@ window.run = function() {
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
-			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策',
+			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战模式中请自己点政策',
 			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏',
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
 			'summary.auto.aqueductCatnip': '水渠，饿饿，饭饭',
@@ -1732,8 +1732,13 @@ window.run = function() {
 						if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4)) {maxKS = 0;}
 						if (game.workshop.get('rotaryKiln').researched) {
 							moreScholar = 0.5;
-						} else if (!tt && resMap['science'].maxValue < 9550e3) {
-							maxKS *= 0.85;
+						} else {
+							if (!tt && resMap['science'].maxValue < 95000) {
+								maxKS *= 0.85;
+							}
+							if (val < 5 && tt > 5 && resMap['parchment'].value > 5e3) {
+								moreScholar = 0.5;
+							}
 						}
 						if (!resMap['coal'].value && val > 2) {maxKS *= 0.4;}
 						if (scholar) {
@@ -2566,7 +2571,7 @@ window.run = function() {
 					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.02 && resMap['ship'].value < 50 && revolutionRatio > 1.6) {
 						noop.push('titaniumAxe');
 						if (revolutionRatio > 2.26) {
-							noop = noop.concat(['titaniumAxe','silos','astrolabe','titaniumBarns','alloyAxe','alloyArmor','alloyBarns','alloyWarehouses']);
+							noop.push('silos','astrolabe','titaniumBarns','alloyAxe','alloyArmor','alloyBarns','alloyWarehouses');
 						}
 					}
 					// 过滤测地学
@@ -2979,6 +2984,7 @@ window.run = function() {
 				let amphitheatreMeta = game.bld.getBuildingExt('amphitheatre').meta;
 				if (amphitheatreMeta.stage === 0) {
 					if (amphitheatreMeta.stages[1].stageUnlocked) {
+						// 考虑 priceRatio 参数船?
 						if (items['broadcastTower'].enabled && (game.getResourcePerTick('titanium', true) > 2 || resMap['ship'].value > 300)) {
 							return upgradeBuilding('amphitheatre', amphitheatreMeta);
 						} else {
@@ -3245,10 +3251,10 @@ window.run = function() {
 				// 太阳革命前不造交易所和神殿
 				if (!solarMeta.on && !atheism && theology) {
 					if (options.auto.faith.items.solarRevolution.enabled) {
-						let templeCeil = (activitySummary.other['auto.changeLeader']) ? 0 : 1;
+						let templeCeil = (!activitySummary.other['auto.changeLeader'] && priceRatio < -0.07) ? 1 : 0;
 						if (resMap['faith'].maxValue > 750 - 75 * templeCeil && resMap['gold'].maxValue > 500 - 50 * templeCeil) {
 							msgSummary('temple');
-							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 3 * !hasLeader + 3 * !Production;
+							temple.max = Math.floor((7.5 - templeCeil * 0.7) / (1 + game.prestige.getParagonStorageRatio())) + 4 * !hasLeader + 3 * !Production;
 							if (resPercent('gold') > 0.961) {
 								temple.max = templeVal + 1;
 							}
@@ -3517,7 +3523,7 @@ window.run = function() {
 					let sattelitePrice = Math.pow(1.08, sattelite);
 					let FiveSattelite = 2300 * sattelitePrice * (1 - moreKitten);
 					let spaceStation = 3e3 * Math.pow(1.12, station) * (8 * !solarRevolution + moreKitten + 0.7
-						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice * (1 + (priceRatio > -0.07) * 1.7)) + 0.5));
+						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice * (2.7 + 15 * priceRatio)) + 0.5));
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {
 						builds['sattelite'].max = sattelite + 1;
 					}
@@ -5798,7 +5804,7 @@ window.run = function() {
 									cache.science = meta.label;
 								}
 							}
-							if (i !== 33 && i !== 42) {
+							if (i !== 33 && i !== 42 && i !== 43) {
 								break;
 							}
 						}
