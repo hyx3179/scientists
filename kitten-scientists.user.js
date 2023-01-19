@@ -16,7 +16,8 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.157';
+	// 158
+	const version = '🐰';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1699,6 +1700,9 @@ window.run = function() {
 					}
 					let woodRes = resMap['wood'];
 					if (woodRes.maxValue / woodRes.perTickCached < 30) {maxKS = 0;}
+					if (Workshop.get('spaceManufacturing').researched) {
+						maxKS *= 0.5;
+					}
 				}
 				if (name === 'geologist') {
 					let geodesy = game.workshop.get("geodesy").researched;
@@ -1771,6 +1775,9 @@ window.run = function() {
 					}
 					let mineral = resMap['minerals'];
 					if (mineral.maxValue / mineral.perTickCached < 20) {maxKS = 0;}
+					if (Workshop.get('spaceManufacturing').researched) {
+						maxKS *= 0.5;
+					}
 				}
 				if (name === 'priest') {
 					if (limited && maxKS === 3) {
@@ -3328,10 +3335,10 @@ window.run = function() {
 					// 粮仓
 					if (spaceManufacturing && items['barn'].max < 16 && resPercent('wood') > 0.9) {items['barn'].max = -1;}
 				} else {
-					if (starchartVal > 1e4  && !game.calendar.festivalDays && !iw && Production > 1) {
+					if (starchartVal > 1e4 && !game.calendar.festivalDays && !iw && Production > 1) {
 						items['observatory'].max = 70;
 						items['chapel'].max = 10;
-						items['factory'].max = 0;
+						items['factory'].max = 0.03 * calcinerVal;
 						items['amphitheatre'].max = 20;
 						items['academy'].max = 60;
 						items['harbor'].max = 10;
@@ -3398,7 +3405,7 @@ window.run = function() {
 						broadcastTower.max = (bTowerMax === -1) ? 20 : Math.min(20, bTowerMax);
 					}
 				} else if (starchartVal < 1e6) {
-					broadcastTower.max = 8 + 100 * !revolutionRatio;
+					broadcastTower.max = 8 + 100 * atheism;
 				}
 
 				// 挑战等3个传送仪一起造
@@ -5273,7 +5280,10 @@ window.run = function() {
 							count *= 0.9;
 							halfCount = true;
 						}
-						if (resMap['titanium'].maxValue > 1.3e5) {count = 0;}
+						if (resMap['titanium'].maxValue > 1.3e5 || game.bld.getBuildingExt('factory').meta.val
+							|| (game.getEffect("magnetoRatio") < 0.02 && !revolution)) {
+							count = 0;
+						}
 					} else if (!game.space.getProgram('piscineMission').on) {
 						count = 0;
 					} else if (!TitaniumCap && resMap['titanium'].maxValue > 1.3e5) {
@@ -9653,7 +9663,9 @@ window.run = function() {
 		// 插入版本号
 		let optionsTitleElement = $('<a/>', {
 			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
-				fontStyle:'italic', transform: 'scale(0.8)', paddingLeft: '3px'},
+				fontStyle:'italic',
+				// transform: 'scale(0.8)',
+				paddingLeft: '3px',},
 			text: version,
 			target: '_blank',
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
