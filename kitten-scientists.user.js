@@ -183,7 +183,7 @@ window.run = function() {
 			'filter.disable': '取消过滤 {0}',
 
 			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了~♪',
-			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}',
+			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料~果咩捏',
 			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ﾚ(ﾟ∀ﾟ;)ﾍ=3=3 !',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
@@ -258,6 +258,7 @@ window.run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
+			'summary.auto.newYear': 'Cheney祝你新年快乐🏮🧨🧧<br>🐰',
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
@@ -2175,8 +2176,10 @@ window.run = function() {
 				|| game.getEffect('culturePerTickBase') < 2.7;
 			praiseLess = !praiseLess && PraiseSubTrigger <= 1;
 			if (solarRevolution && praiseLess && solarRatio < expectSolarRevolutionRatio * 0.01 && glass && basilica) {
-				PraiseSubTrigger = 0;
-				refreshRequired += 1;
+				if (resPercent('culture') < 2) {
+					PraiseSubTrigger = 0;
+					refreshRequired += 1;
+				}
 			}
 
 			// 无盛典点出阳光赞歌
@@ -2249,6 +2252,7 @@ window.run = function() {
 					}
 					if (tt > 7) {
 						copyBuilds['sunAltar'].enabled = false;
+						copyBuilds['goldenSpire'].enabled = false;
 					}
 				}
 			}
@@ -2489,7 +2493,8 @@ window.run = function() {
 								if ((!nanotechnology && titanium < 2000) || (!resMap['uranium'].value && resMap['science'].maxValue > 2e5)) {continue;}
 								break;
 							case 'sattelites':
-								if (Production < 1.75) {break;}
+								if (Production > 1.75) {break;}
+								// if (Production < 1.75 || revolutionRatio > 1) {break;}
 							// falls through
 							case 'oilProcessing':
 								if (!nanotechnology && titanium < 10e3) {continue;}
@@ -3335,18 +3340,25 @@ window.run = function() {
 					// 粮仓
 					if (spaceManufacturing && items['barn'].max < 16 && resPercent('wood') > 0.9) {items['barn'].max = -1;}
 				} else {
-					if (starchartVal > 1e4 && !game.calendar.festivalDays && !iw && Production > 1) {
-						items['observatory'].max = 70;
-						items['chapel'].max = 10;
-						items['factory'].max = 0.03 * calcinerVal;
-						items['amphitheatre'].max = 20;
-						items['academy'].max = 60;
-						items['harbor'].max = 10;
-						broadcastTower.max = 10;
-						items['logHouse'].max = game.bld.getBuildingExt('logHouse').meta.val + 1;
-						items['hut'].max = game.bld.getBuildingExt('hut').meta.val + 1;
-						if (!resMap['wood'].perTickCached) {smelter.max = 60;}
-						items['ziggurat'].max = 1;
+					if (starchartVal > 1e4 && !iw && Production > 1) {
+						if (!game.calendar.festivalDays) {
+							items['observatory'].max = 70;
+							items['chapel'].max = 10;
+							items['factory'].max = Math.floor(0.05 * calcinerVal);
+							items['amphitheatre'].max = 20;
+							items['academy'].max = 60;
+							items['harbor'].max = 10;
+							broadcastTower.max = 10;
+							items['logHouse'].max = Math.min(70, game.bld.getBuildingExt('logHouse').meta.val + 1);
+							items['hut'].max = game.bld.getBuildingExt('hut').meta.val + 1;
+							if (!resMap['wood'].perTickCached) {smelter.max = 60;}
+							items['ziggurat'].max = 1;
+						}
+						let kittens = game.resPool.resourceMap['kittens'];
+						if (kittens.maxValue - kittens.value > 60) {
+							items['logHouse'].enabled = false;
+							items['hut'].enabled = false;
+						}
 					}
 				}
 				if (science.get('electronics').researched && !spaceManufacturing) {
@@ -4478,6 +4490,12 @@ window.run = function() {
 			activitySummary.ksTime += diffTime;
 			activitySummary.totalTicks++;
 			options.auto.cache.stocks = null;
+			let e = (new Date).getTime();
+			let t = new Date(2023,0,22).getTime();
+			let a = new Date(2023,0,27).getTime();
+			if (e >= t && e < a) {
+				msgSummary('newYear');
+			}
 		},
 		setTrait: function (trait) {
 			let vLeader = game.village.leader;
@@ -9671,6 +9689,13 @@ window.run = function() {
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
 		});
 		$('#ks-engine').append(optionsTitleElement);
+		let e = (new Date).getTime();
+			let t = new Date(2023,0,22).getTime();
+			let a = new Date(2023,0,27).getTime();
+			if (e >= t && e < a) {
+				console.log(1)
+				activity(i18n('summary.auto.newYear'));
+			}
 	};
 	engineOn();
 
