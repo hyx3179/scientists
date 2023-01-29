@@ -17,7 +17,7 @@
 // ==========================================
 window.run = function() {
 	// 158
-	const version = '🐰';
+	const version = 'V15.159';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -258,7 +258,7 @@ window.run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
-			'summary.auto.newYear': 'Cheney祝你新年快乐🏮🧨🧧<br>🐰',
+			// 'summary.auto.newYear': 'Cheney祝你新年快乐🏮🧨🧧',
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
@@ -280,6 +280,7 @@ window.run = function() {
 			'summary.auto.defaultPriest': '默认无限制牧师，如需要限制请更改max',
 			'summary.auto.drama': '喵力产量低，羊皮纸库存低，聪明的小猫就不勾栏听曲啦',
 			'summary.auto.factory': '有了更多钛的后，小猫下次一定造工厂',
+			'summary.auto.furs': '别急，你先别急，更高的制作工艺加成会做更多的羊皮纸',
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
@@ -1738,8 +1739,11 @@ window.run = function() {
 						if (game.workshop.get('rotaryKiln').researched) {
 							moreScholar = 0.5;
 						} else {
-							if (!tt && resMap['science'].maxValue < 95000) {
+							if (!tt && resMap['science'].maxValue < 95000 && val > 2) {
 								maxKS *= 0.85;
+								if (val > 4) {
+									maxKS *= 0.8;
+								}
 							}
 							if (val < 5 && tt > 5 && resMap['parchment'].value > 5e3) {
 								moreScholar = 0.5;
@@ -3128,7 +3132,8 @@ window.run = function() {
 						}
 						if (resMap['parchment'].value > 3 && !resMap['culture'].value) {items['workshop'].max = 0;}
 					}
-					if (!science.get('currency').researched) {items['academy'].max = 1 + Production;}
+					if (!resMap['gold'].value && !Production) {items['academy'].max = 5;}
+					if (!science.get('currency').researched) {items['academy'].max = 1 + Production + !Production;}
 				}
 
 				// 工坊
@@ -4490,12 +4495,6 @@ window.run = function() {
 			activitySummary.ksTime += diffTime;
 			activitySummary.totalTicks++;
 			options.auto.cache.stocks = null;
-			let e = (new Date).getTime();
-			let t = new Date(2023,0,22).getTime();
-			let a = new Date(2023,0,27).getTime();
-			if (e >= t && e < a) {
-				msgSummary('newYear');
-			}
 		},
 		setTrait: function (trait) {
 			let vLeader = game.village.leader;
@@ -5581,7 +5580,7 @@ window.run = function() {
 						}
 					}
 					if (value < forceShipVal && ratio > 3) {
-						if (value && (Date.now() > Craft.shipTime + 8e5 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24 && !geodesy) {
+						if (value && (Date.now() > Craft.shipTime + 16e5 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24 && !geodesy) {
 							Craft.shipTime = Date.now();
 							let valueExt = game.getDisplayValueExt(forceShipVal);
 							if (!tt) {
@@ -5868,7 +5867,12 @@ window.run = function() {
 			}
 			// 羊皮纸
 			if (name === 'parchment') {
-				if (ratio > 2 && resMap['furs'].value < 350 || ratio < 2.12 - priceRatio) {return;}
+				if (ratio > 2 && resMap['furs'].value < 350 || ratio < 2.12 - priceRatio) {
+					if (resMap['furs'].value > 1000 && Science.get('writing').researched) {
+						msgSummary('furs');
+					}
+					return;
+				}
 				limited = ratio < 2.2 - priceRatio + 0.2 * renaissance;
 				if (resMap['minerals'].value > 600 * (1 - priceRatio)) {
 					if ((value < 6.1 && ratio > 1.5) || (value < 12.14 + 25 * priceRatio && ratio > 2)) {
@@ -6983,6 +6987,7 @@ window.run = function() {
 			let titanium = resMap['titanium'];
 			let titaniumVal = titanium.value;
 			if (name === 'griffins') {
+				if (!game.getEffect('standingRatio') && resMap['blueprint'].value > 2 && !resMap['paragon'].value) {return false;}
 				if (season === 2) {
 					if (resMap['iron'].value < 1200 && resMap['gold'].value > 100 + 600 * game.getEffect('priceRatio') && !game.science.get('theology').researched && game.getEffect('priceRatio') > -0.05 && resPercent('iron') < 0.9) {doTrade = true;}
 					if (titaniumVal < 500 && solar > 1.3 && solar) {prof = false;}
@@ -8946,6 +8951,7 @@ window.run = function() {
 		};
 
 		let getOptionsOption = function (name, option) {
+			if (name === 'festival') {return;}
 			let input;
 			let element = getOption(name, option);
 
@@ -9667,6 +9673,10 @@ window.run = function() {
 						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
 					}
 				}, 2000);
+				// 提示节日开启
+				if (options.auto.options.items.festival.enabled) {
+					activity('自动节日已开启');
+				}
 				if (game.getEffect('priceRatio') > -0.03 && Religion.transcendenceTier < 4) {
 					msgSummary('ksHelp', false, 'noFilter');
 					msgSummary('ksHelp2', false, 'noFilter');
@@ -9682,20 +9692,13 @@ window.run = function() {
 		let optionsTitleElement = $('<a/>', {
 			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
 				fontStyle:'italic',
-				// transform: 'scale(0.8)',
+				transform: 'scale(0.8)',
 				paddingLeft: '3px',},
 			text: version,
 			target: '_blank',
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
 		});
 		$('#ks-engine').append(optionsTitleElement);
-		let e = (new Date).getTime();
-			let t = new Date(2023,0,22).getTime();
-			let a = new Date(2023,0,27).getTime();
-			if (e >= t && e < a) {
-				console.log(1)
-				activity(i18n('summary.auto.newYear'));
-			}
 	};
 	engineOn();
 
