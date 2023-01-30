@@ -17,7 +17,7 @@
 // ==========================================
 window.run = function() {
 	// 158
-	const version = 'V15.159';
+	const version = 'V15.160';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -3408,6 +3408,9 @@ window.run = function() {
 							tradepost.max = 36 + Math.max(4 * geodesy, 22 * orbitalGeodesy, 0.5 * calcinerVal) - 5 * vitruvianFeline;
 						}
 					}
+					if (!Production && !Workshop.get('logistics').researched && hasLeader) {
+						items['observatory'].max = 26;
+					}
 				}
 
 				// 油井
@@ -3811,7 +3814,7 @@ window.run = function() {
 						if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
 					}
 					if (begin) {
-						if (name === 'slab' || name === 'beam') {newTrigger = 0.987;}
+						if (name === 'slab' || name === 'beam') {newTrigger = 0.99;}
 					}
 				}
 				// Craft the resource if we meet the trigger requirement
@@ -3880,6 +3883,7 @@ window.run = function() {
 			if (a) {
 				let Res = resMap['catnip'];
 				game.resPool.addRes(Res, Res.perTickCached + 10);
+				game.bld.cathPollution -= 3 * Math.abs(game.bld.cathPollutionPerTick);
 			}
 			if (calendar.observeBtn != null) {
 				let sci = resMap['science'].value;
@@ -5788,6 +5792,9 @@ window.run = function() {
 						}
 						if (resMap['titanium'].value > 3e3 && maxVal > 119e3 && !workshop.get("concreteHuts").researched && resMap['kittens'].maxValue) {autoMax = 0;}
 					}
+					if (resMap['faith'].value && Science.get('acoustics').researched && resMap['faith'].perTickCached < 0.01 && force) {
+						autoMax = 0;
+					}
 				}
 				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.004) {
 					let compendiaMax =  this.getCompendiaMax();
@@ -5803,6 +5810,7 @@ window.run = function() {
 			if (name === 'blueprint' && limited && Science.get('electricity').researched) {
 				//indexMax = (game.village.maxKittens > 130) ? 44 : 34;
 				let rocketry = Science.get('rocketry').researched;
+				let scienceMaxVal = resMap['science'].maxValue;
 				// 开局
 				if (resMap['unobtainium'].value && rocketry && !Science.get('drama').researched) {
 					autoMax = 0;
@@ -5813,7 +5821,7 @@ window.run = function() {
 							let metaName = meta.name;
 							let filterName = ['quantumCryptography', 'blackchain', 'ecology', 'ai'];
 							let prices = meta.prices;
-							if (filterName.indexOf(metaName) > -1 || resMap['science'].maxValue < prices[0].val * 0.95) {
+							if (filterName.indexOf(metaName) > -1 || scienceMaxVal < prices[0].val * 0.95) {
 								continue;
 							}
 							let blueprint = prices[1];
@@ -5842,8 +5850,8 @@ window.run = function() {
 				// 火箭学
 				if (!rocketry) {
 					// 冶金
-					if (!Science.get('metalurgy').researched && value < 60 && scienceTri > 0.98 && resMap['science'].maxValue > 119e3
-						|| (i > 35 && resValue < 200 && scienceTri > 0.98 && cultureTri > 0.98)) {
+					if (!Science.get('metalurgy').researched && value < 60 && scienceTri > 0.98 && scienceMaxVal > 119e3
+						|| (i > 35 && resValue < 200 && scienceTri > 0.98 && cultureTri > 0.98 && scienceMaxVal > 110e3)) {
 						force = true;
 						autoMax = 1;
 					}
@@ -6599,7 +6607,7 @@ window.run = function() {
 					limRat = (craftObservatory || logistics || forShip) ? 0.75 + 0.1 * (scienceMax < 6e4) : limRat;
 					if (navigation.unlocked) {
 						limRat = (resMap['iron'].value > 750 || game.science.get('chemistry').researched) ? limRat : 0;
-						let lowScience = (val < 880 && scienceMax < 110e3 + 9e3 * (resMap['culture'].maxValue > 15e3) && shipValue > 243 - 43 * logistics);
+						let lowScience = (val < 880 + 120 * logistics && scienceMax < 110e3 + 9e3 * (resMap['culture'].maxValue > 15e3) && shipValue > 243 - 43 * logistics);
 						limRat = (lowScience || (game.getEffect('priceRatio') > -0.06 && forShip)) ? 1 : limRat;
 					} else {
 						limRat = 0;
@@ -9674,7 +9682,7 @@ window.run = function() {
 					}
 				}, 2000);
 				// 提示节日开启
-				if (options.auto.options.items.festival.enabled) {
+				if (options.auto.options.enabled) {
 					activity('自动节日已开启');
 				}
 				if (game.getEffect('priceRatio') > -0.03 && Religion.transcendenceTier < 4) {
