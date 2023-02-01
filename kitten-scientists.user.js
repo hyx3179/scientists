@@ -16,8 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	// 158
-	const version = 'V15.160';
+	const version = 'V15.161';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1733,17 +1732,14 @@ window.run = function() {
 				}
 				if (name === 'scholar') {
 					let moreScholar = 0.28;
-
 					if (!game.getEffect('shatterTCGain')) {
-						if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4)) {maxKS = 0;}
+						if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4) && val) {maxKS = 0;}
 						if (game.workshop.get('rotaryKiln').researched) {
 							moreScholar = 0.5;
 						} else {
-							if (!tt && resMap['science'].maxValue < 95000 && val > 2) {
-								maxKS *= 0.85;
-								if (val > 4) {
-									maxKS *= 0.8;
-								}
+							if (!tt && resMap['science'].maxValue < 95000 && val > 3) {
+								// todo
+									maxKS *= 0.6;
 							}
 							if (val < 5 && tt > 5 && resMap['parchment'].value > 5e3) {
 								moreScholar = 0.5;
@@ -1754,7 +1750,6 @@ window.run = function() {
 							moreScholar = 0.6;
 						}
 					}
-
 					if (resPercent('science') > moreScholar && val || !woodcutter || (woodcutter < 2 && !resMap['paragon'].value)) {
 						maxKS = 0;
 					} else if (moreScholar > 0.28) {
@@ -1765,8 +1760,12 @@ window.run = function() {
 				if (name === 'miner') {
 					if (!game.science.get('writing').researched) {
 						// 货币前少分配
-						if (val > 1 && tt) {
-							maxKS = Math.round(maxKS * 0.3 + 0.4 * game.science.get('currency').researched);
+						if (val > 1) {
+							if (tt) {
+								maxKS = Math.round(maxKS * 0.3 + 0.4 * game.science.get('currency').researched);
+							} else {
+								maxKS *= 0.8;
+							}
 						}
 
 						if (!game.science.get('civil').researched && resMap['kittens'].value < 11 && val > 1) {maxKS = 1;}
@@ -1775,8 +1774,8 @@ window.run = function() {
 						if (val < Math.min(25, maxKS) && !scholar) {
 							maxKS *= 4;
 						}
-					} else if (tt && tt < 5) {
-						maxKS = Math.round(maxKS * 0.9);
+					} else if (tt < 5) {
+						maxKS = Math.round(maxKS * (0.95 - 0.01 * tt));
 					}
 					let mineral = resMap['minerals'];
 					if (mineral.maxValue / mineral.perTickCached < 20) {maxKS = 0;}
@@ -3883,7 +3882,10 @@ window.run = function() {
 			if (a) {
 				let Res = resMap['catnip'];
 				game.resPool.addRes(Res, Res.perTickCached + 10);
-				game.bld.cathPollution -= 3 * Math.abs(game.bld.cathPollutionPerTick);
+				let tick = game.bld.cathPollutionPerTick;
+				if (game.bld.cathPollutionPerTick > 0) {
+					game.bld.cathPollution -= 3 * Math.abs(tick);
+				}
 			}
 			if (calendar.observeBtn != null) {
 				let sci = resMap['science'].value;
