@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.161';
+	const version = 'V15.162';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1614,8 +1614,8 @@ window.run = function() {
 				// }
 
 				if (farmerCatnip && catnipTick < 0 && game.science.get("agriculture").researched) {
-					let b = game.getResourcePerTick('catnip', true) - 0.85 * Math.max(1, happiness * !anarchy - 1);
-					if ((catnipVal + 25 * catnipTick < 0 && game.calendar.day > 92) || catnipVal + 1000 * b < 0 || religionCatnip.religion) {
+					let b = game.getResourcePerTick('catnip', true);
+					if ((catnipVal + 25 * catnipTick < 0 && game.calendar.day > 92) || catnipVal + (1000 - 10 * game.calendar.day) * b < 0 || religionCatnip.religion) {
 						for (let i = kittenLength - 1; i > 0; i--) {
 							let kitten = Kittens[i];
 							if (kitten.isLeader || kitten.job === 'farmer') {continue;}
@@ -1733,13 +1733,13 @@ window.run = function() {
 				if (name === 'scholar') {
 					let moreScholar = 0.28;
 					if (!game.getEffect('shatterTCGain')) {
-						if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4) && val) {maxKS = 0;}
+						if (!resMap['starchart'].value && !scholar && resMap['science'].value > 3e3 + 1e4 * (val > 4) && val > 1) {maxKS = 0;}
 						if (game.workshop.get('rotaryKiln').researched) {
 							moreScholar = 0.5;
 						} else {
 							if (!tt && resMap['science'].maxValue < 95000 && val > 3) {
 								// todo
-									maxKS *= 0.6;
+								maxKS *= 0.5;
 							}
 							if (val < 5 && tt > 5 && resMap['parchment'].value > 5e3) {
 								moreScholar = 0.5;
@@ -5794,7 +5794,7 @@ window.run = function() {
 						}
 						if (resMap['titanium'].value > 3e3 && maxVal > 119e3 && !workshop.get("concreteHuts").researched && resMap['kittens'].maxValue) {autoMax = 0;}
 					}
-					if (resMap['faith'].value && Science.get('acoustics').researched && resMap['faith'].perTickCached < 0.01 && force) {
+					if (resMap['faith'].value && Science.get('acoustics').researched && resMap['faith'].perTickCached < 0.1 && force) {
 						autoMax = 0;
 					}
 				}
@@ -5877,17 +5877,19 @@ window.run = function() {
 			}
 			// 羊皮纸
 			if (name === 'parchment') {
-				if (ratio > 2 && resMap['furs'].value < 350 || ratio < 2.12 - priceRatio) {
-					if (resMap['furs'].value > 1000 && Science.get('writing').researched) {
-						msgSummary('furs');
-					}
-					return;
-				}
 				limited = ratio < 2.2 - priceRatio + 0.2 * renaissance;
 				if (resMap['minerals'].value > 600 * (1 - priceRatio)) {
 					if ((value < 6.1 && ratio > 1.5) || (value < 12.14 + 25 * priceRatio && ratio > 2)) {
 						force = true;
 						autoMax = 1;
+					}
+				}
+				if (!force) {
+					if (ratio > 2 && resMap['furs'].value < 350 || ratio < 2.12 - priceRatio) {
+						if (resMap['furs'].value > 1000 && Science.get('writing').researched) {
+							msgSummary('furs');
+						}
+						return;
 					}
 				}
 				if (!navigation) {
@@ -6231,6 +6233,7 @@ window.run = function() {
 				let Titanium = resMap['titanium'];
 				switch (name) {
 					case 'wood': {
+						if (!resMap['paragaon'].value && kittens === 8 && game.getEffect('skillXP') && resMap['wood'].value < 196) {stock += 196;}
 						if (this.getUnResearched('ironwood') && resMap['iron'].value > 2800 && kittens > 20) {stock += 15e3;}
 						// if (kittens < 130 && workshop.get('concreteHuts').researched && !iw && !game.getEffect("priceRatio") && resPercent(name) < 1 && resMap['beam'].value > 200) {stock += 11e5;}
 						break;
@@ -6675,6 +6678,8 @@ window.run = function() {
 			baseProd = game.calendar.cycleEffectsFestival({catnip: baseProd})['catnip'];
 
 			baseProd *= 1 + game.bld.pollutionEffects["catnipPollutionRatio"];
+
+			baseProd += !activitySummary.other['auto.changeLeader'] * (0.1 * baseProd + 1);
 
 			let baseDemand = game.village.getResConsumption()['catnip'];
 			let uniPastures = game.bld.getBuildingExt('unicornPasture').meta.val;
