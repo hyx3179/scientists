@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.162';
+	const version = 'V15.163';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1792,7 +1792,7 @@ window.run = function() {
 					if (!revolution) {
 						if (tt > 3 && maxKS === 3 && val < 3) {val = 0;}
 					}
-					if (tt < 3) {maxKS = 1;}
+					if (tt < 3) {maxKS = 2;}
 					if (!woodcutter) {
 						limited = true;
 						maxKS = 0;
@@ -2548,7 +2548,7 @@ window.run = function() {
 					let resStarchart = resMap['starchart'];
 					let resStarchartVal = resStarchart.value;
 					let isFilter;
-					noop = ['biofuel','gmo','invisibleBlackHand','steelPlants'];
+					noop = ['biofuel','gmo','invisibleBlackHand','steelPlants','register'];
 					if (game.getEffect('shatterTCGain') < 0.05) {
 						if (Production > 2) {noop = noop.concat(['amReactors','amReactorsMK2','amDrive']);}
 					}
@@ -2563,9 +2563,8 @@ window.run = function() {
 					// 虚空
 					if (resMap['void'].value < 250) {noop.push('voidAspiration');}
 					if (priceRatio) {
-						noop.push('register');
 						// 神经网络过滤
-						if (priceRatio < -0.06) {noop = noop.concat(['neuralNetworks','voidReactors']);}
+						noop = noop.concat(['neuralNetworks','voidReactors']);
 					}
 					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
 					let pacifism = game.challenges.isActive("pacifism");
@@ -3278,6 +3277,8 @@ window.run = function() {
 					}
 					if (Religion.transcendenceTier) {
 						tradepost.max = 18 - 2 * Production + 1 * (resMap['kittens'].value < 60) - 2 * hasLeader - 1 * (resMap['kittens'].value > 70);
+					} else {
+						tradepost.max = 23;
 					}
 					if (resPercent('gold') > 0.966) {
 						tradepost.max = Math.min(18 + Production, game.bld.getBuildingExt('tradepost').meta.val + 1);
@@ -3451,8 +3452,13 @@ window.run = function() {
 					}
 				}
 				// 黑暗天空造煅烧炉
-				if (blackSky && options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerVal) {
-					buildManager.built("calciner", undefined, 1);
+				if (blackSky) {
+					if (options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerVal) {
+						buildManager.built("calciner", undefined, 1);
+					}
+					if (game.ironWill && !Workshop.get('celestialMechanics').researched) {
+						items['library'].max = 0;
+					}
 				}
 				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel','lumberMill','biolab','mint'];
 				for (let name in items) {
@@ -5455,7 +5461,7 @@ window.run = function() {
 			let craft = this.getCraft(name);
 			let ratio = game.getResCraftRatio(craft.name) + 1;
 			let trait = options.auto.cache.trait['engineer'] && game.village.leader;
-			let leader = (trait) ? '工匠小猫制作了 ' : '小猫制作了 ';
+			let leader = '小猫制作了';
 
 			//game.workshop.craft(craft.name, amount, true, false);
 			amount = Math.ceil(amount);
@@ -5468,14 +5474,19 @@ window.run = function() {
 			}
 
 			if (trait) {
+				leader = '工匠小猫制作了 ';
 				let engineer = game.village.getEffectLeader("engineer", 0);
-				if (resMap[name].tag === "metallurgist" && options.auto.cache.trait['metallurgist']) {
+				let tag = resMap[name].tag;
+				if (tag === "metallurgist" && options.auto.cache.trait['metallurgist']) {
 					craftAmt += amount * engineer;
 					leader = '冶金学家小猫制作了 ';
 				}
-				if (resMap[name].tag === "chemist" && options.auto.cache.trait['chemist']) {
+				if (tag === "chemist" && options.auto.cache.trait['chemist']) {
 					craftAmt += 0.5 * amount * engineer;
 					leader = '化学家小猫制作了 ';
+				}
+				if (name === "parchment") {
+					craftAmt += engineer;
 				}
 			}
 			game.resPool.payPrices(prices);
@@ -5558,7 +5569,7 @@ window.run = function() {
 			let trigger = Craft.trigger;
 			if (name === 'ship' && limited) {
 				let scienceMax = resMap['science'].maxValue;
-				force = scienceMax > 48e3 && (value < 100 || scienceMax > 95e3 || Science.get('archeology').researched);
+				force = scienceMax > 50e3 && (value < 100 || scienceMax > 95e3 || Science.get('archeology').researched);
 				if (scienceMax < 55e3 && resMap['titanium'].unlocked && value > 40) {
 					force = false;
 				}
@@ -6535,8 +6546,7 @@ window.run = function() {
 					break;
 				}
 				case 'eludium': {
-					let RR = game.getEffect('shatterTCGain') > 0.05;
-					limRat = (RR) ? 0.1 : 0.6;
+					limRat = (game.getEffect('shatterTCGain') > 0.05) ? 0.1 : 0.6;
 					limRat = (res.value < 125 && game.getEffect('hutPriceRatio') > -1.06) ? 1 : limRat;
 					break;
 				}
