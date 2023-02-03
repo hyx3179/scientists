@@ -6233,7 +6233,7 @@ window.run = function() {
 				let Titanium = resMap['titanium'];
 				switch (name) {
 					case 'wood': {
-						if (!resMap['paragaon'].value && kittens === 8 && game.getEffect('skillXP') && resMap['wood'].value < 196) {stock += 196;}
+						if (!resMap['paragon'].value && kittens === 8 && game.getEffect('skillXP') && resMap['wood'].value < 196) {stock += 196;}
 						if (this.getUnResearched('ironwood') && resMap['iron'].value > 2800 && kittens > 20) {stock += 15e3;}
 						// if (kittens < 130 && workshop.get('concreteHuts').researched && !iw && !game.getEffect("priceRatio") && resPercent(name) < 1 && resMap['beam'].value > 200) {stock += 11e5;}
 						break;
