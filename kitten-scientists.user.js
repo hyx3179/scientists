@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.163';
+	const version = 'V15.164';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2168,7 +2168,8 @@ window.run = function() {
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5 - 0.1 * !stainedGlassOn;
 			factor = (religion.getRU('solarchant').on > 6) ? 5 - Math.sqrt(production) : factor;
 			let maxPercent = (moonBoolean < 3) ? 95 : 80;
-			let expectSolarRevolutionRatio = game.getLimitedDR(0.3 * Math.pow(Math.E, transformTier) * factor, maxPercent * maxSolarRevolution);
+			let expectSolarRevolutionRatio = Math.max(2,
+				game.getLimitedDR(0.3 * Math.pow(Math.E, transformTier) * factor, maxPercent * maxSolarRevolution));
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = religion.getRU('solarRevolution').on;
 
@@ -2474,7 +2475,7 @@ window.run = function() {
 								if (start) {continue;}
 								break;
 							case 'chemistry':
-								if ((Workshop.get('titaniumAxe').researched || !resMap['titanium'].value) && !acoustics) {continue;}
+								if ((resMap['science'].maxValue > 57e3 || !resMap['titanium'].value) && !acoustics && revolutionRatio) {continue;}
 								break;
 							case 'biochemistry':
 								if (titanium < 7000) {continue;}
@@ -3318,6 +3319,10 @@ window.run = function() {
 					if (!game.workshop.get('oxidation').researched) {calciner.max = 5 + revolutionRatio + 0.2 * Production + geodesy;}
 					items['warehouse'].max = 45 - 200 * priceRatio + 50 * (priceRatio < -0.07) + 5 * (science.get('electricity').researched) + Production + 4 * calcinerVal * vitruvianFeline + 13 * geodesy * Production * vitruvianFeline;
 					items['quarry'].max = revolutionRatio + Math.max(Production - 1, 1) + 4 + calcinerVal * geodesy;
+					if (!Production && hasLeader && !Workshop.get('logistics').researched) {
+						items['observatory'].max = 26;
+						items['library'].max = 59;
+					}
 				}
 
 				let oilTick = resMap['oil'].perTickCached - 0.024 * calcinerVal;
@@ -3379,7 +3384,7 @@ window.run = function() {
 					if (!iw && mansion.max) {
 						mansion.max = 12 - priceRatio - Production;
 						if (Production && starchartVal > 100) {mansion.max -= 7;}
-						items['quarry'].max = revolutionRatio + Production + 5 + !Production;
+						items['quarry'].max = revolutionRatio + Production + 5 + 2 * !Production;
 						if (calciner.max === 25) {mansion.max = 0;}
 					}
 					if (resMap['alloy'].value > 25 && science.get('biology').researched) {
@@ -3407,9 +3412,6 @@ window.run = function() {
 						if (revolutionRatio && game.getEffect('faithRatioReligion') < 0.2) {
 							tradepost.max = 36 + Math.max(4 * geodesy, 22 * orbitalGeodesy, 0.5 * calcinerVal) - 5 * vitruvianFeline;
 						}
-					}
-					if (!Production && !Workshop.get('logistics').researched && hasLeader) {
-						items['observatory'].max = 26;
 					}
 				}
 
@@ -4386,7 +4388,7 @@ window.run = function() {
 			if (ma.val && !ma.on && oil && pollution && !fa.isAutomationEnabled) {msg('magneto', undefined, true);}
 			// 自动打开蒸汽工房
 			let st = game.bld.getBuildingExt('steamworks').meta;
-			if (st.val && st.on !== st.val && ma.on > 9) {msg('steamworks', undefined, true);}
+			if (st.val && st.on !== st.val && ma.on > 4 + 5 * !tt) {msg('steamworks', undefined, true);}
 			// 自动打开反应堆
 			let re = game.bld.getBuildingExt('reactor').meta;
 			let ur = game.getResourcePerTick("uranium",true);
@@ -5581,12 +5583,12 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(1.1 * solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 146 + 30 * !resMap['paragon'].value);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 145 + 30 * !resMap['paragon'].value);
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.3 * (priceRatio < -0.06));
 						}
 					}
-					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 1e3)) {
+					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 1100)) {
 						if (!tt) {
 							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
 							// 三年了,你知道这三年我是怎么过的吗
@@ -5805,7 +5807,7 @@ window.run = function() {
 						}
 						if (resMap['titanium'].value > 3e3 && maxVal > 119e3 && !workshop.get("concreteHuts").researched && resMap['kittens'].maxValue) {autoMax = 0;}
 					}
-					if (resMap['faith'].value && Science.get('acoustics').researched && resMap['faith'].perTickCached < 0.1 && force) {
+					if (resMap['faith'].value && Science.get('acoustics').researched && game.bld.getBuildingExt('chapel').val < 18 && force) {
 						autoMax = 0;
 					}
 				}
@@ -6622,7 +6624,7 @@ window.run = function() {
 					limRat = (craftObservatory || logistics || forShip) ? 0.75 + 0.1 * (scienceMax < 6e4) : limRat;
 					if (navigation.unlocked) {
 						limRat = (resMap['iron'].value > 750 || game.science.get('chemistry').researched) ? limRat : 0;
-						let lowScience = (val < 880 + 120 * logistics && scienceMax < 110e3 + 9e3 * (resMap['culture'].maxValue > 15e3) && shipValue > 243 - 43 * logistics);
+						let lowScience = (val < 880 + 120 * logistics && scienceMax < 110e3 + 9e3 * (resMap['culture'].maxValue > 15e3) && shipValue > 243 - 68 * logistics);
 						limRat = (lowScience || (game.getEffect('priceRatio') > -0.06 && forShip)) ? 1 : limRat;
 					} else {
 						limRat = 0;
@@ -6975,7 +6977,7 @@ window.run = function() {
 			for (let mat in materials) {
 				if (mat === 'ivory') {continue;}
 				tick = this.craftManager.getTickVal(this.craftManager.getResource(mat), rrTrade);
-				if (mat === 'slab' && solar > 0.03 && solar < 0.5) {tick *= 1.04;}
+				if (mat === 'slab' && solar > 0.03 && solar < 0.5 && !Workshop.get("geodesy").researched) {tick *= 1.04;}
 				if (tick <= 0) {
 					if (name === 'leviathans' && mat === 'gold') {continue;}
 					return false;
