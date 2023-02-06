@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.164';
+	const version = 'V15.165';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1937,7 +1937,7 @@ window.run = function() {
 							if (builds['marker'].enabled) {
 								let marker = religion.getZU('marker').on;
 								let tearPrice = 5e3 * Math.pow(1.15, marker);
-								if (tearHave < tearPrice  && sunspire > Math.min(9 + marker, 19)) {tearNeed = Math.min(tearPrice, tearNeed);}
+								if (tearHave < tearPrice && sunspire > Math.min(9 + marker, 19)) {tearNeed = Math.min(tearPrice, tearNeed);}
 							}
 							if (game.calendar.day < 1 && !game.calendar.season && Math.random() < 0.2) {
 								game.diplomacy.unlockElders();
@@ -2168,7 +2168,7 @@ window.run = function() {
 			factor = factor * (game.prestige.getPerk('vitruvianFeline').researched) ? 1 : 0.5 - 0.1 * !stainedGlassOn;
 			factor = (religion.getRU('solarchant').on > 6) ? 5 - Math.sqrt(production) : factor;
 			let maxPercent = (moonBoolean < 3) ? 95 : 80;
-			let expectSolarRevolutionRatio = Math.max(2,
+			let expectSolarRevolutionRatio = Math.max(1.8,
 				game.getLimitedDR(0.3 * Math.pow(Math.E, transformTier) * factor, maxPercent * maxSolarRevolution));
 			option.autoPraise.expect = expectSolarRevolutionRatio * 0.01;
 			let solarRevolution = religion.getRU('solarRevolution').on;
@@ -2475,7 +2475,7 @@ window.run = function() {
 								if (start) {continue;}
 								break;
 							case 'chemistry':
-								if ((resMap['science'].maxValue > 57e3 || !resMap['titanium'].value) && !acoustics && revolutionRatio) {continue;}
+								if (!acoustics && revolutionRatio) {continue;}
 								break;
 							case 'biochemistry':
 								if (titanium < 7000) {continue;}
@@ -2700,7 +2700,7 @@ window.run = function() {
 					}
 					// 天体观测仪
 					isFilter = resMap['science'].maxValue > 120e3 + 80e3 * geodesy && resStarchartVal < 2075;
-					if (isFilter || resMap['titanium'].value < 5 + 10 * revolutionRatio) {
+					if (isFilter || resMap['titanium'].value < 5 + 10 * revolutionRatio + 5 * !Production) {
 						noop = noop.concat(['astrolabe','unobtainiumReflectors','lhc','titaniumMirrors']);
 					}
 					// 无政府挑战
@@ -3821,7 +3821,7 @@ window.run = function() {
 						if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
 					}
 					if (begin) {
-						if (name === 'slab' || name === 'beam') {newTrigger = 0.99;}
+						if (name === 'slab' || name === 'beam' || name == 'wood') {newTrigger = 0.99;}
 					}
 				}
 				// Craft the resource if we meet the trigger requirement
@@ -5572,7 +5572,7 @@ window.run = function() {
 			if (name === 'ship' && limited) {
 				let scienceMax = resMap['science'].maxValue;
 				force = scienceMax > 50e3 && (value < 100 || scienceMax > 95e3 || Science.get('archeology').researched);
-				if (scienceMax < 55e3 && resMap['titanium'].unlocked && value > 40) {
+				if (scienceMax < 56e3 && resMap['titanium'].unlocked && value > 38) {
 					force = false;
 				}
 				let solar = Religion.getSolarRevolutionRatio();
@@ -5752,7 +5752,13 @@ window.run = function() {
 							autoMax = 1;
 						}
 					}
-					if (resMap['science'].maxValue < 71250 && Science.get('archeology').researched && !Science.get('electricity').researched && !force) {autoMax = 0;}
+					if (resMap['science'].maxValue < 71250 && !Science.get('electricity').researched && !force) {
+						if (Science.get('archeology').researched) {
+							force = false;
+						} else if (resValue > 120) {
+							force = false;
+						}
+					}
 				}
 				if (!game.calendar.festivalDays && resMap['unobtainium'].value && Science.get('drama').unlocked) {autoMax = 0;}
 			}
@@ -5787,28 +5793,31 @@ window.run = function() {
 						break;
 					}
 				}
-				// 物理学 => 强制到声学
-				if (i === 20 && value < 60 && !Science.get('acoustics').researched) {
-					force = true;
-					autoMax = 1;
-				}
-				// 冶金
-				if (!Science.get('metalurgy').researched && resValue < 100 + 200 * !priceRatio && scienceTri > 0.98) {
-					let maxVal = resMap['science'].maxValue;
-					if ((!Science.get('electricity').researched && resValue < 85 && cultureTri > 0.92)
-						|| (scienceTri === 1 && maxVal > scienceMeta.meta[i].prices[1].val)) {
+				if (!Science.get('metalurgy').researched) {
+					// 物理学 => 强制到声学
+					let acoustics = Science.get('acoustics').researched;
+					if (i === 20 && value < 60 && !acoustics) {
 						force = true;
 						autoMax = 1;
 					}
-					if (cultureTri > 0.96) {
-						if (maxVal > 81e3) {
+					// 冶金
+					if (resValue < 100 + 200 * !priceRatio * acoustics && scienceTri > 0.98) {
+						let maxVal = resMap['science'].maxValue;
+						if ((!Science.get('electricity').researched && resValue < 85 && cultureTri > 0.92)
+							|| (scienceTri === 1 && maxVal > scienceMeta.meta[i].prices[1].val)) {
 							force = true;
 							autoMax = 1;
 						}
-						if (resMap['titanium'].value > 3e3 && maxVal > 119e3 && !workshop.get("concreteHuts").researched && resMap['kittens'].maxValue) {autoMax = 0;}
-					}
-					if (resMap['faith'].value && Science.get('acoustics').researched && game.bld.getBuildingExt('chapel').val < 18 && force) {
-						autoMax = 0;
+						if (cultureTri > 0.96) {
+							if (maxVal > 81e3) {
+								force = true;
+								autoMax = 1;
+							}
+							if (resMap['titanium'].value > 3e3 && maxVal > 119e3 && !workshop.get("concreteHuts").researched && resMap['kittens'].maxValue) {autoMax = 0;}
+						}
+						if (resMap['faith'].value && acoustics && game.bld.getBuildingExt('chapel').val < 18) {
+							force = false;
+						}
 					}
 				}
 				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.004) {
@@ -5945,7 +5954,7 @@ window.run = function() {
 							amount = 0;
 						}
 					}
-					if (!game.getEffect('warehouseRatio')  && resMap['plate'].value > 50 && resMap['science'].maxValue > 3e4) {
+					if (!game.getEffect('warehouseRatio') && resMap['plate'].value > 50 && resMap['science'].maxValue > 3e4) {
 						if (value < 50) {
 							force = true;
 							amount = 1;
@@ -6336,6 +6345,9 @@ window.run = function() {
 							}
 						}
 
+						if (this.getUnResearched('titaniumMirrors') && resMap['ship'].value > 38 && resMap['science'].maxValue < 57e3 && titaniumVal < 15) {
+							stock += 15;
+						}
 						let Revolution = Religion.getSolarRevolutionRatio();
 						let cal = Revolution < 3.3 && (Val || Titanium.value > 100) && leader;
 						let anarchy = game.challenges.isActive("anarchy") && Revolution < 6;
