@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.168';
+	const version = 'V15.169';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -194,7 +194,7 @@ window.run = function() {
 			'distribute.unlimited': '总Max数量分配完后， {0} 的数量允许超过MAX',
 			'distribute.makeLeader': '分配领袖',
 			'act.distribute': '抓住一只空闲猫猫分配为 {0}',
-			'act.distribute.catnip': '担心你的猫猫没有猫薄荷吸并强制分配到农民',
+			'act.distribute.catnip': '担心你的猫猫没有猫薄荷吸并强制分配到农民<br>农民自动分配无视Max~',
 			'act.distributeLeader': '分配一只 {0} 猫猫领袖',
 			'ui.max.set': '设置 {0} 的最大值',
 			'summary.distribute': '帮助 {0} 只偷吃猫薄荷的猫猫找到工作',
@@ -1754,7 +1754,12 @@ window.run = function() {
 						maxKS = 0;
 					} else if (moreScholar > 0.28) {
 						maxKS = Math.max(maxKS, Math.min(23, (game.getEffect('calcinerRatio') > 2.6) * 3 + 11 + revolution + tt * (game.getEffect('priceRatio') < -0.07) + tt * scholar));
-						if (val > 8 && val < maxKS) {msgSummary('scholar');}
+						if (val > 8 && val < maxKS) {
+							let msg = msgSummary('scholar');
+							if (!msg) {
+								$("#set-scholar-max")[0].innerText = i18n('ui.max', [Math.ceil(maxKS)]);
+							}
+						}
 					}
 				}
 				if (name === 'miner') {
@@ -1775,7 +1780,7 @@ window.run = function() {
 							maxKS *= 4;
 						}
 					} else if (tt < 5) {
-						maxKS = Math.round(maxKS * (0.94 - 0.01 * tt));
+						maxKS = Math.round(maxKS * (0.94 - 0.05 * (currentKitten < 35) - 0.01 * tt));
 					}
 					let mineral = resMap['minerals'];
 					if (mineral.maxValue / mineral.perTickCached < 20) {maxKS = 0;}
@@ -2504,7 +2509,7 @@ window.run = function() {
 								if (!nanotechnology && titanium < 10e3) {continue;}
 								break;
 							case 'drama': {
-								if (resMap['manpower'].perTickCached < 14 && parchment.value < 14e3 && !resMap['eludium'].value) {
+								if (resMap['manpower'].perTickCached < 14 && parchment.value < 1e4 + 4e3 * !Production && !resMap['eludium'].value) {
 									if (parchment.value > 5000) {msgSummary('drama');}
 									continue;
 								}
@@ -3188,7 +3193,7 @@ window.run = function() {
 						if (!Production && magnetoOn < 4 && magnetoOn) {
 							items['steamworks'].max = 5;
 						}
-						if (magnetoOn < Math.max(1, 7 - Production - 4 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy - !Production)) {
+						if (magnetoOn < Math.max(1, 7 - Production - 4 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy + !Production)) {
 							// 解锁磁电机才会造蒸汽工房
 							let steamW = items['steamworks'];
 							if (game.bld.getBuildingExt('steamworks').meta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
@@ -3225,7 +3230,7 @@ window.run = function() {
 					}
 					if (resMap['wood'].perTickCached < 0.09 && !game.ironWill) {smelter.max = 0;}
 					if (smelterVal) {
-						if (resMap['wood'].perTickCached * 2 < smelterVal + 0.5 * !machinery || resMap['minerals'].perTickCached < smelterVal + 1 - 3 * theology - Production - 5 * (astronomy.researched) + priceRatio) {
+						if (resMap['wood'].perTickCached * 2 < smelterVal - 0.5 * machinery || resMap['minerals'].perTickCached < smelterVal + 0.8 - 3 * theology - Production - 5 * (astronomy.researched) + priceRatio) {
 							smelter.max = 0;
 							if (!iw) {msgSummary('smelter');}
 						} else {
@@ -3303,7 +3308,7 @@ window.run = function() {
 				// 神学前 交易所神殿
 				if (!theology && science.get('philosophy').researched && goldTri < 0.96 && !atheism) {
 					temple.max = (priceRatio < -0.07) ? 1 : Math.floor(7.5 / (1 + game.prestige.getParagonStorageRatio())) - vitruvianFeline;
-					tradepost.max = 21 - 2 * Production - 5 * hasLeader - 0.45 * (resMap['kittens'].value > 43);
+					tradepost.max = 21 - 2 * Production - 5 * hasLeader - 1.45 * (resMap['kittens'].value > 43);
 					msgSummary('tradepost');
 				}
 
@@ -3899,7 +3904,7 @@ window.run = function() {
 			let a = game.ironWill || !activitySummary.other['auto.changeLeader'];
 			if (a) {
 				let Res = resMap['catnip'];
-				game.resPool.addRes(Res, Res.perTickCached + 20);
+				Res.value = Math.min(Res.maxValue, Res.value + Math.max(0, Res.perTickCached) + 20);
 			}
 			if (calendar.observeBtn != null) {
 				let sci = resMap['science'].value;
@@ -4119,7 +4124,7 @@ window.run = function() {
 			// 和平模式
 			if (challenge && game.science.get('architecture').researched && !resMap['furs'].value) {return;}
 			// 节日
-			if (optionTrade.festival && !Calendar.festivalDays && resMap['parchment'].value > 2500) {return;}
+			if (optionTrade.festival && !Calendar.festivalDays) {return;}
 			// Distribute max trades without starving any race
 			if (maxTrades < 1) {return;}
 			// let spice = resMap['spice'].value + 60 * game.getResourcePerTick('spice', true) < 0;
@@ -4395,7 +4400,7 @@ window.run = function() {
 			if (ma.val && !ma.on && oil && pollution && !fa.isAutomationEnabled) {msg('magneto', undefined, true);}
 			// 自动打开蒸汽工房
 			let st = game.bld.getBuildingExt('steamworks').meta;
-			if (st.val && st.on !== st.val && ma.on > 4 + 5 * !tt) {msg('steamworks', undefined, true);}
+			if (st.val && st.on !== st.val && ma.on > 3 + 6 * !tt) {msg('steamworks', undefined, true);}
 			// 自动打开反应堆
 			let re = game.bld.getBuildingExt('reactor').meta;
 			let ur = game.getResourcePerTick("uranium",true);
@@ -5251,6 +5256,7 @@ window.run = function() {
 						if (harborVal < 15) {
 							msgSummary('harbor');
 							halfCount = true;
+							if (!vitruvianFeline) {count *= 0.9;}
 						} else if (reactorVal < 30) {
 							halfCount = true;
 							if (revolution > 7.5) {count *= 0.2;}
@@ -5812,7 +5818,7 @@ window.run = function() {
 						autoMax = 1;
 					}
 					// 冶金
-					if (resValue < 100 + 200 * !priceRatio * acoustics && scienceTri > 0.98) {
+					if (resValue < 100 + 200 * !priceRatio * acoustics && scienceTri > 0.995) {
 						let maxVal = resMap['science'].maxValue;
 						if ((!Science.get('electricity').researched && resValue < 85 && cultureTri > 0.92)
 							|| (scienceTri === 1 && maxVal > scienceMeta.meta[i].prices[1].val)) {
@@ -7003,8 +7009,12 @@ window.run = function() {
 				tick = this.craftManager.getTickVal(this.craftManager.getResource(mat), rrTrade);
 				if (mat === 'slab') {
 					if (Workshop.get("geodesy").researched) {
-						if (resMap['ship'].value < 243 && solar < 0.2 && season !== 1) {
-							tick *= 0.3;
+						if (season === 1) {
+							tick *= 1.04;
+						} else {
+							if (resMap['ship'].value < 300 && solar < 0.2 && season !== 1) {
+								tick *= 0.3;
+							}
 						}
 					} else {
 						if (solar > 0.03 && solar < 0.5 && resMap['titanium'].value < 250 && season !== 3) {
