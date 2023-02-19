@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.170';
+	const version = 'V15.171';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -182,7 +182,7 @@ window.run = function() {
 			'filter.disable': '取消过滤 {0}',
 
 			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了~♪',
-			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料~果咩捏',
+			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料~为了发展果咩捏',
 			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ﾚ(ﾟ∀ﾟ;)ﾍ=3=3 !',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
@@ -258,7 +258,7 @@ window.run = function() {
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
 			// 'summary.auto.newYear': 'Cheney祝你新年快乐🏮🧨🧧',
-			'summary.auto.150Faith': '你的信仰空了，看看你的宗教',
+			'summary.auto.150Faith': '你的信仰空了，看看你的宗教，有新东西',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
 			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战模式中请自己点政策',
@@ -280,6 +280,7 @@ window.run = function() {
 			'summary.auto.defaultPriest': '默认无限制牧师，如需要限制请更改max',
 			'summary.auto.drama': '喵力产量低，羊皮纸库存低，聪明的小猫就不勾栏听曲啦',
 			'summary.auto.factory': '有了更多钛的后，小猫下次一定造工厂',
+			'summary.auto.fuelInjectors': '给蒸汽工房换上你燃料喷射器捏',
 			'summary.auto.furs': '别急，你先别急，更高的制作工艺加成会做更多的羊皮纸',
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
@@ -290,7 +291,7 @@ window.run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
-			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概300年左右 130猫口 + 新约外传',
+			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概290年左右 130猫口 + 新约外传',
 			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需外面大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：只要不挂在前台请务必打开后台珂学家<br>最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
@@ -815,31 +816,31 @@ window.run = function() {
 			},
 			filter: {
 				//What log messages should be filtered?
-				enabled: true,
+				enabled: false,
 				console: {},
 				items: {
-					buildFilter:             {enabled: false,  label: i18n('filter.build'),     },
+					buildFilter:             {enabled: true,   label: i18n('filter.build'),     },
 					researchFilter:          {enabled: false,  label: i18n('filter.research'),  },
 					upgradeFilter:           {enabled: false,  label: i18n('filter.upgrade'),   },
 					craftFilter:             {enabled: true,   label: i18n('filter.craft'),     },
-					spaceFilter:             {enabled: false,  label: i18n('filter.space'),     },
-					policyFilter:            {enabled: false,  label: i18n('filter.policy'),    },
-					upgBldFilter:            {enabled: false,  label: i18n('filter.upgBld'),    },
-					tradeFilter:             {enabled: false,  label: i18n('filter.trade'),     },
-					embassyFilter:           {enabled: false,  label: i18n('filter.embassy'),   },
-					huntFilter:              {enabled: false,  label: i18n('filter.hunt'),      },
-					unicornSacrificeFilter:  {enabled: false,  label: i18n('filter.sacrifice'), },
-					faithBuildFilter:        {enabled: false,  label: i18n('filter.faithBld'),  },
+					spaceFilter:             {enabled: true,   label: i18n('filter.space'),     },
+					policyFilter:            {enabled: true,   label: i18n('filter.policy'),    },
+					upgBldFilter:            {enabled: true,   label: i18n('filter.upgBld'),    },
+					tradeFilter:             {enabled: true,   label: i18n('filter.trade'),     },
+					embassyFilter:           {enabled: true,   label: i18n('filter.embassy'),   },
+					huntFilter:              {enabled: true,   label: i18n('filter.hunt'),      },
+					unicornSacrificeFilter:  {enabled: true,   label: i18n('filter.sacrifice'), },
+					faithBuildFilter:        {enabled: true,   label: i18n('filter.faithBld'),  },
 					// 赞美太阳 faith => praise
 					faithFilter:             {enabled: true,   label: i18n('filter.praise'),    },
 					adoreFilter:             {enabled: false,  label: i18n('filter.adore'),     },
-					transcendFilter:         {enabled: false,  label: i18n('filter.transcend'), },
-					accelerateFilter:        {enabled: false,  label: i18n('filter.accelerate'),},
-					tcShatterFilter:         {enabled: false,  label: i18n('filter.time.skip'), },
-					festivalFilter:          {enabled: false,  label: i18n('filter.festival'),  },
-					astronomicalEventFilter: {enabled: false,  label: i18n('filter.star'),      },
-					distributeFilter:        {enabled: false,  label: i18n('filter.distribute'),},
-					leaderFilter:            {enabled: false,  label: i18n('filter.leader'),    },
+					transcendFilter:         {enabled: true,   label: i18n('filter.transcend'), },
+					accelerateFilter:        {enabled: true,   label: i18n('filter.accelerate'),},
+					tcShatterFilter:         {enabled: true,   label: i18n('filter.time.skip'), },
+					festivalFilter:          {enabled: true,   label: i18n('filter.festival'),  },
+					astronomicalEventFilter: {enabled: true,   label: i18n('filter.star'),      },
+					distributeFilter:        {enabled: true,   label: i18n('filter.distribute'),},
+					leaderFilter:            {enabled: true,   label: i18n('filter.leader'),    },
 					miscFilter:              {enabled: false,  label: i18n('filter.misc'),      }
 				}
 			},
@@ -1901,6 +1902,7 @@ window.run = function() {
 			let production = game.prestige.getParagonProductionRatio();
 			let rrVal = game.time.getCFU("ressourceRetrieval").val;
 
+			// 独角兽
 			if (option.bestUnicornBuilding.enabled) {
 				let btn = this.getBestUnicornBuilding();
 				let zigguratOn = game.bld.getBuildingExt('ziggurat').meta.on;
@@ -1996,6 +1998,7 @@ window.run = function() {
 				}
 			} else {
 				msgSummary('bestUnicorn');
+				msgSummary('changeLeader');
 				//builds = Object.assign({}, builds, Object.fromEntries(Object.entries(options.auto.unicorn.items).filter(([k,v]) => v.variant != 'zp')));
 				if (options.auto.unicorn.items.unicornPasture.enabled) {
 					this.build({unicornPasture: {require: false, enabled: true}});
@@ -3125,7 +3128,7 @@ window.run = function() {
 						}
 						if (!science.get('civil').researched) {
 							if (hutVal === 2) {
-								items['library'].max = 13 + Production;
+								library.max = 13 + Production;
 								items['mine'].max = 1;
 								pasture.max = 13;
 							}
@@ -3199,7 +3202,7 @@ window.run = function() {
 					}
 					if (!spaceManufacturing && !iw) {
 						let magnetoOn = magnetoMeta.on;
-						if (!Production && magnetoOn < 4 && magnetoOn) {
+						if (Production < 1 && magnetoOn < 4 && magnetoOn) {
 							items['steamworks'].max = 5;
 						}
 						if (magnetoOn < Math.max(1, 7 - Production - 4 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy + !Production)) {
@@ -3264,16 +3267,19 @@ window.run = function() {
 				// let expect = options.auto.faith.addition.autoPraise.expect;
 				if (geodesy) {
 					if (hasLeader) {
-						if (!orbitalGeodesy && resMap['kittens'].maxValue < 130 && game.workshop.get('concreteHuts').researched) {
-							if (items['hut'].enabled) {buildManager.built('hut', undefined, 1);}
-							if (items['logHouse'].enabled) {buildManager.built('logHouse', undefined, 1);}
-						}
-						if (!Production && items['workshop'].enabled) {
-							let workshop = game.bld.getBuildingExt('workshop').meta;
-							if (resMap['minerals'].maxValue > 400 * Math.pow(workshop.priceRatio + priceRatio, workshop.val)) {
-								items['logHouse'].enabled = false;
-								items['smelter'].enabled = false;
-								items['aqueduct'].enabled = false;
+						if (!orbitalGeodesy && resMap['kittens'].maxValue < 130) {
+							if (game.workshop.get('concreteHuts').researched) {
+								if (items['hut'].enabled) {buildManager.built('hut', undefined, 1);}
+								if (items['logHouse'].enabled) {buildManager.built('logHouse', undefined, 1);}
+							}
+							if (items['workshop'].enabled && resMap['kittens'].maxValue < 125) {
+								let workshop = game.bld.getBuildingExt('workshop').meta;
+								if (resMap['minerals'].maxValue > 400 * Math.pow(workshop.priceRatio + priceRatio, workshop.val)) {
+									items['logHouse'].enabled = false;
+									items['smelter'].enabled = false;
+									items['aqueduct'].enabled = false;
+									items['amphitheatre'].enabled = false;
+								}
 							}
 						}
 					}
@@ -4294,15 +4300,19 @@ window.run = function() {
 			AutoEmbassy:
 			if (optItem.buildEmbassies.enabled && !!game.diplomacy.races[0].embassyPrices && (game.ironWill || game.science.get('theology').researched)) {
 				let culture = resMap['culture'];
-				let cultureTri = culture.value / culture.maxValue;
+				let cultureVal = culture.value;
+				let cultureMaxVal = culture.maxValue;
+				let cultureTri = cultureVal / cultureMaxVal;
 				let subTrigger = optItem.buildEmbassies.subTrigger;
-				let highCulture = cultureTri > Math.max(0.97, options.auto.craft.trigger);
-				let solarFactor = Math.sqrt(Religion.getSolarRevolutionRatio() + 1);
-				let cultureForce = culture.value > 5e3 + 5e3 * (tt > 5) + 5e3 * Math.sqrt(2 * Religion.getSolarRevolutionRatio());
-				if (optItem.buildEmbassies.subTrigger <= cultureTri && cultureTri < 2 || cultureForce) {
+				if (cultureMaxVal < 3200 && cultureMaxVal > 3000) {
+					subTrigger = 0.968;
+				}
+				let cultureForce = cultureVal > 5e3 + 5e3 * (tt > 5) + 5e3 * Math.sqrt(2 * Religion.getSolarRevolutionRatio());
+				if (subTrigger <= cultureTri && cultureTri < 2 || cultureForce) {
 					let i, name, race, emBulk;
 					const racePanels = game["diplomacyTab"].racePanels;
 					let cultureVal = craftManager.getValueAvailable('culture', true);
+					let highCulture = cultureTri > Math.max(0.97, options.auto.craft.trigger);
 
 					const embassyBulk = {};
 					const bulkTracker = [];
@@ -4325,6 +4335,7 @@ window.run = function() {
 					if (bulkTracker.length === 0) {break AutoEmbassy;}
 
 					let astronomy = game.science.get('astronomy').researched;
+					let solarFactor = Math.sqrt(Religion.getSolarRevolutionRatio() + 1);
 					while (bulkTracker.length > 0) {
 						for (i = 0; i < bulkTracker.length; i++) {
 							name = bulkTracker[i];
@@ -5220,7 +5231,7 @@ window.run = function() {
 				// falls through
 				case 'lumberMill':
 					if (id === 'lumberMill') {
-						if (game.bld.getBuildingExt(id).meta.val < 55 - 10 * !geodesy + 200 * priceRatio) {
+						if (game.bld.getBuildingExt(id).meta.val < 40 + 10 * !resMap['paragon'].value + 200 * priceRatio) {
 							if (!game.getEffect('lumberMillRatio') && game.bld.getEffect('woodRatio') > 3.1 && resMap['iron'].maxValue > 1200) {
 								count = 0;
 							}
@@ -5615,7 +5626,7 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(1.1 * solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 145 + 30 * !resMap['paragon'].value);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 140 + 30 * !resMap['paragon'].value);
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.3 * (priceRatio < -0.06));
 						}
@@ -6357,6 +6368,7 @@ window.run = function() {
 						}
 
 						let upg = auto.upgrade.items.upgrades;
+						// 采矿钻
 						if (upg.cache === 'miningDrill' && Titanium.value > 1450) {
 							stock += 750;
 							msgSummary('miningDrill');
@@ -6426,7 +6438,10 @@ window.run = function() {
 						let titaniumVal = Titanium.value;
 						if (this.getUnResearched('rotaryKiln') && titaniumVal > 4e3) {stock += 500;}
 						// 燃料喷射器 待定
-						if (this.getUnResearched('fuelInjectors') && resMap['oil'].value > 2e4 && (game.getEffect('calcinerRatio') < 1 || resMap['coal'].value < 3e3) && Religion.getSolarRevolutionRatio() < 5) {stock += 250;}
+						if (this.getUnResearched('fuelInjectors') && resMap['oil'].value > 2e4 && (game.getEffect('calcinerRatio') < 1 || resMap['coal'].value < 3e3) && Religion.getSolarRevolutionRatio() < 5) {
+							msgSummary('fuelInjectors');
+							stock += 250;
+						}
 						// 抽油机
 						let oilFactor = (resPercent('oil') < 0.8 && resMap['starchart'].value < 250) || resMap['oil'].perTickCached < 0.7;
 						if (this.getUnResearched('pumpjack') && titaniumVal > 200 && oilFactor) {stock += 125;}
@@ -6625,7 +6640,7 @@ window.run = function() {
 				case 'gear': {
 					factor = Math.pow(steamworks.priceRatio + priceRatio, steamworks.val);
 					let logistics = this.getUnResearched('logistics') && resMap['scaffold'].value > 1e3;
-					let fuelInjectors = this.getUnResearched('fuelInjectors') && resMap['oil'].value > 1e4 && resPercent('coal') < 0.5 && res.value < 250 && resMap['titanium'].value > 200;
+					let fuelInjectors = this.getUnResearched('fuelInjectors') && resMap['oil'].value > 1e4 && resPercent('coal') < 0.6 + priceRatio && res.value < 250 && resMap['titanium'].value > 200 && resMap['steel'].value > 240;
 					// 胶印机待定
 					// let offsetPress = this.getUnResearched('offsetPress') && resMap['oil'].value > 15e3 && solar < 1;
 					let more = game.getEffect('calcinerRatio') && solar > 2;
@@ -7026,7 +7041,7 @@ window.run = function() {
 			for (let mat in materials) {
 				if (mat === 'ivory') {continue;}
 				tick = this.craftManager.getTickVal(this.craftManager.getResource(mat), rrTrade);
-				if (mat === 'slab') {
+				if (name === 'zebras') {
 					if (Workshop.get("geodesy").researched) {
 						if (season === 1) {
 							if (resMap['ship'].value > 460) {
@@ -7035,7 +7050,7 @@ window.run = function() {
 								tick *= 0.8;
 							}
 						} else {
-							if (resMap['ship'].value < 300 && solar < 0.2) {
+							if (resMap['ship'].value < 300 || solar < 0.2) {
 								tick *= 0.3;
 							}
 						}
