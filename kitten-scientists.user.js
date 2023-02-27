@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.173';
+	const version = 'V15.174';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1776,6 +1776,9 @@ window.run = function() {
 							}
 						}
 
+						if (!resMap['paragon'].value && village.getJob('scholar').value === 1) {
+							maxKS = 1;
+						}
 						if (!game.science.get('civil').researched && resMap['kittens'].value < 11 && val > 1) {maxKS = 1;}
 					}
 					if (game.workshop.get('geodesy').researched) {
@@ -1832,7 +1835,7 @@ window.run = function() {
 			if (!nCornValue) {return;}
 			let Deficit = game.religion.pactsManager.necrocornDeficit;
 			if (Deficit) {
-				if (nCornValue >= Math.ceil(Deficit)) {
+				if (nCornValue > Math.ceil(Deficit)) {
 					game.religion.pactsManager.necrocornDeficit = 0;
 					resMap["necrocorn"].value -= Math.ceil(Deficit);
 					game.religion.meta[3].meta[4].unlocked = false;
@@ -3121,10 +3124,10 @@ window.run = function() {
 				}
 				if (!theology) {
 					let pastureMeta = game.bld.getBuildingExt('pasture').meta;
-					if (pastureMeta.val > 10) {
-						pasture.max = (1 + 3 * priceRatio) * (6 - Production + game.bld.getBuildingExt('library').meta.val);
-					}
 					let hutVal = game.bld.getBuildingExt('hut').meta.val - 2;
+					if (pastureMeta.val > 10) {
+						pasture.max = (1 + 3 * priceRatio) * (6 - Production + game.bld.getBuildingExt('library').meta.val - 12.5 * (hutVal === 2));
+					}
 					let library = items['library'];
 					library.max = (hutVal > 0) ? Math.floor(hutVal * 11 + 100 * priceRatio) : library.max;
 					if (machinery && resPercent('wood') < 0.9 && !iw) {library.max = 45;}
@@ -3604,7 +3607,10 @@ window.run = function() {
 
 					let Production = game.prestige.getParagonProductionRatio();
 					let unobtainiumTri = resPercent('unobtainium');
+
 					let station = game.space.getBuilding('spaceStation').val;
+					let containmentChamber = game.space.getBuilding("containmentChamber").val;
+
 					let moreKitten = (-0.6 - priceRatio) * !vitruvianFeline * (game.getEffect('hutPriceRatio') < -1);
 					let sattelitePrice = Math.pow(1.08, sattelite);
 					let FiveSattelite = 2300 * sattelitePrice * (1 - moreKitten);
@@ -3625,7 +3631,7 @@ window.run = function() {
 					if (starchartVal > spaceStation) {
 						bldSpaceStation.max = station + 1;
 					}
-					if (starchartVal < spaceStation || game.challenges.isActive("energy") || !unobtainiumTick) {
+					if (starchartVal < spaceStation || game.challenges.isActive("energy") || !unobtainiumTick || containmentChamber) {
 						if (bldSpaceStation.enabled) {
 							msgSummary('spaceStationStar');
 						}
@@ -3706,7 +3712,6 @@ window.run = function() {
 					let itemHeatsink = builds['heatsink'];
 					let antimatter = resMap['antimatter'];
 					let heatsink = game.space.getBuilding("heatsink").val;
-					let containmentChamber = game.space.getBuilding("containmentChamber").val;
 					itemHeatsink.max = heatsink + 1;
 					itemChamber.max = containmentChamber + 1;
 					let ChamberCons = Math.max(50 * (1 + heatsink * 0.01), 5 * containmentChamber);
@@ -5225,8 +5230,13 @@ window.run = function() {
 					}
 				// falls through
 				case 'barn': {
-					if (id === 'barn' && resMap['minerals'].maxValue < 1600) {
-						break;
+					if (id === 'barn') {
+						if (resMap['minerals'].maxValue < 1600) {
+							break;
+						}
+						if (vitruvianFeline) {
+							count *= 0.7;
+						}
 					}
 					let mineralsCap = (resMap['minerals'].value > resMap['minerals'].maxValue * 0.94);
 					let woodCap = (resMap['wood'].value > resMap['wood'].maxValue * 0.94);
@@ -6609,7 +6619,7 @@ window.run = function() {
 					let geodesy = Workshop.get('geodesy').researched;
 					limRat = 0.4;
 					if (geodesy && solar < 9 - 2 * renaissance + 3 * (!game.village.leader) - 4 * satnav) {
-						if (shipValue < Math.min((25 * priceRatio + Math.log1p(solar) + (resMap['unobtainium'].perTickCached > 0) * 1.5 + 1 * (solar < 0.8) + 2.2) * shipLimit, 1000 - 350 * satnav)) {
+						if (shipValue < Math.min((25 * priceRatio + Math.log1p(solar) + (resMap['unobtainium'].perTickCached > 0 && priceRatio > -0.06) * 1.5 + 1 * (solar < 0.8) + 2.2) * shipLimit, 1000 - 350 * satnav)) {
 							limRat = 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance) + (resMap['unobtainium'].perTickCached > 0) * 0.3;
 						}
 					}
