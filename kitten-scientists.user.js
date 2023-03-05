@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.174';
+	const version = 'V15.175';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1803,7 +1803,7 @@ window.run = function() {
 					if (!revolution) {
 						if (tt > 3 && maxKS === 3 && val < 3) {val = 0;}
 					}
-					if (tt < 3) {maxKS = 2;}
+					if (resMap['paragon'].value < 100) {maxKS = 2;}
 					if (!woodcutter) {
 						limited = true;
 						maxKS = 0;
@@ -2320,7 +2320,7 @@ window.run = function() {
 					copyBuilds['blackPyramid'].enabled = false;
 				}
 				let rrr = game.getEffect('relicRefineRatio');
-				if (rrr < 60 && game.getEffect('beaconRelicsPerDay')) {
+				if (rrr < 61 && game.getEffect('beaconRelicsPerDay')) {
 					if (resMap['burnedParagon'].value < 1e5) {
 						copyBuilds['blackNexus'].max = 36;
 					}
@@ -3188,7 +3188,7 @@ window.run = function() {
 					}
 				}
 				// 天文台
-				if (blackSky && resMap['science'].maxValue > 3e5 && !orbitalGeodesy && !iw) {items['observatory'].max = 3 + calcinerVal;}
+				if (blackSky && scienceMax > 3e5 && !orbitalGeodesy && !iw) {items['observatory'].max = 3 + calcinerVal;}
 
 				let magnetoMeta = game.bld.getBuildingExt('magneto').meta;
 				// 铸币厂 蒸汽工房
@@ -3318,7 +3318,7 @@ window.run = function() {
 					if (Religion.transcendenceTier) {
 						tradepost.max = 18 - 2 * Production + 1 * (resMap['kittens'].value < 60) - 2 * hasLeader - 2 * (resMap['kittens'].value > 70);
 					} else {
-						tradepost.max = 23;
+						tradepost.max = 23 - 2 * Production - 2 * (resMap['kittens'].value > 55);
 					}
 					if (resPercent('gold') > 0.966) {
 						tradepost.max = Math.min(18 + Production, game.bld.getBuildingExt('tradepost').meta.val + 1);
@@ -3373,7 +3373,7 @@ window.run = function() {
 					if (calcinerVal) {
 						msgSummary('oilTick');
 					}
-					if (oilTick < 0.09) {items['magneto'].max = 0;}
+					if (oilTick < 0.085) {items['magneto'].max = 0;}
 				}
 
 				// 太阳能
@@ -3445,7 +3445,7 @@ window.run = function() {
 						if (revolutionRatio > 0.1 && orbitalGeodesy) {msgSummary('pasture', true);}
 					} else {
 						if (resPercent('titanium') < 0.98) {
-							biolab.max = Math.max(20 - revolutionRatio - Production - 15 * (!vitruvianFeline), 0);
+							biolab.max = Math.max(20 - revolutionRatio - Production - 15 * (scienceMax > 181e3 || calcinerVal < 15), 0);
 							if (!geodesy) {
 								mansion.max = Math.max(Math.floor(17 * (Production + 1)), 135 - game.village.maxKittens);
 							}
@@ -5655,7 +5655,7 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(1.1 * solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 140 + 30 * !resMap['paragon'].value);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 139 + 30 * !resMap['paragon'].value);
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 0.3 * (priceRatio < -0.06));
 						}
