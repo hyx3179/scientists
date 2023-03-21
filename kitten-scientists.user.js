@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.178';
+	const version = 'V15.179';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -510,9 +510,9 @@ window.run = function() {
 					apocripha:          {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
 					transcendence:      {require: 'faith',       enabled: true, max:1,   variant: 's', checkForReset: true, triggerForReset: -1},
 					// Cryptotheology is variant c.
-					blackObelisk:       {require: true,          enabled: false, max:70, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blackNexus:         {require: true,          enabled: false, max:54, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blackCore:          {require: true,          enabled: true,  max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackObelisk:       {require: false,         enabled: true,  max:70, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackNexus:         {require: false,         enabled: true,  max:54, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackCore:          {require: false,         enabled: true,  max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					singularity:        {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackLibrary:       {require: false,         enabled: false, max: 0, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackRadiance:      {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
@@ -3229,16 +3229,19 @@ window.run = function() {
 					if (manpower <= 2e4 && !game.workshop.get("unobtainiumDrill").researched) {
 						mint.enabled = false;
 					} else if (!mintV || !sattelite || game.getEffect("productionRatio") < 0.5) {
-						mint.max = 2;
+						mint.max = 2 + 10 * (revolutionRatio > 4);
 						items['temple'].max = 25;
 					} else if (!orbitalGeodesy) {
 						mint.enabled = false;
 					}
-					if (!spaceManufacturing ) {
+					if (!spaceManufacturing) {
 						// 仓库
 						let warehouse = items['warehouse'];
 						if (warehouse.max === 200) {
 							warehouse.max = Math.min(200 * Math.log(1.064) / Math.log(1.15 + priceRatio), 200);
+						}
+						if (resMap['blueprint'].value < 10) {
+							items['chapel'].max = 23;
 						}
 						if (!iw) {
 							let magnetoOn = magnetoMeta.on;
@@ -3319,7 +3322,7 @@ window.run = function() {
 						items['library'].max = 64;
 					}
 				} else {
-					if (priceRatio && revolutionRatio) {
+					if (priceRatio && revolutionRatio && !spaceManufacturing) {
 						// !Religion.getRU("basilica").on
 						let basilica = Religion.getRU("basilica").on;
 						temple.max = 23 - 8.5 * (priceRatio < 0) - 2 * (revolutionRatio > 3) - 2 * hasLeader + 1.5 * basilica;
@@ -3426,7 +3429,7 @@ window.run = function() {
 					// 粮仓
 					if (spaceManufacturing && items['barn'].max < 16 && resPercent('wood') > 0.9) {items['barn'].max = -1;}
 				} else {
-					if (starchartVal > 1e4 && !iw && Production > 1) {
+					if (starchartVal > 1e4 - 9e3 * vitruvianFeline && !iw && Production > 1 && resMap['eludium'].value) {
 						if (!game.calendar.festivalDays) {
 							items['observatory'].max = 70;
 							items['chapel'].max = 10;
@@ -3439,6 +3442,7 @@ window.run = function() {
 							items['hut'].max = game.bld.getBuildingExt('hut').meta.val + 1;
 							if (!resMap['wood'].perTickCached) {smelter.max = 60;}
 							items['ziggurat'].max = 1;
+							items['mansion'].max = 35;
 						}
 						let kittens = game.resPool.resourceMap['kittens'];
 						if (kittens.maxValue - kittens.value > 60) {
@@ -3533,16 +3537,19 @@ window.run = function() {
 				} else {
 					if (!game.getEffect('aiCoreProductivness') && resMap['burnedParagon'].value < 2e4 && vitruvianFeline) {
 						if (game.getEffect('beaconRelicsPerDay')) {
-							items['aiCore'].max = (game.getEffect('gflopsConsumption')) ? 25 : 5;
+							items['aiCore'].max = (game.getEffect('gflopsConsumption')) ? 4 + 21 * (game.calendar.year > 3e3) : 3;
 						} else {
 							items['aiCore'].max = 0;
 						}
 						items['chronosphere'].max = 10 + 10 * (resMap['paragon'].value > 2e3 || game.calendar.year > 200);
 					}
-					if (game.science.get("paradoxalKnowledge").researched && resMap['unobtainium'].maxValue < 7e9 && game.calendar.trueYear < 2e3) {
-						items['chronosphere'].max = Math.max(40, game.getEffect('gflopsPerTickBase') * 50);
-						if (resMap['burnedParagon'].value > 1e4) {
+					if (game.science.get("paradoxalKnowledge").researched && resMap['unobtainium'].maxValue < 7e9 && game.calendar.trueYear() < 2e3) {
+						if (vitruvianFeline) {
+							items['harbor'].max = 300;
+						}
+						if (resMap['burnedParagon'].value > 2e4) {
 							items['harbor'].max = 400;
+							items['chronosphere'].max = Math.max(40, game.getEffect('gflopsPerTickBase') * 50);
 						}
 					}
 				}
@@ -3762,7 +3769,7 @@ window.run = function() {
 					let ChamberCons = Math.max(50 * (1 + heatsink * 0.01), 5 * containmentChamber);
 					let energyExtra = Prod < Cons + ChamberCons + 2;
 					let sunCycle = game.prestige.getPerk("numerology").researched && (game.calendar.cycle === 3 || game.calendar.cycle === 1);
-					if (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber < heatsink + 15) {
+					if (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber + 20 > heatsink && containmentChamber > 14) {
 						itemChamber.enabled = false;
 					}
 					if (antimatter.value + 50 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra || sunCycle) {
@@ -3781,8 +3788,12 @@ window.run = function() {
 					if (game.getEffect('beaconRelicsPerDay')) {
 						let entanglerMax = entangler.max;
 						let factor = 0;
-						if (game.bld.get("aiCore").effects["aiLevel"] > 13 && !game.getEffect('aiCoreProductivness')) {
+						let aiCoreMeta = game.bld.getBuildingExt("aiCore").meta;
+						if (aiCoreMeta.effects["aiLevel"] > 13 && !game.getEffect('aiCoreProductivness')) {
 							factor = 1;
+						}
+						if (game.religion.getZU("blackPyramid").on && !game.space.getBuilding("entangler").effects["hashRateLevel"]) {
+							builds['spaceBeacon'].max = 20;
 						}
 						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
 						if (energyExtra) {
@@ -3811,6 +3822,16 @@ window.run = function() {
 								}
 								if (!Auto.build.items.chronosphere.enabled) {
 									$('#toggle-chronosphere').click();
+								}
+								if (!Auto.build.items.aiCore.enabled) {
+									$('#toggle-aiCore').click();
+								}
+								if (!Auto.options.items.useWorkers.enabled) {
+									engine.stop();
+									kittenStorage.items['toggle-useWorkers'] = true;
+									if (Auto.engine.enabled) {
+										engine.start();
+									}
 								}
 								let worship = Auto.faith.items;
 								if (!worship.marker.enabled) {
@@ -5446,7 +5467,8 @@ window.run = function() {
 							count *= 0.9;
 							halfCount = true;
 						}
-						if (resMap['titanium'].maxValue > 125e3 || game.bld.getBuildingExt('factory').meta.val < 16
+						if (resMap['titanium'].maxValue > 125e3
+							|| (game.bld.getBuildingExt('factory').meta.val < 16 && revolution < 6)
 							|| (game.getEffect("magnetoRatio") < 0.02 && !revolution)) {
 							count = 0;
 						}
@@ -6714,7 +6736,8 @@ window.run = function() {
 				case 'ship': {
 					let shipLimit = 5 * reactorVal + 225;
 					let titaniumMax = resMap['titanium'].maxValue;
-					let satnav = !piscine.on && shipValue && space.getBuilding('sattelite').val < 9;
+					let satnav = !piscine.on && shipValue && space.getBuilding('sattelite').val < 9
+						|| (!piscine.on && Workshop.get('spaceManufacturing').researched);
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
 					satnav = satnav && solar > 6 && titaniumMax > 120e3;
 					let geodesy = Workshop.get('geodesy').researched;
@@ -6727,7 +6750,6 @@ window.run = function() {
 						}
 					}
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5 && satnav) ? 0.3 : limRat;
-					// (shipvalue > shipLimit * 5 && solar > 5) ||
 					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && resMap['starchart'].value < 1e4) ? 0 : limRat;
 					limRat = (shipValue > Math.max(400, titaniumMax)) ? 0 : limRat;
@@ -6750,7 +6772,7 @@ window.run = function() {
 						|| calcinerVal < 2 || (calcinerVal < 3 && !resMap['titanium'].value < 22 - solar)) ? 0.45 : 0.76;
 					let Reactor = !reactorVal && magneto.val > 31;
 					limRat = (res.value > Math.max(1250, 10 * factor) && options.auto.build.items.magneto.enabled || Reactor) ? 0.01 : limRat;
-					let blackSky = calcinerVal < 6 && game.challenges.isActive('blackSky');
+					let blackSky = calcinerVal < 6 && !resMap['starchart'].unlocked;
 					limRat = ((resMap['titanium'].value < 17 && !calcinerVal) || blackSky || !game.science.get('electricity').researched) ? 0 : limRat;
 					break;
 				}
@@ -6799,7 +6821,7 @@ window.run = function() {
 					break;
 				}
 				case 'kerosene':
-					limRat = 0.25;
+					limRat = 0.25 + 0.3 * (resMap['kerosene'].value < 2e3 && solar > 8 && piscine.on);
 					limRat = (!piscine.val && resMap['starchart'].value > 1400 && res.value < 250 && solar > 3) ? 0.8 : limRat;
 					limRat = (!piscine.on && res.value > 250) ? 0 : limRat;
 					limRat = (space.getProgram('moonMission').val) ? limRat : 0;
@@ -9236,6 +9258,7 @@ window.run = function() {
 				input.on('change', function (e) {
 					option.enabled = input.prop('checked');
 					kittenStorage.items[input.attr('id')] = option.enabled;
+					// todo
 					if (e.isTrusted) {saveToKittenStorage();}
 					let style = document.getElementById('toggleCenter').style;
 					if (option.enabled) {
