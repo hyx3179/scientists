@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.179';
+	const version = 'V15.180';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2081,7 +2081,8 @@ window.run = function() {
 						let adoreIncreaseRatio = Math.pow((tt + 2) / (tt + 1), 2);
 						let needNextLevel = religion._getTranscendTotalPrice(tt + 1) - religion._getTranscendTotalPrice(tt);
 						let x = needNextLevel;
-						let blackObelisk = religion.getTU("blackObelisk").val;
+						let blackObeliskMeta = religion.getTU("blackObelisk");
+						let blackObelisk = blackObeliskMeta.val;
 						let obeliskRatio = ((tt + 1) * 5 * blackObelisk + 1000) / (tt * 5 * blackObelisk + 1000);
 						if (game.getEffect('shatterTCGain') > 0.07 && game.calendar.trueYear < 1400) {obeliskRatio = 1;}
 						let k = adoreIncreaseRatio * obeliskRatio;
@@ -2102,8 +2103,7 @@ window.run = function() {
 							religion.transcendenceTier += 1;
 							let atheism = game.challenges.getChallenge("atheism");
 							atheism.calculateEffects(atheism, game);
-							blackObelisk = religion.getTU("blackObelisk");
-							blackObelisk.calculateEffects(blackObelisk, game);
+							blackObeliskMeta.calculateEffects(blackObeliskMeta, game);
 							game.msg($I("religion.transcend.msg.success", [religion.transcendenceTier]));
 							// ========================================================================================================
 							// DO TRANSCEND END
@@ -2342,7 +2342,7 @@ window.run = function() {
 						copyBuilds['singularity'].max = 5;
 						copyBuilds['blazar'].max = 1;
 						copyBuilds['blackRadiance'].max = 1;
-						copyBuilds['blackObelisk'].max = rrr;
+						copyBuilds['blackObelisk'].max = Math.min(35, rrr + 0.2 * rrr * (rrr > 13));
 					}
 				}
 			} else {
@@ -2422,7 +2422,7 @@ window.run = function() {
 				if (paragon < 1e7 && game.calendar.trueYear() < 2e3) {
 					rrMax = 32;
 					if (paragon < 2e4) {
-						rrMax = 18;
+						rrMax = 16;
 					}
 				}
 			}
@@ -3796,11 +3796,15 @@ window.run = function() {
 							builds['spaceBeacon'].max = 20;
 						}
 						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
-						if (energyExtra) {
+						if (Prod < Cons + 50 && game.getEffect('relicRefineRatio') > 20) {
 							// 构造体
 							builds['tectonic'].enabled = true;
 							// 熔火之心
 							builds['moltenCore'].enabled = true;
+							if (game.calendar.year > 1e5) {
+								// HR收割机
+								builds['hrHarvester'].enabled = true;
+							}
 						}
 					} else {
 						if (game.calendar.year < 1000) {
@@ -3828,6 +3832,7 @@ window.run = function() {
 								}
 								if (!Auto.options.items.useWorkers.enabled) {
 									engine.stop();
+									Auto.options.items.useWorkers.enabled = true;
 									kittenStorage.items['toggle-useWorkers'] = true;
 									if (Auto.engine.enabled) {
 										engine.start();
@@ -5802,13 +5807,15 @@ window.run = function() {
 								force = true;
 							}
 						}
-						if (!priceRatio && geodesy && !game.ironWill && resMap['kittens'].maxValue < 135 && workshop.get("concreteHuts").researched) {
-							let mansion = game.bld.getBuildingExt('mansion').meta;
-							let mansionRatio = Math.pow(mansion.priceRatio + priceRatio, mansion.val);
-							if (resMap['titanium'].value > 25 * mansionRatio && resMap['steel'].value > 75 * mansionRatio) {
-								let number = Math.ceil((185 * mansionRatio - value) / ratio);
-								if (number > 0 && resMap['minerals'].value > number * 250) {
-									this.craft(name, number);
+						if (!priceRatio && geodesy && !game.ironWill && resMap['kittens'].maxValue < 135) {
+							if (workshop.get("concreteHuts").researched && resPercent('minerals') < 0.99) {
+								let mansion = game.bld.getBuildingExt('mansion').meta;
+								let mansionRatio = Math.pow(mansion.priceRatio + priceRatio, mansion.val);
+								if (resMap['titanium'].value > 25 * mansionRatio && resMap['steel'].value > 75 * mansionRatio) {
+									let number = Math.ceil((185 * mansionRatio - value) / ratio);
+									if (number > 0 && resMap['minerals'].value > number * 250) {
+										this.craft(name, number);
+									}
 								}
 							}
 						}
