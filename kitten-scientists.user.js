@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.180';
+	const version = 'V15.181';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -515,7 +515,7 @@ window.run = function() {
 					blackCore:          {require: false,         enabled: true,  max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					singularity:        {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackLibrary:       {require: false,         enabled: false, max: 0, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blackRadiance:      {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackRadiance:      {require: false,         enabled: false, max: 8, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blazar:             {require: false,         enabled: false, max:40, variant: 'c', checkForReset: true, triggerForReset: -1},
 					darkNova:           {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					holyGenocide:       {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
@@ -630,7 +630,7 @@ window.run = function() {
 					cryostation:    {require: 'eludium',     enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
 					// Kairo
-					spaceBeacon:    {require: 'antimatter',  enabled: true, max:50, checkForReset: true, triggerForReset: -1},
+					spaceBeacon:    {require: 'antimatter',  enabled: true, max:51, checkForReset: true, triggerForReset: -1},
 
 					// Yarn
 					terraformingStation: {require: 'antimatter',  enabled: false, max:0, checkForReset: true, triggerForReset: -1},
@@ -3796,7 +3796,7 @@ window.run = function() {
 							builds['spaceBeacon'].max = 20;
 						}
 						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
-						if (Prod < Cons + 50 && game.getEffect('relicRefineRatio') > 20) {
+						if (Prod < Cons + 100 && game.getEffect('relicRefineRatio') > 20) {
 							// 构造体
 							builds['tectonic'].enabled = true;
 							// 熔火之心
@@ -3807,6 +3807,7 @@ window.run = function() {
 							}
 						}
 					} else {
+						// 长挂 自动勾选
 						if (game.calendar.year < 1000) {
 							let years = game.challenges.getChallenge('1000Years');
 							if (!years.on && years.active) {
@@ -3850,6 +3851,7 @@ window.run = function() {
 						if (priceRatio < -0.03 && !blackSky) {
 							builds['spaceBeacon'].enabled = false;
 						}
+						// 黑暗天空 太空灯塔
 						if (blackSky) {
 							builds['spaceBeacon'].enabled = true;
 						}
@@ -3903,8 +3905,9 @@ window.run = function() {
 
 			for (let entry in buildList) {
 				let item = buildList[entry];
-				if (item.count > 0) {
-					buildManager.build(item.id, item.count);
+				let count = item.count;
+				if (count > 0) {
+					buildManager.build(item.id, count);
 					refreshRequired = 1;
 				}
 			}
@@ -5577,7 +5580,7 @@ window.run = function() {
 			let build = this.getBuild(name);
 			let button = this.getBuildButton(name);
 
-			if (!build.unlocked || !options.auto.space.items[name].enabled) {return;}
+			if (!build.unlocked) {return;}
 			if (!button || !button.model.metadata) {return game["spaceTab"].render();}
 			if (!button.model.enabled) {return button.controller.updateEnabled(button.model);}
 
