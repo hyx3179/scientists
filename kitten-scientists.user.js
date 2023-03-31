@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.181';
+	const version = 'V15.182';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -9999,10 +9999,14 @@ window.run = function() {
 			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
 				fontStyle:'italic',
 				transform: 'scale(0.8)',
+				color : 'green',
 				paddingLeft: '3px',},
 			text: version,
 			target: '_blank',
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
+			click: function (){
+				$(".console-intro").hide();
+			},
 		});
 		$('#ks-engine').append(optionsTitleElement);
 	};
