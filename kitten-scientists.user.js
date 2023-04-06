@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.182';
+	const version = 'V15.183';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -7209,12 +7209,12 @@ window.run = function() {
 		getProfitability: function (name) {
 			let tick, doTrade;
 			let race = this.getRace(name);
+			let solar = Religion.getSolarRevolutionRatio();
 			if (name === 'leviathans') {
 				// if (game.time.getCFU("ressourceRetrieval").val && resPercent('unobtainium') > 0.6) {return true;}
-				let a = resMap['relic'].value < 5 || resMap['timeCrystal'].value < 200 * (1 + 50 * game.getEffect('shatterTCGain'));
+				let a = resMap['relic'].value < (solar > 0) * 5 || resMap['timeCrystal'].value < 200 * (1 + 50 * game.getEffect('shatterTCGain'));
 				if (a) {return true;}
 			}
-			let solar = Religion.getSolarRevolutionRatio();
 			let materials = this.getMaterials(name);
 			let cost = 0;
 			let rrTrade = false;
@@ -9999,14 +9999,10 @@ window.run = function() {
 			css: { display: 'inline-block', textShadow: '1px 1px 1px gray', transformOrigin:'bottom',
 				fontStyle:'italic',
 				transform: 'scale(0.8)',
-				color : 'green',
 				paddingLeft: '3px',},
 			text: version,
 			target: '_blank',
 			href: 'https://petercheney.gitee.io/scientists/updateLog.html?v=' + new Date().getDate(),
-			click: function (){
-				$(".console-intro").hide();
-			},
 		});
 		$('#ks-engine').append(optionsTitleElement);
 	};
@@ -10122,6 +10118,20 @@ window.run = function() {
 };
 
 window.loadTest = function () {
+	if (!game.karmaKittens) {
+		let host = window.location.host;
+		let whiteList = ['gitee','127','localhost','lolita','kittensgame'];
+		let down;
+		whiteList.forEach(function(url){
+			if (host.indexOf(url) > -1) {
+				down = true;
+			}
+		});
+		if (!down) {
+			let check = window.prompt('不在正确的网址/n推荐萌新手动体验/n或者输入正确密码');
+			if (check !== 'CheneyMR') {return;}
+		}
+	}
 	if (typeof gamePage === 'undefined' || typeof i18nLang === 'undefined') {
 		// Test if kittens game is already loaded or wait 2s and try again
 		setTimeout(function () {
