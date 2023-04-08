@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.183';
+	const version = 'V15.184';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -847,8 +847,7 @@ window.run = function() {
 			},
 			resources: {
 				furs:        {enabled: true,  stock: 350, checkForReset: false, stockForReset: Infinity},
-				coal:        {enabled: true,  stock: 0,   consume: 1},
-				timeCrystal: {enabled: false, stock: 0,   checkForReset: true,  stockForReset: 500000}
+				timeCrystal: {enabled: true,  stock: 0,   checkForReset: true,  stockForReset: 500000}
 			},
 			policies: [],
 			cache: {
@@ -2583,7 +2582,7 @@ window.run = function() {
 					let resStarchart = resMap['starchart'];
 					let resStarchartVal = resStarchart.value;
 					let isFilter;
-					noop = ['biofuel','gmo','invisibleBlackHand','steelPlants','register'];
+					noop = ['biofuel','gmo','invisibleBlackHand','steelPlants','register','neuralNetworks'];
 					if (game.getEffect('shatterTCGain') < 0.05) {
 						if (Production > 2) {noop = noop.concat(['amReactors','amReactorsMK2','amDrive']);}
 					}
@@ -2598,8 +2597,8 @@ window.run = function() {
 					// 虚空
 					if (resMap['void'].value < 250) {noop.push('voidAspiration');}
 					if (priceRatio) {
-						// 神经网络过滤
-						noop = noop.concat(['neuralNetworks','voidReactors']);
+						// 虚空反应堆
+						noop.push('voidReactors');
 					}
 					let autoM = ['factoryAutomation','advancedAutomation','pneumaticPress'];
 					let pacifism = game.challenges.isActive("pacifism");
@@ -10118,18 +10117,19 @@ window.run = function() {
 };
 
 window.loadTest = function () {
-	if (!game.karmaKittens) {
-		let host = window.location.host;
-		let whiteList = ['gitee','127','localhost','lolita','kittensgame'];
-		let down;
-		whiteList.forEach(function(url){
-			if (host.indexOf(url) > -1) {
-				down = true;
-			}
-		});
-		if (!down) {
-			let check = window.prompt('不在正确的网址/n推荐萌新手动体验/n或者输入正确密码');
-			if (check !== 'CheneyMR') {return;}
+	let host = window.location.host;
+	let whiteList = ['gitee','127','localhost','lolita','kittensgame'];
+	let down;
+	whiteList.forEach(function(url){
+		if (host.indexOf(url) > -1) {
+			down = true;
+		}
+	});
+	if (!down) {
+		let text = '不在最新正确的网址\n如需要使用请输入正确密码或者导入到推荐到最新网站';
+		let check = window.prompt(text);
+		if (check !== 'CheneyMR') {
+			return;
 		}
 	}
 	if (typeof gamePage === 'undefined' || typeof i18nLang === 'undefined') {
