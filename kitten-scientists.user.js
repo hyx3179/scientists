@@ -3482,7 +3482,8 @@ window.run = function() {
 						if (revolutionRatio > 0.1 && orbitalGeodesy) {msgSummary('pasture', true);}
 					} else {
 						if (resPercent('titanium') < 0.98) {
-							biolab.max = Math.max(20 - revolutionRatio - Production - 15 * (!orbitalGeodesy && scienceMax > 181e3 && calcinerVal > 19 || calcinerVal < 20 || scienceMax > 190e3), 0);
+							let number = (!orbitalGeodesy && scienceMax > 181e3 && calcinerVal > 19) || calcinerVal < 20 || scienceMax > 190e3;
+							biolab.max = Math.max(20 - revolutionRatio - Production - 15 * number, 0);
 							if (!geodesy) {
 								mansion.max = Math.max(Math.floor(17 * (Production + 1)), 135 - game.village.maxKittens);
 							}
@@ -5752,15 +5753,17 @@ window.run = function() {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 1.3 * (priceRatio < -0.06));
 						}
 					}
-					if (geodesy && (scienceMax > 119e3 || value < 200 || resMap['scaffold'].value > 1200)) {
-						if (!tt) {
-							i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
-						}
-						forceShipVal = Math.min(243 + 5 * tt + solar, 400);
-						if (Religion.faith > 9e4 && scienceMax > 11e4) {
-							forceShipVal = 450 - 100 * priceRatio;
-							if (solar > 0.2 && solar < 0.5) {
-								forceShipVal += 40;
+					if (geodesy) {
+						if (scienceMax > 119e3 || value < 200 || (resMap['scaffold'].value > 1200 && scienceMax < 115e3)) {
+							if (!tt) {
+								i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
+							}
+							forceShipVal = Math.min(243 + 5 * tt + solar, 400);
+							if (Religion.faith > 9e4 && scienceMax > 11e4) {
+								forceShipVal = 450 - 100 * priceRatio;
+								if (solar > 0.2 && solar < 0.5) {
+									forceShipVal += 40;
+								}
 							}
 						}
 					}
@@ -5932,15 +5935,15 @@ window.run = function() {
 							autoMax = 1;
 						}
 					}
-				}
-				if (resMap['faith'].value && game.bld.getBuildingExt('chapel').meta.val < 18 && !Science.get('electricity').researched) {
-					if (Science.get('archeology').researched) {
-						force = false;
-					} else if (resValue > 250) {
-						force = false;
+					if (resMap['faith'].value && game.bld.getBuildingExt('chapel').meta.val < 18 && !Science.get('electricity').researched) {
+						if (Science.get('archeology').researched) {
+							force = false;
+						} else if (resValue > 250) {
+							force = false;
+						}
 					}
+					if (!game.ironWill && !game.calendar.festivalDays && resMap['unobtainium'].value && Science.get('drama').unlocked) {autoMax = 0;}
 				}
-				if (!game.calendar.festivalDays && resMap['unobtainium'].value && Science.get('drama').unlocked) {autoMax = 0;}
 			}
 
 			// 概要
@@ -6603,7 +6606,8 @@ window.run = function() {
 					}
 					case 'gear': {
 						let titaniumVal = Titanium.value;
-						if (this.getUnResearched('rotaryKiln') && titaniumVal > 4e3) {stock += 500;}
+						// 回转炉
+						if (this.getUnResearched('rotaryKiln') && titaniumVal > 4e3 && resMap['science'].maxValue > 138e3) {stock += 500;}
 						// 燃料喷射器
 						if (this.getUnResearched('fuelInjectors') && resMap['oil'].value > 2e4 && (game.getEffect('calcinerRatio') < 1 || resMap['coal'].value < 3e3) && Religion.getSolarRevolutionRatio() < 5 && game.getEffect('coalRatioGlobal')) {
 							msgSummary('fuelInjectors');
@@ -9267,8 +9271,7 @@ window.run = function() {
 				input.on('change', function (e) {
 					option.enabled = input.prop('checked');
 					kittenStorage.items[input.attr('id')] = option.enabled;
-					// todo
-					if (e.isTrusted) {saveToKittenStorage();}
+					if (e.originalEvent) {saveToKittenStorage();}
 					let style = document.getElementById('toggleCenter').style;
 					if (option.enabled) {
 						document.body.setAttribute('data-ks-style', '');
@@ -9393,7 +9396,7 @@ window.run = function() {
 				input.on('change', function (e) {
 					option.enabled = input.prop('checked');
 					kittenStorage.items[input.attr('id')] = option.enabled;
-					if (e.isTrusted) {saveToKittenStorage();}
+					if (e.originalEvent) {saveToKittenStorage();}
 					let style = document.getElementById('ks-donate').style;
 					if (option.enabled) {
 						style.display = 'block';
