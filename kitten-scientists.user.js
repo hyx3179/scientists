@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.186';
+	const version = 'V15.187';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -988,6 +988,7 @@ window.run = function() {
 		leaderTimer: undefined,
 		leader: 0,
 		accelerateTime: 0,
+		timeTick: 0,
 		time: undefined,
 		start: function (msg = true) {
 			options.interval = Math.ceil (100 / game.getTicksPerSecondUI()) * 100;
@@ -1023,7 +1024,7 @@ window.run = function() {
 			if (msg) {imessage('status.ks.disable');}
 		},
 		iterate: async function () {
-			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused)               {return;}
+			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused)               {return this.timeTick = 0;}
 			let refresh = 0;
 			this.time = performance.now();
 			let auto = options.auto;
@@ -2061,11 +2062,14 @@ window.run = function() {
 			// 超越 和 赞美群星
 			if (Math.min(0.999, Math.max(0.98, PraiseSubTrigger)) <= rate || doAdoreAfterTimeSkip) {
 				// Transcend
+				let catnipVal = resMap['catnip'].value;
+				let catnipFactor = 150 + 3850 * (resPercent('catnip') < 0.2);
 				if (option.transcend.enabled && transcendenceReached) {
 					let TranscendTimes;
 					let nextLevelCatnip = religion._getTranscendTotalPrice(tt + 1) - religion._getTranscendTotalPrice(tt);
 					let transcendCatnip = this.catnipForReligion(nextLevelCatnip);
-					transcendCatnip = transcendCatnip >= 0 || (transcendCatnip < 0 && resMap['catnip'].value + 4000 * transcendCatnip > 0);
+					transcendCatnip = transcendCatnip >= 0
+						|| (transcendCatnip < 0 && catnipVal + catnipFactor * transcendCatnip > 0);
 					if (tt > 10) {
 						TranscendTimes = 1;
 					}
@@ -2142,8 +2146,8 @@ window.run = function() {
 				// Adore
 				let adoreFactor = (!religion.faithRatio || tt);
 				let catnipAdore = this.catnipForReligion();
-				catnipAdore = catnipAdore > 0 || (catnipAdore < 0 && resMap['catnip'].value + 4e3 * catnipAdore > 0);
-				catnipAdore = transcendenceTier > 9 || catnipAdore;
+				catnipAdore = transcendenceTier > 9 || catnipAdore > 0
+					|| (catnipAdore < 0 && catnipVal + catnipFactor * catnipAdore > 0);
 				// 期望太阳革命加成赞美群星
 				let paragonFactor = (production < 2) ? 1 + Math.min(2 / game.prestige.getParagonProductionRatio(), 0.3) : 1;
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
@@ -2725,7 +2729,7 @@ window.run = function() {
 					let magneto = game.bld.getBuildingExt('magneto').meta;
 					if (magneto.val === magneto.on) {noop.push('carbonSequestration');}
 					// 钍反应堆
-					if (resMap['thorium'].value < 2e5 || game.resPool.energyProd - game.resPool.energyCons > 600) {
+					if (resMap['thorium'].value < 3e5 || game.resPool.energyProd - game.resPool.energyCons > 600) {
 						noop.push('thoriumReactors');
 						if (Production > 1) {
 							noop.push('coldFusion');
@@ -3712,18 +3716,18 @@ window.run = function() {
 					}
 					let uranium = game.getResourcePerTick('uranium', true);
 					// 月球前哨
-					if (uranium < 2 * (1 + 2 * spaceManufacturing) || resPercent('unobtainium') >= 1) {
+					if (uranium < 1.5 + 1.5 * spaceManufacturing || resPercent('unobtainium') >= 1) {
 						builds['moonOutpost'].max = 1;
 					}
 					let storage = game.prestige.getParagonStorageRatio();
 					// 月球基地
-					if (unobtainiumTri < 0.9) {
+					if (unobtainiumTri < 0.8 - priceRatio) {
 						builds['moonBase'].max = (game.bld.getBuildingExt('aiCore').meta.val > 25) * 140;
+						msgSummary('moonBase');
 					} else {
-						let moonBase = game.space.getBuilding('moonBase').val;
+						let moonBase = game.space.getBuilding('moonBase');
 						if (moonBase.val === moonBase.on) {
 							builds['moonBase'].max = moonBase.val + 1;
-							msgSummary('moonBase');
 						}
 					}
 
@@ -3775,7 +3779,8 @@ window.run = function() {
 					if (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber + 20 > heatsink && containmentChamber > 14) {
 						itemChamber.enabled = false;
 					}
-					if (antimatter.value + 50 * game.getEffect('antimatterProduction') < antimatter.maxValue || energyExtra || sunCycle) {
+					if (antimatter.value + (50 - 40 * !Production) * game.getEffect('antimatterProduction') < antimatter.maxValue
+						|| energyExtra || sunCycle || !resMap['alicorn'].value) {
 						itemHeatsink.enabled = false;
 						itemChamber.enabled = false;
 					}
@@ -4653,6 +4658,10 @@ window.run = function() {
 		},
 		calculateTime: function () {
 			let Time = this.time;
+			let timeNow = performance.now();
+			// if (this.timeTick) {
+			// 	this.timeTick = timeNow;
+			// }
 			let diffTime = performance.now() - Time;
 			activitySummary.ksTime += diffTime;
 			activitySummary.totalTicks++;
@@ -4718,20 +4727,24 @@ window.run = function() {
 				let solarRevolutionRatio = 1 + Religion.getSolarRevolutionRatio() * (1 + game.bld.pollutionEffects["solarRevolutionPollution"]);
 				catnipTick = ((resMap['catnip'].perTickCached - catnipTick) * (1 + solarRevolutionAfterAdore) / solarRevolutionRatio) + catnipTick + game.globalEffectsCached.catnipPerTickCon;
 			}
-			if (catnipTick < 0 && (resMap['catnip'].value + 1000 * catnipTick < 0 || resMap['unobtainium'].perTickCached)) {
+			if (catnipTick < 0) {
+				let catnipVal = resMap['catnip'].value;
 				let optionFaith = options.auto.faith;
 				if (!options.auto.distribute.religion) {
-					options.auto.distribute.religion = true;
+					if (catnipVal + 150 * catnipTick < 0) {
+						options.auto.distribute.religion = true;
+					}
 				}
+				let disVal = catnipTick * 5;
 				// 次元超越猫薄荷
 				if (value) {
-					iactivity('summary.transcend.catnip', [game.getDisplayValueExt(catnipTick * 5)]);
-					activitySummary.other['transcend.catnip'] = catnipTick * 5;
+					iactivity('summary.transcend.catnip', [game.getDisplayValueExt(disVal)]);
+					activitySummary.other['transcend.catnip'] = disVal;
 				}
 				// 赞美群星猫薄荷
 				if (!value) {
-					iactivity('summary.adore.catnip', [game.getDisplayValueExt(catnipTick * 5)]);
-					activitySummary.other['adore.catnip'] = catnipTick * 5;
+					iactivity('summary.adore.catnip', [game.getDisplayValueExt(disVal)]);
+					activitySummary.other['adore.catnip'] = disVal;
 				}
 			}
 
@@ -5423,7 +5436,7 @@ window.run = function() {
 					break;
 				case 'biolab':
 					if (spaceManufacturing) {
-						if (resMap['starchart'].value < 2e6) {
+						if (resMap['starchart'].value < 1e6 * (2 - !priceRatio)) {
 							count *= 0.5;
 							halfCount = true;
 						}
@@ -6007,7 +6020,7 @@ window.run = function() {
 						}
 					}
 				}
-				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.004) {
+				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.0001 * (40 - 39 * !priceRatio) && resMap['manuscript'].value > 2e4) {
 					let compendiaMax = this.getCompendiaMax();
 					let compediumVal = value * 10;
 					if (compediumVal < Math.max(2e4, compendiaMax)) {
@@ -6068,14 +6081,14 @@ window.run = function() {
 						autoMax = 1;
 					}
 				}
-				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.004) {
+				if (game.getEffect('scienceMaxCompendia') && game.getEffect('alicornChance') > 0.0001 * (40 - 39 * !priceRatio)) {
 					let compendiaMax = this.getCompendiaMax();
 					let compediumVal = resMap['compedium'].value * 10;
 					if (compediumVal > Math.max(2e4, compendiaMax)) {
 						autoMax = (compediumVal - compendiaMax) / 250;
 						force = aboveTrigger;
 					} else {
-						useRatio = 0.1;
+						useRatio = 0.15;
 					}
 				}
 			}
@@ -6719,8 +6732,6 @@ window.run = function() {
 			let renaissance = priceRatio < -0.07;
 			let steamworks = Bld.getBuildingExt("steamworks").meta;
 			let magneto = Bld.getBuildingExt('magneto').meta;
-			const temple = Bld.getBuildingExt('temple').meta;
-			let templeFactor = Math.pow(temple.priceRatio + priceRatio, temple.val);
 			let solar = Religion.getSolarRevolutionRatio();
 
 			let factor;
@@ -6774,6 +6785,8 @@ window.run = function() {
 					break;
 				}
 				case 'plate': {
+					const temple = Bld.getBuildingExt('temple').meta;
+					let templeFactor = Math.pow(temple.priceRatio + priceRatio, temple.val);
 					let value = res.value;
 					let titan = value < 2500 && resMap['titanium'].value > 3500;
 					let Temple = temple.on && temple.on < 15 - 3 * renaissance && solar && value < templeFactor * 15;
@@ -6858,7 +6871,7 @@ window.run = function() {
 				case 'compedium':
 					limRat = (solar) ? limRat : 0.3;
 					limRat = (game.science.get('architecture').unlocked) ? limRat : 0;
-					// limRat = (resMap['manuscript'].value > Math.max(10e3, 100 * templeFactor)) ? 0.8 : limRat;
+					// limRat = (resMap['manuscript'].value > 4e4) ? 0.6 : limRat;
 					break;
 				case 'blueprint':
 					limRat = (game.science.get('industrialization').unlocked) ? limRat : 0;
@@ -7275,7 +7288,7 @@ window.run = function() {
 				tick = this.craftManager.getTickVal(res);
 				if (tick === 'ignore' || !tick) {continue;}
 				if (prod === 'catnip') {
-					if (resPercent('catnip') > 0.1 || season < 2) {
+					if (resPercent('catnip') > 0.1 + 0.1 * geodesy - 0.05 * (season < 2)) {
 						continue;
 					}
 				}
