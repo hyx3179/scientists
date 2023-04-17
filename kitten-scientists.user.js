@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.187';
+	const version = 'V15.188';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -4240,7 +4240,7 @@ window.run = function() {
 				}
 			}
 
-			let catnipNow = resMap['catnip'].value + 200 * game.getResourcePerTick("catnip", true);
+			let catnipNow = resMap['catnip'].value + 100 * craftManager.getPotentialCatnip(true);
 			if (catnipNow < 0 && game.deadKittens < 3e3 && !game.ironWill) {
 				let sharks = game.diplomacy.get('sharks');
 				if (sharks.unlocked) {
@@ -10141,7 +10141,7 @@ window.loadTest = function () {
 	if (!down) {
 		let text = '不在最新正确的网址\n如需要使用请输入正确密码或者导入到推荐到最新网站';
 		let check = window.prompt(text);
-		if (check !== 'CheneyMR') {
+		if (check !== 'Cheney_MR') {
 			return;
 		}
 	}
