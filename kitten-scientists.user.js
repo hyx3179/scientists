@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.188';
+	const version = 'V15.189';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -309,6 +309,7 @@ window.run = function() {
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
 			'summary.auto.oilTick': '小猫是懂石油的，控制石油平衡暂时不造煅烧炉了',
+			'summary.auto.one1000years': '聪明的小猫自动勾上了长挂所需要的选项',
 			'summary.auto.oxidation': '别急，你先别急，小猫为了氧化反应把钢全存起来了',
 			'summary.auto.parchment': '还未感悟到地质学，小猫咪用不了那么多毛皮，毛皮存起来了',
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了',
@@ -1443,7 +1444,7 @@ window.run = function() {
 					if (optItem.timeSkip[(currentCycle + skipCycles) % cyclesPerEra] && canSkip > 0) {willSkip += canSkip;}
 				}
 				if (willSkip > 0) {
-					willSkip = Math.min(willSkip, Math.max(2500 , game.getEffect("temporalPressCap") * 25));
+					willSkip = Math.min(willSkip, Math.max(2500, game.getEffect("temporalPressCap") * 25));
 
 					if (game.time.getCFU("ressourceRetrieval").val) {
 						optItem.timeSkip.adore = true;
@@ -1853,7 +1854,7 @@ window.run = function() {
 			if (levi.energy >= cap) {return;}
 			if (nCornValue >= 1) {
 				game.diplomacy.feedElders(Math.min(nCornValue, cap - levi.energy));
-				iactivity('act.feed', [] , 'unicornSacrificeFilter');
+				iactivity('act.feed', [], 'unicornSacrificeFilter');
 				storeForSummary('feed', 1);
 			} else if (0.25 * (1 + game.getEffect("corruptionBoostRatio")) < 1) {
 				storeForSummary('feed', nCornValue);
@@ -2113,7 +2114,7 @@ window.run = function() {
 							// DO TRANSCEND END
 							// ========================================================================================================
 							tt = religion.transcendenceTier;
-							if (tt < 9) {
+							if (tt < 10) {
 								forceStep = true;
 							}
 							for (let i = 0; i < religion.transcendenceUpgrades.length; i++) {
@@ -2149,10 +2150,10 @@ window.run = function() {
 				catnipAdore = transcendenceTier > 9 || catnipAdore > 0
 					|| (catnipAdore < 0 && catnipVal + catnipFactor * catnipAdore > 0);
 				// 期望太阳革命加成赞美群星
-				let paragonFactor = (production < 2) ? 1 + Math.min(2 / game.prestige.getParagonProductionRatio(), 0.3) : 1;
+				let paragonFactor = (production < 2) ? 1 + 0.2 + 0.1 * (tt > 6) : 1;
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
-				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + Math.min(0.6, tt * 0.05) + Math.log1p(solarRLimit) : 1.32;
-				let expectSolarRevolutionRatio = game.getLimitedDR(paragonFactor * factor * Math.pow(Math.E, 0.65 * transformTier) , 100 * maxSolarRevolution);
+				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + paragonFactor * Math.min(0.6, tt * 0.06) + Math.log1p(solarRLimit) : 1.32;
+				let expectSolarRevolutionRatio = game.getLimitedDR(paragonFactor * factor * Math.pow(Math.E, 0.65 * transformTier), 100 * maxSolarRevolution);
 				let adoreTri = option.adore.subTrigger;
 				let expect = solarRatio * 100 < expectSolarRevolutionRatio;
 				// 低于期望太阳革命加成时日志提醒
@@ -2992,7 +2993,7 @@ window.run = function() {
 						game.bld.getBuildingExt(name)._metaCache = null;
 						buildManager.manager.render();
 						options.renderTime = 0;
-						iactivity('summary.upgrade.building.' + name, [] , 'upgBldFilter');
+						iactivity('summary.upgrade.building.' + name, [], 'upgBldFilter');
 						storeForSummary('upgrade.building.' + name);
 						msgSummary('upg' + name.charAt(0).toUpperCase() + name.slice(1), true);
 						return 2;
@@ -3792,7 +3793,7 @@ window.run = function() {
 
 					// 纠缠站
 					let entangler = builds['entangler'];
-					// 太空灯塔
+					// 太空灯塔 和 自动勾选
 					if (game.getEffect('beaconRelicsPerDay')) {
 						let entanglerMax = entangler.max;
 						let factor = 0;
@@ -3855,6 +3856,7 @@ window.run = function() {
 								if (!worship.blackPyramid.enabled) {
 									$('#toggle-blackPyramid').click();
 								}
+								msgSummary('one1000years');
 							}
 						}
 						if (priceRatio < -0.03 && !blackSky) {
@@ -3880,6 +3882,10 @@ window.run = function() {
 							}
 						} else if (Array.max < 0) {
 							Array.max = 0;
+						}
+					} else {
+						if (Production < 0.4) {
+							Array.max = 1;
 						}
 					}
 				}
@@ -4660,7 +4666,13 @@ window.run = function() {
 			let Time = this.time;
 			let timeNow = performance.now();
 			// if (this.timeTick) {
-			// 	this.timeTick = timeNow;
+			// 	console.log(this.timeTick + 2000 , new Date().getTime())
+			// 	if (this.timeTick + 2000 != new Date().getTime()) {
+			// 		game.msg('test');
+			// 		this.timeTick = 0;
+			// 	}
+			// } else {
+			// 	this.timeTick = new Date().getTime();
 			// }
 			let diffTime = performance.now() - Time;
 			activitySummary.ksTime += diffTime;
@@ -9831,7 +9843,7 @@ window.run = function() {
 			let j = other[i];
 			if (j) {
 				j = (typeof j === 'number') ? game.getDisplayValueExt(j) : j;
-				iSummary('summary.' + i , [j]);
+				iSummary('summary.' + i, [j]);
 			}
 		}
 
