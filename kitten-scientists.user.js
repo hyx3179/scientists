@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.189';
+	const version = 'V15.190';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -281,7 +281,7 @@ window.run = function() {
 			'summary.auto.drama': '喵力产量低，羊皮纸库存低，聪明的小猫就不勾栏听曲啦',
 			'summary.auto.factory': '有了更多钛的后，小猫下次一定造工厂',
 			'summary.auto.fuelInjectors': '给蒸汽工房换上你燃料喷射器捏',
-			'summary.auto.furs': '别急，你先别急，更高的制作工艺加成会做更多的羊皮纸',
+			'summary.auto.furs': '我知道你很急，但是先别急，<br>更高的制作工艺加成后，同样的毛皮会做更多的羊皮纸',
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
@@ -322,7 +322,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛',
-			'summary.auto.shipGeodesy': '小猫嗅到了♡黄♡金♡の♡味♡道♡呐 ^ ω ^，来点船船抄斑马的家',
+			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，大概要用亿点点的钛',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站(记得删除时间水晶库存)',
@@ -2688,6 +2688,9 @@ window.run = function() {
 							if (Production > 2 && revolutionRatio > 4 || resPercent('unobtainium') < 1) {
 								noop.push('unobtainiumReflectors', 'astrophysicists');
 							}
+							// if (Production < 1.626 && !game.workshop.get('unobtainiumHuts').researched) {
+							// 	noop.push('miningDrill');
+							// }
 						}
 					}
 					// 星链 上行
@@ -3717,7 +3720,7 @@ window.run = function() {
 					}
 					let uranium = game.getResourcePerTick('uranium', true);
 					// 月球前哨
-					if (uranium < 1.5 + 1.5 * spaceManufacturing || resPercent('unobtainium') >= 1) {
+					if (uranium < 2 + 10 * spaceManufacturing || resPercent('unobtainium') >= 1) {
 						builds['moonOutpost'].max = 1;
 					}
 					let storage = game.prestige.getParagonStorageRatio();
@@ -4364,27 +4367,29 @@ window.run = function() {
 		miscOptions: function () {
 			const craftManager = this.craftManager;
 			const buildManager = this.buildManager;
-			const optItem = options.auto.options.items;
+			const auto = options.auto;
+			const optItem = auto.options.items;
 			let refreshRequired = 0;
 
+			let calendar = game.calendar;
 			// 检查是否换存档了
-			let cache = options.auto.cache;
+			let cache = auto.cache;
 			let dataTimer = cache.dataTimer;
 			let currentTick = game.timer.ticksTotal;
 			let startingTick = dataTimer.ticksTotal;
-			let trueYear = game.calendar.trueYear();
+			let trueYear = calendar.trueYear();
 			let guid = game.telemetry.guid;
 			// 初始时间 、真实年 、 存档ID
 			if (currentTick - startingTick < 0 || dataTimer['trueYear'] > trueYear || dataTimer['saveId'] !== guid) {
 				cache.dataTimer = {};
 				cache.cacheSum = {};
-				options.auto.filter.console = {};
+				auto.filter.console = {};
 				resetActivitySummary();
 				msgStock();
 				cache.resUpg = {};
 				this.leaderTimer = 0;
 				this.leader = 0;
-				options.auto.upgrade.items.upgrades.cache = null;
+				auto.upgrade.items.upgrades.cache = null;
 				let dataTimer = cache.dataTimer;
 				dataTimer['saveId'] = guid;
 				dataTimer['ticksTotal'] = currentTick;
@@ -4392,12 +4397,12 @@ window.run = function() {
 			}
 			if (currentTick - startingTick > 2e4) {
 				dataTimer.ticksTotal = currentTick;
-				options.auto.cache.cacheSum = {};
+				auto.cache.cacheSum = {};
 				msgSummary('changeLeader', true);
 			}
 
 			// 游戏日志过滤
-			let filter = options.auto.filter;
+			let filter = auto.filter;
 			let tt = Religion.transcendenceTier;
 			if (optItem.filterGame.enabled && filter.enabled && tt > 3) {
 				let items = filter.items;
@@ -4429,13 +4434,13 @@ window.run = function() {
 					let i, name, race, emBulk;
 					const racePanels = game["diplomacyTab"].racePanels;
 					let cultureVal = craftManager.getValueAvailable('culture', true);
-					let highCulture = cultureTri > Math.max(0.97, options.auto.craft.trigger);
+					let highCulture = cultureTri > Math.max(0.97, auto.craft.trigger);
 
 					const embassyBulk = {};
 					const bulkTracker = [];
 
 					const racesLength = racePanels.length - ((game.diplomacy.get('leviathans').unlocked) ? 1 : 0);
-					let tradeItem = options.auto.trade.items;
+					let tradeItem = auto.trade.items;
 					for (i = racesLength - 1; i > -1; i--) {
 						if (!racePanels[i].embassyButton) {
 							game["diplomacyTab"].render();
@@ -4525,6 +4530,16 @@ window.run = function() {
 				}
 			};
 
+			// 冬季最后一天能源
+			let lastDayEnergy = optItem.lastDayEnergy;
+			if (lastDayEnergy) {
+				if (calendar.season !== 3) {
+					optItem.lastDayEnergy = false;
+					lastDayEnergy = false;
+				}
+			}
+			// todo 煅烧炉 月球前哨 工厂 空间站
+
 			// 铸币厂
 			let mint = game.bld.getBuildingExt('mint').meta;
 			if (mint.on !== mint.val && resMap['manpower'].maxValue > 3e4 && resPercent('gold') > 0.5) {
@@ -4539,7 +4554,8 @@ window.run = function() {
 
 			// 自动打开工厂
 			let fa = game.bld.getBuildingExt('factory').meta;
-			if (fa.val && fa.on !== fa.val && game.workshop.get('spaceManufacturing').researched) {msg('factory', undefined, true);}
+			if (fa.val && fa.on !== fa.val && game.workshop.get('spaceManufacturing').researched && !lastDayEnergy) {msg('factory', undefined, true);}
+
 			// 自动打开磁电机
 			let ma = game.bld.getBuildingExt('magneto').meta;
 			let oil = game.getResourcePerTick("oil",true) > 0.05 * ma.val;
@@ -4560,12 +4576,12 @@ window.run = function() {
 				msg('temporalAccelerator');
 			}
 
-			// let winterProd = (game.calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
+			// let winterProd = (calendar.season === 1) ? game.resPool.energyProd : game.resPool.energyWinterProd;
 			let Prod = game.resPool.energyProd;
 			let biolab = game.bld.getBuildingExt('biolab').meta;
 			let biofuel = biolab.on && game.workshop.get('biofuel').researched;
 			let catnipTick = craftManager.getPotentialCatnip();
-			catnipTick = options.auto.distribute.religion || (catnipTick < 0 && resMap['catnip'].value + 1000 * catnipTick < 0);
+			catnipTick = auto.distribute.religion || (catnipTick < 0 && resMap['catnip'].value + 1000 * catnipTick < 0);
 			if (biofuel && catnipTick) {
 				activity(i18n('summary.biolab.test', ['']) + "(猫薄荷产量过低)");
 				biolab.on = 0;
@@ -4593,6 +4609,17 @@ window.run = function() {
 					accelerator.on -= Math.ceil(accelerator.on * 0.5);
 					msg('accelerator', 1);
 				}
+				if (game.getEffect('antimatterProduction')) {
+					if (calendar.season === 3) {
+						let day = calendar.day;
+						if (day >= 97 && day < 99) {
+							if (fa.on) {
+								fa.on = 0;
+								optItem.lastDayEnergy = true;
+							}
+						}
+					}
+				}
 			}
 			let spiceVal = resMap['spice'].value;
 			// 酿酒厂
@@ -4600,8 +4627,8 @@ window.run = function() {
 				name: 'brewery',
 				metadata: game.bld.getBuildingExt('brewery').meta,
 				Button: buildManager.getBuildButton('brewery'),
-				conditionOn: game.calendar.festivalDays && spiceVal > 1e4,
-				conditionOff: game.bld.getBuildingExt('brewery').meta.on && (!game.calendar.festivalDays || !spiceVal),
+				conditionOn: calendar.festivalDays && spiceVal > 1e4,
+				conditionOff: game.bld.getBuildingExt('brewery').meta.on && (!calendar.festivalDays || !spiceVal),
 			}];
 			// 自动控制 时间操纵 酿酒厂 开关
 			if (!game.opts.enableRedshift) {
@@ -4610,8 +4637,8 @@ window.run = function() {
 					name: 'chronocontrol',
 					metadata: game.time.getVSU('chronocontrol'),
 					Button: this.timeManager.getBuildButton('chronocontrol'),
-					conditionOn: game.calendar.futureSeasonTemporalParadox < 1 && game.calendar.day > 98,
-					conditionOff: game.time.getVSU('chronocontrol').on && game.calendar.day > 0,
+					conditionOn: calendar.futureSeasonTemporalParadox < 1 && calendar.day > 98,
+					conditionOff: game.time.getVSU('chronocontrol').on && calendar.day > 0,
 				});
 				let calciner = game.bld.getBuildingExt('calciner').meta;
 				if (!game.time.getCFU("ressourceRetrieval").on && calciner.isAutomationEnabled) {
@@ -5784,9 +5811,6 @@ window.run = function() {
 					}
 					if (geodesy) {
 						if (scienceMax > 119e3 || value < 200 || (resMap['scaffold'].value > 1200 && scienceMax < 115e3)) {
-							if (!tt) {
-								i18nData['zh']['summary.auto.shipGeodesy'] = '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦';
-							}
 							forceShipVal = Math.min(243 + 5 * tt + solar, 400);
 							if (Religion.faith > 9e4 && scienceMax > 11e4) {
 								forceShipVal = 450 - 100 * priceRatio;
@@ -5797,11 +5821,14 @@ window.run = function() {
 						}
 					}
 					if (value < forceShipVal && ratio > 3) {
-						if (value && (Date.now() > Craft.shipTime + 16e5 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24 && !geodesy) {
+						if (value && (Date.now() > Craft.shipTime + 16e5 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24) {
 							Craft.shipTime = Date.now();
 							let valueExt = game.getDisplayValueExt(forceShipVal);
 							if (!tt) {
 								i18nData['zh']['summary.auto.ship'] = '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ )，斑马拿铁辅料钛<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大';
+							}
+							if (geodesy) {
+								msgSummary('shipGeodesy');
 							}
 							activity(i18n('summary.auto.ship', [valueExt]));
 							activitySummary.other['auto.ship'] = valueExt;
@@ -6542,6 +6569,7 @@ window.run = function() {
 					}
 					case 'steel': {
 						let blackSky = game.challenges.isActive("blackSky");
+						let titaniumVal = Titanium.val;
 						let val = resMap[name].value;
 						let steelAxe = this.getUnResearched('steelAxe') && resMap['coal'].value > 3000;
 						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 29 || val > 10)) {msgForStock(75, 'steelAxe', name);}
@@ -6552,12 +6580,16 @@ window.run = function() {
 						// 氧化反应
 						if (this.getUnResearched('oxidation')) {
 							if (options.auto.craft.oxidation) {stock += 5000;}
-							if (this.getUnResearched('titaniumWarehouses') && Titanium.value > 50 && workshop.get('geodesy').researched && resMap['scaffold'].value > 500) {
+							if (this.getUnResearched('titaniumWarehouses') && titaniumVal > 50 && workshop.get('geodesy').researched && resMap['scaffold'].value > 500) {
 								stock += 500;
 							}
 						}
+						// 钛金粮仓
+						if (this.getUnResearched('taniumBarn') && resMap['ship'].value > 70 && titaniumVal > 25) {
+							if (resMap['scaffold'].value > 250) {stock += 200;}
+						}
 
-						if (blackSky && !Titanium.perTickCached && val < 1100 && resMap['oil'].value > 6e3) {
+						if (blackSky && !titaniumVal.perTickCached && val < 1100 && resMap['oil'].value > 6e3) {
 							stock += 1100;
 						}
 
@@ -6635,6 +6667,8 @@ window.run = function() {
 					}
 					case 'gear': {
 						let titaniumVal = Titanium.value;
+						// 高压引擎
+						if (this.getUnResearched('combustionEngine') && game.getEffect('coalRatioGlobal') && resMap['coal'].value < 1e3) {stock += 25;}
 						// 回转炉
 						if (this.getUnResearched('rotaryKiln') && titaniumVal > 4e3 && resMap['science'].maxValue > 138e3) {stock += 500;}
 						// 燃料喷射器
@@ -6791,7 +6825,7 @@ window.run = function() {
 						}
 					}
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5 && satnav) ? 0.3 : limRat;
-					limRat = (manufacture || resPercent('titanium') > 0.8) ? 0.05 : limRat;
+					limRat = (manufacture || resPercent('titanium') > 0.7) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && resMap['starchart'].value < 1e4) ? 0 : limRat;
 					limRat = (shipValue > Math.max(400, titaniumMax)) ? 0 : limRat;
 					break;
@@ -10013,7 +10047,7 @@ window.run = function() {
 				}, 2000);
 				// 提示节日开启
 				if (options.auto.options.enabled) {
-					activity('自动节日已开启');
+					activity('小喵杂项已开启~智慧喵喵<br>1. 喵喵自动节日已开启<br>2. 喵喵冬季最后一天的能源管理<br>3. 喵喵自动打开因资源耗尽关闭的工业建筑');
 				}
 				if (game.getEffect('priceRatio') > -0.03 && Religion.transcendenceTier < 4) {
 					msgSummary('ksHelp', false, 'noFilter');
