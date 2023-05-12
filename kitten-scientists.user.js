@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.190';
+	const version = 'V15.191';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -985,6 +985,7 @@ window.run = function() {
 		renderID: undefined,
 		worker: undefined,
 
+		changeLeader: false,
 		toolText: undefined,
 		leaderTimer: undefined,
 		leader: 0,
@@ -1485,6 +1486,7 @@ window.run = function() {
 			return refreshRequired;
 		},
 		promote: function () {
+			this.changeLeader = true;
 			let village = game.village;
 			let leader = village.leader;
 			let Distribute = options.auto.distribute;
@@ -4707,6 +4709,9 @@ window.run = function() {
 			options.auto.cache.stocks = null;
 		},
 		setTrait: function (trait) {
+			if (!options.auto.distribute.enabled || !this.changeLeader) {
+				return msgSummary('changeLeader');
+			}
 			let vLeader = game.village.leader;
 			if (trait) {
 				if (game.science.get('civil').researched && vLeader && !game.challenges.isActive("anarchy")) {
@@ -4718,7 +4723,7 @@ window.run = function() {
 							let traitDesc = $I('village.bonus.desc.' + trait);
 							let leaderMsg = ['当' + traitDesc.slice(0,2) + "项目时" + $I('village.trait.' + trait) + "猫猫自觉顶替当前领袖，其效果为" + traitDesc];
 							if (game.ticks > 1e4) {
-								msgSummary('leader',true);
+								msgSummary('leader', true);
 							} else {
 								msgSummary('leader', '', 'leaderFilter');
 							}
@@ -6585,7 +6590,7 @@ window.run = function() {
 							}
 						}
 						// 钛金粮仓
-						if (this.getUnResearched('taniumBarn') && resMap['ship'].value > 70 && titaniumVal > 25) {
+						if (this.getUnResearched('titaniumBarn') && resMap['ship'].value > 70 && titaniumVal > 25) {
 							if (resMap['scaffold'].value > 250) {stock += 200;}
 						}
 
