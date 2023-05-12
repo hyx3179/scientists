@@ -6590,7 +6590,7 @@ window.run = function() {
 							}
 						}
 						// 钛金粮仓
-						if (this.getUnResearched('titaniumBarn') && resMap['ship'].value > 70 && titaniumVal > 25) {
+						if (this.getUnResearched('titaniumBarns') && resMap['ship'].value > 70 && titaniumVal > 25) {
 							if (resMap['scaffold'].value > 250) {stock += 200;}
 						}
 
