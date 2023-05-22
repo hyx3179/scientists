@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.192';
+	const version = 'V15.193';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -150,6 +150,11 @@ window.run = function() {
 			'summary.adore.solar': '聪明的小猫已经会算期望了，当太阳革命加成到达：{0}% 后才会赞美群星',
 			'summary.adore.last': '下次赞美群星会等到虔诚大于{0} ',
 			'adore.trigger.set': '赞美群星再赞美太阳后的太阳革命加成 ≥ 触发条件 * 1000%，\n触发条件取值范围为 0 到 1 的小数（0.001为自动模式）\n\n同时满足以下条件珂学家将自动赞美群星。\n1. 当前信仰 / 信仰上限 ≥ 0.98(赞美太阳触发条件设置0.98配合使用)\n2.有月球前哨\n3.赞美群星后的猫薄荷产量＞0。\n推荐启用该功能多放几个农民，喵喵保护协会不允许饿死喵喵喵\n优先次元超越 => 赞美群星 => 赞美太阳',
+
+
+			// todo
+			'option.faith.alicorn': '献祭天角兽(还未新建文件夹)',
+			'option.faith.tcRefine': '精炼水晶(还未新建文件夹)',
 
 			'resources.add': '添加资源',
 			'resources.clear.unused': '清除未使用',
@@ -413,9 +418,7 @@ window.run = function() {
 		}
 		let value = i18nData['zh'][key];
 		if (typeof value === 'undefined') {
-			if (!msgSummary('debug')) {
-				game.msg(key);
-			}
+			game.msg(key,'notice');
 		}
 		if (args) {
 			for (let i = 0; i < args.length; i++) {
@@ -480,8 +483,10 @@ window.run = function() {
 					autoPraise:             {enabled: true,  misc: true, label: i18n('option.praise'), subTrigger: 0.98,
 						msg: 0, time: 0, expect: 0},
 					// Former [Faith Reset]
-					adore:                  {enabled: true, misc: true, label: i18n('option.faith.adore'), subTrigger: 0.001},
-					transcend:              {enabled: true, misc: true, label: i18n('option.faith.transcend')},
+					adore:                  {enabled: true,  misc: true, label: i18n('option.faith.adore'), subTrigger: 0.001},
+					transcend:              {enabled: true,  misc: true, label: i18n('option.faith.transcend')},
+					alicorn:                {enabled: false, misc: true, label: i18n('option.faith.alicorn')},
+					tcRefine:               {enabled: false, misc: true, label: i18n('option.faith.tcRefine')},
 				},
 				// Which religious upgrades should be researched?
 				items: {
@@ -601,7 +606,7 @@ window.run = function() {
 				// Should space buildings be built automatically?
 				enabled: false,
 				// The functionality of the space section is identical to the build section. It just needs to be treated
-				// seperately, because the game internals are slightly different.
+				// separately, because the game internals are slightly different.
 				trigger: 0,
 				items: {
 					// Cath
@@ -1583,7 +1588,7 @@ window.run = function() {
 						if (distributeJob.unlocked && distributeJob.value < village.getJobLimit(leaderJobName)) {
 							let correctLeaderKitten = traitKittens.sort(function(a, b) {return b.rank - a.rank === 0 ? b.exp - a.exp : b.rank - a.rank;})[0];
 							let remove;
-							if (correctLeaderKitten.job === 'farmer' && Leader.job != 'farmer') {remove = Leader.job;}
+							if (correctLeaderKitten.job === 'farmer' && Leader.job !== 'farmer') {remove = Leader.job;}
 							village.unassignJob(correctLeaderKitten);
 							correctLeaderKitten.job = leaderJobName;
 							if (remove) {
@@ -1885,7 +1890,7 @@ window.run = function() {
 				return saveToKittenStorage();
 			}
 
-			// Exchanges up to a certain threshold, in order to keep a good exchange rate, then waits for a higher treshold before exchanging for relics.
+			// Exchanges up to a certain threshold, in order to keep a good exchange rate, then waits for a higher threshold before exchanging for relics.
 			if (coinPrice < minCoinPrice && previousRelic > relicTrigger) {
 				game.diplomacy.buyBcoin();
 
@@ -2152,7 +2157,7 @@ window.run = function() {
 				catnipAdore = transcendenceTier > 9 || catnipAdore > 0
 					|| (catnipAdore < 0 && catnipVal + catnipFactor * catnipAdore > 0);
 				// 期望太阳革命加成赞美群星
-				let paragonFactor = (production < 2) ? 1 + 0.2 + 0.1 * (tt > 6) : 1;
+				let paragonFactor = (production < 2) ? 1 + 0.2 + 0.1 * (tt > 6) : 1 + 0.005 * tt * tt * (tt < 11);
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
 				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + paragonFactor * Math.min(0.6, tt * 0.06) + Math.log1p(solarRLimit) : 1.32;
 				let expectSolarRevolutionRatio = game.getLimitedDR(paragonFactor * factor * Math.pow(Math.E, 0.65 * transformTier), 100 * maxSolarRevolution);
@@ -3427,7 +3432,7 @@ window.run = function() {
 				// 庙塔
 				let zigguratM = game.bld.getBuildingExt('ziggurat').meta;
 				if (zigguratM.val > 8 + vitruvianFeline && !resMap['alicorn'].unlocked) {
-					if (resMap['blueprint'].value < (5 - 1.5 * spaceManufacturing + 1 * !orbitalGeodesy) * Math.pow(zigguratM.priceRatio + priceRatio, zigguratM.val)) {
+					if (resMap['blueprint'].value < (5 + revolutionRatio - 1.5 * spaceManufacturing + 1 * !orbitalGeodesy) * Math.pow(zigguratM.priceRatio + priceRatio, zigguratM.val)) {
 						items['ziggurat'].max = 0;
 					} else {
 						items['ziggurat'].max = zigguratM.val + 1;
@@ -3864,10 +3869,17 @@ window.run = function() {
 									$('#toggle-blackPyramid').click();
 								}
 								msgSummary('one1000years');
+								if (blackSky) {
+									i18nData['zh']['one1000years'] += '<br>猫猫贴心提示煅烧炉和卫星价格变了具体可以参考百科挑战';
+								}
 							}
 						}
 						if (priceRatio < -0.03 && !blackSky) {
 							builds['spaceBeacon'].enabled = false;
+						}
+						// 无遗物站 太阳锻造关
+						if (vitruvianFeline) {
+							builds['sunforge'].enabled = false;
 						}
 						// 黑暗天空 太空灯塔
 						if (blackSky) {
@@ -3890,10 +3902,10 @@ window.run = function() {
 						} else if (Array.max < 0) {
 							Array.max = 0;
 						}
-					} else {
-						if (Production < 0.4) {
-							Array.max = 1;
-						}
+					}
+					// 缺电不造轨道阵列
+					if (Production < 0.4 && !vitruvianFeline) {
+						Array.max = 0;
 					}
 				}
 				if (game.ironWill) {
@@ -3974,7 +3986,7 @@ window.run = function() {
 						if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
 					}
 					if (begin) {
-						if (name === 'slab' || name === 'beam' || name == 'wood') {newTrigger = 0.99;}
+						if (name === 'slab' || name === 'beam' || name === 'wood') {newTrigger = 0.99;}
 					}
 				}
 				// Craft the resource if we meet the trigger requirement
@@ -5168,10 +5180,10 @@ window.run = function() {
 						}
 					}
 					if (cache !== upgrade) {
-						if (cache == 'rotaryKiln') {stock += 5000;}
-						if (cache == 'miningDrill') {stock += 1750;}
-						if (cache == 'concreteHuts') {stock += 3e3;}
-						if (cache == 'geodesy') {stock += 250;}
+						if (cache === 'rotaryKiln') {stock += 5000;}
+						if (cache === 'miningDrill') {stock += 1750;}
+						if (cache === 'concreteHuts') {stock += 3e3;}
+						if (cache === 'geodesy') {stock += 250;}
 					}
 				}
 			}
@@ -6828,7 +6840,7 @@ window.run = function() {
 					limRat = 0.4;
 					if (geodesy && solar < 9 - 2 * renaissance + 3 * (!game.village.leader) - 4.5 * satnav) {
 						let unobtainium = resMap['unobtainium'].perTickCached;
-						let solarFactor = (solar < 0.8) ? 1 + (unobtainium > 0) * 3 : 1.2;
+						let solarFactor = (solar < 0.8) ? 1 + (unobtainium > 0) * 3 : 1.2 * (shipValue < 400);
 						let factor = (25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + 2.2 + solarFactor - 2.2 * (solar > 2)) * shipLimit;
 						// console.log((25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + (1 + (unobtainium > 0) * 3) * (solar < 0.8) + 2.2) * shipLimit)
 						let noReset = game.calendar.year > 400 && reactorVal;
@@ -9977,7 +9989,7 @@ window.run = function() {
 				return number;
 			};
 			summary(i18n('time.ks', [totalTicks, displaySecond(ksTime), Math.round(ksTime * numberFix / totalTicks) / numberFix]));
-			// if (gameTime) {summary(i18n('time.game', [diplaySecond(gameTime)]));}
+			// if (gameTime) {summary(i18n('time.game', [displaySecond(gameTime)]));}
 			summary(equal);
 		}
 		// Clear out the old activity
@@ -10055,6 +10067,7 @@ window.run = function() {
 				setTimeout(()=>{
 					if (Engine.enabled) {
 						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
+						message('如需没网络也能打开珂学家，可以导入存档到Cheney的备用站petercheney.gitee.io');
 					}
 				}, 2000);
 				// 提示节日开启
