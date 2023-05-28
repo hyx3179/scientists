@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.193';
+	const version = 'V15.194';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -2153,11 +2153,9 @@ window.run = function() {
 
 				// Adore
 				let adoreFactor = (!religion.faithRatio || tt);
-				let catnipAdore = this.catnipForReligion();
-				catnipAdore = transcendenceTier > 9 || catnipAdore > 0
-					|| (catnipAdore < 0 && catnipVal + catnipFactor * catnipAdore > 0);
 				// 期望太阳革命加成赞美群星
-				let paragonFactor = (production < 2) ? 1 + 0.2 + 0.1 * (tt > 6) : 1 + 0.005 * tt * tt * (tt < 11);
+				let paragonFactor = (production < 2) ? 1 + 0.2 + 0.1 * (tt > 6) + (0.5 + 0.1 * Math.log2(solarRLimit)) * (solarRLimit > 0)
+					: 1 + 0.005 * tt * tt * (tt < 11);
 				let transformTier = 0.5 * Math.log(religion.faithRatio) + 3.45;
 				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + paragonFactor * Math.min(0.6, tt * 0.06) + Math.log1p(solarRLimit) : 1.32;
 				let expectSolarRevolutionRatio = game.getLimitedDR(paragonFactor * factor * Math.pow(Math.E, 0.65 * transformTier), 100 * maxSolarRevolution);
@@ -2190,7 +2188,12 @@ window.run = function() {
 						booleanForAdore = adoreTri * 10 < solarRevolutionAfterAdore;
 					}
 				}
-				if ((booleanForAdore && catnipAdore) || forceStep) {
+				if (booleanForAdore) {
+					let catnipAdore = this.catnipForReligion();
+					booleanForAdore = transcendenceTier > 9 || catnipAdore > 0
+						|| (catnipAdore < 0 && catnipVal + catnipFactor * catnipAdore > 0);
+				}
+				if (booleanForAdore || forceStep) {
 					if (doAdoreAfterTimeSkip) {options.auto.timeCtrl.items.timeSkip.adore = false;}
 					forceStep = true;
 					religion._resetFaithInternal(1.01);
@@ -2335,6 +2338,9 @@ window.run = function() {
 				let noMax = ['scholasticism','goldenSpire','stainedGlass','basilica','templars'];
 				noMax.forEach(index => {copyBuilds[index].max = -1;});
 			}
+
+			let marker = Religion.getZU("marker")
+			let markerUnlocked = marker.unlocked;
 			// 神印
 			if (Religion.getZU("blackPyramid").getEffectiveValue(game)) {
 				if (!solarMeta.on) {
@@ -2358,8 +2364,7 @@ window.run = function() {
 					}
 				}
 			} else {
-				let marker = Religion.getZU("marker");
-				if (marker.unlocked) {
+				if (markerUnlocked) {
 					let markerBld = copyBuilds['marker'];
 					markerBld.enabled = false;
 					if (game.resPool.hasRes(marker.prices)) {
@@ -2368,12 +2373,24 @@ window.run = function() {
 					if (resMap['burnedParagon'].value < 2e6) {
 						markerBld.max = Math.max(80, markerBld.max);
 					}
+				} else {
+					copyBuilds['blackNexus'].max = 0;
 				}
 				// 黑金字塔
 				if (Religion.getZU("sunspire").val < 2) {
 					copyBuilds['blackPyramid'].enabled = false;
 				}
 				copyBuilds['blackCore'].max = 0;
+			}
+
+			// 黑图书馆
+			if (!game.prestige.getPerk("codexLeviathanianus").researched) {
+				copyBuilds['blackLibrary'].max = 0;
+			}
+
+			// 黑之光辉
+			if (!markerUnlocked) {
+				copyBuilds['blackRadiance'].max = 0;
 			}
 
 			// Render the tab to make sure that the buttons actually exist in the DOM. Otherwise, we can't click them.
@@ -4579,7 +4596,7 @@ window.run = function() {
 			if (ma.val && !ma.on && oil && pollution && !fa.isAutomationEnabled) {msg('magneto', undefined, true);}
 			// 自动打开蒸汽工房
 			let st = game.bld.getBuildingExt('steamworks').meta;
-			if (st.val && st.on !== st.val && ma.on > 9 - 6 * !tt) {msg('steamworks', undefined, true);}
+			if (st.val && st.on !== st.val && ma.on > 9 - 6 * (game.getEffect('coalRatioGlobalReduction') > 0.3)) {msg('steamworks', undefined, true);}
 			// 自动打开反应堆
 			let re = game.bld.getBuildingExt('reactor').meta;
 			let ur = game.getResourcePerTick("uranium",true);
@@ -4794,15 +4811,17 @@ window.run = function() {
 					}
 				}
 				let disVal = catnipTick * 5;
-				// 次元超越猫薄荷
-				if (value) {
-					iactivity('summary.transcend.catnip', [game.getDisplayValueExt(disVal)]);
-					activitySummary.other['transcend.catnip'] = disVal;
-				}
-				// 赞美群星猫薄荷
-				if (!value) {
-					iactivity('summary.adore.catnip', [game.getDisplayValueExt(disVal)]);
-					activitySummary.other['adore.catnip'] = disVal;
+				if (options.auto.faith.addition.autoPraise.enabled) {
+					// 次元超越猫薄荷
+					if (value) {
+						iactivity('summary.transcend.catnip', [game.getDisplayValueExt(disVal)]);
+						activitySummary.other['transcend.catnip'] = disVal;
+					}
+					// 赞美群星猫薄荷
+					if (!value) {
+						iactivity('summary.adore.catnip', [game.getDisplayValueExt(disVal)]);
+						activitySummary.other['adore.catnip'] = disVal;
+					}
 				}
 			}
 
