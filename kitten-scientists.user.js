@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.194';
+	const version = 'V15.195';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -307,7 +307,6 @@ window.run = function() {
 			'summary.auto.logHouseMineral': '存点矿物点木屋',
 			'summary.auto.lower': '未研究轨道测地学，小猫是懂发展的，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
-			'summary.auto.magnetos': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
@@ -371,6 +370,7 @@ window.run = function() {
 			'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
 			'summary.reactor': '小猫向反应堆投入了铀开始发光呐，资源产量变多了',
 			'summary.factory': '小猫为了空间的发展，把工厂全部启用呐',
+			'summary.magneto': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
 			'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐，资源产量变多了',
 			'summary.breweryOn': '已举办文化节，喵星人重新打开了酿酒厂~嗝',
 			'summary.breweryOff': '节日或者香料没呐，小猫拒奢守俭，暂时关闭了酿酒厂',
