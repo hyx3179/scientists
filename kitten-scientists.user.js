@@ -16,7 +16,8 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.195';
+	const version = '🖊︎📚';
+	// V15.196
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -4571,7 +4572,7 @@ window.run = function() {
 					lastDayEnergy = false;
 				}
 			}
-			// todo 煅烧炉 月球前哨 工厂 空间站
+			// todo 煅烧炉 月球前哨 工厂 空间站 月球基地
 
 			// 铸币厂
 			let mint = game.bld.getBuildingExt('mint').meta;
