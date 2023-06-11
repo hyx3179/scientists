@@ -16,8 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = '🖊︎📚';
-	// V15.196
+	const version = 'V15.197';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -133,7 +132,7 @@ window.run = function() {
 			'ui.upgrade.policies.load': '读取',
 			'ui.upgrade.policies.show': '列表',
 
-			'ui.faith.addtion': '宗教附加',
+			'ui.faith.addition': '宗教附加',
 			'option.faith.best.unicorn': '自动最佳独角兽建筑',
 			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽或象牙来决定建造独角兽牧场~象牙塔...太阳尖顶<br>当象牙不足时会切换成象牙模式具体可以点击小猫总结看到(概览还未更新象牙模式)',
 			'unicornSacrifice' : '小猫让 {0} 个独角兽群返回了天上的维度，收集了 {1} 滴独角兽的眼泪',
@@ -326,8 +325,8 @@ window.run = function() {
 			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血',
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
-			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛',
-			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦',
+			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
+			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，大概要用亿点点的钛',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站(记得删除时间水晶库存)',
@@ -435,13 +434,13 @@ window.run = function() {
 		// The interval at which the internal processing loop is run, in milliseconds.
 		interval: 2000,
 		// The default color for KS messages in the game log (like enabling and disabling items).
-		msgcolor: '#aa50fe', // dark purple
+		msgColor: '#aa50fe', // dark purple
 		// The color for activity summaries.
-		summarycolor: '#009933', // light green
+		summaryColor: '#009933', // light green
 		// The color for log messages that are about activities (like festivals and star observations).
-		activitycolor: '#E65C00', // orange
+		activityColor: '#E65C00', // orange
 		// The color for resources with stock counts higher than current resource max
-		stockwarncolor: '#DD1E00',
+		stockWarnColor: '#DD1E00',
 		// 复制的特质
 		copyTrait: false,
 		//倒计时
@@ -897,7 +896,7 @@ window.run = function() {
 	const message = function () {
 		let args = Array.prototype.slice.call(arguments);
 		args.push('ks-default');
-		args.push(options.msgcolor);
+		args.push(options.msgColor);
 		printout(args);
 	};
 
@@ -905,14 +904,14 @@ window.run = function() {
 		let args = Array.prototype.slice.call(arguments);
 		let activityClass = args.length > 1 ? args.pop() : 'miscFilter';
 		args.push(activityClass);
-		args.push(options.activitycolor);
+		args.push(options.activityColor);
 		printout(args);
 	};
 
 	const summary = function () {
 		const args = Array.prototype.slice.call(arguments);
 		args.push('ks-summary');
-		args.push(options.summarycolor);
+		args.push(options.summaryColor);
 		printout(args);
 	};
 
@@ -2149,7 +2148,7 @@ window.run = function() {
 				let transcendenceOption = options.auto.faith.items.transcendence;
 				if (!transcendenceOption.enabled && worship > transcendenceMeta.faith && autoAdoreEnabled && transcendStorage) {
 					transcendenceOption.enabled = true;
-					printout(['小猫贴心得无视超越按钮禁用','ks-default', options.activitycolor]);
+					printout(['小猫贴心得无视超越按钮禁用','ks-default', options.activityColor]);
 				}
 
 				// Adore
@@ -4252,7 +4251,7 @@ window.run = function() {
 				}
 			}
 
-			// Determine how many races we will trade this cycl
+			// Determine how many races we will trade this cycle
 			let trade, race, name, require;
 			let items = optionTrade.items;
 			for (name in items)  {
@@ -5866,9 +5865,6 @@ window.run = function() {
 						if (value && (Date.now() > Craft.shipTime + 16e5 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24) {
 							Craft.shipTime = Date.now();
 							let valueExt = game.getDisplayValueExt(forceShipVal);
-							if (!tt) {
-								i18nData['zh']['summary.auto.ship'] = '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ )，斑马拿铁辅料钛<br>偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大';
-							}
 							if (geodesy) {
 								msgSummary('shipGeodesy');
 							}
@@ -6794,7 +6790,7 @@ window.run = function() {
 				value -= Math.min(maxValue, value) * (1 - consume);
 
 				if (name === 'unobtainium' && value + stock < 1000 && this.getResource(name).value === maxValue && this.getResource(name).value >= 1000) {
-					value = this.getResource(name).value;// fix unobtainium carfting to eludium
+					value = this.getResource(name).value;// fix unobtainium crafting to eludium
 				}
 			}
 
@@ -7766,7 +7762,7 @@ window.run = function() {
 
 		addRule('#ks-options #toggle-list-resources .stockWarn *,'
 			+ '#ks-options #toggle-reset-list-resources .stockWarn * {'
-			+ 'color: ' + options.stockwarncolor + ';'
+			+ 'color: ' + options.stockWarnColor + ';'
 			+ '}');
 
 		addRule('.right-tab {'
@@ -8596,7 +8592,7 @@ window.run = function() {
 				// Add additional controls for faith, sort of hack again
 				const addition = $('<div/>', {
 					id: 'toggle-addition-controls',
-					text: i18n('ui.faith.addtion'),
+					text: i18n('ui.faith.addition'),
 					title: "太阳教团的自动化项目",
 					css: Css
 				});
@@ -8700,13 +8696,13 @@ window.run = function() {
 
 		let getSeason = function (name, season, option) {
 			let iname = ucfirst(i18n('$trade.race.' + name));
-			let iseason = ucfirst(i18n('$calendar.season.' + season));
+			let iSeason = ucfirst(i18n('$calendar.season.' + season));
 
 			let element = $('<li/>');
 
 			let label = $('<label/>', {
 				'for': 'toggle-' + name + '-' + season,
-				text: ucfirst(iseason)
+				text: ucfirst(iSeason)
 			});
 
 			let input = $('<input/>', {
@@ -8721,10 +8717,10 @@ window.run = function() {
 			input.on('change', function () {
 				if (input.is(':checked') && !option[season]) {
 					option[season] = true;
-					imessage('trade.season.enable', [iname, iseason]);
+					imessage('trade.season.enable', [iname, iSeason]);
 				} else if ((!input.is(':checked')) && option[season]) {
 					option[season] = false;
-					imessage('trade.season.disable', [iname, iseason]);
+					imessage('trade.season.disable', [iname, iSeason]);
 				}
 				kittenStorage.items[input.attr('id')] = option[season];
 				saveToKittenStorage();
@@ -8736,13 +8732,13 @@ window.run = function() {
 		};
 
 		let getSeasonForTimeSkip = function (season, option) {
-			let iseason = ucfirst(i18n('$calendar.season.' + season));
+			let iSeason = ucfirst(i18n('$calendar.season.' + season));
 
 			let element = $('<li/>');
 
 			let label = $('<label/>', {
 				'for': 'toggle-timeSkip-' + season,
-				text: ucfirst(iseason)
+				text: ucfirst(iSeason)
 			});
 
 			let input = $('<input/>', {
@@ -8757,10 +8753,10 @@ window.run = function() {
 			input.on('change', function () {
 				if (input.is(':checked') && !option[season]) {
 					option[season] = true;
-					imessage('time.skip.season.enable', [iseason]);
+					imessage('time.skip.season.enable', [iSeason]);
 				} else if ((!input.is(':checked')) && option[season]) {
 					option[season] = false;
-					imessage('time.skip.season.disable', [iseason]);
+					imessage('time.skip.season.disable', [iSeason]);
 				}
 				kittenStorage.items[input.attr('id')] = option[season];
 				saveToKittenStorage();
@@ -9457,7 +9453,7 @@ window.run = function() {
 					}
 				});
 
-				let ressetKS = $('<div/>', {
+				let resetKs = $('<div/>', {
 					id: 'ressetKS',
 					text: "恢复初始默认配置",
 					css: {cursor: 'pointer',
@@ -9468,7 +9464,7 @@ window.run = function() {
 					}
 				});
 
-				ressetKS.on('click', function () {
+				resetKs.on('click', function () {
 					if (confirm('确定要初始化珂学家配置吗，点击确认后初始化珂学家配置\n已经替你完美配置好不需要你改任何设置\n只需勾上你需要的对应的大项目就是最快速度发展了\n\n为了照顾钢铁模式，默认配置小屋、木屋、宅邸默认不勾，请有需要的自行勾上')) {
 						engine.stop();
 						let cbc = sessionStorage.getItem('options');
@@ -9495,7 +9491,7 @@ window.run = function() {
 				});
 
 				element.append(loadKS);
-				element.append(ressetKS);
+				element.append(resetKs);
 			}
 
 			if (name === 'donate') {
@@ -9528,7 +9524,7 @@ window.run = function() {
 				input.on('click', function () {
 					let tempWindow = window.open();
 					tempWindow.location = 'https://petercheney.gitee.io/baike/?file=004-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7/02-%E5%B0%8F%E7%8C%AB%E7%A7%91%E5%AD%A6%E5%AE%B6';
-					printout(['如果还有问题可以在猫国群询问，有BUG或意见可以联系Cheney。初始默认配置即推荐挂机高效配置','ks-default', options.activitycolor]);
+					printout(['如果还有问题可以在猫国群询问，有BUG或意见可以联系Cheney。初始默认配置即推荐挂机高效配置','ks-default', options.activityColor]);
 				});
 			}
 
