@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.197';
+	const version = 'V15.198';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -296,7 +296,7 @@ window.run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
-			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概290年左右 130猫口 + 新约外传',
+			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概290年左右 130猫口 + 新约外传(手动咸鱼平均600年❤)',
 			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需外面大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
 			'summary.auto.ksHelp5': '珂学家的日志过滤需勾选过滤，注意游戏的为不勾选才是过滤日志',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：只要不挂在前台请务必打开后台珂学家<br>最好不要设置工程师、在挑战页面挂机可以减少卡顿',
@@ -313,6 +313,7 @@ window.run = function() {
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
 			'summary.auto.oilTick': '小猫是懂石油的，控制石油平衡暂时不造煅烧炉了',
+			'summary.auto.offCalciner': '猫猫只会担心能源，关掉了煅烧炉',
 			'summary.auto.one1000years': '聪明的小猫自动勾上了长挂所需要的选项',
 			'summary.auto.oxidation': '别急，你先别急，小猫为了氧化反应把钢全存起来了',
 			'summary.auto.parchment': '还未感悟到地质学，小猫咪用不了那么多毛皮，毛皮存起来了',
@@ -361,23 +362,28 @@ window.run = function() {
 			'summary.blackcoin.sell': '小猫出售黑币并买入了 {0} 次遗物',
 
 			'summary.accelerator': '电量寄了，大概只有加速器能关闭了（不会影响库存',
-			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
-			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）（她真的好温柔，😭）',
-			'summary.mint': '秋梨膏别开铸币厂了（其转化效率与喵力上限有关，打猎会获得更多的毛皮，具体右下角参考百科 游戏标签-其它建筑-铸币厂）',
-			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
-			'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
-			'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
-			'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
-			'summary.reactor': '小猫向反应堆投入了铀开始发光呐，资源产量变多了',
-			'summary.factory': '小猫为了空间的发展，把工厂全部启用呐',
-			'summary.magneto': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
-			'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐，资源产量变多了',
+
 			'summary.breweryOn': '已举办文化节，喵星人重新打开了酿酒厂~嗝',
 			'summary.breweryOff': '节日或者香料没呐，小猫拒奢守俭，暂时关闭了酿酒厂',
 			'summary.brewery': '小猫根据节日调整了 {0} 次酿酒厂',
+
+			'summary.biolab': '小猫担心冬季电不够并关闭了 {0} 个生物实验室(关了后科学上限和科学加成还会加成)',
+			'summary.biolab.test': ' {0} 个生物实验室(非常没用的工坊升级)',
+			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）（她真的好温柔，😭）',
+
 			'summary.chronocontrolOn': '小猫开启了时间操纵延长时间悖论的持续天数',
 			'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
 			'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
+
+			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
+			'summary.factory': '小猫为了空间的发展，把工厂全部启用呐',
+			'summary.magneto': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
+			'summary.mint': '秋梨膏别开铸币厂了（其转化效率与喵力上限有关，打猎会获得更多的毛皮，具体右下角参考百科 游戏标签-其它建筑-铸币厂）',
+			'summary.moonBase': '小猫我先急，趁你不注意关闭了月球基地',
+			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
+			'summary.reactor': '小猫向反应堆投入了铀开始发光呐，资源产量变多了',
+			'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐，资源产量变多了',
+			'summary.temporalAccelerator': '小猫担心卡顿打开了时空加速器的自动化',
 
 			'summary.festival': '举办了 {0} 次节日喵',
 			'summary.stars': '观测了 {0} 次天文事件',
@@ -3732,7 +3738,8 @@ window.run = function() {
 						if (unobtainiumTri !== 1) {
 							builds['spaceElevator'].max = 7 + Math.min(solarRevolution, Production) - 6 * (resMap['unobtainium'].maxValue < 500) + vitruvianFeline;
 							if ((!vitruvianFeline && unobtainiumTri < 0.5 - 10 * priceRatio)
-								|| (!solarRevolution && !game.ironWill && !Workshop.get('astrophysicists').researched)) {
+								|| (!solarRevolution && !game.ironWill && !Workshop.get('astrophysicists').researched)
+								|| (!vitruvianFeline && game.getEffect('hutPriceRatio') > -1 && priceRatio && !game.ironWill)) {
 								builds['spaceElevator'].max = 0;
 							}
 						}
@@ -4554,6 +4561,7 @@ window.run = function() {
 			}
 
 			let button;
+			// 名字,数量,是否打开
 			let msg = (name, number, onAll) => {
 				activity(i18n('summary.' + name, [number]));
 				storeForSummary(name, number);
@@ -4564,14 +4572,18 @@ window.run = function() {
 			};
 
 			// 冬季最后一天能源
+			let moonBase = game.space.getBuilding('moonBase');
 			let lastDayEnergy = optItem.lastDayEnergy;
 			if (lastDayEnergy) {
 				if (calendar.season !== 3) {
+					if (lastDayEnergy === 'moonBase') {
+						moonBase.on = moonBase.val;
+					}
 					optItem.lastDayEnergy = false;
 					lastDayEnergy = false;
 				}
 			}
-			// todo 煅烧炉 月球前哨 工厂 空间站 月球基地
+			// todo 月球前哨 工厂 空间站 月球基地
 
 			// 铸币厂
 			let mint = game.bld.getBuildingExt('mint').meta;
@@ -4596,7 +4608,7 @@ window.run = function() {
 			if (ma.val && !ma.on && oil && pollution && !fa.isAutomationEnabled) {msg('magneto', undefined, true);}
 			// 自动打开蒸汽工房
 			let st = game.bld.getBuildingExt('steamworks').meta;
-			if (st.val && st.on !== st.val && ma.on > 9 - 6 * (game.getEffect('coalRatioGlobalReduction') > 0.3)) {msg('steamworks', undefined, true);}
+			if (st.val && st.on !== st.val && ma.on > 10 - 6 * (game.getEffect('coalRatioGlobalReduction') > 0.3)) {msg('steamworks', undefined, true);}
 			// 自动打开反应堆
 			let re = game.bld.getBuildingExt('reactor').meta;
 			let ur = game.getResourcePerTick("uranium",true);
@@ -4649,6 +4661,17 @@ window.run = function() {
 							if (fa.on) {
 								fa.on = 0;
 								optItem.lastDayEnergy = true;
+							}
+							if (moonBase.on) {
+								moonBase.on = 0;
+								optItem.lastDayEnergy = 'moonBase';
+								msg('moonBase');
+							}
+							// 关闭煅烧炉
+							let calciner = game.bld.getBuildingExt('calciner').meta;
+							if (calciner.on) {
+								calciner.on -= 1;
+								msgSummary('offCalciner');
 							}
 						}
 					}
@@ -6846,8 +6869,10 @@ window.run = function() {
 					break;
 				}
 				case 'ship': {
-					let shipLimit = 5 * reactorVal + 225;
+					let starchart = resMap['starchart'].value;
 					let titaniumMax = resMap['titanium'].maxValue;
+
+					let shipLimit = 5 * reactorVal + 225;
 					let satnav = !piscine.on && shipValue && space.getBuilding('sattelite').val < 9
 						|| (!piscine.on && Workshop.get('spaceManufacturing').researched);
 					let manufacture = satnav && solar > 5.5 && titaniumMax < 125e3 && !piscine.val;
@@ -6860,14 +6885,14 @@ window.run = function() {
 						let factor = (25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + 2.2 + solarFactor - 2.2 * (solar > 2)) * shipLimit;
 						// console.log((25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + (1 + (unobtainium > 0) * 3) * (solar < 0.8) + 2.2) * shipLimit)
 						let noReset = game.calendar.year > 400 && reactorVal;
-						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 1000)) {
+						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 1000) && starchart < 1500) {
 							limRat = 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance || noReset) + (unobtainium > 0) * 0.3;
 						}
 					}
-					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && resMap['starchart'].value < 1e5 && satnav) ? 0.3 : limRat;
+					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && starchart < 1e5 && satnav) ? 0.3 : limRat;
 					limRat = (manufacture || resPercent('titanium') > 0.7) ? 0.05 : limRat;
-					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && resMap['starchart'].value < 1e4) ? 0 : limRat;
-					limRat = (shipValue > Math.max(400, titaniumMax)) ? 0 : limRat;
+					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && starchart < 1e4) ? 0 : limRat;
+					limRat = (shipValue > Math.max(400, 0.5 * titaniumMax)) ? 0 : limRat;
 					break;
 				}
 				case 'plate': {
