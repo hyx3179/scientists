@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.198';
+	const version = 'V15.199';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -8416,12 +8416,13 @@ window.run = function() {
 					});
 				}
 
-				if (label.subTrigger !== undefined) {
+				let sub = label.subTrigger;
+				if (sub !== undefined) {
 
 					let triggerButton = $('<div/>', {
 						id: 'set-' + itemName + '-subTrigger',
 						text: i18n('ui.trigger'),
-						title: label.subTrigger,
+						title: sub,
 						css: Css
 					}).data('option', label);
 
@@ -8430,7 +8431,7 @@ window.run = function() {
 							triggerButton.on('click', function () {
 								let value;
 								engine.stop(false);
-								value = window.prompt(i18n(itemName + '.trigger.set'), label.subTrigger);
+								value = window.prompt(i18n(itemName + '.trigger.set'), sub + '');
 								if (options.auto.engine.enabled) {
 									engine.start(false);
 								}
