@@ -86,11 +86,13 @@ window.run = function() {
 			'build.embassies': '在 {1} 设立了 {0} 个大使馆',
 
 			'act.praise': '赞美太阳! 消耗了 {0} 信仰转化成 {1} 的虔诚',
-			'praise.trigger.set': '输入新的赞美太阳的触发值，取值范围为 0 到 1的纯小数\n 当为0.98时且点出太阳革命，若虔诚太少小猫每天赞美太阳',
+			'autoPraise.trigger.set': '输入新的赞美太阳的触发值，取值范围为 0 到 1的纯小数\n 当为0.98时且点出太阳革命，若虔诚太少小猫每天赞美太阳',
 			'summary.praise.msg': '虔诚的小猫每天都会赞美太阳，直到太阳革命加成大于 {0} %<br>说你了虔诚太低了! (虔诚滚猫咪越滚越虔诚',
 			'act.sun.discover': '小猫在宗教祷告了 {0} ',
 			'act.sun.discovers': '小猫在宗教祷告了 {0} {1} 次',
 			'act.sun.discovers.leader': '哲学家小猫在宗教祷告了 {0} {1} 次',
+
+			'tcRefine.trigger.set': '输入触发精炼水晶功能的时间水晶最低数量，其最低值\n暂时只支持黑之连结大于35才会触发',
 
 			'ui.items': '项目',
 			'ui.disable.all': '全部禁用',
@@ -154,7 +156,7 @@ window.run = function() {
 
 			// todo
 			'option.faith.alicorn': '献祭天角兽(还未新建文件夹)',
-			'option.faith.tcRefine': '精炼水晶(还未新建文件夹)',
+			'option.faith.tcRefine': '精炼水晶',
 
 			'resources.add': '添加资源',
 			'resources.clear.unused': '清除未使用',
@@ -323,10 +325,10 @@ window.run = function() {
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
 			'summary.auto.rotaryKiln': '猫猫看上了<s>回转炉</s>? 减肥旋转滚轮!',
-			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血',
+			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血，呼呼外层空间条约',
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
-			'summary.auto.ship': '斑马的屈服第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
+			'summary.auto.ship': '征服斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
 			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，大概要用亿点点的钛',
@@ -492,7 +494,7 @@ window.run = function() {
 					adore:                  {enabled: true,  misc: true, label: i18n('option.faith.adore'), subTrigger: 0.001},
 					transcend:              {enabled: true,  misc: true, label: i18n('option.faith.transcend')},
 					alicorn:                {enabled: false, misc: true, label: i18n('option.faith.alicorn')},
-					tcRefine:               {enabled: false, misc: true, label: i18n('option.faith.tcRefine')},
+					tcRefine:               {enabled: false, misc: true, label: i18n('option.faith.tcRefine'), subTrigger: 100000},
 				},
 				// Which religious upgrades should be researched?
 				items: {
@@ -805,7 +807,7 @@ window.run = function() {
 					saves:              {enabled: false,                   misc: true, label: '导出配置文件'},
 					donate:             {enabled: false,                   misc: true, label: '显示捐赠原作者图标'},
 					useWorkers:         {enabled: false,                   misc: true, label: i18n('option.useWorkers')},
-					wiki:               {enabled: false,                   misc: true, label: '珂学家使用说明书（百科链接🐱）'},
+					wiki:               {enabled: false,                   misc: true, label: '(ฅ´ω`ฅ)使用说明书（百科链接）'},
 					autoScientists:     {enabled: false,                   misc: true, label: '首次自动启用珂学家'},
 				}
 			},
@@ -1926,14 +1928,13 @@ window.run = function() {
 			let voidOrder = game.prestige.getPerk("voidOrder").researched;
 			let production = game.prestige.getParagonProductionRatio();
 			let rrVal = game.time.getCFU("ressourceRetrieval").val;
+			let zigguratOn = game.bld.getBuildingExt('ziggurat').meta.on;
 
 			// 独角兽
 			if (option.bestUnicornBuilding.enabled) {
 				let btn = this.getBestUnicornBuilding();
-				let zigguratOn = game.bld.getBuildingExt('ziggurat').meta.on;
 				let tearHave = resMap['tears'].value;
 				let unicorns = resMap['unicorns'].value;
-				let blackPyramid = religion.getZU("blackPyramid");
 				let sunspire = religion.getZU('sunspire').on;
 				let renaissance = game.prestige.getPerk('renaissance').researched;
 				let storeUnicorn = !renaissance || !tearHave || zigguratOn > 27;
@@ -1941,8 +1942,9 @@ window.run = function() {
 					let oneTear = !tearHave && unicorns >= 1000 && zigguratOn && !game.ironWill;
 					let buttonPrices;
 					let unicornRatio = (activitySummary.other['auto.bestUnicorn']) ? 0 : 1;
+					let blackPyramid = religion.getZU("blackPyramid");
+					let blackPyramidVal = blackPyramid.val + (game.challenges.getChallenge("blackSky").researched && !game.challenges.isActive("blackSky") ? 1 : 0);
 					resMap['unicorns'].value += resMap['unicorns'].perTickCached * unicornRatio;
-					let blackPyramidVal = blackPyramid.getEffectiveValue(game);
 					let black = builds['blackPyramid'].enabled && blackPyramid.unlocked;
 					let bls = sunspire > 1 && resMap['sorrow'].value < 5 && !blackPyramidVal && resMap['unobtainium'].maxValue > 5e3 && black;
 					// 精炼5悲伤
@@ -2032,6 +2034,23 @@ window.run = function() {
 				noPastureCopy = Object.assign(noPastureCopy, options.auto.faith.items);
 				delete noPastureCopy.unicornPasture;
 			}
+
+			// 精炼水晶
+			if (option.tcRefine.enabled) {
+				if (game.getEffect('relicRefineRatio') > 35) {
+					 //未升级时间锻造
+					if (zigguratOn && !game.workshop.get("chronoforge").researched && resMap['relic'].value < 6) {
+						if (resMap['timeCrystal'].value > option.tcRefine.subTrigger) {
+							let refineTCBtn = game['religionTab'].refineTCBtn;
+							if (!refineTCBtn) {
+								game['religionTab'].render();
+							}
+							refineTCBtn.controller._transform(refineTCBtn.model, 1);
+						}
+					}
+				}
+			}
+
 			// religion build
 			refreshRequired += this._worship(noPastureCopy || builds);
 
@@ -3704,17 +3723,18 @@ window.run = function() {
 					let FiveSattelite = 2300 * sattelitePrice * (1 - moreKitten);
 					let spaceStation = 3e3 * Math.pow(1.12, station) * (8 * !solarRevolution + moreKitten + 0.7
 						+ vitruvianFeline * (-1.2 * (resMap['titanium'].maxValue < 2500 * sattelitePrice * (2.7 + 15 * priceRatio)) + 0.5));
+					let buildSattelite = builds['sattelite'];
 					if (starchartVal > FiveSattelite && solarRevolution < 2) {
-						builds['sattelite'].max = sattelite + 1;
+						buildSattelite.max = Math.max(sattelite + 1, buildSattelite.max);
 					}
-					if (!unobtainiumTick) {
-						builds['sattelite'].max = 9 + 6 * blackSky;
+					if (!unobtainiumTick && solarRevolution) {
+						buildSattelite.max = 9 + 6 * blackSky;
 					}
 					// 反应堆
 					let one = game.getEffect('productionRatio') < 0.6 && unobtainiumTri > 0 && solarRevolution > 5;
 					if ((starchartVal < FiveSattelite && solarRevolution < 2 && sattelite)
 						|| !game.workshop.get('orbitalGeodesy').researched || one) {
-						builds['sattelite'].max = 0;
+						buildSattelite.max = 0;
 					}
 					if (starchartVal > spaceStation) {
 						bldSpaceStation.max = station + 1;
@@ -8368,7 +8388,8 @@ window.run = function() {
 
 			let addi = options.auto.faith.addition;
 			for (let itemName in addi) {
-				let node = getOption(itemName, addi[itemName]);
+				let label = addi[itemName];
+				let node = getOption(itemName, label);
 
 				if (itemName === 'bestUnicornBuilding') {
 					node.children('label').prop('title', i18n('option.faith.best.unicorn.desc'));
@@ -8395,47 +8416,30 @@ window.run = function() {
 					});
 				}
 
-				if (addi[itemName].subTrigger !== undefined) {
+				if (label.subTrigger !== undefined) {
 
 					let triggerButton = $('<div/>', {
 						id: 'set-' + itemName + '-subTrigger',
 						text: i18n('ui.trigger'),
-						title: addi[itemName].subTrigger,
+						title: label.subTrigger,
 						css: Css
-					}).data('option', addi[itemName]);
+					}).data('option', label);
 
 					(function (itemName, triggerButton) {
-						if (itemName === 'adore') {
+						if (itemName === 'adore' || itemName === 'autoPraise' || itemName === 'tcRefine') {
 							triggerButton.on('click', function () {
 								let value;
 								engine.stop(false);
-								value = window.prompt(i18n('adore.trigger.set'), addi[itemName].subTrigger);
+								value = window.prompt(i18n(itemName + '.trigger.set'), label.subTrigger);
 								if (options.auto.engine.enabled) {
 									engine.start(false);
 								}
 
 								if (value !== null) {
-									addi[itemName].subTrigger = parseFloat(value);
-									kittenStorage.items[triggerButton[0].id] = addi[itemName].subTrigger;
+									label.subTrigger = parseFloat(value);
+									kittenStorage.items[triggerButton[0].id] = label.subTrigger;
 									saveToKittenStorage();
-									triggerButton[0].title = addi[itemName].subTrigger;
-								}
-							});
-
-						} else if (itemName === 'autoPraise') {
-							triggerButton.on('click', function () {
-								let value;
-								engine.stop(false);
-								value = window.prompt(i18n('praise.trigger.set', [i18n('option.praise')]), addi[itemName].subTrigger);
-								if (options.auto.engine.enabled) {
-									engine.start(false);
-								}
-
-								if (value !== null) {
-									addi[itemName].subTrigger = parseFloat(value);
-									kittenStorage.items[triggerButton[0].id] = addi[itemName].subTrigger;
-									saveToKittenStorage();
-									triggerButton[0].title = addi[itemName].subTrigger;
+									triggerButton[0].title = label.subTrigger;
 								}
 							});
 						}
@@ -9836,10 +9840,11 @@ window.run = function() {
 		steamworks: buildItems['steamworks'],
 	}, buildItems);
 
-	// 渲染完后把科研船排太空前面
+	// 渲染完后把科研船、月球前哨排太空前面
 	buildItems = options.auto.space.items;
 	options.auto.space.items = Object.assign({
 		researchVessel: buildItems['researchVessel'],
+		moonOutpost: buildItems['moonOutpost'],
 	}, buildItems);
 	buildItems = null;
 
