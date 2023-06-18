@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.199';
+	const version = 'V15.200';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -288,7 +288,7 @@ window.run = function() {
 			'summary.auto.drama': '喵力产量低，羊皮纸库存低，聪明的小猫就不勾栏听曲啦',
 			'summary.auto.factory': '有了更多钛的后，小猫下次一定造工厂',
 			'summary.auto.fuelInjectors': '给蒸汽工房换上你燃料喷射器捏',
-			'summary.auto.furs': '我知道你很急，但是先别急，<br>更高的制作工艺加成后，同样的毛皮会做更多的羊皮纸',
+			'summary.auto.furs': '我知道你很急，但是先别急，<br>更高的制作工艺加成后，同样的毛皮会制作更多的羊皮纸',
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
@@ -311,6 +311,7 @@ window.run = function() {
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
+			'summary.auto.miao': '喵~<br>喵喵~<br>喵喵喵~<br>喵喵喵喵~<br>珂学家200版本啦',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
@@ -1749,7 +1750,7 @@ window.run = function() {
 						}
 					}
 					if (resMap['starchart'].value > 1e5 && !game['diplomacyTab'].visible) {maxKS = 1;}
-					if (maxKS > 1 && resPercent('gold') >= 1) {maxKS = 1;}
+					if (maxKS > 1 && resPercent('gold') > 0.85) {maxKS = 1;}
 					if (!woodcutter) {maxKS = 0;}
 				}
 				if (name === 'scholar') {
@@ -2044,6 +2045,7 @@ window.run = function() {
 							let refineTCBtn = game['religionTab'].refineTCBtn;
 							if (!refineTCBtn) {
 								game['religionTab'].render();
+								refineTCBtn = game['religionTab'].refineTCBtn;
 							}
 							refineTCBtn.controller._transform(refineTCBtn.model, 1);
 						}
@@ -4059,8 +4061,8 @@ window.run = function() {
 			let cultureProf = 4000 * craftManager.getTickVal(resMap['culture'], true) > 5000;
 			let parchProf = 4000 * craftManager.getTickVal(resMap['parchment'], true) > 2500 * 3;
 
-			let noSkip = resMap['parchment'].value >= 7000 || parchProf
-				|| resMap['manpower'].perTickCached > 18 - game.prestige.getParagonProductionRatio();
+			let noSkip = resMap['parchment'].value >= 7000
+				|| resMap['manpower'].perTickCached > 20 - game.prestige.getParagonProductionRatio();
 			if (!(catProf && cultureProf && noSkip)) {return;}
 
 			if (game.science.getPolicy('carnivale').researched) {
@@ -10114,9 +10116,9 @@ window.run = function() {
 				setTimeout(()=>{
 					if (Engine.enabled) {
 						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
-						message('如需没网络也能打开珂学家，可以导入存档到Cheney的备用站petercheney.gitee.io');
+						message('如需没网络也能离线打开珂学家，可以点击左上角 ML 右边第一个 C 进入Cheney的备用站,该网站离线可以用珂学家');
 					}
-				}, 2000);
+				}, 4000);
 				// 提示节日开启
 				if (options.auto.options.enabled) {
 					activity('小喵杂项已开启~智慧喵喵<br>1. 喵喵自动节日已开启<br>2. 喵喵冬季最后一天的能源管理<br>3. 喵喵自动打开因资源耗尽关闭的工业建筑');
@@ -10128,6 +10130,7 @@ window.run = function() {
 					msgSummary('ksHelp4', false, 'noFilter');
 					msgSummary('ksHelp5', false, 'noFilter');
 				}
+				msgSummary('miao', false, 'noFilter');
 			} else {
 				Engine.enabled = false;
 				engine.stop();
