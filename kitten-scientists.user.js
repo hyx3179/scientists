@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.200';
+	const version = 'V15.201';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -136,7 +136,7 @@ window.run = function() {
 
 			'ui.faith.addition': '宗教附加',
 			'option.faith.best.unicorn': '自动最佳独角兽建筑',
-			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽或象牙来决定建造独角兽牧场~象牙塔...太阳尖顶<br>当象牙不足时会切换成象牙模式具体可以点击小猫总结看到(概览还未更新象牙模式)',
+			'option.faith.best.unicorn.desc': '自动献祭独角兽，并会以独角兽或象牙来决定建造独角兽牧场~象牙塔...太阳尖顶<br>当象牙不足时会切换成象牙模式具体可以点击小猫总结看到(概览无象牙模式)',
 			'unicornSacrifice' : '小猫让 {0} 个独角兽群返回了天上的维度，收集了 {1} 滴独角兽的眼泪',
 
 			'option.faith.transcend': '自动最佳次元超越',
@@ -311,7 +311,7 @@ window.run = function() {
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
-			'summary.auto.miao': '喵~<br>喵喵~<br>喵喵喵~<br>喵喵喵喵~<br>珂学家200版本啦',
+			'summary.auto.miao': '喵~<br>喵喵~<br>喵喵喵~<br>喵喵喵喵~<br>哎嘿，保留10个版本',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
@@ -330,7 +330,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '征服斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
-			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦',
+			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，大概要用亿点点的钛',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站(记得删除时间水晶库存)',
@@ -2408,6 +2408,9 @@ window.run = function() {
 					copyBuilds['blackPyramid'].enabled = false;
 				}
 				copyBuilds['blackCore'].max = 0;
+				if (!game.getEffect('beaconRelicsPerDay')) {
+					copyBuilds['blackObelisk'].max = 0;
+				}
 			}
 
 			// 黑图书馆
@@ -3914,7 +3917,7 @@ window.run = function() {
 								if (!worship.blackPyramid.enabled) {
 									$('#toggle-blackPyramid').click();
 								}
-								msgSummary('one1000years');
+								msgSummary('one1000years', false, 'noFilter');
 								if (blackSky) {
 									i18nData['zh']['one1000years'] += '<br>猫猫贴心提示煅烧炉和卫星价格变了具体可以参考百科挑战';
 								}
@@ -5905,14 +5908,12 @@ window.run = function() {
 								}
 							}
 						}
+						msgSummary('shipGeodesy');
 					}
 					if (value < forceShipVal && ratio > 3) {
 						if (value && (Date.now() > Craft.shipTime + 16e5 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24) {
 							Craft.shipTime = Date.now();
 							let valueExt = game.getDisplayValueExt(forceShipVal);
-							if (geodesy) {
-								msgSummary('shipGeodesy');
-							}
 							activity(i18n('summary.auto.ship', [valueExt]));
 							activitySummary.other['auto.ship'] = valueExt;
 						}
@@ -7703,7 +7704,7 @@ window.run = function() {
 		const sheets = document.styleSheets;
 		sheets[0].insertRule(rule, 0);
 	};
-	if (addRule) {
+	 {
 		let defaultSelector = 'body[data-ks-style]:not(.scheme_sleek)';
 
 		addRule('body {' // low priority. make sure it can be covered by the theme
@@ -8905,7 +8906,7 @@ window.run = function() {
 				autoInput.on('change', function () {
 					if (autoInput.is(':checked') && !option.auto) {
 						engine.stop(false);
-						let again = window.confirm('珂学家自动根据Cheney写的萌新指导和政策解析自动点推荐的政策\n不重置的慎用建议看百科\n注意确认后会优先自动的而不是读取的列表(挑战模式自动会取消勾选政策)\n如需想自己选政策请按取消');
+						let again = window.confirm('珂学家自动根据Cheney写的萌新指导和政策解析自动点推荐的政策\n不重置的慎用建议看百科\n注意确认后会优先自动的而不是读取的列表(挑战模式自动会取消勾选政策)\n如需想自己选政策请按取消\n\n让聪明的猫猫来帮你选择吧❤');
 						if (options.auto.engine.enabled) {
 							engine.start(false);
 						}
