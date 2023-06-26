@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.201';
+	const version = 'V15.202';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -190,7 +190,7 @@ window.run = function() {
 
 			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了~♪',
 			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料~为了发展果咩捏',
-			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ﾚ(ﾟ∀ﾟ;)ﾍ=3=3 !',
+			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ε=ε=ε=ε=ε=ε=┌(;> ω <)┘',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
 			'craft.unlimited': '触发资源：{1}{0}',
@@ -218,6 +218,7 @@ window.run = function() {
 			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
 			'act.accelerate.slow': '不行了，猫猫要减速了',
 			'act.accelerate.fine': '没关系，{0}已经很厉害了 ❤',
+			'act.accelerate.za': '不如多点点游戏',
 			'summary.accelerate': '小猫加速时间 {0} 次',
 			'option.time.skip': '时间跳转',
 			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
@@ -276,7 +277,7 @@ window.run = function() {
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.blackCore': '活祭之猫的黑之核心不是特别适合呐',
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
-			'summary.auto.biology': '哎呦，只因你镁有钛，跳过困难的生物学',
+			'summary.auto.biology': '<s>哎呦，只因你镁有钛，</s>跳过困难的生物学',
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>科学和工坊升级换到科学家领袖，比如神学的科学价格变为19K等等',
@@ -292,6 +293,7 @@ window.run = function() {
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
+			'summary.auto.hunterLess': '想致富，先砍树，猎人不重要',
 			'summary.auto.ironFactory': '如果钢的合成数量偏少，推荐关闭煅烧炉的自动化',
 			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋',
 			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂，再等等猫猫米多点',
@@ -330,6 +332,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '征服斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
+			'summary.auto.shipLess': '你说的对，但这就是贸易船，25星图 150金属板 100脚手架，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，然后你缺钛，缺钛啊啊啊啊啊',
 			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，大概要用亿点点的钛',
@@ -1004,6 +1007,7 @@ window.run = function() {
 		leaderTimer: undefined,
 		leader: 0,
 		accelerateTime: 0,
+		isAccelerated: false,
 		timeTick: 0,
 		time: undefined,
 		start: function (msg = true) {
@@ -1317,6 +1321,7 @@ window.run = function() {
 				if (tf.value >= Math.max(tf.maxValue * optItem.accelerateTime.subTrigger, 5) && !game.time.isAccelerated) {
 					game.time.isAccelerated = true;
 					this.accelerateTime = performance.now();
+					this.isAccelerated = true;
 					iactivity('act.accelerate', [], 'accelerateFilter');
 					storeForSummary('accelerate', 1);
 				}
@@ -1331,8 +1336,13 @@ window.run = function() {
 							if (aTime) {
 								let total = (performance.now() - aTime) / 1000;
 								let Time = game.toDisplaySeconds(total);
-								if (Time && total < 61) {
+								if (this.isAccelerated) {
+									let msg = game.msg(i18n('act.accelerate.za',[Time]), null, null, true);
+									$(msg.span).css('color', "#ff589c");
+								}
+								if (this.isAccelerated && Time && total < 61 || total > 2) {
 									Time = Time.substring(0, Time.length - 1);
+									this.isAccelerated = false;
 									let msg = game.msg(i18n('act.accelerate.fine',[Time]), null, null, true);
 									$(msg.span).css('color', "#ff589c");
 								}
@@ -1353,31 +1363,36 @@ window.run = function() {
 				const heatMax = game.getEffect('heatMax');
 				let heatNow = game.time.heat;
 				if (!timeSkipMaximum) {return 0;}
-				let factor = game.challenges.getChallenge("1000Years").researched ? 5 : 10;
-				if (heatNow - 15 * game.getEffect('heatPerTick') < 0.9 * heatMax) {
-					let heatTick = game.getEffect('heatPerTick');
-					let radiate = 50 / factor * heatTick / game.getTicksPerSecondUI();
-					let skipCycle = (game.getEffect("shatterTCGain") * (1 + game.getEffect("rrRatio")) > 1) ? 0 : 5;
-					let moreSkip = heatTick > 1 && game.calendar.cycle === skipCycle;
-					if (game.bld.get("aiCore").effects["aiLevel"] < 14 || game.getEffect('aiCoreProductivness')) {
 
-					}
-					if (heatNow < 10 * game.getTicksPerSecondUI() * game.getEffect('heatPerTick')) {
-						if (radiate > 2 && game.calendar.cycle === 5) {
-							radiate = 500;
-						} else {
-							radiate += 1;
+				let calendar = game.calendar;
+				const currentCycle = calendar.cycle;
+				const currentYear = calendar.year;
+				const currentDay = calendar.day;
+
+				let factor = game.challenges.getChallenge("1000Years").researched ? 5 : 10;
+				let shatterTCGain = game.getEffect("shatterTCGain");
+				let skipCycle = (shatterTCGain * (1 + game.getEffect("rrRatio")) > 1) ? 0 : 5;
+				let heatTick = game.getEffect('heatPerTick');
+				let radiate = 10 * heatTick / factor;
+
+				if (heatNow < 10 * 5 * heatTick && radiate >= 1) {
+					radiate += 1;
+				}
+				if (heatTick > 0.5 && currentCycle === skipCycle) {
+					if (game.calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
+						console.log(1)
+						if (game.bld.getBuildingExt('aiCore').meta.effects["aiLevel"] < 15 || game.getEffect('aiCoreProductivness')) {
+							radiate = 50;
+							if (heatNow > heatMax - 50 * factor) {
+								break TimeSkip;
+							}
 						}
 					}
-					timeSkipMaximum = Math.ceil(Math.max(radiate, timeSkipMaximum));
 				}
-				// timeSkipMaximum = 50;
+				timeSkipMaximum = Math.ceil(Math.max(radiate, timeSkipMaximum));
+
 				const subTrigger = optItem.timeSkip.subTrigger;
 				let cost = Math.max(subTrigger, this.craftManager.getStock('timeCrystal'), timeSkipMaximum);
-
-				const currentCycle = game.calendar.cycle;
-				const currentYear = game.calendar.year;
-				const currentDay = game.calendar.day;
 
 				// 水晶低于指点数量 、 时间悖论 、 周期禁用 、 热度大于上限
 				if (timeCrystalValue < cost || currentDay < 0 || !optItem.timeSkip[currentCycle] || heatNow >= heatMax) {
@@ -1396,12 +1411,11 @@ window.run = function() {
 						unobtainiumPerTickSpace: 1
 					}, "moonOutpost")['unobtainiumPerTickSpace'];
 					// 平衡周期
-					let calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50 ;
-					let cycleYear = game.calendar.cycleYear;
+					let calendar = (56.5 + 12 * game.getEffect("festivalRatio")) / 50;
 					let tradeVal = unobtainiumTick * calendar / (cycleFestival * cycleEffects);
-					if (tradeVal < 1 || game.getEffect('heatPerTick') < 0.02) {
-						if (cycleYear !== optItem.timeSkip.moonMsg) {
-							optItem.timeSkip.moonMsg = cycleYear;
+					if (tradeVal < 1 || heatTick < 0.02) {
+						if (currentYear !== optItem.timeSkip.moonMsg) {
+							optItem.timeSkip.moonMsg = currentYear;
 							iactivity('summary.time.skip.moon', [1]);
 							storeForSummary('time.skip.moon', 1);
 						}
@@ -1417,7 +1431,7 @@ window.run = function() {
 				let season = game.calendar.season;
 				let wait = optItem.timeSkip.wait;
 				// 自动停留红月
-				let stopMoon = game.getEffect("shatterTCGain") * (1 + game.getEffect("rrRatio")) <= 1 && wait !== false && currentCycle === 5;
+				let stopMoon = shatterTCGain * (1 + game.getEffect("rrRatio")) <= 1 && wait !== false && currentCycle === 5;
 				if (!optItem.timeSkip[game.calendar.seasons[season].name] || stopMoon) {
 					if (wait === 1 && currentCycle === 5) {
 						optItem.timeSkip.wait = game.calendar.year;
@@ -1481,7 +1495,7 @@ window.run = function() {
 
 					let beforeSkipYear = game.calendar.year;
 					let beforeSkipShatter = game.time.testShatter;
-					if (willSkip > 1 && willSkip < 50) {
+					if (willSkip > 1 && willSkip < 51) {
 						game.time.testShatter = 2;
 						msgSummary('lag', false, 'noFilter');
 					}
@@ -1696,6 +1710,7 @@ window.run = function() {
 
 					if (manpowerJobRatio < 0.5) {
 						maxKS = (village.maxKittens > 10) ? 2 : 0;
+						msgSummary('hunterLess');
 					} else if (navigation) {
 						maxKS = Math.round(maxKS * 0.42);
 						if (!activitySummary.other['auto.hunter'] && val >= maxKS -1) {
@@ -6910,10 +6925,11 @@ window.run = function() {
 						let noReset = game.calendar.year > 400 && reactorVal;
 						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 1000) && starchart < 1500) {
 							limRat = 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance || noReset) + (unobtainium > 0) * 0.3;
+							msgSummary('shipLess');
 						}
 					}
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && starchart < 1e5 && satnav) ? 0.3 : limRat;
-					limRat = (manufacture || resPercent('titanium') > 0.7) ? 0.05 : limRat;
+					limRat = (manufacture || resPercent('titanium') > 0.7 || shipValue > 1e5) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && starchart < 1e4) ? 0 : limRat;
 					limRat = (shipValue > Math.max(400, 0.5 * titaniumMax)) ? 0 : limRat;
 					break;
