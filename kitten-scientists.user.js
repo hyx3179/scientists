@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.202';
+	const version = 'V15.203';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -190,7 +190,7 @@ window.run = function() {
 
 			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了~♪',
 			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料~为了发展果咩捏',
-			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ε=ε=ε=ε=ε=ε=┌(;> ω <)┘',
+			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ! ε=ε=ε=ε=ε=ε=┌(;> ω <)┘',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
 			'craft.unlimited': '触发资源：{1}{0}',
@@ -218,7 +218,7 @@ window.run = function() {
 			'act.accelerate.acl': '抓稳了，猫猫要开始加速了!',
 			'act.accelerate.slow': '不行了，猫猫要减速了',
 			'act.accelerate.fine': '没关系，{0}已经很厉害了 ❤',
-			'act.accelerate.za': '不如多点点游戏',
+			'act.accelerate.za': '一遇到加速这种事情好急啊，呐~是因为点累了吧 ❤',
 			'summary.accelerate': '小猫加速时间 {0} 次',
 			'option.time.skip': '时间跳转',
 			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
@@ -293,10 +293,10 @@ window.run = function() {
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
-			'summary.auto.hunterLess': '想致富，先砍树，猎人不重要',
+			'summary.auto.hunterLess': '想致富，先砍树，打猎什么的放一放',
 			'summary.auto.ironFactory': '如果钢的合成数量偏少，推荐关闭煅烧炉的自动化',
-			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋',
-			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂，再等等猫猫米多点',
+			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋 (ฅ´ω`ฅ)',
+			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂，现在还不可以哦',
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
@@ -307,12 +307,12 @@ window.run = function() {
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用，氪金就能变强',
 			'summary.auto.leaderPriest': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
-			'summary.auto.logHouse': '为了喵喵的幸福，需要更多剧场来上演[所有的狗去天堂]的节目',
+			'summary.auto.logHouse': '为了喵喵的幸福，需要更多剧场来上演[所有的狗去天堂]的节目  ฅ( ̳• ◡ • ̳)ฅ',
 			'summary.auto.logHouseMineral': '存点矿物点木屋',
 			'summary.auto.lower': '未研究轨道测地学，小猫是懂发展的，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
-			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）',
+			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱猫猫的最爱',
 			'summary.auto.miao': '喵~<br>喵喵~<br>喵喵喵~<br>喵喵喵喵~<br>哎嘿，保留10个版本',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
@@ -321,8 +321,8 @@ window.run = function() {
 			'summary.auto.offCalciner': '猫猫只会担心能源，关掉了煅烧炉',
 			'summary.auto.one1000years': '聪明的小猫自动勾上了长挂所需要的选项',
 			'summary.auto.oxidation': '别急，你先别急，小猫为了氧化反应把钢全存起来了',
-			'summary.auto.parchment': '还未感悟到地质学，小猫咪用不了那么多毛皮，毛皮存起来了',
-			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了',
+			'summary.auto.parchment': '还未感悟到地质学，小猫咪用不了那么多毛皮，毛皮存起来惹',
+			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了 Ծ ̮ Ծ',
 			'summary.auto.physics': '艺术猫咪觉得物理学救不了猫咪',
 			'summary.auto.railgun': '喵喵想用电磁炮了，就多了亿点点猎人',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所',
@@ -332,8 +332,8 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '征服斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
-			'summary.auto.shipLess': '你说的对，但这就是贸易船，25星图 150金属板 100脚手架，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，然后你缺钛，缺钛啊啊啊啊啊',
-			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
+			'summary.auto.shipLess': '你说的对，但这就是贸易船，25星图 150金属板 100脚手架，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，缺钛啊啊啊啊啊',
+			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>要不要让喵喵告诉你~贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，大概要用亿点点的钛',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站(记得删除时间水晶库存)',
@@ -1332,15 +1332,12 @@ window.run = function() {
 							iactivity('act.accelerate.acl');
 							this.accelerateTime = performance.now();
 						} else {
+							let msgAccelerated = this.isAccelerated;
 							let aTime = this.accelerateTime;
 							if (aTime) {
 								let total = (performance.now() - aTime) / 1000;
 								let Time = game.toDisplaySeconds(total);
-								if (this.isAccelerated) {
-									let msg = game.msg(i18n('act.accelerate.za',[Time]), null, null, true);
-									$(msg.span).css('color', "#ff589c");
-								}
-								if (this.isAccelerated && Time && total < 61 || total > 2) {
+								if (msgAccelerated && Time && total < 61 || total > 3) {
 									Time = Time.substring(0, Time.length - 1);
 									this.isAccelerated = false;
 									let msg = game.msg(i18n('act.accelerate.fine',[Time]), null, null, true);
@@ -1349,6 +1346,10 @@ window.run = function() {
 								this.accelerateTime = 0;
 							}
 							iactivity('act.accelerate.slow');
+							if (!msgAccelerated) {
+								let msg = game.msg(i18n('act.accelerate.za'));
+								$(msg.span).css('color', "#ff589c");
+							}
 						}
 						engine.start(false);
 					}
@@ -1380,10 +1381,9 @@ window.run = function() {
 				}
 				if (heatTick > 0.5 && currentCycle === skipCycle) {
 					if (game.calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
-						console.log(1)
 						if (game.bld.getBuildingExt('aiCore').meta.effects["aiLevel"] < 15 || game.getEffect('aiCoreProductivness')) {
 							radiate = 50;
-							if (heatNow > heatMax - 50 * factor) {
+							if (heatNow > heatMax - 1200 * heatTick) {
 								break TimeSkip;
 							}
 						}
@@ -3932,10 +3932,10 @@ window.run = function() {
 								if (!worship.blackPyramid.enabled) {
 									$('#toggle-blackPyramid').click();
 								}
-								msgSummary('one1000years', false, 'noFilter');
 								if (blackSky) {
 									i18nData['zh']['one1000years'] += '<br>猫猫贴心提示煅烧炉和卫星价格变了具体可以参考百科挑战';
 								}
+								msgSummary('one1000years', false, 'noFilter');
 							}
 						}
 						if (priceRatio < -0.03 && !blackSky) {
