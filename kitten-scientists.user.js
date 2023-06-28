@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.203';
+	const version = 'V15.204';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -312,7 +312,7 @@ window.run = function() {
 			'summary.auto.lower': '未研究轨道测地学，小猫是懂发展的，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
-			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱猫猫的最爱',
+			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱才是猫猫的最爱',
 			'summary.auto.miao': '喵~<br>喵喵~<br>喵喵喵~<br>喵喵喵喵~<br>哎嘿，保留10个版本',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
@@ -332,7 +332,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '征服斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
-			'summary.auto.shipLess': '你说的对，但这就是贸易船，25星图 150金属板 100脚手架，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，缺钛啊啊啊啊啊',
+			'summary.auto.shipLess': '你说的对，但这就是贸易船，25星图 150金属板 100脚手架，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，还能增加贸易获得钛数量，缺钛啊啊啊啊啊啊',
 			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>要不要让喵喵告诉你~贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，大概要用亿点点的钛',
@@ -1367,8 +1367,12 @@ window.run = function() {
 
 				let calendar = game.calendar;
 				const currentCycle = calendar.cycle;
+				const yearsPerCycle = calendar.yearsPerCycle;
+				const cyclesPerEra = calendar.cyclesPerEra;
+				const cycleYear = calendar.cycleYear;
 				const currentYear = calendar.year;
 				const currentDay = calendar.day;
+				const currentSeason = calendar.season;
 
 				let factor = game.challenges.getChallenge("1000Years").researched ? 5 : 10;
 				let shatterTCGain = game.getEffect("shatterTCGain");
@@ -1380,10 +1384,10 @@ window.run = function() {
 					radiate += 1;
 				}
 				if (heatTick > 0.5 && currentCycle === skipCycle) {
-					if (game.calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
+					if (calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
 						if (game.bld.getBuildingExt('aiCore').meta.effects["aiLevel"] < 15 || game.getEffect('aiCoreProductivness')) {
-							radiate = 50;
-							if (heatNow > heatMax - 1200 * heatTick) {
+							radiate = 50 - cycleYear;
+							if (heatNow > heatMax - 1e3 * heatTick || (heatNow > heatMax * 0.5 && !currentSeason)) {
 								break TimeSkip;
 							}
 						}
@@ -1404,10 +1408,10 @@ window.run = function() {
 				if (currentCycle === 5 && optItem.timeSkip[currentCycle] && prestige && game["nummon"]) {
 					// 概览 算好的当前周期收入
 					let unobtainiumTick = game["nummon"]['getTradeTC']();
-					let cycleFestival = game.calendar.cycleEffectsFestival({
+					let cycleFestival = calendar.cycleEffectsFestival({
 						unobtainium: 1
 					})['unobtainium'];
-					let cycleEffects = game.calendar.cycleEffectsBasics({
+					let cycleEffects = calendar.cycleEffectsBasics({
 						unobtainiumPerTickSpace: 1
 					}, "moonOutpost")['unobtainiumPerTickSpace'];
 					// 平衡周期
@@ -1428,13 +1432,12 @@ window.run = function() {
 					return shatter.controller.updateEnabled(shatter.model);
 				}
 
-				let season = game.calendar.season;
 				let wait = optItem.timeSkip.wait;
 				// 自动停留红月
 				let stopMoon = shatterTCGain * (1 + game.getEffect("rrRatio")) <= 1 && wait !== false && currentCycle === 5;
-				if (!optItem.timeSkip[game.calendar.seasons[season].name] || stopMoon) {
+				if (!optItem.timeSkip[calendar.seasons[currentSeason].name] || stopMoon) {
 					if (wait === 1 && currentCycle === 5) {
-						optItem.timeSkip.wait = game.calendar.year;
+						optItem.timeSkip.wait = currentYear;
 						break TimeSkip;
 					} else if (wait === false || wait === currentYear || wait === 1) {
 						break TimeSkip;
@@ -1454,9 +1457,7 @@ window.run = function() {
 					}
 				}
 
-				let yearsPerCycle = game.calendar.yearsPerCycle;
-				let remainingYearsCurrentCycle = yearsPerCycle - game.calendar.cycleYear;
-				let cyclesPerEra = game.calendar.cyclesPerEra;
+				let remainingYearsCurrentCycle = yearsPerCycle - cycleYear;
 				let canSkip = Math.min(Math.floor((heatMax - heatNow) / factor), timeSkipMaximum);
 				let willSkip = 0;
 				if (canSkip < remainingYearsCurrentCycle) {
@@ -1493,7 +1494,7 @@ window.run = function() {
 						}
 					}
 
-					let beforeSkipYear = game.calendar.year;
+					let beforeSkipYear =  currentYear;
 					let beforeSkipShatter = game.time.testShatter;
 					if (willSkip > 1 && willSkip < 51) {
 						game.time.testShatter = 2;
@@ -1502,7 +1503,7 @@ window.run = function() {
 					this.setTrait();
 					shatter.controller.doShatterAmt(shatter.model, willSkip);
 					game.time.testShatter = beforeSkipShatter;
-					willSkip = game.calendar.year - beforeSkipYear;
+					willSkip = calendar.year - beforeSkipYear;
 					if (!willSkip) {return;}
 					storeForSummary('timeCrystal', timeCrystalValue - resMap['timeCrystal'].value, 'resConsume');
 					refreshRequired = -100;
@@ -8922,7 +8923,7 @@ window.run = function() {
 				autoInput.on('change', function () {
 					if (autoInput.is(':checked') && !option.auto) {
 						engine.stop(false);
-						let again = window.confirm('珂学家自动根据Cheney写的萌新指导和政策解析自动点推荐的政策\n不重置的慎用建议看百科\n注意确认后会优先自动的而不是读取的列表(挑战模式自动会取消勾选政策)\n如需想自己选政策请按取消\n\n让聪明的猫猫来帮你选择吧❤');
+						let again = window.confirm('珂学家自动根据Cheney写的萌新指导和政策解析自动点推荐的政策\n不重置的慎用建议看百科\n注意确认后会优先自动的而不是读取的列表(挑战模式自动会取消勾选政策)\n如需想自己选政策请按取消\n需要启用政策\n\n\n让聪明的猫猫来帮你选择吧❤');
 						if (options.auto.engine.enabled) {
 							engine.start(false);
 						}
@@ -10264,6 +10265,7 @@ window.run = function() {
 			clearInterval(autoOpenTime);
 		}
 	};
+	// "policy.siphoning.desc" : "死灵兽亏损为0时，契约将不再消耗死灵兽，而是消耗天角兽。如果你天角兽数量不够也还是会消耗死灵兽",
 	let autoOpenTime = setInterval(autoOpen, 1000);
 };
 
