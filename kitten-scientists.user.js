@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.204';
+	const version = 'V15.205';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1365,14 +1365,14 @@ window.run = function() {
 				let heatNow = game.time.heat;
 				if (!timeSkipMaximum) {return 0;}
 
-				let calendar = game.calendar;
-				const currentCycle = calendar.cycle;
-				const yearsPerCycle = calendar.yearsPerCycle;
-				const cyclesPerEra = calendar.cyclesPerEra;
-				const cycleYear = calendar.cycleYear;
-				const currentYear = calendar.year;
-				const currentDay = calendar.day;
-				const currentSeason = calendar.season;
+				let Calendar = game.calendar;
+				const currentCycle = Calendar.cycle;
+				const yearsPerCycle = Calendar.yearsPerCycle;
+				const cyclesPerEra = Calendar.cyclesPerEra;
+				const cycleYear = Calendar.cycleYear;
+				const currentYear = Calendar.year;
+				const currentDay = Calendar.day;
+				const currentSeason = Calendar.season;
 
 				let factor = game.challenges.getChallenge("1000Years").researched ? 5 : 10;
 				let shatterTCGain = game.getEffect("shatterTCGain");
@@ -1384,7 +1384,7 @@ window.run = function() {
 					radiate += 1;
 				}
 				if (heatTick > 0.5 && currentCycle === skipCycle) {
-					if (calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
+					if (Calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
 						if (game.bld.getBuildingExt('aiCore').meta.effects["aiLevel"] < 15 || game.getEffect('aiCoreProductivness')) {
 							radiate = 50 - cycleYear;
 							if (heatNow > heatMax - 1e3 * heatTick || (heatNow > heatMax * 0.5 && !currentSeason)) {
@@ -1408,10 +1408,10 @@ window.run = function() {
 				if (currentCycle === 5 && optItem.timeSkip[currentCycle] && prestige && game["nummon"]) {
 					// 概览 算好的当前周期收入
 					let unobtainiumTick = game["nummon"]['getTradeTC']();
-					let cycleFestival = calendar.cycleEffectsFestival({
+					let cycleFestival = Calendar.cycleEffectsFestival({
 						unobtainium: 1
 					})['unobtainium'];
-					let cycleEffects = calendar.cycleEffectsBasics({
+					let cycleEffects = Calendar.cycleEffectsBasics({
 						unobtainiumPerTickSpace: 1
 					}, "moonOutpost")['unobtainiumPerTickSpace'];
 					// 平衡周期
@@ -1435,7 +1435,7 @@ window.run = function() {
 				let wait = optItem.timeSkip.wait;
 				// 自动停留红月
 				let stopMoon = shatterTCGain * (1 + game.getEffect("rrRatio")) <= 1 && wait !== false && currentCycle === 5;
-				if (!optItem.timeSkip[calendar.seasons[currentSeason].name] || stopMoon) {
+				if (!optItem.timeSkip[Calendar.seasons[currentSeason].name] || stopMoon) {
 					if (wait === 1 && currentCycle === 5) {
 						optItem.timeSkip.wait = currentYear;
 						break TimeSkip;
@@ -1503,7 +1503,7 @@ window.run = function() {
 					this.setTrait();
 					shatter.controller.doShatterAmt(shatter.model, willSkip);
 					game.time.testShatter = beforeSkipShatter;
-					willSkip = calendar.year - beforeSkipYear;
+					willSkip = Calendar.year - beforeSkipYear;
 					if (!willSkip) {return;}
 					storeForSummary('timeCrystal', timeCrystalValue - resMap['timeCrystal'].value, 'resConsume');
 					refreshRequired = -100;
