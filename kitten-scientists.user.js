@@ -332,7 +332,7 @@ window.run = function() {
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '征服海对面那稀树草原斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
-			'summary.auto.shipLess': '你说的对，但这就是贸易船，25星图 150金属板 100脚手架，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，还能增加贸易获得钛数量，缺钛啊啊啊啊啊啊',
+			'summary.auto.shipLess': '你说的对，但是这就是贸易船，25星图 150金属板 100脚手架的制作价格，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，还能增加贸易获得钛数量，缺钛啊啊啊啊啊啊',
 			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>要不要让喵喵告诉你~贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，中间忘了，后面忘了，大概要偷用亿点点的钛',
@@ -345,7 +345,7 @@ window.run = function() {
 			'summary.auto.steelSaw': '小喵存着钢给木材厂换精钢锯，更加锋利了喵',
 			'summary.auto.templars': '没有足够的黄金和铁产量拿什么祷告圣殿骑士呢',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
-			'summary.auto.titaniumGeodesy': '小猫打败斑马的最后一步，存着钛点测地学。',
+			'summary.auto.titaniumGeodesy': '小猫打败斑马的最后一步，存着钛和星图点测地学，猫猫要进化啦。',
 			'summary.auto.tradepost': '祷告太阳革命前，交易所的建设开摆 ≧ω≦',
 			'summary.auto.tear': '小喵都做了什么?! 独角兽的眼泪加小猫幸福度的捏',
 			'summary.auto.unicorn': '最佳独角兽建筑：{0}',
@@ -1383,11 +1383,11 @@ window.run = function() {
 				if (heatNow < 10 * 5 * heatTick && radiate >= 1) {
 					radiate += 1;
 				}
-				if (heatTick > 0.5 && currentCycle === skipCycle) {
+				if (heatTick > 0.5 && currentCycle === skipCycle && game.getEffect('voidResonance')) {
 					if (Calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
 						if (game.bld.getBuildingExt('aiCore').meta.effects["aiLevel"] < 15 || game.getEffect('aiCoreProductivness')) {
-							radiate = 50 - cycleYear;
-							if (heatNow > heatMax - 1e3 * heatTick && !currentSeason) {
+							radiate = (!skipCycle) ? 50 - cycleYear : 5;
+							if (heatNow > heatMax * 0.1 && !currentSeason && currentDay > 10 || heatNow > heatMax - 1e3 * heatTick) {
 								break TimeSkip;
 							}
 						}
@@ -3936,7 +3936,7 @@ window.run = function() {
 									$('#toggle-blackPyramid').click();
 								}
 								if (blackSky) {
-									i18nData['zh']['summary.auto.one1000years'] += '<br>猫猫贴心提示煅烧炉和卫星价格变了具体可以参考百科挑战';
+									i18nData['zh']['summary.auto.one1000years'] = '聪明的小猫自动勾上了长挂所需要的选项<br>猫猫贴心提示煅烧炉和卫星价格变了具体可以参考百科挑战';
 								}
 								msgSummary('one1000years', false, 'noFilter');
 							}
@@ -4413,7 +4413,7 @@ window.run = function() {
 						minTrades = Math.floor(0.3 * minTrades);
 					}
 				}
-				if (name === 'sharks' && goldTrigger >= 0.98) {minTrades = Math.floor(0.5 * minTrades);}
+				if (name === 'sharks' && goldTrigger >= 0.98 && !challenge) {minTrades = Math.floor(0.5 * minTrades);}
 				if (!tradesDone[name]) {tradesDone[name] = 0;}
 				tradesDone[name] += minTrades;
 				maxTrades -= minTrades;
@@ -5958,7 +5958,7 @@ window.run = function() {
 						trigger = 0.9;
 					}
 					if (!value && resMap['slab'].value > 3) {force = true;}
-					if (name === 'slab') {
+					if (name === 'slab' && !priceRatio) {
 						if (!resMap['concrate'].unlocked) {
 							if (resMap['beam'].value > 25 && !value) {
 								autoMax = 1;
@@ -5969,7 +5969,7 @@ window.run = function() {
 								force = true;
 							}
 						}
-						if (!priceRatio && geodesy && !game.ironWill && resMap['kittens'].maxValue < 135) {
+						if (geodesy && !game.ironWill && resMap['kittens'].maxValue < 135) {
 							if (Workshop.get("concreteHuts").researched && resPercent('minerals') < 0.99) {
 								let mansion = game.bld.getBuildingExt('mansion').meta;
 								let mansionRatio = Math.pow(mansion.priceRatio + priceRatio, mansion.val);
@@ -7542,6 +7542,7 @@ window.run = function() {
 				doTrade = doTrade && unlocked && resMap['titanium'].value > 5e3 * solar;
 			}
 			if (name === 'sharks') {
+				if (!resMap['furs'].value && resPercent('gold') > 0.9 && race.embassyLevel > 9 && resMap['manuscript'].value) {doTrade = true;}
 				if (game.prestige.getParagonProductionRatio() > 2 && !resMap['titanium'].value && resMap['furs'].value) {return false;}
 			}
 			return doTrade || (cost <= profit && prof);
@@ -10140,6 +10141,9 @@ window.run = function() {
 				// 提示节日开启
 				if (options.auto.options.enabled) {
 					activity('小喵杂项已开启~智慧喵喵<br>1. 喵喵自动节日已开启<br>2. 喵喵冬季最后一天的能源管理<br>3. 喵喵自动打开因资源耗尽关闭的工业建筑');
+					if (game.stats.statGroups[0].group[2].val < 1000) {
+						options.auto.filter.items.miscFilter.enabled = false;
+					}
 				}
 				if (game.getEffect('priceRatio') > -0.03 && Religion.transcendenceTier < 4) {
 					msgSummary('ksHelp', false, 'noFilter');
