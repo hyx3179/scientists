@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.206';
+	const version = 'V15.208';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -190,7 +190,7 @@ window.run = function() {
 
 			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了~♪',
 			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料~为了发展果咩捏',
-			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ! ε=ε=ε=ε=ε=ε=┌(;> ω <)┘',
+			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ! ε=ε=ε=ε=ε=ε=╭(;> ω <)ﾉ',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
 			'craft.unlimited': '触发资源：{1}{0}',
@@ -277,7 +277,8 @@ window.run = function() {
 			'summary.auto.biolab': '小猫为了节省合金发展，轨道测地学前不建造，太空制造前生物实验室优先级降低',
 			'summary.auto.blackCore': '活祭之猫的黑之核心不是特别适合呐',
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
-			'summary.auto.biology': '<s>哎呦，只因你镁有钛，</s>跳过困难的生物学',
+			//'summary.auto.biology': '<s>哎呦，只因你镁有钛，</s>跳过困难的生物学',
+			'summary.auto.biology': '喵星人不需要愚蠢的生物学 ฅ(๑˙o˙๑)ฅ ',
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>科学和工坊升级换到科学家领袖，比如神学的科学价格变为19K等等',
@@ -2293,7 +2294,7 @@ window.run = function() {
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep || fPraise) {
 				let msgPraise = praiseLess && !forceStep && rate < 0.98 && !timeSkipAdore;
-				let times = (transcendenceTier < 5) ? 1e5 : 8e5;
+				let times = (transcendenceTier < 4) ? 1e5 : 9e5;
 				if (msgPraise && (Date.now() > option.autoPraise.time + times || !activitySummary.other['praise.msg']) && solarRatio) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
@@ -5928,7 +5929,7 @@ window.run = function() {
 						msgSummary('shipGeodesy');
 					}
 					if (value < forceShipVal && ratio > 3) {
-						if (value && (Date.now() > Craft.shipTime + 16e5 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24) {
+						if (value && (Date.now() > Craft.shipTime + 2e6 || !activitySummary.other['auto.ship']) && resMap['starchart'].value > 24) {
 							Craft.shipTime = Date.now();
 							let valueExt = game.getDisplayValueExt(forceShipVal);
 							activity(i18n('summary.auto.ship', [valueExt]));
@@ -10141,7 +10142,7 @@ window.run = function() {
 				// 提示节日开启
 				if (options.auto.options.enabled) {
 					activity('小喵杂项已开启~智慧喵喵<br>1. 喵喵自动节日已开启<br>2. 喵喵冬季最后一天的能源管理<br>3. 喵喵自动打开因资源耗尽关闭的工业建筑');
-					if (game.stats.statGroups[0].group[2].val < 1000) {
+					if (game.stats.statGroups[0].group[2].val < 1e3) {
 						options.auto.filter.items.miscFilter.enabled = false;
 					}
 				}
