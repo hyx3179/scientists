@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.208';
+	const version = 'V15.209';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -1387,7 +1387,10 @@ window.run = function() {
 				if (heatTick > 0.5 && currentCycle === skipCycle && game.getEffect('voidResonance')) {
 					if (Calendar.trueYear() > 700 && shatterTCGain * 100 > 15 + 2 * factor / 5) {
 						if (game.bld.getBuildingExt('aiCore').meta.effects["aiLevel"] < 15 || game.getEffect('aiCoreProductivness')) {
-							radiate = (!skipCycle) ? 50 - cycleYear : 5;
+							radiate = 5;
+							if (!skipCycle) {
+								radiate = ((resPercent('unobtainium') > 0.6) ? 25 : 50) - cycleYear;
+							}
 							if (heatNow > heatMax * 0.1 && !currentSeason && currentDay > 10 || heatNow > heatMax - 1e3 * heatTick) {
 								break TimeSkip;
 							}
@@ -3881,33 +3884,38 @@ window.run = function() {
 						if (aiCoreMeta.effects["aiLevel"] > 13 && !game.getEffect('aiCoreProductivness')) {
 							factor = 1;
 						}
-						// todo
-						if (game.religion.getZU("blackPyramid").on && !game.space.getBuilding("entangler").effects["hashRateLevel"]) {
-							builds['spaceBeacon'].max = 20;
+						if (game.religion.getZU("blackPyramid").on) {
+							if (!game.space.getBuilding("entangler").effects["hashRateLevel"]) {
+								builds['spaceBeacon'].max = 20;
+							}
 						}
 						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
-						if (Prod < Cons + 100 && game.getEffect('relicRefineRatio') > 20) {
-							// 构造体
-							builds['tectonic'].enabled = true;
-							// 熔火之心
-							builds['moltenCore'].enabled = true;
-							if (game.calendar.year > 1e5) {
-								// HR收割机
-								builds['hrHarvester'].enabled = true;
+						if (game.getEffect('relicRefineRatio') > 20) {
+							if (Prod < Cons + 100) {
+								// 构造体
+								builds['tectonic'].enabled = true;
+								// 熔火之心
+								builds['moltenCore'].enabled = true;
+								if (game.calendar.year > 1e5) {
+									// HR收割机
+									builds['hrHarvester'].enabled = true;
+								}
 							}
+							builds['sunforge'].enabled = true;
 						}
 					} else {
 						// 长挂 自动勾选
 						if (game.calendar.year < 1000) {
 							let years = game.challenges.getChallenge('1000Years');
 							if (!years.on && years.active) {
-								if (!options.auto.space.items['containmentChamber'].enabled) {
+								let Auto = options.auto;
+								let spaceItems = Auto.space.items;
+								if (!spaceItems['containmentChamber'].enabled) {
 									$('#toggle-containmentChamber').click();
 								}
-								if (!options.auto.space.items['heatsink'].enabled) {
+								if (!spaceItems['heatsink'].enabled) {
 									$('#toggle-heatsink').click();
 								}
-								let Auto = options.auto;
 								let timeCtrl = Auto.timeCtrl;
 								if (!timeCtrl.enabled) {
 									$('#toggle-timeCtrl').click();
