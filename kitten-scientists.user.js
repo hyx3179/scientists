@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.209';
+	const version = 'V15.210';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -296,7 +296,7 @@ window.run = function() {
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
 			'summary.auto.hunterLess': '想致富，先砍树，打猎什么的放一放',
 			'summary.auto.ironFactory': '如果钢的合成数量偏少，推荐关闭煅烧炉的自动化',
-			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋 (ฅ´ω`ฅ)',
+			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋<br>内有恶猫-请勿靠近ヾ(=`ω´=)ノ',
 			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂，现在还不可以哦',
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
@@ -306,7 +306,7 @@ window.run = function() {
 			'summary.auto.ksHelp5': '珂学家的日志过滤需勾选过滤，注意游戏的为不勾选才是过滤日志',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：只要不挂在前台请务必打开后台珂学家<br>最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
-			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用，氪金就能变强',
+			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用，氪金就能变强(ฅ´ω`ฅ)',
 			'summary.auto.leaderPriest': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
 			'summary.auto.logHouse': '为了喵喵的幸福，需要更多剧场来上演[所有的狗去天堂]的节目  ฅ( ̳• ◡ • ̳)ฅ',
 			'summary.auto.logHouseMineral': '存点矿物点木屋',
@@ -314,7 +314,7 @@ window.run = function() {
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱才是猫猫的最爱',
-			'summary.auto.miao': '喵~<br>喵喵~<br>喵喵喵~<br>喵喵喵喵~<br>哎嘿，保留10个版本',
+			'summary.auto.miao': '选珂学家就对惹',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
@@ -6939,9 +6939,9 @@ window.run = function() {
 						}
 					}
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && starchart < 1e5 && satnav) ? 0.3 : limRat;
-					limRat = (manufacture || resPercent('titanium') > 0.7 || shipValue > 1e5) ? 0.05 : limRat;
+					limRat = (manufacture || resPercent('titanium') > 0.7 || shipValue > 5e4) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && starchart < 1e4) ? 0 : limRat;
-					limRat = (shipValue > Math.max(400, 0.5 * titaniumMax)) ? 0 : limRat;
+					limRat = (shipValue > Math.max(400, 1e-4 * titaniumMax)) ? 0 : limRat;
 					break;
 				}
 				case 'plate': {
@@ -10255,6 +10255,12 @@ window.run = function() {
 
 	saveToKittenStorage();
 
+	if (Math.random() > 0.9) {
+		for (let i = 0; i < 15; i++) {
+			let msg = game.msg(i + '.' + $I("ui.loading.msg." + i));
+			$(msg.span).css('color', "#e0db38");
+		}
+	}
 	const autoOpen = function () {
 		if (!options.auto.engine.enabled && options.auto.options.items.autoScientists.enabled) {
 			let countdown = (options.countdown);
