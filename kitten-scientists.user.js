@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.210';
+	const version = 'V15.211';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -282,6 +282,7 @@ window.run = function() {
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>科学和工坊升级换到科学家领袖，比如神学的科学价格变为19K等等',
+			'summary.auto.cheney': '如需没网络也能离线打开珂学家，可以点击左上角 ML 右边第一个 C 进入Cheney的备用站,该网站离线可以用珂学家',
 			'summary.auto.craftCatnip': '呐呐呐，你也不想让寒冬时小喵饿死吧？喵粮上交',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
 			'summary.auto.crossbow': '铁当然是要来用来改良弩，喵用喵说好',
@@ -2616,7 +2617,7 @@ window.run = function() {
 								// if (Production < 1.75 || revolutionRatio > 1) {break;}
 							// falls through
 							case 'oilProcessing':
-								if (!nanotechnology && titanium < 10e3 || !orbitalGeodesy) {continue;}
+								if (!nanotechnology && titanium < 1e4 || (game.science.get('sattelites').researched && !orbitalGeodesy)) {continue;}
 								break;
 							case 'drama': {
 								if (resMap['manpower'].perTickCached < 14 && parchment.value < 1e4 + 4e3 * !Production && !resMap['eludium'].value) {
@@ -3501,7 +3502,7 @@ window.run = function() {
 				// 庙塔
 				let zigguratM = game.bld.getBuildingExt('ziggurat').meta;
 				if (zigguratM.val > 8 + vitruvianFeline && !resMap['alicorn'].unlocked) {
-					if (resMap['blueprint'].value < (5 + revolutionRatio - 1.5 * spaceManufacturing + 1 * !orbitalGeodesy) * Math.pow(zigguratM.priceRatio + priceRatio, zigguratM.val)) {
+					if (resMap['blueprint'].value < (5 + 2 * revolutionRatio - 1.5 * spaceManufacturing + 1 * !orbitalGeodesy) * Math.pow(zigguratM.priceRatio + priceRatio, zigguratM.val)) {
 						items['ziggurat'].max = 0;
 					} else {
 						items['ziggurat'].max = zigguratM.val + 1;
@@ -10144,7 +10145,7 @@ window.run = function() {
 				setTimeout(()=>{
 					if (Engine.enabled) {
 						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
-						message('如需没网络也能离线打开珂学家，可以点击左上角 ML 右边第一个 C 进入Cheney的备用站,该网站离线可以用珂学家');
+						msgSummary('cheney');
 					}
 				}, 4000);
 				// 提示节日开启
