@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.211';
+	const version = 'V15.212';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -330,7 +330,7 @@ window.run = function() {
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
 			'summary.auto.rotaryKiln': '猫猫看上了<s>回转炉</s>? 减肥旋转滚轮!',
-			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血，呼呼外层空间条约',
+			'summary.auto.sattelite': '小猫足够虔诚，于是会先造卫星回回血，呼呼外层空间条约<br>贸易才是猫猫的最爱',
 			'summary.auto.scholar': '科学产量可能有点不够，学者猫咪数量上限增加~',
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '征服海对面那稀树草原斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
@@ -806,7 +806,7 @@ window.run = function() {
 					promote:            {enabled: true,                    misc: true, label: i18n('option.promote')},
 					autofeed:           {enabled: true,                    misc: true, label: i18n('option.autofeed')},
 					observe:            {enabled: true,                    misc: true, label: i18n('option.observe')},
-					filterGame:         {enabled: true,  subTrigger: 200,  misc: true, label: '游戏日志过滤'},
+					filterGame:         {enabled: true,  subTrigger: 350,  misc: true, label: '游戏日志过滤'},
 					crypto:             {enabled: false, subTrigger: 1e6,  misc: true, label: i18n('option.crypto')},
 					fixCry:             {enabled: false,                   misc: true, label: i18n('option.fix.cry')},
 					//_steamworks:        {enabled: true,                   misc: true, label: i18n('option.steamworks')},
@@ -3859,7 +3859,9 @@ window.run = function() {
 					itemHeatsink.max = heatsink + 1;
 					itemChamber.max = containmentChamber + 1;
 					let ChamberCons = Math.max(50 * (1 + heatsink * 0.01), 5 * containmentChamber);
-					let energyExtra = Prod < Cons + ChamberCons + 2;
+
+					let Year = game.calendar.year;
+					let energyExtra = Prod < Cons + ChamberCons + Math.min(300, Math.sqrt(Year));
 					let sunCycle = game.prestige.getPerk("numerology").researched && (game.calendar.cycle === 3 || game.calendar.cycle === 1);
 					if (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber + 20 > heatsink && containmentChamber > 14) {
 						itemChamber.enabled = false;
@@ -3897,7 +3899,7 @@ window.run = function() {
 								builds['tectonic'].enabled = true;
 								// 熔火之心
 								builds['moltenCore'].enabled = true;
-								if (game.calendar.year > 1e5) {
+								if (Year > 1e5) {
 									// HR收割机
 									builds['hrHarvester'].enabled = true;
 								}
@@ -3906,7 +3908,7 @@ window.run = function() {
 						}
 					} else {
 						// 长挂 自动勾选
-						if (game.calendar.year < 1000) {
+						if (Year < 1e3) {
 							let years = game.challenges.getChallenge('1000Years');
 							if (!years.on && years.active) {
 								let Auto = options.auto;
@@ -3991,7 +3993,7 @@ window.run = function() {
 				}
 				if (sattelite < 3 + 2 * (solarRevolution > 9.7) && game.getEffect("calcinerRatio") > 2 && keepStar || !sattelite) {
 					buildManager.build("sattelite", 1);
-					msgSummary('sattelite');
+					msgSummary('sattelite', false, 'noFilter');
 				}
 				if (blackOrSolar) {
 					if (!blackSky && game.space.getBuilding('researchVessel').val < 1 && builds.sattelite.enabled) {
@@ -6942,7 +6944,7 @@ window.run = function() {
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && starchart < 1e5 && satnav) ? 0.3 : limRat;
 					limRat = (manufacture || resPercent('titanium') > 0.7 || shipValue > 5e4) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && starchart < 1e4) ? 0 : limRat;
-					limRat = (shipValue > Math.max(400, 1e-4 * titaniumMax)) ? 0 : limRat;
+					limRat = (shipValue > Math.max(2e3, 1e-4 * titaniumMax)) ? 0 : limRat;
 					break;
 				}
 				case 'plate': {
