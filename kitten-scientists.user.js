@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.212';
+	const version = 'V15.213';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -57,7 +57,7 @@ window.run = function() {
 			'filter.misc': '喵喵喵',
 
 			'dispose.necrocorn': '小猫帮你处理掉了影响效率的多余死灵兽',
-			'act.feed': '小猫向利维坦献上祭品。古神很高兴',
+			'act.feed': '小猫向利维坦献上死灵兽。古神更喜欢喵喵了',
 			'blackcoin.buy': '小猫花掉 {1} 遗物，加仓了 {0} 黑币',
 			'blackcoin.sell': '小猫抛售 {1} 黑币，套现了 {0} 遗物',
 			'act.observe': '小猫观测了天文现象{0}',
@@ -326,7 +326,7 @@ window.run = function() {
 			'summary.auto.parchment': '还未感悟到地质学，小猫咪用不了那么多毛皮，毛皮存起来惹',
 			'summary.auto.pasture': '喵喵喵嫌弃了牧场，木材还是用来发展的好（真的是最后1个了 Ծ ̮ Ծ',
 			'summary.auto.physics': '艺术猫咪觉得物理学救不了猫咪',
-			'summary.auto.railgun': '喵喵想用电磁炮了，就多了亿点点猎人',
+			'summary.auto.railgun': '喵喵想用喵畜无害的电磁炮了，就多了亿点点猎人',
 			'summary.auto.religion': '大教堂前继续限制神殿和交易所',
 			'summary.auto.reinforcedSaw': '用铁给木材厂升级换成加强锯，更加锋利的捏',
 			'summary.auto.rotaryKiln': '猫猫看上了<s>回转炉</s>? 减肥旋转滚轮!',
@@ -4706,7 +4706,7 @@ window.run = function() {
 				}
 				let accelerator = game.bld.getBuildingExt('accelerator').meta;
 				if (accelerator.on) {
-					accelerator.on -= Math.ceil(accelerator.on * 0.5);
+					accelerator.on = 0;
 					msg('accelerator', 1);
 				}
 				if (game.getEffect('antimatterProduction')) {
@@ -6936,7 +6936,7 @@ window.run = function() {
 						let factor = (25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + 2.2 + solarFactor - 2.2 * (solar > 2)) * shipLimit;
 						// console.log((25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + (1 + (unobtainium > 0) * 3) * (solar < 0.8) + 2.2) * shipLimit)
 						let noReset = game.calendar.year > 400 && reactorVal;
-						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 1000) && starchart < 1500) {
+						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 500) && starchart < 1500) {
 							limRat = 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance || noReset) + (unobtainium > 0) * 0.3;
 							msgSummary('shipLess');
 						}
