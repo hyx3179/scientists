@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.213';
+	const version = 'V15.214';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -265,6 +265,7 @@ window.run = function() {
 			'act.fix.cry': '小猫修复了 {0} 个冷冻仓',
 			'summary.fix.cry': '修复了 {0} 个冷冻仓',
 
+			// auto: {},
 			// 'summary.auto.newYear': 'Cheney祝你新年快乐🏮🧨🧧',
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教，有新东西',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
@@ -281,7 +282,7 @@ window.run = function() {
 			'summary.auto.biology': '喵星人不需要愚蠢的生物学 ฅ(๑˙o˙๑)ฅ ',
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
-			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>科学和工坊升级换到科学家领袖，比如神学的科学价格变为19K等等',
+			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>研究科学和工坊升级换到科学家领袖，降低科学的价格等等',
 			'summary.auto.cheney': '如需没网络也能离线打开珂学家，可以点击左上角 ML 右边第一个 C 进入Cheney的备用站,该网站离线可以用珂学家',
 			'summary.auto.craftCatnip': '呐呐呐，你也不想让寒冬时小喵饿死吧？喵粮上交',
 			'summary.auto.craftLimited': '每次运行都会合成工艺(即无视触发条件)，数量AI自动。挂机发展速度会远大于触发条件的。',
@@ -295,7 +296,7 @@ window.run = function() {
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
-			'summary.auto.hunterLess': '想致富，先砍树，打猎什么的放一放',
+			'summary.auto.hunterLess': '打猎什么的放一放,想致富，先砍树',
 			'summary.auto.ironFactory': '如果钢的合成数量偏少，推荐关闭煅烧炉的自动化',
 			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋<br>内有恶猫-请勿靠近ヾ(=`ω´=)ノ',
 			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂，现在还不可以哦',
@@ -316,6 +317,7 @@ window.run = function() {
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱才是猫猫的最爱',
 			'summary.auto.miao': '选珂学家就对惹',
+			'summary.auto.miner': '抓一直忙碌的猫猫去挖矿',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
@@ -337,6 +339,7 @@ window.run = function() {
 			'summary.auto.shipLess': '你说的对，但是这就是贸易船，25星图 150金属板 100脚手架的制作价格，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，还能增加贸易获得钛数量，缺钛啊啊啊啊啊啊',
 			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>要不要让喵喵告诉你~贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
+			'summary.auto.spaceDune': '喵喵说:星图致富重要之路~跳过沙丘去碧池星探索',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，中间忘了，后面忘了，大概要偷用亿点点的钛',
 			'summary.auto.spaceStation': '黑暗天空会缺电，小猫贴心替你点了关闭空间站(记得删除时间水晶库存)',
 			'summary.auto.spaceStationStar': '小猫咪再等等亿点点时间就会造空间站了，小猫是懂星图的',
@@ -1642,13 +1645,20 @@ window.run = function() {
 				let minerItem = distributeItem.miner;
 				if (minerItem.enabled && woodcutter > 1 && kittenLength) {
 					let miner = Village.jobs[4];
+					let minerMsg;
 					if (miner.unlocked && !miner.value) {
 						for (let i = kittenLength - 1; i > 0; i--) {
 							let kitten = Kittens[i];
 							if (kitten.isLeader || kitten.job !== 'woodcutter') {continue;}
 							Village.unassignJob(kitten);
 							freeKittens = Village.getFreeKittens();
+							minerMsg = true;
 							break;
+						}
+						if (minerMsg) {
+							let div = game.msg($I("village.job.miner.flavor"), null, null, true);
+							$(div.span).css('color', "#ff589c");
+							msgSummary('miner');
 						}
 					}
 				}
@@ -1719,6 +1729,10 @@ window.run = function() {
 
 					if (manpowerJobRatio < 0.5) {
 						maxKS = (Village.maxKittens > 10) ? 2 : 0;
+						if (!activitySummary.other['auto.hunterLess']) {
+							let div = game.msg($I("village.woodcutter.flavor"), null, null, true);
+							$(div.span).css('color', "#ff589c");
+						}
 						msgSummary('hunterLess');
 					} else if (navigation) {
 						maxKS = Math.round(maxKS * 0.42);
@@ -1801,8 +1815,8 @@ window.run = function() {
 					} else if (moreScholar > 0.28) {
 						maxKS = Math.max(maxKS, Math.min(23, (game.getEffect('calcinerRatio') > 2.6) * 3 + 11 + revolution + tt * (game.getEffect('priceRatio') < -0.07) + tt * scholar));
 						if (val > 8 && val < maxKS) {
-							let msg = msgSummary('scholar');
-							if (!msg) {
+							msgSummary('scholar');
+							if (!activitySummary.other['auto.scholar']) {
 								$("#set-scholar-max")[0].innerText = i18n('ui.max', [Math.ceil(maxKS)]);
 							}
 						}
@@ -2204,7 +2218,7 @@ window.run = function() {
 				// Adore
 				let adoreFactor = (!Religion.faithRatio || tt);
 				// 期望太阳革命加成赞美群星
-				let paragonFactor = (production < 2) ? 1 + 0.2 + 0.1 * (tt > 6) + (0.5 + 0.1 * Math.log2(solarRLimit)) * (solarRLimit > 0)
+				let paragonFactor = (production < 2) ? 1 + 0.25 + 0.1 * (tt > 6) + (0.5 + 0.1 * Math.log2(solarRLimit)) * (solarRLimit > 0)
 					: 1 + 0.005 * tt * tt * (tt < 11);
 				let transformTier = 0.5 * Math.log(Religion.faithRatio) + 3.45;
 				let factor = (adoreFactor < 11 || rrVal) ? 1.3 + paragonFactor * Math.min(0.6, tt * 0.06) + Math.log1p(solarRLimit) : 1.32;
@@ -2965,8 +2979,8 @@ window.run = function() {
 				let subTrigger = upgrades.missions.subTrigger;
 				let missionsLength = game.space.meta[0].meta.length;
 				let manu = game.workshop.get('spaceManufacturing').researched;
+				let chat = resMap['starchart'].value;
 				if (subTrigger === 4) {
-					let chat = resMap['starchart'].value;
 					if (chat < 4e5) {
 						if (game.challenges.anyChallengeActive()) {
 							subTrigger = 5;
@@ -2975,7 +2989,7 @@ window.run = function() {
 							subTrigger = 2;
 						}
 					}
-					if (resMap['antimatter'].value > 60 ||chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
+					if (resMap['antimatter'].value > 60 || chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
 					|| resMap['alicorn'].value > 2) {
 						subTrigger = 7;
 						if (resMap['relic'].value > 26) {subTrigger = 12;}
@@ -2999,7 +3013,12 @@ window.run = function() {
 						break;
 					}
 
-					if (!missions[3].val && i === 2 && subTrigger !== 3 && !game.challenges.isActive('blackSky')) {continue;}
+					if (!missions[3].val && i === 2 && subTrigger !== 3 && !game.challenges.isActive('blackSky')) {
+						if (chat > 1000) {
+							msgSummary('spaceDune');
+						}
+						continue;
+					}
 
 					if (Btn.model.metadata.val || Btn.model.metadata.on) {continue;}
 					prices = Btn.model.prices;
@@ -4688,7 +4707,7 @@ window.run = function() {
 			}
 			// 缺电
 			if (Prod && Prod < game.resPool.energyCons) {
-				if (biofuel && biolab.on) {
+				if (biofuel) {
 					let msg = '冬季产出电:' + game.getDisplayValueExt(Prod) + '，消耗电:' + game.getDisplayValueExt(game.resPool.energyCons) + '，小猫担心电不够并关闭了';
 					let number = biolab.on;
 					iactivity('summary.biolab.test', [msg + number]);
@@ -6684,7 +6703,9 @@ window.run = function() {
 						let titaniumVal = Titanium.value;
 						let val = resMap[name].value;
 						let steelAxe = this.getUnResearched('steelAxe') && resMap['coal'].value > 3000;
-						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 29 || val > 10)) {msgForStock(75, 'steelAxe', name);}
+						if (steelAxe && !iw && (game.bld.getBuildingExt('lumberMill').meta.val > 29 || val > 10)) {
+							msgForStock(75, 'steelAxe', name);
+						}
 						// 精钢锯
 						if (this.getUnResearched('steelSaw') && val > 250 && !cache.stocks['titanium'] && resMap['science'].maxValue > 50e3 && kittens < 85) {
 							msgForStock(750, 'steelSaw', name);
@@ -6934,9 +6955,8 @@ window.run = function() {
 						let unobtainium = resMap['unobtainium'].perTickCached;
 						let solarFactor = (solar < 0.8) ? 1 + (unobtainium > 0) * 3 : 1.2 * (shipValue < 400);
 						let factor = (25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + 2.2 + solarFactor - 2.2 * (solar > 2)) * shipLimit;
-						// console.log((25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + (1 + (unobtainium > 0) * 3) * (solar < 0.8) + 2.2) * shipLimit)
 						let noReset = game.calendar.year > 400 && reactorVal;
-						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 500) && starchart < 1500) {
+						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 500 - solar * 25) && starchart < 1500) {
 							limRat = 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance || noReset) + (unobtainium > 0) * 0.3;
 							msgSummary('shipLess');
 						}
@@ -10258,12 +10278,7 @@ window.run = function() {
 
 	saveToKittenStorage();
 
-	if (Math.random() > 0.9) {
-		for (let i = 0; i < 15; i++) {
-			let msg = game.msg(i + '.' + $I("ui.loading.msg." + i));
-			$(msg.span).css('color', "#e0db38");
-		}
-	}
+
 	const autoOpen = function () {
 		if (!options.auto.engine.enabled && options.auto.options.items.autoScientists.enabled) {
 			let countdown = (options.countdown);
@@ -10334,6 +10349,13 @@ window.loadTest = function () {
 		window.run();
 		window.loadTest = null;
 		window.run = null;
+		// if (Math.random() > 0.9) {
+		for (let i = 0; i < 15; i++) {
+			setTimeout(function () {
+				let msg = game.msg(i + '.' + $I("ui.loading.msg." + i),'notice');
+			}, 750 * i);
+		}
+		// }
 	}
 };
 setTimeout(function () {
