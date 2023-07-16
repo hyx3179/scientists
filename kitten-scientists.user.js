@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.214';
+	const version = 'V15.215';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -295,6 +295,7 @@ window.run = function() {
 			'summary.auto.furs': '我知道你很急，但是先别急，<br>更高的制作工艺加成后，同样的毛皮会制作更多的羊皮纸',
 			'summary.auto.geologist': '黄金和煤有点缺，就多了亿点点搬砖的地质学家',
 			'summary.auto.harbor': '港口需要的金属板太多，小猫会少造亿点点(一定是斑马的阴谋',
+			'summary.auto.highCulture': '文化爆仓是游戏特色，不得不品尝',
 			'summary.auto.hunter': '未发明弩和导航学，小猫当猎人欲望降低',
 			'summary.auto.hunterLess': '打猎什么的放一放,想致富，先砍树',
 			'summary.auto.ironFactory': '如果钢的合成数量偏少，推荐关闭煅烧炉的自动化',
@@ -383,7 +384,7 @@ window.run = function() {
 			'summary.calciner': '小猫因为你工坊升级了钢铁工厂，故关闭了煅烧炉自动化（其效果铁和煤转化钢没有100%~具体右下角参考百科）（她真的好温柔，😭）',
 
 			'summary.chronocontrolOn': '小猫开启了时间操纵延长时间悖论的持续天数',
-			'summary.chronocontrolOff': '小猫关闭了时间操纵节省电力',
+			'summary.chronocontrolOff': '节省用电的喵喵关掉了时间操纵<br>哎嘿需要的时候再开，快说谢谢喵喵',
 			'summary.chronocontrol': '小猫根据时间悖论调整了 {0} 次时间操纵',
 
 			'summary.catnip': '呐，你的猫猫没有猫薄荷吸并强制分配 {0} 个农民',
@@ -2647,7 +2648,7 @@ window.run = function() {
 								if (Production > 2 && !game.getEffect('beaconRelicsPerDay') || !game.workshop.get('chronoforge').researched) {continue;}
 								break;
 							case 'terraformation':
-								if (Production > 2 && (!aqueductMeta.stage || resMap['sorrow'].maxValue < 17)) {continue;}
+								if (Production > 2 && (!aqueductMeta.stage || resMap['sorrow'].maxValue < 17) && game.getEffect('scienceMaxCompendia')) {continue;}
 								break;
 							case 'cryptotheology':
 								if (relic < 105 && resMap['antimatter'].value < 4000) {continue;}
@@ -4525,7 +4526,8 @@ window.run = function() {
 				for (let i in gameFilter) {
 					let item = items[i + 'Filter'];
 					let Filter = gameFilter[i];
-					if (!Filter.unlocked || (item && !item.enabled) || consoles[i]) {continue;}
+					if (!Filter.unlocked || consoles[i]) {continue;}
+					if (item && !item.enabled) {continue;}
 					Filter.enabled = false;
 					consoles[i] = true;
 					refreshRequired = 1;
@@ -4534,88 +4536,92 @@ window.run = function() {
 			}
 
 			AutoEmbassy:
-			if (optItem.buildEmbassies.enabled && !!game.diplomacy.races[0].embassyPrices && (game.ironWill || game.science.get('theology').researched)) {
-				let culture = resMap['culture'];
-				let cultureVal = culture.value;
-				let cultureMaxVal = culture.maxValue;
-				let cultureTri = cultureVal / cultureMaxVal;
-				let subTrigger = optItem.buildEmbassies.subTrigger;
-				if (cultureMaxVal < 3200 && cultureMaxVal > 3000) {
-					subTrigger = 0.968;
-				}
-				let cultureForce = cultureVal > 5e3 + 5e3 * (tt > 5) + 5e3 * Math.sqrt(2 * Religion.getSolarRevolutionRatio());
-				if (subTrigger <= cultureTri && cultureTri < 2 || cultureForce) {
-					let i, name, race, emBulk;
-					const racePanels = game["diplomacyTab"].racePanels;
-					let cultureVal = craftManager.getValueAvailable('culture', true);
-					let highCulture = cultureTri > Math.max(0.97, auto.craft.trigger);
-
-					const embassyBulk = {};
-					const bulkTracker = [];
-
-					const racesLength = racePanels.length - ((game.diplomacy.get('leviathans').unlocked) ? 1 : 0);
-					let tradeItem = auto.trade.items;
-					for (i = racesLength - 1; i > -1; i--) {
-						if (!racePanels[i].embassyButton) {
-							game["diplomacyTab"].render();
-							continue;
-						}
-						name = racePanels[i].race.name;
-						race = game.diplomacy.get(name);
-						if (!highCulture && !tradeItem[name].enabled) {continue;}
-						let priceCoefficient = 1 - game.getEffect("embassyCostReduction");
-						embassyBulk[name] = {'val': 0, 'basePrice': race.embassyPrices[0].val * priceCoefficient, 'currentEm': race.embassyLevel, 'priceSum': 0, 'race': race};
-						bulkTracker.push(name);
+			if (optItem.buildEmbassies.enabled && !!game.diplomacy.races[0].embassyPrices) {
+				if (game.ironWill || game.science.get('theology').researched) {
+					let culture = resMap['culture'];
+					let cultureVal = culture.value;
+					let cultureMaxVal = culture.maxValue;
+					let cultureTri = cultureVal / cultureMaxVal;
+					let subTrigger = optItem.buildEmbassies.subTrigger;
+					if (cultureMaxVal < 3200 && cultureMaxVal > 3000) {
+						subTrigger = 0.968;
 					}
+					let cultureForce = cultureVal > 5e3 + 5e3 * (tt > 5) + 5e3 * Math.sqrt(2 * Religion.getSolarRevolutionRatio());
+					if (subTrigger <= cultureTri && cultureTri < 2 || cultureForce) {
+						let i, name, race, emBulk;
+						const racePanels = game["diplomacyTab"].racePanels;
+						let cultureVal = craftManager.getValueAvailable('culture', true);
+						let highCulture = cultureTri > Math.max(0.97, auto.craft.trigger);
 
-					if (bulkTracker.length === 0) {break AutoEmbassy;}
+						const embassyBulk = {};
+						const bulkTracker = [];
 
-					let astronomy = game.science.get('astronomy').researched;
-					let solarFactor = Math.sqrt(Religion.getSolarRevolutionRatio() + 1);
-					while (bulkTracker.length > 0) {
-						for (i = 0; i < bulkTracker.length; i++) {
-							name = bulkTracker[i];
-							emBulk = embassyBulk[name];
-							let embassyVal = emBulk.currentEm + emBulk.val;
-							let nextPrice = emBulk.basePrice * Math.pow(1.15, embassyVal + game.getEffect("embassyFakeBought"));
-							let noSkip = true;
-							if (!highCulture) {
-								if ((embassyVal > 14 + solarFactor - 10 * (name === 'zebras') && astronomy)
-									|| (name === 'sharks' && solarFactor > 2 && !game.getEffect('unobtainiumPerTickSpace') && resMap['furs'].value)
-									|| (name === 'dragons' && !game.getEffect('unobtainiumPerTickSpace'))) {
-									noSkip = false;
-								}
+						const racesLength = racePanels.length - ((game.diplomacy.get('leviathans').unlocked) ? 1 : 0);
+						let tradeItem = auto.trade.items;
+						for (i = racesLength - 1; i > -1; i--) {
+							if (!racePanels[i].embassyButton) {
+								game["diplomacyTab"].render();
+								continue;
 							}
-							if (nextPrice <= cultureVal && noSkip) {
-								cultureVal -= nextPrice;
-								emBulk.priceSum += nextPrice;
-								emBulk.val += 1;
-								if (highCulture) {
+							name = racePanels[i].race.name;
+							race = game.diplomacy.get(name);
+							if (!highCulture && !tradeItem[name].enabled) {continue;}
+							let priceCoefficient = 1 - game.getEffect("embassyCostReduction");
+							embassyBulk[name] = {'val': 0, 'basePrice': race.embassyPrices[0].val * priceCoefficient, 'currentEm': race.embassyLevel, 'priceSum': 0, 'race': race};
+							bulkTracker.push(name);
+						}
+
+						if (bulkTracker.length === 0) {break AutoEmbassy;}
+
+						let astronomy = game.science.get('astronomy').researched;
+						let solarFactor = Math.sqrt(Religion.getSolarRevolutionRatio() + 1);
+						let embassyFakeBought = game.getEffect("embassyFakeBought");
+						while (bulkTracker.length > 0) {
+							for (i = 0; i < bulkTracker.length; i++) {
+								name = bulkTracker[i];
+								emBulk = embassyBulk[name];
+								let embassyVal = emBulk.currentEm + emBulk.val;
+								let nextPrice = emBulk.basePrice * Math.pow(1.15, embassyVal + embassyFakeBought);
+								let noSkip = true;
+								if (!highCulture) {
+									if ((embassyVal > 14 + solarFactor - 10 * (name === 'zebras') && astronomy)
+										|| (name === 'sharks' && solarFactor > 2 && !game.getEffect('unobtainiumPerTickSpace') && resMap['furs'].value)
+										|| (name === 'dragons' && !game.getEffect('unobtainiumPerTickSpace'))) {
+										noSkip = false;
+									}
+								}
+								if (nextPrice <= cultureVal && noSkip) {
+									cultureVal -= nextPrice;
+									emBulk.priceSum += nextPrice;
+									emBulk.val += 1;
+									if (highCulture) {
+										bulkTracker.splice(i, 1);
+										i--;
+									}
+								} else {
 									bulkTracker.splice(i, 1);
 									i--;
 								}
-							} else {
-								bulkTracker.splice(i, 1);
-								i--;
 							}
 						}
-					}
 
-					for (name in embassyBulk) {
-						emBulk = embassyBulk[name];
-						if (emBulk.val === 0) {continue;}
-						cultureVal = craftManager.getValueAvailable('culture', true);
-						if (emBulk.priceSum > cultureVal) {continue;}
-						resMap['culture'].value -= emBulk.priceSum;
-						storeForSummary('culture', emBulk.priceSum, 'resConsume');
-						emBulk.race.embassyLevel += emBulk.val;
-						storeForSummary('embassy', emBulk.val);
-						refreshRequired += 1;
-						if (emBulk.val === 1) {
-							activity(i18n('build.embassy', [emBulk.val, emBulk.race.title]), 'embassyFilter');
-						} else {
-							activity(i18n('build.embassies', [emBulk.val, emBulk.race.title]), 'embassyFilter');
+						for (name in embassyBulk) {
+							emBulk = embassyBulk[name];
+							if (emBulk.val === 0) {continue;}
+							cultureVal = craftManager.getValueAvailable('culture', true);
+							if (emBulk.priceSum > cultureVal) {continue;}
+							resMap['culture'].value -= emBulk.priceSum;
+							storeForSummary('culture', emBulk.priceSum, 'resConsume');
+							emBulk.race.embassyLevel += emBulk.val;
+							storeForSummary('embassy', emBulk.val);
+							refreshRequired += 1;
+							if (emBulk.val === 1) {
+								activity(i18n('build.embassy', [emBulk.val, emBulk.race.title]), 'embassyFilter');
+							} else {
+								activity(i18n('build.embassies', [emBulk.val, emBulk.race.title]), 'embassyFilter');
+							}
 						}
+						if (highCulture && !refreshRequired) {msgSummary('highCulture');}
 					}
 				}
 			}
@@ -5902,17 +5908,19 @@ window.run = function() {
 		// },
 		getLowestCraftAmount: function (name, limited, limRat, aboveTrigger) {
 			//var amount = Number.MAX_VALUE;
-			let autoMax = Number.MAX_VALUE;
-			let Science = game.science;
-			let geodesy = Workshop.get("geodesy").researched;
 			let materials = this.getMaterials(name);
 			// Safeguard if materials for craft cannot be determined.
 			if (!materials) {return 0;}
+
 			// 跳过资源达到无限的情况
 			let ResMap = resMap[name];
-			let maxValue = ResMap.maxValue;
 			let value = ResMap.value;
 			if (value === Infinity) { return 0; }
+
+			let maxValue = ResMap.maxValue;
+			let autoMax = Number.MAX_VALUE;
+			let Science = game.science;
+			let geodesy = Workshop.get("geodesy").researched;
 			let useRatio = this.getLimRat(name, limited, limRat);
 
 			let resValue = this.getValueAvailable(name, true);
@@ -7686,6 +7694,11 @@ window.run = function() {
 				manpower: modifier * (50 - game.getEffect("tradeCatpowerDiscount")),
 				gold: modifier * (15 - game.getEffect("tradeGoldDiscount"))
 			};
+			// if (game.ironWill && ) {
+			// 	if (Workshop.get("goldOre").researched) {
+			// 		if (resMap['gold').value)materials
+			// 	}
+			// }
 
 			if (name === undefined) {return materials;}
 
@@ -10349,13 +10362,13 @@ window.loadTest = function () {
 		window.run();
 		window.loadTest = null;
 		window.run = null;
-		// if (Math.random() > 0.9) {
-		for (let i = 0; i < 15; i++) {
-			setTimeout(function () {
-				let msg = game.msg(i + '.' + $I("ui.loading.msg." + i),'notice');
-			}, 750 * i);
+		if (Math.random() > 0.9) {
+			for (let i = 0; i < 15; i++) {
+				setTimeout(function () {
+					let msg = game.msg(i + '.' + $I("ui.loading.msg." + i), 'notice');
+				}, 750 * i);
+			}
 		}
-		// }
 	}
 };
 setTimeout(function () {
