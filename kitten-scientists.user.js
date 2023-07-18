@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.215';
+	const version = 'V15.216';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -3348,10 +3348,14 @@ window.run = function() {
 							if (Production < 1 && magnetoOn < 4 && magnetoOn) {
 								items['steamworks'].max = 5;
 							}
+							let steamMeta = game.bld.getBuildingExt('steamworks').meta;
+							let steamW = items['steamworks'];
+							if (steamMeta.val && !steamMeta.on) {
+								steamW.enabled = false;
+							}
 							if (magnetoOn < Math.max(1, 7 - Production - 4 * hasLeader - 3 * (game.getEffect("calcinerRatio") > 0) - 0.4 * geodesy + !Production)) {
 								// 解锁磁电机才会造蒸汽工房
-								let steamW = items['steamworks'];
-								if (game.bld.getBuildingExt('steamworks').meta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
+								if (steamMeta.unlocked && steamW.enabled && resMap['gear'].value > 19) {
 									msgSummary('steamworks');
 									steamW.enabled = false;
 								}
@@ -4688,7 +4692,11 @@ window.run = function() {
 			if (ma.val && !ma.on && oil && pollution && !fa.isAutomationEnabled) {msg('magneto', undefined, true);}
 			// 自动打开蒸汽工房
 			let st = game.bld.getBuildingExt('steamworks').meta;
-			if (st.val && st.on !== st.val && ma.on > 10 - 6 * (game.getEffect('coalRatioGlobalReduction') > 0.3)) {msg('steamworks', undefined, true);}
+			if (st.val && st.on !== st.val && ma.on > 4) {
+				if (!activitySummary.other['auto.changeLeader'] || ma.on > 10) {
+					msg('steamworks', undefined, true);
+				}
+			}
 			// 自动打开反应堆
 			let re = game.bld.getBuildingExt('reactor').meta;
 			let ur = game.getResourcePerTick("uranium",true);
@@ -5949,7 +5957,7 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(1.1 * solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 139 + 30 * !resMap['paragon'].value);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 139 + 29 * !resMap['paragon'].value);
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 1.3 * (priceRatio < -0.06));
 						}
@@ -6729,8 +6737,12 @@ window.run = function() {
 						if (this.getUnResearched('titaniumBarns') && resMap['ship'].value > 70 && titaniumVal > 25) {
 							if (resMap['scaffold'].value > 250) {stock += 200;}
 						}
+						// 钛金粮仓
+						if (this.getUnResearched('titaniumWarehouses') && resMap['ship'].value > 100 && titaniumVal > 50 && Workshop.get('geodesy').researched) {
+							if (resMap['scaffold'].value > 500) {stock += 500;}
+						}
 
-						if (blackSky && !titaniumVal.perTickCached && val < 1100 && resMap['oil'].value > 6e3) {
+						if (blackSky && !Titanium.perTickCached && val < 1100 && resMap['oil'].value > 6e3) {
 							stock += 1100;
 						}
 
@@ -6753,7 +6765,7 @@ window.run = function() {
 						let items = options.auto.upgrade.items;
 						let vitruvianFeline = priceRatio < -0.06;
 						// 回转炉
-						if (this.getUnResearched('rotaryKiln') && Titanium.maxValue > 5e3) {
+						if (this.getUnResearched('rotaryKiln') && Titanium.maxValue > 5e3 && resMap['science'].maxValue > 145e3) {
 							if ((titaniumVal > 1500 && Val > 5 + vitruvianFeline * 5 && geodesyResearched && resMap['ship'].value > 250) || (orbGeodesy && Val > 17)) {
 								msgForStock(5000, 'rotaryKiln', name);
 								let upg = items.upgrades;
@@ -6769,7 +6781,7 @@ window.run = function() {
 						let Revolution = Religion.getSolarRevolutionRatio();
 						let geodesy = this.getUnResearched('geodesy');
 						if (!iw && geodesy && resMap['starchart'].value > 350 - 50 * !calcinerRatio) {
-							if (Revolution < 3.3 && (Val || Titanium.value > 100)) {
+							if (Revolution < 3.3 && (Val || titaniumVal > 100)) {
 								msgForStock(250, 'titaniumGeodesy', name);
 								let upg = items.upgrades;
 								if (!upg.cache) {
@@ -10362,7 +10374,7 @@ window.loadTest = function () {
 		window.run();
 		window.loadTest = null;
 		window.run = null;
-		if (Math.random() > 0.9) {
+		if (Math.random() > 0.99) {
 			for (let i = 0; i < 15; i++) {
 				setTimeout(function () {
 					let msg = game.msg(i + '.' + $I("ui.loading.msg." + i), 'notice');
