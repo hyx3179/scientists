@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.216';
+	const version = 'V15.217';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -322,7 +322,7 @@ window.run = function() {
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
-			'summary.auto.oilTick': '小猫是懂石油的，控制石油平衡暂时不造煅烧炉了',
+			'summary.auto.oilTick': '小猫是懂石油的，控制石油平衡暂时不造煅烧炉了<br>我命油猫不油天',
 			'summary.auto.offCalciner': '猫猫只会担心能源，关掉了煅烧炉',
 			'summary.auto.one1000years': '聪明的小猫自动勾上了长挂所需要的选项',
 			'summary.auto.oxidation': '别急，你先别急，小猫为了氧化反应把钢全存起来了',
@@ -2198,6 +2198,9 @@ window.run = function() {
 									upgrade.unlocked = true;
 									refreshRequired = 1;
 								}
+							}
+							if (booleanForAdore) {
+								option.autoPraise.subTrigger = 0.001;
 							}
 							TranscendTimes--;
 							iactivity('act.transcend', [game.getDisplayValueExt(needNextLevel), tt], 'transcendFilter');
@@ -8509,7 +8512,8 @@ window.run = function() {
 							triggerButton.on('click', function () {
 								let value;
 								engine.stop(false);
-								value = window.prompt(i18n(itemName + '.trigger.set'), sub + '');
+								value = window.prompt(i18n(itemName + '.trigger.set'), label.subTrigger + '');
+
 								if (options.auto.engine.enabled) {
 									engine.start(false);
 								}
