@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.217';
+	const version = 'V15.218';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -352,7 +352,9 @@ window.run = function() {
 			'summary.auto.templars': '没有足够的黄金和铁产量拿什么祷告圣殿骑士呢',
 			'summary.auto.temple': '祷告太阳革命后才会建造神殿，真的不是偷懒喵',
 			'summary.auto.titaniumGeodesy': '小猫打败斑马的最后一步，存着钛和星图点测地学，猫猫要进化啦。',
+			'summary.auto.tradeFestival': '停止贸易攒着喵力黄金开趴',
 			'summary.auto.tradepost': '祷告太阳革命前，交易所的建设开摆 ≧ω≦',
+			'summary.auto.tradeTranscendence': '攒着黄金超越猫猫的极限',
 			'summary.auto.tear': '小喵都做了什么?! 独角兽的眼泪加小猫幸福度的捏',
 			'summary.auto.unicorn': '最佳独角兽建筑：{0}',
 			'summary.auto.upgPasture': '当勾选太阳能发电站了，并钛爆仓、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部牧场后，升级太阳能发电站!',
@@ -1021,7 +1023,7 @@ window.run = function() {
 			if (game.isWebWorkerSupported() && game.useWorkers && options.auto.options.items.useWorkers.enabled) {
 				if (this.worker) {return;}
 				const blob = new Blob([
-					"onmessage = function(e) { setInterval(function() {postMessage('miaowu')}, '" + options.interval + "' ); }"
+					"onmessage = function(e) { setInterval(function() {postMessage('miaowu')}, '" + options.interval + "'); }"
 				]);
 				const blobURL = window.URL.createObjectURL(blob);
 
@@ -2859,17 +2861,17 @@ window.run = function() {
 					} else if (!game.workshop.get('concreteHuts').researched) {
 						noop = noop.concat(['concreteWarehouses', 'concreteBarns', 'barges', 'seti']);
 						if (!game.workshop.get('fuelInjectors').researched) {noop.push('offsetPress');}
-						// 农民工具升级过滤
-						if (game.village.jobs[0].value > 1 && Production > 1 && priceRatio) {
-							if (game.getEffect('woodJobRatio') < 0.7) {noop.push('mineralHoes');}
-							if (game.getEffect('woodJobRatio') < 1.2) {noop.push('ironHoes');}
-						}
 						// CAD
 						if (geodesy) {
 							noop.push('cadSystems');
 						}
 						if (Production > 1) {
 							noop.push('titaniumSaw');
+							// 农民工具升级过滤
+							if (game.village.jobs[0].value > 1 && priceRatio) {
+								if (game.getEffect('woodJobRatio') < 0.7) {noop.push('mineralHoes');}
+								if (game.getEffect('woodJobRatio') < 1.2) {noop.push('ironHoes');}
+							}
 						}
 					}
 				}
@@ -3265,7 +3267,7 @@ window.run = function() {
 					if (machinery && resPercent('wood') < 0.9 && !iw) {library.max = 45;}
 					if (Production && hutVal < 4 && hutVal > 1) {
 						if (priceRatio) {
-							if (hutVal === 2 ) {
+							if (hutVal === 2) {
 								items['barn'].max = 1;
 							}
 							if (hutVal === 3) {
@@ -3506,7 +3508,9 @@ window.run = function() {
 					if (!Production && hasLeader && !Workshop.get('logistics').researched) {
 						items['observatory'].max = 26;
 						items['library'].max = 60;
+						items['amphitheatre'].max = 35;
 					}
+
 					// 反应堆无铀
 					if (resMap['uranium'].value < 100) {reactor.max = 0;}
 				}
@@ -4151,7 +4155,9 @@ window.run = function() {
 				}
 			} else {
 				if (Workshop.get('nanosuits').researched) {
-					if (resMap['parchment'].value < 2500 || resMap['manpower'].value < 1500) {options.auto.trade.festival = true;}
+					if (resMap['parchment'].value < 2500 || resMap['manpower'].value < 1500) {
+						options.auto.trade.festival = true;
+					}
 				}
 			}
 		},
@@ -4315,20 +4321,35 @@ window.run = function() {
 
 			let priceRatio = game.getEffect('priceRatio');
 			let vitruvianFeline = priceRatio < -0.06;
+
+			// 优先太阳革命
 			let solar = solarRevolution || (challenge && !faithVal) || resMap['gold'].maxValue < 500 - 25 * Ratio;
+
+			// 跳过娜迦
 			let spaceManufacturing = Workshop.get('spaceManufacturing').researched;
 			let skipNagas = !game.ironWill && spaceManufacturing && solarRevolution && resMap['concrate'].value > 1e4 / (1 + solarRevolution);
+
+			// 优先彩色玻璃
 			let glass = Religion.getRU("stainedGlass").on || !solarRevolution || faithVal < 200;
-			// 优先太阳革命
+
 			// 有采矿钻和登红月后优先点出超越和赞美群星
-			let Faith = options.auto.faith.items;
 			let transcendenceOn = Religion.getRU("transcendence").on;
-			let transcendence = (transcendenceOn || !Faith.transcendence.enabled || !game.getEffect('unobtainiumPerTickSpace'));
-			let apocripha = (Religion.getRU('apocripha').on || !Faith.apocripha.enabled || Religion.faithRatio > 0.22 || Religion.faith < 1e5);
-			let Moon = (transcendence && apocripha) || Religion.transcendenceTier > 9 || game.village.sim.kittens.length < 130;
+			let Moon = Religion.transcendenceTier > 9 || game.village.sim.kittens.length < 140;
+			if (!Moon) {
+				let Faith = options.auto.faith.items;
+				// 新约外传
+				if (Religion.faithRatio > 0.22 || Religion.getRU('apocripha').on || !Faith.apocripha.enabled || Religion.faith < 1e5) {
+					// 超越
+					if (transcendenceOn || !Faith.transcendence.enabled || !game.getEffect('unobtainiumPerTickSpace')) {
+						Moon = true;
+					} else {
+						msgSummary('tradeTranscendence');
+					}
+				}
+			}
 
 			// 优先大教堂
-			if (vitruvianFeline && solarRevolution > 0.28 ) {
+			if (vitruvianFeline && solarRevolution > 0.28) {
 				if (glass && !Religion.getRU('basilica').on && game.village.leader) {
 					let goldVal = resMap['gold'].value;
 					if (goldVal > 330 && goldVal < 840) {
@@ -4391,7 +4412,9 @@ window.run = function() {
 			// 和平模式
 			if (challenge && game.science.get('architecture').researched && !resMap['furs'].value) {return;}
 			// 节日
-			if (optionTrade.festival && !Calendar.festivalDays) {return;}
+			if (optionTrade.festival && !Calendar.festivalDays) {
+				return msgSummary('tradeFestival');
+			}
 			// Distribute max trades without starving any race
 			if (maxTrades < 1) {return;}
 			// let spice = resMap['spice'].value + 60 * game.getResourcePerTick('spice', true) < 0;
@@ -5303,7 +5326,7 @@ window.run = function() {
 				if (name === 'science' && resMap['steel'].value > 5e3 && resMap['science'].value > 5e4) {stock += 1e5;}
 				if (name === 'steel') {stock += 5e3;}
 			}
-			if (name === 'titanium' ) {
+			if (name === 'titanium') {
 				if (cache !== upgrade) {
 					if (cache === 'orbitalGeodesy') {
 						if (upgrade !== 'pumpjack') {
@@ -5960,7 +5983,7 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(1.1 * solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 139 + 29 * !resMap['paragon'].value);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 139 + 28 * !resMap['paragon'].value);
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 1.3 * (priceRatio < -0.06));
 						}
@@ -5968,7 +5991,7 @@ window.run = function() {
 					if (geodesy) {
 						if (scienceMax > 119e3 || value < 200 || (resMap['scaffold'].value > 1200 && scienceMax < 115e3)) {
 							forceShipVal = Math.min(243 + 5 * tt + solar, 400);
-							if (Religion.faith > 9e4 && scienceMax > 11e4) {
+							if (Religion.faith > 5e4 && scienceMax > 11e4) {
 								forceShipVal = 450 - 100 * priceRatio;
 								if (solar > 0.2 && solar < 0.5) {
 									forceShipVal += 40;
@@ -7339,7 +7362,7 @@ window.run = function() {
 				amount = meta.limitBuild - meta.val;
 			}
 			if (!model.enabled) {button.controller.updateEnabled(model);}
-			if (model.enabled && button.controller.hasResources(model) || game.devMode ) {
+			if (model.enabled && button.controller.hasResources(model) || game.devMode) {
 				while (button.controller.hasResources(model) && amount > 0) {
 					model.prices = button.controller.getPrices(model);
 					button.controller.payPrice(model);
@@ -8418,7 +8441,7 @@ window.run = function() {
 				css: {display: 'none', paddingLeft: '20px'}
 			});
 
-			let filter = ['distribute', 'space','time'];
+			let filter = ['distribute', 'space', 'time'];
 			if (filter.indexOf(toggleName) !== -1) {return list;}
 			let disableAll = $('<div/>', {
 				id: 'toggle-all-items-' + toggleName,
@@ -8642,6 +8665,7 @@ window.run = function() {
 				}
 
 				button.on('click', function () {
+					auto.toggleList = !auto.toggleList;
 					list.toggle();
 				});
 			}
@@ -8660,7 +8684,7 @@ window.run = function() {
 					if (toggleName === 'faith') {
 						value = window.prompt(i18n('ui.trigger.set', [itext + "(" + $I("resources.faith.title") + ")"]), auto.trigger.toString());
 					} else if (toggleName === 'trade') {
-						value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"] ), auto.trigger.toString());
+						value = window.prompt(i18n('ui.trigger.set', [itext + " 的触发值\n需同时满足 种族触发资源 和 " + $I("resources.gold.title") + " 的"]), auto.trigger.toString());
 					} else {
 						value = window.prompt(i18n('ui.trigger.set', [itext]), auto.trigger.toString());
 					}
