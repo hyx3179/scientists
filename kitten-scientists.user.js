@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.218';
+	const version = 'V15.219';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -304,14 +304,14 @@ window.run = function() {
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
 			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
-			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概290年左右 130猫口 + 新约外传(手动咸鱼平均600年❤)',
+			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概275年左右 130猫口 + 新约外传 ❤',
 			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需外面大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
 			'summary.auto.ksHelp5': '珂学家的日志过滤需勾选过滤，注意游戏的为不勾选才是过滤日志',
 			'summary.auto.lag': '喵喵砖家提示你，燃烧时间水晶：只要不挂在前台请务必打开后台珂学家<br>最好不要设置工程师、在挑战页面挂机可以减少卡顿',
 			'summary.auto.leader': '喵喵自觉顶替领袖，做特质相关项目。（领袖特质的具体效果可以参考右下角：百科-游戏标签-村庄-猫口普查）',
 			'summary.auto.leaderGold': '猫猫领袖贪污点黄金自用，氪金就能变强(ฅ´ω`ฅ)',
 			'summary.auto.leaderPriest': '已经是成熟的小猫了，该学会好好念经了，领袖职业改为牧师',
-			'summary.auto.logHouse': '为了喵喵的幸福，需要更多剧场来上演[所有的狗去天堂]的节目  ฅ( ̳• ◡ • ̳)ฅ',
+			'summary.auto.logHouse': '为了喵喵的幸福，需要更多剧场来上演《所有的狗去天堂》的节目  ฅ( ̳• ◡ • ̳)ฅ',
 			'summary.auto.logHouseMineral': '存点矿物点木屋',
 			'summary.auto.lower': '未研究轨道测地学，小猫是懂发展的，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
@@ -361,6 +361,7 @@ window.run = function() {
 			'summary.auto.upgAqueduct': '当勾选水电站了，有太阳能发电站、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部水渠后，升级水电站!',
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
 			'summary.auto.upgAmphitheatre': '当有贸易船或者钛产量足够高时，小猫会贴心的帮你卖出全部剧场后，升级广播塔!',
+			'summary.auto.upgradeFilter': '精明的小猫择优工坊升级，会跳过副作用的注册等等',
 			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
 			'summary.auto.debug': '{0}',
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
@@ -620,7 +621,8 @@ window.run = function() {
 					zebraOutpost:   {require: 'bloodstone',  enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					zebraWorkshop:  {require: 'bloodstone',  enabled: false, max:-1, checkForReset: true, triggerForReset: -1},
 					zebraForge:     {require: 'bloodstone',  enabled: false, max:-1, checkForReset: true, triggerForReset: -1}
-				}
+				},
+				autoUiList: {},
 			},
 			space: {
 				// Should space buildings be built automatically?
@@ -1385,7 +1387,7 @@ window.run = function() {
 				let factor = game.challenges.getChallenge("1000Years").researched ? 5 : 10;
 				let shatterTCGain = game.getEffect("shatterTCGain");
 				let skipCycle = (shatterTCGain * (1 + game.getEffect("rrRatio")) > 1) ? 0 : 5;
-				let heatTick = game.getEffect('heatPerTick');
+				let heatTick = game.getEffect('heatPerTick') * (1 + game.getEffect("heatEfficiency"));
 				let radiate = 10 * heatTick / factor;
 
 				if (heatNow < 10 * 5 * heatTick && radiate >= 1) {
@@ -2078,17 +2080,24 @@ window.run = function() {
 
 			// 精炼水晶
 			if (option.tcRefine.enabled) {
-				if (game.getEffect('relicRefineRatio') > 35) {
+				if (game.getEffect('relicRefineRatio') > 35 && zigguratOn) {
+					let doTransform;
 					 //未升级时间锻造
-					if (zigguratOn && !game.workshop.get("chronoforge").researched && resMap['relic'].value < 6) {
+					if (!game.workshop.get("chronoforge").researched && resMap['relic'].value < 6) {
 						if (resMap['timeCrystal'].value > option.tcRefine.subTrigger) {
-							let refineTCBtn = game['religionTab'].refineTCBtn;
-							if (!refineTCBtn) {
-								game['religionTab'].render();
-								refineTCBtn = game['religionTab'].refineTCBtn;
-							}
-							refineTCBtn.controller._transform(refineTCBtn.model, 1);
+							doTransform = 1;
 						}
+					}
+					if (game.getEffect('solarRevolutionLimit') < 3.5 && game.getEffect('shatterTCGain') > 0.15 && game.getEffect('heatPerTick') > 0.64 && resMap['relic'].value < 1.8e6 && game.getEffect('blsLimit') > 24) {
+						doTransform = 10;
+					}
+					if (doTransform) {
+						let refineTCBtn = game['religionTab'].refineTCBtn;
+						if (!refineTCBtn) {
+							game['religionTab'].render();
+							refineTCBtn = game['religionTab'].refineTCBtn;
+						}
+						refineTCBtn.controller._transform(refineTCBtn.model, doTransform);
 					}
 				}
 			}
@@ -2873,6 +2882,9 @@ window.run = function() {
 								if (game.getEffect('woodJobRatio') < 1.2) {noop.push('ironHoes');}
 							}
 						}
+						if (resMap['gold'].value) {
+							msgSummary('upgradeFilter');
+						}
 					}
 				}
 
@@ -3175,7 +3187,9 @@ window.run = function() {
 		build: function (builds) {
 			const buildManager = this.buildManager;
 			const bulkManager = this.bulkManager;
-			let trigger = options.auto.build.trigger;
+
+			let autoBuild = options.auto.build;
+			let trigger = autoBuild.trigger;
 			let refreshRequired = 0;
 			let buildIterate = {};
 			let copyItem;
@@ -3207,7 +3221,8 @@ window.run = function() {
 				let Science = game.science;
 				let theology = Science.get('theology').researched;
 				copyItem = {};
-				let items = JSON.parse(JSON.stringify(options.auto.build.items));
+				let buildItems = autoBuild.items;
+				let items = JSON.parse(JSON.stringify(buildItems));
 
 				let scienceMap = resMap['science'];
 				let scienceMax = scienceMap.maxValue;
@@ -3246,6 +3261,7 @@ window.run = function() {
 						if (astronomy.unlocked) {msgSummary('academy');}
 					}
 				}
+
 				// 熔炉
 				let smelter = items['smelter'];
 				let pasture = items['pasture'];
@@ -3521,7 +3537,7 @@ window.run = function() {
 					if (calcinerVal) {
 						msgSummary('oilTick');
 					}
-					if (oilTick < 0.085) {items['magneto'].max = 0;}
+					if (oilTick < 0.07) {items['magneto'].max = 0;}
 				}
 
 				// 太阳能
@@ -3662,7 +3678,7 @@ window.run = function() {
 						} else {
 							items['aiCore'].max = 0;
 						}
-						items['chronosphere'].max = 10 + 10 * (resMap['paragon'].value > 2e3 || game.calendar.year > 200);
+						items['chronosphere'].max = 10 + 10 * (resMap['paragon'].value > 2e3 || game.calendar.year > 200) + 20 * !revolutionRatio;
 					}
 					if (game.science.get("paradoxalKnowledge").researched && resMap['unobtainium'].maxValue < 7e9 && game.calendar.trueYear() < 2e3) {
 						if (vitruvianFeline) {
@@ -3676,17 +3692,32 @@ window.run = function() {
 				}
 				// 黑暗天空造煅烧炉
 				if (blackSky) {
-					if (options.auto.build.items.calciner.enabled && calcinerMeta.unlocked && !calcinerVal) {
+					if (autoBuild.items.calciner.enabled && calcinerMeta.unlocked && !calcinerVal) {
 						buildManager.built("calciner", undefined, 1);
 					}
 					if (game.ironWill && !Workshop.get('celestialMechanics').researched) {
 						items['library'].max = 0;
 					}
 				}
+
+				// ui 对象
+				let ui = options.auto.build.toggleList;
+				let uiCacheList = autoBuild.autoUiList;
+
 				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel','lumberMill','biolab','mint'];
 				for (let name in items) {
 					let item = items[name];
-					if (!item.enabled || !item.max) {continue;}
+					if (!item.enabled) {continue;}
+					if (ui) {
+						let max = item.max;
+						if (buildItems[name].max !== max) {
+							if (uiCacheList[name] !== max) {
+								uiCacheList[name] = max;
+								$('#set-' + name + '-max')[0].innerText = 'Max: ' + Math.ceil(max) + '(自动)';
+							}
+						}
+					}
+					if (!item.max) {continue;}
 					if (optimize.indexOf(name) === -1) {
 						copyItem[name] = item;
 					} else {
@@ -4651,7 +4682,7 @@ window.run = function() {
 								activity(i18n('build.embassies', [emBulk.val, emBulk.race.title]), 'embassyFilter');
 							}
 						}
-						if (highCulture && !refreshRequired) {msgSummary('highCulture');}
+						if (tt < 15 && highCulture && !refreshRequired) {msgSummary('highCulture');}
 					}
 				}
 			}
@@ -5983,13 +6014,14 @@ window.run = function() {
 					let forceShipVal = 40 / Math.max(0.2, Math.log1p(1.1 * solar)) + 10 * solar;
 					if (solar < 0.52) {
 						if (solar < 0.23) {
-							forceShipVal = Math.min(16 / Math.log1p(solar), 139 + 28 * !resMap['paragon'].value);
+							// 28 * !resMap['paragon'].value
+							forceShipVal = Math.min(16 / Math.log1p(solar), 139);
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 1.3 * (priceRatio < -0.06));
 						}
 					}
 					if (geodesy) {
-						if (scienceMax > 119e3 || value < 200 || (resMap['scaffold'].value > 1200 && scienceMax < 115e3)) {
+						if (scienceMax > 119e3 || value < 200 || (value < 220 && scienceMax > 110e3)) {
 							forceShipVal = Math.min(243 + 5 * tt + solar, 400);
 							if (Religion.faith > 5e4 && scienceMax > 11e4) {
 								forceShipVal = 450 - 100 * priceRatio;
@@ -6847,7 +6879,7 @@ window.run = function() {
 					case 'gear': {
 						let titaniumVal = Titanium.value;
 						// 高压引擎
-						if (this.getUnResearched('combustionEngine') && game.getEffect('coalRatioGlobal') && resMap['coal'].value < 1e3) {stock += 25;}
+						if (this.getUnResearched('combustionEngine') && game.getEffect('coalRatioGlobal') && resMap['coal'].value < 3e3) {stock += 25;}
 						// 回转炉
 						if (this.getUnResearched('rotaryKiln') && titaniumVal > 4e3 && resMap['science'].maxValue > 138e3) {stock += 500;}
 						// 燃料喷射器
@@ -6974,6 +7006,7 @@ window.run = function() {
 				case 'beam': {
 					let craftBeam = navigation.unlocked || resMap['gold'].maxValue < 500 || (resMap['iron'].value > 1000 && !resMap['coal'].value);
 					limRat = (resMap['scaffold'].value < 500 + 500 * solar + 4500 * !solar) ? limRat : 0.02;
+					limRat = (!game.science.get('physics').researched && res.value > 50) ? 0.4 : limRat;
 					limRat = (craftBeam) ? limRat : 5e-3;
 					break;
 				}
@@ -10331,7 +10364,6 @@ window.run = function() {
 
 	saveToKittenStorage();
 
-
 	const autoOpen = function () {
 		if (!options.auto.engine.enabled && options.auto.options.items.autoScientists.enabled) {
 			let countdown = (options.countdown);
@@ -10355,7 +10387,11 @@ window.run = function() {
 			clearInterval(autoOpenTime);
 		}
 	};
-	// "policy.siphoning.desc" : "死灵兽亏损为0时，契约将不再消耗死灵兽，而是消耗天角兽。如果你天角兽数量不够也还是会消耗死灵兽",
+	i18nLang.messages['space.planet.umbra.hrHarvester.desc'] = '霍金辐射收割机，收集黑洞蒸发的能量。每级 HR 收割机产出 1瓦 能源，能源输出随着时间的推移缓慢增加';
+	game.effectsMgr.statics.effectMeta['heatEfficiency'] = {
+		title: $I("effectsMgr.statics.heatEfficiency.title"),
+		type: "ratio"
+	};
 	let autoOpenTime = setInterval(autoOpen, 1000);
 };
 
