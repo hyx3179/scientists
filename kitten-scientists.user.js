@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.219';
+	const version = 'V15.220';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -189,7 +189,7 @@ window.run = function() {
 			'filter.disable': '取消过滤 {0}',
 
 			'craft.force': '为了研究{1}，喵喵偷偷拿了资源合成了{0}，呐呐呐，她才不会心痛了~♪',
-			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料~为了发展果咩捏',
+			'craft.CacheSteel': '小猫急急急，存材料点工坊升级{0}，真的就用了亿点点材料,为了发展果咩捏<br>当然是选择原谅她',
 			'craft.forceSteel': '小猫为了工坊升级{0}，偷偷用了亿点点材料合成了钢<br>喵喵了?! 喵喵已经逃跑了 ! ε=ε=ε=ε=ε=ε=╭(;> ω <)ﾉ',
 			'craft.limited': '平衡{0}（理解为小猫AI控制触发条件、消耗率，挂机效率会比较高）',
 			'craft.limitedTitle': '根据原材料和目标材料的数量',
@@ -270,7 +270,7 @@ window.run = function() {
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教，有新东西',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
-			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战模式中请自己点政策',
+			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战详情可以查看百科-标签-挑战',
 			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏',
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
 			'summary.auto.aqueductCatnip': '水渠，饿饿，饭饭',
@@ -279,7 +279,7 @@ window.run = function() {
 			'summary.auto.blackCore': '活祭之猫的黑之核心不是特别适合呐',
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
 			//'summary.auto.biology': '<s>哎呦，只因你镁有钛，</s>跳过困难的生物学',
-			'summary.auto.biology': '喵星人不需要愚蠢的生物学 ฅ(๑˙o˙๑)ฅ ',
+			'summary.auto.biology': '喵星人不需要愚蠢的生物学 ฅ(๑˙o˙๑)ฅ <br>省下珍贵的蓝图',
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>研究科学和工坊升级换到科学家领袖，降低科学的价格等等',
@@ -361,7 +361,7 @@ window.run = function() {
 			'summary.auto.upgAqueduct': '当勾选水电站了，有太阳能发电站、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部水渠后，升级水电站!',
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
 			'summary.auto.upgAmphitheatre': '当有贸易船或者钛产量足够高时，小猫会贴心的帮你卖出全部剧场后，升级广播塔!',
-			'summary.auto.upgradeFilter': '精明的小猫择优工坊升级，会跳过副作用的注册等等',
+			'summary.auto.upgradeFilter': '精明的小猫择优工坊升级，会跳过副作用的注册和其他没用的升级',
 			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
 			'summary.auto.debug': '{0}',
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
@@ -2602,7 +2602,7 @@ window.run = function() {
 						switch (upg.name) {
 							case 'combustion':
 								if (sciMaxVal > 15e4 && titanium < 5000 && !game.science.get('metalurgy').researched
-									|| (resMap['oil'].maxValue < 20e3 && titanium < 1500 && !priceRatio)) {continue;}
+									|| (resMap['oil'].maxValue < 20e3 && titanium < 1300 + 200 * !Production && !priceRatio)) {continue;}
 								break;
 							case 'biology': {
 								let a = geodesy || !activitySummary.other['auto.changeLeader'];
@@ -3293,7 +3293,7 @@ window.run = function() {
 						if (winterTick > 2 + !priceRatio + vitruvianFeline) {
 							if (Religion.transcendenceTier > 9 && !machinery) {
 								if (winterTick > 5 && game.village.jobs[0].value > 1) {pasture.max = 0;}
-								items['barn'].max = 0;
+								items['barn'].max = 1;
 							}
 							if (!Science.get('civil').researched) {
 								if (hutVal === 2) {
@@ -3412,7 +3412,7 @@ window.run = function() {
 					if (resMap['wood'].perTickCached < 0.09 && !game.ironWill) {smelter.max = 0;}
 					if (smelterVal) {
 						if (resMap['wood'].perTickCached * 2 < smelterVal - 0.5 * machinery || resMap['minerals'].perTickCached < smelterVal + 0.8 - 3 * theology - Production - 5 * (astronomy.researched) + priceRatio) {
-							smelter.max = 0;
+							smelter.max = 1;
 							if (!iw) {msgSummary('smelter');}
 						} else {
 							smelter.max = smelterVal + 1;
@@ -3707,17 +3707,17 @@ window.run = function() {
 				let optimize = ['library','academy','pasture','barn','harbor','oilWell','warehouse','broadcastTower','accelerator','mansion','quarry','aqueduct','chapel','lumberMill','biolab','mint'];
 				for (let name in items) {
 					let item = items[name];
-					if (!item.enabled) {continue;}
+					if (!item.enabled || !item.max) {continue;}
 					if (ui) {
 						let max = item.max;
-						if (buildItems[name].max !== max) {
-							if (uiCacheList[name] !== max) {
+						if (uiCacheList[name] !== max) {
+							if (buildItems[name].max !== max || uiCacheList[name]) {
 								uiCacheList[name] = max;
-								$('#set-' + name + '-max')[0].innerText = 'Max: ' + Math.ceil(max) + '(自动)';
+								let auto = max === -1 ? '' : '(自动)';
+								$('#set-' + name + '-max')[0].innerText = 'Max: ' + Math.ceil(max) + auto;
 							}
 						}
 					}
-					if (!item.max) {continue;}
 					if (optimize.indexOf(name) === -1) {
 						copyItem[name] = item;
 					} else {
@@ -4309,7 +4309,8 @@ window.run = function() {
 		trade: function () {
 			let cacheSummary = {};
 			let Ratio = (activitySummary.other['auto.changeLeader']) ? 0 : 2;
-			let skip = game.calendar.day < 0;
+			let Calendar = game.calendar;
+			let skip = Calendar.day < 0;
 			for (let res in resMap) {
 				let Res = resMap[res];
 				let ResVal = Res.value;
@@ -4337,8 +4338,7 @@ window.run = function() {
 
 			if (!tradeManager.singleTradePossible(undefined)) {return;}
 
-			let Calendar = game.calendar;
-			let season = Calendar.getCurSeason().name;
+			let seasonTitle = Calendar.getCurSeason().name;
 			let goldTrigger = resPercent('gold');
 			let titaniumTri = resPercent('titanium');
 			let isGoldTrigger = requireTrigger <= goldTrigger;
@@ -4354,7 +4354,8 @@ window.run = function() {
 			let vitruvianFeline = priceRatio < -0.06;
 
 			// 优先太阳革命
-			let solar = solarRevolution || (challenge && !faithVal) || resMap['gold'].maxValue < 500 - 25 * Ratio;
+			let solar = solarRevolution || (challenge && !faithVal)
+				|| resMap['gold'].maxValue < 500 - 25 * Ratio - 150 * vitruvianFeline * !isGoldTrigger;
 
 			// 跳过娜迦
 			let spaceManufacturing = Workshop.get('spaceManufacturing').researched;
@@ -4395,21 +4396,24 @@ window.run = function() {
 			// Determine how many races we will trade this cycle
 			let trade, race, name, require;
 			let items = optionTrade.items;
+			let diplomacyTab = game["diplomacyTab"];
+			let racePanel = diplomacyTab.racePanels;
 			for (name in items) {
 				trade = items[name];
 
-				// Check if the race is in season, enabled, unlocked, and can actually afford it
+				// Check if the race is in seasonTitle, enabled, unlocked, and can actually afford it
 				race = tradeManager.getRace(name);
 				if (!race.unlocked) {continue;}
-				if (!game["diplomacyTab"].racePanels[index]) {game["diplomacyTab"].render();}
+				if (!racePanel[index]) {diplomacyTab.render();}
 				index++;
 				if (name === 'nagas' && skipNagas) {continue;}
 				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 0.7 && resPercent('uranium') > 0.1) {continue;}
 				if (name === 'lizards' && solarRevolution > 0.1) {continue;}
 				if (name === 'sharks' && !challenge && solarRevolution > 3 && !trade.limited) {continue;}
 				if (!trade.enabled) {continue;}
-				let Season = trade[season];
-				if (!Season) {continue;}
+
+				let tradeForSeason = trade[seasonTitle];
+				if (!tradeForSeason) {continue;}
 
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 				if ((!require || requireTrigger <= require.value / require.maxValue) && isGoldTrigger) {
@@ -4424,7 +4428,7 @@ window.run = function() {
 			}
 
 			let catnipNow = resMap['catnip'].value + 100 * craftManager.getPotentialCatnip(true);
-			if (catnipNow < 0 && game.deadKittens < 3e3 && !game.ironWill) {
+			if ((catnipNow < 0 || options.auto.distribute.religion) && game.deadKittens < 3e3 && !game.ironWill) {
 				let sharks = game.diplomacy.get('sharks');
 				if (sharks.unlocked) {
 					let sharksAmt = tradeManager.getLowestTradeAmount('sharks');
@@ -4515,12 +4519,12 @@ window.run = function() {
 			}
 			if (tradesDone.length === 0) {return;}
 
-			if (goldTrigger >= 0.98 || !resMap['furs'].value) {optionTrade.cache = true;}
+			if (goldTrigger >= 0.98 && resMap['manpower'].value > 200 || !resMap['furs'].value) {optionTrade.cache = true;}
 
 			for (let name in tradesDone) {
 				if (tradesDone[name] > 0) {
 					if (!tradeManager.getTradeButton(name)) {
-						game["diplomacyTab"].render();
+						diplomacyTab.render();
 						continue;
 					}
 					tradeManager.trade(name, tradesDone[name]);
@@ -6015,7 +6019,7 @@ window.run = function() {
 					if (solar < 0.52) {
 						if (solar < 0.23) {
 							// 28 * !resMap['paragon'].value
-							forceShipVal = Math.min(16 / Math.log1p(solar), 139);
+							forceShipVal = Math.min(16 / Math.log1p(solar), 139 - Math.max(15, 0.1 * resMap['paragon'].value));
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 1.3 * (priceRatio < -0.06));
 						}
@@ -6888,7 +6892,7 @@ window.run = function() {
 							stock += 250;
 						}
 						// 抽油机
-						let oilFactor = (resPercent('oil') < 0.8 && resMap['starchart'].value < 250 && resMap['steel'].value > 150) || resMap['oil'].perTickCached < 0.4;
+						let oilFactor = (resPercent('oil') < 0.8 && resMap['starchart'].value < 250 && resMap['steel'].value > 150) || resMap['oil'].perTickCached < 0.35;
 						if (this.getUnResearched('pumpjack') && titaniumVal > 200 && oilFactor && priceRatio > -0.06) {stock += 125;}
 						// 后勤
 						if (this.getUnResearched('logistics') && resMap['scaffold'].value > 1000 && leader && kittens < 100) {stock += 100;}
