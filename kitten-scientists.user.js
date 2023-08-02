@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.220';
+	const version = 'V15.221';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -221,7 +221,7 @@ window.run = function() {
 			'act.accelerate.za': '一遇到加速这种事情好急啊，呐~是因为点累了吧 ❤',
 			'summary.accelerate': '小猫加速时间 {0} 次',
 			'option.time.skip': '时间跳转',
-			'act.time.skip': '燃烧时间水晶, 跳过接下来的 {0} 年!',
+			'act.time.skip': '燃烧时间水晶，跳过接下来的 {0} 年!',
 			'ui.cycles': '周期',
 			'ui.maximum': '单次数量',
 			'time.skip.cycle.enable': '启用在 {0} 跳转时间并允许跳过该周期',
@@ -271,7 +271,7 @@ window.run = function() {
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
 			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战详情可以查看百科-标签-挑战',
-			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏',
+			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏(暂时不理新约外传)',
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
 			'summary.auto.aqueductCatnip': '水渠，饿饿，饭饭',
 			'summary.auto.bestUnicorn': '推荐勾选自动最佳独角兽，AI计算建筑，独角兽天角兽都会获得更快',
@@ -316,7 +316,7 @@ window.run = function() {
 			'summary.auto.lower': '未研究轨道测地学，小猫是懂发展的，故降低牧场、水渠、图书馆、研究院、粮仓、港口、油井、仓库的优先度',
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
-			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱才是猫猫的最爱',
+			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱才是猫猫的最爱喵~ ＞▽＜',
 			'summary.auto.miao': '选珂学家就对惹',
 			'summary.auto.miner': '抓一直忙碌的猫猫去挖矿',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
@@ -354,14 +354,15 @@ window.run = function() {
 			'summary.auto.titaniumGeodesy': '小猫打败斑马的最后一步，存着钛和星图点测地学，猫猫要进化啦。',
 			'summary.auto.tradeFestival': '停止贸易攒着喵力黄金开趴',
 			'summary.auto.tradepost': '祷告太阳革命前，交易所的建设开摆 ≧ω≦',
-			'summary.auto.tradeTranscendence': '攒着黄金超越猫猫的极限',
+			'summary.auto.tradeTranscendence': '攒着黄金超越猫猫的极限， 重铸太阳教的荣光，猫猫义不容辞',
 			'summary.auto.tear': '小喵都做了什么?! 独角兽的眼泪加小猫幸福度的捏',
 			'summary.auto.unicorn': '最佳独角兽建筑：{0}',
 			'summary.auto.upgPasture': '当勾选太阳能发电站了，并钛爆仓、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部牧场后，升级太阳能发电站!',
 			'summary.auto.upgAqueduct': '当勾选水电站了，有太阳能发电站、且缺电、且猫薄荷产量足够高时，小猫会贴心的帮你卖出全部水渠后，升级水电站!',
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
 			'summary.auto.upgAmphitheatre': '当有贸易船或者钛产量足够高时，小猫会贴心的帮你卖出全部剧场后，升级广播塔!',
-			'summary.auto.upgradeFilter': '精明的小猫择优工坊升级，会跳过副作用的注册和其他没用的升级',
+			'summary.auto.upgradeFilter': '精明的小猫择优工坊升级，听毛米的准没错啦<br>暂时没用的~会跳过比如没有蒸汽工房会跳过印刷机以及其他等等<br>彻底跳过一直没用的升级比如注册、神经网络(消耗材料算是副作用)',
+			'summary.auto.webWorker': '延迟了{}次',
 			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
 			'summary.auto.debug': '{0}',
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
@@ -439,7 +440,7 @@ window.run = function() {
 		}
 		let value = i18nData['zh'][key];
 		if (typeof value === 'undefined') {
-			game.msg(key,'notice');
+			return game.msg(key + '可能丢失了文本~联系一下','notice');
 		}
 		if (args) {
 			for (let i = 0; i < args.length; i++) {
@@ -1046,6 +1047,7 @@ window.run = function() {
 				this.worker = undefined;
 			}
 
+			this.time = 0;
 			if (!this.loop) {return;}
 			clearTimeout(this.huntID);
 			clearTimeout(this.renderID);
@@ -1054,9 +1056,24 @@ window.run = function() {
 			if (msg) {imessage('status.ks.disable');}
 		},
 		iterate: async function () {
-			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused)               {return this.timeTick = 0;}
-			let refresh = 0;
+			let notTime = performance.now();
+			if (this.time) {
+				if (notTime - this.time > 6000) {
+					if (!activitySummary.other['auto.webWorker']) {
+						let a =  (notTime - this.time) * 0.001 + '';
+						activity('可能进入了后台<br>浏览器信息' + navigator.userAgent.toLowerCase() + '<br>延迟了: ' + a, [], 'noFilter');
+						activitySummary.other['auto.webWorker'] = 1;
+					} else {
+						activitySummary.other['auto.webWorker'] += 1;
+					}
+				}
+			}
 			this.time = performance.now();
+			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused)               {
+				this.time = 0;
+				return this.timeTick = 0;
+			}
+			let refresh = 0;
 			let auto = options.auto;
 			let subOptions = auto.options;
 			let miscEnabled = subOptions.enabled;
@@ -2082,13 +2099,15 @@ window.run = function() {
 			if (option.tcRefine.enabled) {
 				if (game.getEffect('relicRefineRatio') > 35 && zigguratOn) {
 					let doTransform;
+					let relicVal = resMap['relic'].value;
+					let timeCrystalVal = resMap['timeCrystal'].value;
 					 //未升级时间锻造
-					if (!game.workshop.get("chronoforge").researched && resMap['relic'].value < 6) {
-						if (resMap['timeCrystal'].value > option.tcRefine.subTrigger) {
+					if (!game.workshop.get("chronoforge").researched && relicVal < 6) {
+						if (timeCrystalVal > option.tcRefine.subTrigger) {
 							doTransform = 1;
 						}
 					}
-					if (game.getEffect('solarRevolutionLimit') < 3.5 && game.getEffect('shatterTCGain') > 0.15 && game.getEffect('heatPerTick') > 0.64 && resMap['relic'].value < 1.8e6 && game.getEffect('blsLimit') > 24) {
+					if (game.getEffect('solarRevolutionLimit') < 3.5 && game.getEffect('shatterTCGain') > 0.15 && game.getEffect('heatPerTick') > 0.64 && relicVal < 1.8e6 && game.getEffect('blsLimit') > 24 && timeCrystalVal > 5e4) {
 						doTransform = 10;
 					}
 					if (doTransform) {
@@ -2796,6 +2815,9 @@ window.run = function() {
 							if (Production > 2 && revolutionRatio > 4 || resPercent('unobtainium') < 1) {
 								noop.push('unobtainiumReflectors', 'astrophysicists');
 							}
+							if (resMap['unobtainium'].maxValue > 350 && game.getEffect('hutPriceRatio') > -0.9 && priceRatio < -0.06) {
+								noop.push('unobtainiumDrill');
+							}
 							// if (Production < 1.626 && !game.workshop.get('unobtainiumHuts').researched) {
 							// 	noop.push('miningDrill');
 							// }
@@ -3397,7 +3419,7 @@ window.run = function() {
 				// 神殿
 				let temple = items['temple'];
 				if (hasLeader && !game.getEffect('unobtainiumPerTickSpace') && resMap['faith'].maxValue < 1e4) {
-					temple.max = Math.max(21 + 10 * orbitalGeodesy - Production + 5 * priceRatio - 4 * vitruvianFeline, 10 * (1 + revolutionRatio));
+					temple.max = Math.max(21 + (10 - 5 * priceRatio + Production) * orbitalGeodesy - 4 * vitruvianFeline, 10 * (1 + revolutionRatio));
 				}
 				// 无、低太阳革命
 				if (revolutionRatio < 0.06) {
@@ -3549,7 +3571,7 @@ window.run = function() {
 				// 庙塔
 				let zigguratM = game.bld.getBuildingExt('ziggurat').meta;
 				if (zigguratM.val > 8 + vitruvianFeline && !resMap['alicorn'].unlocked) {
-					if (resMap['blueprint'].value < (5 + 2 * revolutionRatio - 1.5 * spaceManufacturing + 1 * !orbitalGeodesy) * Math.pow(zigguratM.priceRatio + priceRatio, zigguratM.val)) {
+					if (resMap['blueprint'].value < (8 + 2 * revolutionRatio - 1.5 * spaceManufacturing + 1 * !orbitalGeodesy - 3 * vitruvianFeline) * Math.pow(zigguratM.priceRatio + priceRatio, zigguratM.val)) {
 						items['ziggurat'].max = 0;
 					} else {
 						items['ziggurat'].max = zigguratM.val + 1;
@@ -4097,7 +4119,7 @@ window.run = function() {
 			let craftUnlock = !game.science.get("construction").researched || !game.bld.getBuildingExt('workshop').meta.on;
 			let amount, craft, require, lessTri, ironPer, begin;
 
-			let autoDefault = trigger === 0.95;
+			let autoDefault = trigger >= 0.95;
 			if (autoDefault) {
 				lessTri = Workshop.get('orbitalGeodesy').researched;
 				ironPer = resPercent('iron') === 1;
@@ -4616,7 +4638,7 @@ window.run = function() {
 						let i, name, race, emBulk;
 						const racePanels = game["diplomacyTab"].racePanels;
 						let cultureVal = craftManager.getValueAvailable('culture', true);
-						let highCulture = cultureTri > Math.max(0.97, auto.craft.trigger);
+						let highCulture = cultureTri >= Math.max(0.97, auto.craft.trigger);
 
 						const embassyBulk = {};
 						const bulkTracker = [];
@@ -4629,8 +4651,8 @@ window.run = function() {
 								continue;
 							}
 							name = racePanels[i].race.name;
-							race = game.diplomacy.get(name);
 							if (!highCulture && !tradeItem[name].enabled) {continue;}
+							race = game.diplomacy.get(name);
 							let priceCoefficient = 1 - game.getEffect("embassyCostReduction");
 							embassyBulk[name] = {'val': 0, 'basePrice': race.embassyPrices[0].val * priceCoefficient, 'currentEm': race.embassyLevel, 'priceSum': 0, 'race': race};
 							bulkTracker.push(name);
@@ -6019,7 +6041,7 @@ window.run = function() {
 					if (solar < 0.52) {
 						if (solar < 0.23) {
 							// 28 * !resMap['paragon'].value
-							forceShipVal = Math.min(16 / Math.log1p(solar), 139 - Math.max(15, 0.1 * resMap['paragon'].value));
+							forceShipVal = Math.min(16 / Math.log1p(solar), 139 - Math.max(30, 0.1 * resMap['paragon'].value));
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 1.3 * (priceRatio < -0.06));
 						}
@@ -7039,7 +7061,7 @@ window.run = function() {
 						let solarFactor = (solar < 0.8) ? 1 + (unobtainium > 0) * 3 : 1.2 * (shipValue < 400);
 						let factor = (25 * priceRatio + Math.log1p(solar) + (unobtainium > 0 && priceRatio > -0.06) * 1.5 + 2.2 + solarFactor - 2.2 * (solar > 2)) * shipLimit;
 						let noReset = game.calendar.year > 400 && reactorVal;
-						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 500 - solar * 25) && starchart < 1500) {
+						if (shipValue < Math.min(factor, 500 * (!satnav || noReset) + 400 - solar * 25 - 100 * renaissance) && starchart < 1500) {
 							limRat = 0.7 + 0.2 * (shipValue < 400 - 4 * solar - 50 * renaissance || noReset) + (unobtainium > 0) * 0.3;
 							msgSummary('shipLess');
 						}
