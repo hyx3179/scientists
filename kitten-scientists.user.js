@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.221';
+	const version = 'V15.222';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -362,7 +362,7 @@ window.run = function() {
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
 			'summary.auto.upgAmphitheatre': '当有贸易船或者钛产量足够高时，小猫会贴心的帮你卖出全部剧场后，升级广播塔!',
 			'summary.auto.upgradeFilter': '精明的小猫择优工坊升级，听毛米的准没错啦<br>暂时没用的~会跳过比如没有蒸汽工房会跳过印刷机以及其他等等<br>彻底跳过一直没用的升级比如注册、神经网络(消耗材料算是副作用)',
-			'summary.auto.webWorker': '延迟了{}次',
+			'summary.auto.webWorker': '延迟了 {0} 次',
 			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
 			'summary.auto.debug': '{0}',
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
@@ -1056,23 +1056,36 @@ window.run = function() {
 			if (msg) {imessage('status.ks.disable');}
 		},
 		iterate: async function () {
-			let notTime = performance.now();
 			if (this.time) {
+				let notTime = performance.now();
 				if (notTime - this.time > 6000) {
 					if (!activitySummary.other['auto.webWorker']) {
-						let a =  (notTime - this.time) * 0.001 + '';
-						activity('可能进入了后台<br>浏览器信息' + navigator.userAgent.toLowerCase() + '<br>延迟了: ' + a, [], 'noFilter');
 						activitySummary.other['auto.webWorker'] = 1;
 					} else {
 						activitySummary.other['auto.webWorker'] += 1;
+						if (activitySummary.other['auto.webWorker'] > 2 && !this.background) {
+							this.background = true
+							let a = Math.round((notTime - this.time) * 0.001) + '秒';
+							let c = navigator.userAgent.toLowerCase();
+							if (c.indexOf('edge') !== -1) {
+								c = "edge<br>可能浏览器进入睡眠状态,整体速度变慢<br>"; // edge浏览器
+							} else if (c.indexOf('oprg') !== -1) {
+								c = "opera"; // opera浏览器
+							} else if (c.indexOf('chrome') !== -1) {
+								c = "chrome"; // chrome浏览器
+							} else if (c.indexOf('safari') !== -1) {
+								c = "safari"; // safari浏览器
+							}
+							activity('可能进入了后台<br>浏览器信息' + c + '<br>延迟了: ' + a, [], 'noFilter');
+						}
 					}
 				}
 			}
-			this.time = performance.now();
-			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused)               {
+			if (!game.mobileSaveOnPause || game.loadingSave || game.isPaused) {
 				this.time = 0;
 				return this.timeTick = 0;
 			}
+			this.time = performance.now();
 			let refresh = 0;
 			let auto = options.auto;
 			let subOptions = auto.options;
@@ -1354,6 +1367,7 @@ window.run = function() {
 				}
 				if (options.interval !== Math.ceil (100 / game.getTicksPerSecondUI()) * 100) {
 					engine.stop(false);
+					this.time = 0;
 					if (options.auto.engine.enabled) {
 						if (options.interval === 2000) {
 							iactivity('act.accelerate.acl');
@@ -3887,6 +3901,9 @@ window.run = function() {
 					// 月球前哨
 					if (uranium < 2 + 10 * spaceManufacturing || resPercent('unobtainium') >= 1) {
 						builds['moonOutpost'].max = 1;
+						if (Production > 1.4 && starchartVal < 7500) {
+							builds['planetCracker'].max = 1;
+						}
 					}
 					let storage = game.prestige.getParagonStorageRatio();
 					// 月球基地
@@ -5733,7 +5750,7 @@ window.run = function() {
 							if (game.getEffect('productionRatio') < 0.5) {return 0;}
 						}
 					} else {
-						if (!TitaniumCap) {
+						if (resPercent('titanium') < 0.8) {
 							if (faVal) {
 								let production = game.getEffect('productionRatio');
 								if (revolution) {
@@ -6041,7 +6058,7 @@ window.run = function() {
 					if (solar < 0.52) {
 						if (solar < 0.23) {
 							// 28 * !resMap['paragon'].value
-							forceShipVal = Math.min(16 / Math.log1p(solar), 139 - Math.max(30, 0.1 * resMap['paragon'].value));
+							forceShipVal = Math.min(16 / Math.log1p(solar), 139 - Math.min(30, 0.1 * resMap['paragon'].value));
 						} else {
 							forceShipVal = Math.min(23 - 120 * priceRatio / Math.log1p(solar), 176) * (1 + 1.3 * (priceRatio < -0.06));
 						}
@@ -6086,7 +6103,6 @@ window.run = function() {
 					Craft.autoConsume[i] = 0;
 					if (resMap['scaffold'].value > 500 && trigger > 0.9 && limited) {
 						Craft.autoConsume[i] = 1;
-						trigger = 0.9;
 					}
 					if (!value && resMap['slab'].value > 3) {force = true;}
 					if (name === 'slab' && !priceRatio) {
@@ -6498,7 +6514,7 @@ window.run = function() {
 						let ironMap = resMap['iron'];
 						let coalMap = resMap['coal'];
 						// 15分钟 5 * 60 * 15
-						let coalR = (Amt * 100 - coalMap.value) / coalMap.perTickCached;
+						let coalR = (Amt * 100 - coalMap.value) / coalMap.perTickCached - 200;
 						let ironR = (Amt * 100 - ironMap.value) / this.getTickVal(ironMap, resMap['ship'].value < 243 && geodesy);
 						let startGame = resMap['science'].value > 2e4 || resMap['starchart'].value < 1e4;
 						let T = 4500 + 200 * (calVal > 2) + 300 * (calVal > 3) + + 500 * (calVal > 4) + 300 * (calVal > 6) + 200 * (calVal > 7);
