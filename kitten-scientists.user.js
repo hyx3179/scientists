@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.222';
+	const version = 'V15.223';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -157,6 +157,8 @@ window.run = function() {
 			// todo
 			'option.faith.alicorn': '献祭天角兽(还未新建文件夹)',
 			'option.faith.tcRefine': '精炼水晶',
+
+			'act.timeCrystalSacrifice' : '小猫精炼了 {0} 时间水晶，获得了 {1} 古神的遗物',
 
 			'resources.add': '添加资源',
 			'resources.clear.unused': '清除未使用',
@@ -1807,7 +1809,7 @@ window.run = function() {
 					if (tt > 9) {maxKS = Math.min(maxKS, Math.max(30, 44 - tt));}
 					if (!geodesy) {
 						if (resMap['iron'].perTickCached < 20) {
-							maxKS = Math.round(maxKS * (0.25 - priceRatio) + tt);
+							maxKS = Math.round(maxKS * (0.25 - 2 * priceRatio) + tt);
 							if (resPercent('coal') > 0.97) {maxKS = 0;}
 						} else {
 							maxKS = Math.min(20, maxKS);
@@ -2131,6 +2133,10 @@ window.run = function() {
 							refineTCBtn = game['religionTab'].refineTCBtn;
 						}
 						refineTCBtn.controller._transform(refineTCBtn.model, doTransform);
+						let relicGain = resMap['relic'].value - relicVal;
+						storeForSummary('relic', relicGain, 'resGain');
+						storeForSummary('timeCrystal', 25 * doTransform, 'resConsume');
+						activity(i18n('act.timeCrystalSacrifice', [doTransform, game.getDisplayValueExt(relicGain)]), 'unicornSacrificeFilter');
 					}
 				}
 			}
@@ -2360,7 +2366,7 @@ window.run = function() {
 			let booleanForPraise = (autoPraiseEnabled && rate >= PraiseSubTrigger && resourceFaith.value > 0.001 && fistReset);
 			if (booleanForPraise || forceStep || fPraise) {
 				let msgPraise = praiseLess && !forceStep && rate < 0.98 && !timeSkipAdore;
-				let times = (transcendenceTier < 4) ? 1e5 : 9e5;
+				let times = (transcendenceTier < 4) ? 1e5 : 2e6;
 				if (msgPraise && (Date.now() > option.autoPraise.time + times || !activitySummary.other['praise.msg']) && solarRatio) {
 					option.autoPraise.time = Date.now();
 					let expectSolar = game.getDisplayValueExt(expectSolarRevolutionRatio);
@@ -2761,7 +2767,7 @@ window.run = function() {
 					// 太阳革命
 					if (!revolutionRatio && resMap['faith'].maxValue >= 750 && Religion.faith > 1000) {noop.push('caravanserai');}
 					// 过滤钛升级
-					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.02 && resMap['ship'].value < 50) {
+					if (game.globalEffectsCached['titaniumPerTickAutoprod'] < 0.02 && resMap['ship'].value < 60) {
 						if (Production > 2 && resMap['titanium'].value < 15 || revolutionRatio > 1.6) {
 							noop.push('titaniumAxe');
 						}
@@ -2829,7 +2835,7 @@ window.run = function() {
 							if (Production > 2 && revolutionRatio > 4 || resPercent('unobtainium') < 1) {
 								noop.push('unobtainiumReflectors', 'astrophysicists');
 							}
-							if (resMap['unobtainium'].maxValue > 350 && game.getEffect('hutPriceRatio') > -0.9 && priceRatio < -0.06) {
+							if (resMap['unobtainium'].maxValue > 350 && game.getEffect('hutPriceRatio') > -0.9 && priceRatio > -0.06) {
 								noop.push('unobtainiumDrill');
 							}
 							// if (Production < 1.626 && !game.workshop.get('unobtainiumHuts').researched) {
@@ -3044,7 +3050,7 @@ window.run = function() {
 						}
 					}
 					if (resMap['antimatter'].value > 60 || chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
-					|| resMap['alicorn'].value > 2) {
+					|| resMap['alicorn'].value > 2 || resMap['titanium'].maxValue < 9500 * Math.pow(1.12, game.space.getBuilding('moonBase').on)) {
 						subTrigger = 7;
 						if (resMap['relic'].value > 26) {subTrigger = 12;}
 					}
@@ -3899,7 +3905,7 @@ window.run = function() {
 					}
 					let uranium = game.getResourcePerTick('uranium', true);
 					// 月球前哨
-					if (uranium < 2 + 10 * spaceManufacturing || resPercent('unobtainium') >= 1) {
+					if (uranium < 1 + (1 + 8 * spaceManufacturing) * (Production < 1.4) || resPercent('unobtainium') >= 1) {
 						builds['moonOutpost'].max = 1;
 						if (Production > 1.4 && starchartVal < 7500) {
 							builds['planetCracker'].max = 1;
@@ -3918,7 +3924,7 @@ window.run = function() {
 					}
 
 					// 星球裂解
-					if (uranium > 8 && starchartVal < 1e6) {
+					if (uranium > 3 - 2 * vitruvianFeline && starchartVal < 1e6) {
 						builds['planetCracker'].max = 7 * (starchartVal > 1e5);
 					}
 					// 流体切割
@@ -4159,9 +4165,9 @@ window.run = function() {
 				let newTrigger = trigger;
 				if (autoDefault) {
 					if (lessTri) {
-						newTrigger = 0.9;
+						if (name !== 'beam') {newTrigger = 0.9;}
 						if (name === 'thorium') {newTrigger = 1;}
-						if (name === 'eludium' || name === 'kerosene') {newTrigger = 0.98;}
+						if (name === 'eludium' || name === 'kerosene' ) {newTrigger = 0.98;}
 						// 由于钢会先消耗铁，充分消耗爆仓的铁
 						if (name === 'plate' && Workshop.get('spaceManufacturing').researched && ironPer) {newTrigger = 0;}
 					}
@@ -4445,14 +4451,16 @@ window.run = function() {
 				if (!race.unlocked) {continue;}
 				if (!racePanel[index]) {diplomacyTab.render();}
 				index++;
-				if (name === 'nagas' && skipNagas) {continue;}
-				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 0.7 && resPercent('uranium') > 0.1) {continue;}
-				if (name === 'lizards' && solarRevolution > 0.1) {continue;}
-				if (name === 'sharks' && !challenge && solarRevolution > 3 && !trade.limited) {continue;}
+
 				if (!trade.enabled) {continue;}
 
 				let tradeForSeason = trade[seasonTitle];
 				if (!tradeForSeason) {continue;}
+
+				if (name === 'nagas' && skipNagas) {continue;}
+				if (name === 'dragons' && solarRevolution > 2 && titaniumTri < 0.7 && resPercent('uranium') > 0.1) {continue;}
+				if (name === 'lizards' && solarRevolution > 0.1) {continue;}
+				if (name === 'sharks' && !challenge && solarRevolution > 3 && !trade.limited) {continue;}
 
 				require = trade.require ? craftManager.getResource(trade.require) : false;
 				if ((!require || requireTrigger <= require.value / require.maxValue) && isGoldTrigger) {
@@ -4562,10 +4570,6 @@ window.run = function() {
 
 			for (let name in tradesDone) {
 				if (tradesDone[name] > 0) {
-					if (!tradeManager.getTradeButton(name)) {
-						diplomacyTab.render();
-						continue;
-					}
 					tradeManager.trade(name, tradesDone[name]);
 				}
 			}
@@ -5712,7 +5716,7 @@ window.run = function() {
 							msgSummary('harbor');
 							halfCount = true;
 							if (!vitruvianFeline) {count *= 0.9;}
-						} else if (reactorVal < 30) {
+						} else if (reactorVal < 30 + 9 * vitruvianFeline) {
 							if (vitruvianFeline) {count *= 0.5;}
 							halfCount = true;
 							if (revolution > 7.5) {count *= 0.2;}
@@ -6608,7 +6612,8 @@ window.run = function() {
 							forceAlloy('alloyArmor', 25);
 							forceAlloy('nanosuits', 250);
 						}
-					} else if (resMap['wood'].perTickCached) {
+					}
+					if (resMap['wood'].perTickCached && game.religion.faith < 1e6) {
 						forceAlloy('alloyAxe', 25);
 					}
 					forceAlloy('alloySaw', 75);
@@ -6746,8 +6751,8 @@ window.run = function() {
 			return stock;
 		},
 		getAutoStocks: function () {
-			let auto = options.auto;
-			let cache = auto.cache;
+			let Auto = options.auto;
+			let cache = Auto.cache;
 			cache.stocks = {};
 			if (Workshop.get('spaceManufacturing').researched) {return;}
 			let orbGeodesy = Workshop.get('orbitalGeodesy').researched;
@@ -6772,7 +6777,7 @@ window.run = function() {
 						break;
 					}
 					case 'minerals': {
-						if (kittens < 130 && Workshop.get('concreteHuts').researched && !iw && !priceRatio && resPercent(name) < 0.99 && game.getEffect('craftRatio') >=3) {
+						if (Auto.build.enabled < 130 && Workshop.get('concreteHuts').researched && !iw && !priceRatio && resPercent(name) < 0.99 && game.getEffect('craftRatio') >=3) {
 							let logHouse = game.bld.getBuildingExt('logHouse').meta;
 							msgSummary('logHouseMineral');
 							stock += 250 * Math.pow(logHouse.priceRatio + priceRatio, logHouse.val);
@@ -6834,7 +6839,7 @@ window.run = function() {
 							}
 						}
 						// 钛金粮仓
-						if (this.getUnResearched('titaniumBarns') && resMap['ship'].value > 70 && titaniumVal > 25) {
+						if (this.getUnResearched('titaniumBarns') && resMap['ship'].value > 70 - 200 * priceRatio && titaniumVal > 25) {
 							if (resMap['scaffold'].value > 250) {stock += 200;}
 						}
 						// 钛金粮仓
@@ -6846,7 +6851,7 @@ window.run = function() {
 							stock += 1100;
 						}
 
-						let upg = auto.upgrade.items.upgrades;
+						let upg = Auto.upgrade.items.upgrades;
 						// 采矿钻
 						if (upg.cache === 'miningDrill' && Titanium.value > 1450) {
 							stock += 750;
@@ -6880,7 +6885,7 @@ window.run = function() {
 						}
 						let Revolution = Religion.getSolarRevolutionRatio();
 						let geodesy = this.getUnResearched('geodesy');
-						if (!iw && geodesy && resMap['starchart'].value > 350 - 50 * !calcinerRatio) {
+						if (!iw && geodesy && resMap['starchart'].value > 350 - 50 * !calcinerRatio - 25 * vitruvianFeline) {
 							if (Revolution < 3.3 && (Val || titaniumVal > 100)) {
 								msgForStock(250, 'titaniumGeodesy', name);
 								let upg = items.upgrades;
@@ -7083,9 +7088,9 @@ window.run = function() {
 						}
 					}
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && starchart < 1e5 && satnav) ? 0.3 : limRat;
-					limRat = (manufacture || resPercent('titanium') > 0.7 || shipValue > 5e4) ? 0.05 : limRat;
+					limRat = (manufacture || resPercent('titanium') > 0.7 || shipValue > 2e4) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && starchart < 1e4) ? 0 : limRat;
-					limRat = (shipValue > Math.max(2e3, 1e-4 * titaniumMax)) ? 0 : limRat;
+					limRat = (shipValue > Math.max(5e4, 1e-3 * titaniumMax)) ? 0 : limRat;
 					break;
 				}
 				case 'plate': {
@@ -7518,7 +7523,11 @@ window.run = function() {
 			if (!name || amount < 1) {warning(name + '-' + amount + '贸易可能出点问题');}
 
 			let race = this.getRace(name);
-			let button = this.getTradeButton(race.name);
+			let button = this.getTradeButton(name);
+			if (!button) {
+				game['diplomacyTab'].render();
+				button = this.getTradeButton(name);
+			}
 			let leader = (options.auto.cache.trait['merchant']) ? '商人小猫与 ' : '小猫与 ';
 
 			if (!button.model.enabled) {
@@ -7829,8 +7838,9 @@ window.run = function() {
 			if (name === undefined) {return null;} else {return game.diplomacy.get(name);}
 		},
 		getTradeButton: function (race) {
-			for (let i in this.manager.tab.racePanels) {
-				let panel = this.manager.tab.racePanels[i];
+			let racePanels = this.manager.tab.racePanels;
+			for (let i in racePanels) {
+				let panel = racePanels[i];
 
 				if (panel.race.name === race) {return panel.tradeBtn;}
 			}
@@ -8363,7 +8373,7 @@ window.run = function() {
 					game[tab].render();
 				}
 			});
-			let iOpt = () => {
+			let opt = () => {
 				let buildOption, spaceOption, build, buildItem;
 				// Grab button labels for religion options
 				let religionM = new ReligionManager();
@@ -8413,8 +8423,8 @@ window.run = function() {
 					}
 				}
 			};
-			iOpt();
-			iOpt = null;
+			opt();
+			opt = null;
 		}
 
 		let getAvailableResourceOptions = function (forReset) {
@@ -10375,7 +10385,9 @@ window.run = function() {
 			activity('小喵留下设置好的库存：');
 			message('可爱的猫猫珂学家提示设置库存会影响挂机效率');
 		}
-		msgSummary('ksHelp4');
+		if (Math.random() < 0.2) {
+			msgSummary('ksHelp4');
+		}
 	};
 
 	if (kittenStorage.reset && kittenStorage.reset.reset) {
@@ -10429,6 +10441,7 @@ window.run = function() {
 			clearInterval(autoOpenTime);
 		}
 	};
+	// 重置游戏
 	i18nLang.messages['space.planet.umbra.hrHarvester.desc'] = '霍金辐射收割机，收集黑洞蒸发的能量。每级 HR 收割机产出 1瓦 能源，能源输出随着时间的推移缓慢增加';
 	game.effectsMgr.statics.effectMeta['heatEfficiency'] = {
 		title: $I("effectsMgr.statics.heatEfficiency.title"),
