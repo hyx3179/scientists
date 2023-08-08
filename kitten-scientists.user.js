@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.223';
+	const version = 'V15.224';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -272,7 +272,7 @@ window.run = function() {
 			'summary.auto.150Faith': '你的信仰空了，看看你的宗教，有新东西',
 			'summary.auto.1000Faith': '你的信仰空了，无所谓，太阳革命会出手',
 			'summary.auto.academy': '吾等猫类看不上研究院♪呐',
-			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战详情可以查看百科-标签-挑战',
+			'summary.auto.anyChallengeActive': '挑战模式中请自己点政策(自动政策只推荐正常重置的)<br>挑战模式中请自己点政策<br>挑战模式中请自己点政策<br>挑战详情可以查看百科-标签-挑战',
 			'summary.auto.apocripha': '超越喵喵极限，新约外传才有用捏(暂时不理新约外传)',
 			'summary.auto.aqueduct': '心中无水渠，发展自然神，除非它给的猫薄荷实在太多了',
 			'summary.auto.aqueductCatnip': '水渠，饿饿，饭饭',
@@ -282,6 +282,7 @@ window.run = function() {
 			'summary.auto.bls': '小猫存眼泪准备搅拌这悲伤的液体',
 			//'summary.auto.biology': '<s>哎呦，只因你镁有钛，</s>跳过困难的生物学',
 			'summary.auto.biology': '喵星人不需要愚蠢的生物学 ฅ(๑˙o˙๑)ฅ <br>省下珍贵的蓝图',
+			'summary.auto.buildEmbassy': '天文学优先把文化留着做手稿，星图星图',
 			'summary.auto.broadcastTower': '小猫知道你缺钛，等钛上限时才会建造更多的广播塔',
 			'summary.auto.caravanserai': '储存黄金为了商队驿站。~打败斑马的第一步',
 			'summary.auto.changeLeader': '同时勾选提拔领袖小猫、喵喵管理、分配领袖，小喵服务时自会动切换对应领袖特质，发展会快很多的喵<br>研究科学和工坊升级换到科学家领袖，降低科学的价格等等',
@@ -319,10 +320,10 @@ window.run = function() {
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱才是猫猫的最爱喵~ ＞▽＜',
-			'summary.auto.miao': '选珂学家就对惹',
+			'summary.auto.miao': '猫国 启动!<br>珂学家 启动!<br>选珂学家就对惹!',
 			'summary.auto.miner': '抓一直忙碌的猫猫去挖矿',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
-			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地',
+			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地(男德班优秀毕业生)',
 			'summary.auto.nanotechnology': '存点蓝图，喵喵可能要进化成纳米机器猫了',
 			'summary.auto.oilTick': '小猫是懂石油的，控制石油平衡暂时不造煅烧炉了<br>我命油猫不油天',
 			'summary.auto.offCalciner': '猫猫只会担心能源，关掉了煅烧炉',
@@ -364,7 +365,7 @@ window.run = function() {
 			'summary.auto.upgLibrary': '当勾选数据中心了，概要数量大于 150X图书馆数量 时，小猫会贴心的帮你卖出全部图书馆后，升级数据中心!',
 			'summary.auto.upgAmphitheatre': '当有贸易船或者钛产量足够高时，小猫会贴心的帮你卖出全部剧场后，升级广播塔!',
 			'summary.auto.upgradeFilter': '精明的小猫择优工坊升级，听毛米的准没错啦<br>暂时没用的~会跳过比如没有蒸汽工房会跳过印刷机以及其他等等<br>彻底跳过一直没用的升级比如注册、神经网络(消耗材料算是副作用)',
-			'summary.auto.webWorker': '延迟了 {0} 次',
+			'summary.auto.webWorker': '延迟了 {0} 次（可能是浏览器休眠，后台等等）',
 			'summary.auto.workshop': '工坊只是解锁升级的 猫玩具罢了，现在小猫只愿意造1个工坊哦',
 			'summary.auto.debug': '{0}',
 			'summary.upgrade.building.pasture': '卖出牧场 并升级为 太阳能发电站 !',
@@ -1048,7 +1049,11 @@ window.run = function() {
 				this.worker.terminate();
 				this.worker = undefined;
 			}
-
+			if (msg) {
+				if (Math.random() < 0.2) {
+					message('以前陪我一起吸猫的时候，叫小甜甜!现在叫珂学家! ε-(=｀ω´=)');
+				}
+			}
 			this.time = 0;
 			if (!this.loop) {return;}
 			clearTimeout(this.huntID);
@@ -1078,7 +1083,7 @@ window.run = function() {
 							} else if (c.indexOf('safari') !== -1) {
 								c = "safari"; // safari浏览器
 							}
-							activity('可能进入了后台<br>浏览器信息' + c + '<br>延迟了: ' + a, [], 'noFilter');
+							activity('可能进入了后台<br>浏览器信息' + c + '<br>延迟了: ' + a, 'noFilter');
 						}
 					}
 				}
@@ -2965,7 +2970,7 @@ window.run = function() {
 						} else {
 							if (!game.ironWill) {
 								let shipVal = resMap['ship'].value;
-								policiesList = ["clearCutting","outerSpaceTreaty",'epicurianism','expansionism','necrocracy'];
+								policiesList = ["clearCutting","outerSpaceTreaty",'epicurianism','expansionism','necrocracy','socialism'];
 								let first = 'liberty';
 								let environment = 'sustainability';
 								let leader = 'authocracy';// autocracy
@@ -3040,6 +3045,7 @@ window.run = function() {
 				let missionsLength = game.space.meta[0].meta.length;
 				let manu = game.workshop.get('spaceManufacturing').researched;
 				let chat = resMap['starchart'].value;
+				let preferTerminus;
 				if (subTrigger === 4) {
 					if (chat < 4e5) {
 						if (game.challenges.anyChallengeActive()) {
@@ -3050,15 +3056,23 @@ window.run = function() {
 						}
 					}
 					if (resMap['antimatter'].value > 60 || chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
-					|| resMap['alicorn'].value > 2 || resMap['titanium'].maxValue < 9500 * Math.pow(1.12, game.space.getBuilding('moonBase').on)) {
+					|| resMap['alicorn'].value > 2) {
 						subTrigger = 7;
 						if (resMap['relic'].value > 26) {subTrigger = 12;}
+					}
+					// 月球基地超过钛上限 9500 > 8000
+					if (resMap['titanium'].maxValue < 8e3 * Math.pow(1.12, game.space.getBuilding('moonBase').on) && subTrigger < 6) {
+						subTrigger = 6;
+						preferTerminus = true;
 					}
 				}
 				let index = 0;
 				let skip = !orbitalGeodesy && (!resMap['unobtainium'].value || !geodesy);
 				let GCPanel = spaceTab.GCPanel;
-				if (!GCPanel) {spaceTab.render();}
+				if (!GCPanel) {
+					spaceTab.render();
+					GCPanel = spaceTab.GCPanel;
+				}
 				const missions = game.space.meta[0].meta;
 				missionLoop:
 				for (i = 0; i < missionsLength; i++) {
@@ -3073,6 +3087,9 @@ window.run = function() {
 						break;
 					}
 
+					if (i === 4 && preferTerminus) {
+						continue;
+					}
 					if (!missions[3].val && i === 2 && subTrigger !== 3 && !game.challenges.isActive('blackSky')) {
 						if (chat > 1000) {
 							msgSummary('spaceDune');
@@ -3088,6 +3105,9 @@ window.run = function() {
 					if (!Btn.model.enabled) {
 						Btn.controller.updateEnabled(Btn.model);
 						continue;
+					}
+					if (i === 2) {
+						activity('我们总会在月亮上相遇的，傻瓜。', 'spaceFilter');
 					}
 					Btn.controller.build(Btn.model, 1);
 					manu = 2;
@@ -4682,7 +4702,11 @@ window.run = function() {
 						if (bulkTracker.length === 0) {break AutoEmbassy;}
 
 						let astronomy = game.science.get('astronomy').researched;
+						if (!astronomy) {
+							msgSummary('buildEmbassy');
+						}
 						let solarFactor = Math.sqrt(Religion.getSolarRevolutionRatio() + 1);
+						let sharksBoolean = solarFactor > 2 && !game.getEffect('unobtainiumPerTickSpace') && resMap['furs'].value;
 						let embassyFakeBought = game.getEffect("embassyFakeBought");
 						while (bulkTracker.length > 0) {
 							for (i = 0; i < bulkTracker.length; i++) {
@@ -4693,7 +4717,7 @@ window.run = function() {
 								let noSkip = true;
 								if (!highCulture) {
 									if ((embassyVal > 14 + solarFactor - 10 * (name === 'zebras') && astronomy)
-										|| (name === 'sharks' && solarFactor > 2 && !game.getEffect('unobtainiumPerTickSpace') && resMap['furs'].value)
+										|| (name === 'sharks' && sharksBoolean)
 										|| (name === 'dragons' && !game.getEffect('unobtainiumPerTickSpace'))) {
 										noSkip = false;
 									}
@@ -10302,10 +10326,13 @@ window.run = function() {
 				Engine.enabled = true;
 				engine.start();
 				msgStock();
+				let tt = Religion.transcendenceTier;
 				setTimeout(()=>{
 					if (Engine.enabled) {
 						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
-						msgSummary('cheney');
+						if (Math.random() * (tt + 1) < 4) {
+							msgSummary('cheney');
+						}
 					}
 				}, 4000);
 				// 提示节日开启
@@ -10315,7 +10342,7 @@ window.run = function() {
 						options.auto.filter.items.miscFilter.enabled = false;
 					}
 				}
-				if (game.getEffect('priceRatio') > -0.03 && Religion.transcendenceTier < 4) {
+				if (game.getEffect('priceRatio') > -0.03 && tt < 4) {
 					msgSummary('ksHelp', false, 'noFilter');
 					msgSummary('ksHelp2', false, 'noFilter');
 					if (!game.stats.getStat("totalResets").val && Religion.faith > 1e4) {msgSummary('ksHelp3', false, 'noFilter');}
