@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.224';
+	const version = 'V15.225';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -341,7 +341,7 @@ window.run = function() {
 			'summary.auto.scienceBld': '天文台、研究院、生物实验室科学上限快满了才会建造',
 			'summary.auto.ship': '征服海对面那稀树草原斑马的第二步，小目标:先制作 {0} 个贸易船<br>⊂(‘ω’⊂ ),斑马拿铁辅料钛<br>喵偷偷告诉你个秘密，贸易船越多跟斑马贸易获得钛几率越大',
 			'summary.auto.shipLess': '你说的对，但是这就是贸易船，25星图 150金属板 100脚手架的制作价格，甚至可以增加港口库存上限，然后只要243船就可以贸易斑马100%获得钛，还能增加贸易获得钛数量，缺钛啊啊啊啊啊啊',
-			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>要不要让喵喵告诉你~贸易船越多跟斑马贸易获得钛数量越多哦<br>多点船让斑马把猫猫的钛灌满❤',
+			'summary.auto.shipGeodesy': '小猫嗅到了黄金的味道喵 ^ ω ^，来点船船抄斑马的家<br>脚手架优先造天文台凑科学上限~再造船喵<br>多点船让斑马把猫猫的钛灌满❤',
 			'summary.auto.smelter': '冶炼专精的小猫会根据木材和矿物产量来控制熔炉上限',
 			'summary.auto.spaceDune': '喵喵说:星图致富重要之路~跳过沙丘去碧池星探索',
 			'summary.auto.spaceManufacturing': '猫猫进军太空，中间忘了，后面忘了，大概要偷用亿点点的钛',
@@ -857,7 +857,7 @@ window.run = function() {
 					researchFilter:          {enabled: false,  label: i18n('filter.research'),  },
 					upgradeFilter:           {enabled: false,  label: i18n('filter.upgrade'),   },
 					craftFilter:             {enabled: true,   label: i18n('filter.craft'),     },
-					spaceFilter:             {enabled: true,   label: i18n('filter.space'),     },
+					spaceFilter:             {enabled: false,  label: i18n('filter.space'),     },
 					policyFilter:            {enabled: true,   label: i18n('filter.policy'),    },
 					upgBldFilter:            {enabled: true,   label: i18n('filter.upgBld'),    },
 					tradeFilter:             {enabled: true,   label: i18n('filter.trade'),     },
@@ -1380,12 +1380,14 @@ window.run = function() {
 							iactivity('act.accelerate.acl');
 							this.accelerateTime = performance.now();
 						} else {
+							// 是珂学家触发的加速为 true
 							let msgAccelerated = this.isAccelerated;
+							// 上次记录珂学家加速的时间点
 							let aTime = this.accelerateTime;
 							if (aTime) {
 								let total = (performance.now() - aTime) / 1000;
 								let Time = game.toDisplaySeconds(total);
-								if (msgAccelerated && Time && total < 60 || (total > 3 && total < 180)) {
+								if (msgAccelerated && Time && total < 60 || total < 180) {
 									Time = Time.substring(0, Time.length - 1);
 									this.isAccelerated = false;
 									let msg = game.msg(i18n('act.accelerate.fine',[Time]), null, null, true);
@@ -3107,7 +3109,11 @@ window.run = function() {
 						continue;
 					}
 					if (i === 2) {
-						activity('我们总会在月亮上相遇的，傻瓜。', 'spaceFilter');
+						// to the moon
+						if (options.auto.filter.items['spaceFilter'].enabled) {
+							let msg = game.msg('我们总会在月亮上相遇的，傻瓜。', null, null, true);
+							$(msg.span).css('color', "#ff589c");
+						}
 					}
 					Btn.controller.build(Btn.model, 1);
 					manu = 2;
@@ -3695,7 +3701,7 @@ window.run = function() {
 								if (Production > 1 || kittensMaxVal < 125 || kittensMaxVal > 135) {
 									// 优先工坊
 									let workshop = game.bld.getBuildingExt('workshop').meta;
-									if (resMap['minerals'].maxValue * 0.95 > 400 * Math.pow(workshop.priceRatio + priceRatio, workshop.val)) {
+									if (resMap['minerals'].maxValue * (0.95 - 0.45 * (revolutionRatio > 2)) > 400 * Math.pow(workshop.priceRatio + priceRatio, workshop.val)) {
 										items['logHouse'].enabled = false;
 										smelter.max = 25 + 35 * vitruvianFeline;
 										items['aqueduct'].enabled = false;
@@ -4802,7 +4808,7 @@ window.run = function() {
 			if (mint.on !== mint.val && resMap['manpower'].maxValue > 3e4 && resPercent('gold') > 0.5) {
 				mint.on = mint.val;
 			}
-			if (mint.on > 1 && resMap['manpower'].maxValue < 19e3 && !game.challenges.isActive("pacifism")) {
+			if (mint.on > 1 + 5 * (tt > 10)&& resMap['manpower'].maxValue < 19e3 && !game.challenges.isActive("pacifism")) {
 				if (!game.opts.enableRedshift) {
 					mint.on = 0;
 					msg('mint');
@@ -5575,7 +5581,7 @@ window.run = function() {
 					break;
 				case 'aiCore':
 					count = 1;
-					if (game.getEffect('gflopsPerTickBase') > 0.6 && resMap['burnedParagon'].value > 1e5) {
+					if (game.getEffect('gflopsPerTickBase') > 0.6 && resMap['burnedParagon'].value > 1e5 && game.getEffect('globalResourceRatio') < 5) {
 						count = Math.floor(count * 0.5);
 					}
 					break;
@@ -8448,7 +8454,7 @@ window.run = function() {
 				}
 			};
 			opt();
-			opt = null;
+			opt = undefined;
 		}
 
 		let getAvailableResourceOptions = function (forReset) {
