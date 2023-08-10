@@ -857,7 +857,7 @@ window.run = function() {
 					researchFilter:          {enabled: false,  label: i18n('filter.research'),  },
 					upgradeFilter:           {enabled: false,  label: i18n('filter.upgrade'),   },
 					craftFilter:             {enabled: true,   label: i18n('filter.craft'),     },
-					spaceFilter:             {enabled: false,  label: i18n('filter.space'),     },
+					spaceFilter:             {enabled: true,   label: i18n('filter.space'),     },
 					policyFilter:            {enabled: true,   label: i18n('filter.policy'),    },
 					upgBldFilter:            {enabled: true,   label: i18n('filter.upgBld'),    },
 					tradeFilter:             {enabled: true,   label: i18n('filter.trade'),     },
@@ -3110,10 +3110,8 @@ window.run = function() {
 					}
 					if (i === 2) {
 						// to the moon
-						if (options.auto.filter.items['spaceFilter'].enabled) {
-							let msg = game.msg('我们总会在月亮上相遇的，傻瓜。', null, null, true);
-							$(msg.span).css('color', "#ff589c");
-						}
+						let msg = game.msg('我们总会在月亮上相遇的，傻瓜。', null, null, true);
+						$(msg.span).css('color', "#ff589c");
 					}
 					Btn.controller.build(Btn.model, 1);
 					manu = 2;
