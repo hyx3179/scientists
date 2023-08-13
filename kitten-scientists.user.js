@@ -2572,12 +2572,16 @@ window.run = function() {
 			cryochambers.max = (cryochambersMax === -1) ? cryoLimited : Math.min(cryoLimited, cryochambersMax);
 			let RR = builds['ressourceRetrieval'];
 			let rrMax = RR.max;
-			let blastFurnace = builds['blastFurnace'];
 			if (resMap['timeCrystal'].value < 1e10) {
-				blastFurnace.max = 4;
-				if (game.getEffect('shatterTCGain') > 0.05) {
-					blastFurnace.max = Math.round(127.35 * game.getEffect('shatterTCGain') + 11.393);
+				let number = 4;
+				let shatterTCGain = game.getEffect('shatterTCGain');
+				if (shatterTCGain > 0.04) {
+					number = 8;
+					if (shatterTCGain > 0.05) {
+						number = Math.round(127.35 * shatterTCGain + 11.393);
+					}
 				}
+				builds['blastFurnace'].max = number;
 				let paragon = resMap['paragon'].value + resMap['burnedParagon'].value;
 				if (paragon < 1e7 && game.calendar.trueYear() < 2e3) {
 					rrMax = 32;
