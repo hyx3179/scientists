@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.225';
+	const version = 'V15.226';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -177,7 +177,7 @@ window.run = function() {
 			'status.auto.disable': '禁用自动化 {0}',
 
 			'time.game' : '猫珂学家等待游戏处理{0} 毫秒',
-			'time.ks': '可爱小喵珂学家一共为你服务了 {0} 次，珂学家处理共耗时 {1} 毫秒，平均耗时 {2} 毫秒',
+			'time.ks': '可爱小喵珂学家一共为你服务了 {0} 次( 现实时间 {1})<br>珂学家处理共耗时 {2} 毫秒，平均耗时 {3} 毫秒',
 
 			'trade.limited': '贸易获得数量大于产量时才与 {0} 贸易，次数自动限制',
 			'trade.limitedTitle': '根据产量和贸易获得数量',
@@ -1083,7 +1083,10 @@ window.run = function() {
 							} else if (c.indexOf('safari') !== -1) {
 								c = "safari"; // safari浏览器
 							}
-							activity('可能进入了后台<br>浏览器信息' + c + '<br>延迟了: ' + a, 'noFilter');
+							if (!game.worker) {
+								a += '<br>请务必打开游戏选项的webWorker';
+							}
+							activity('可能进入了后台好几次<br>浏览器信息' + c + '<br>延迟了: ' + a, 'noFilter');
 						}
 					}
 				}
@@ -2705,7 +2708,7 @@ window.run = function() {
 								if (game.getEffect('relicRefineRatio') < 2 && game.religion.getZU("blackPyramid").on) {continue;}
 								break;
 							case 'antimatter':
-								if (Production > 2 && !game.getEffect('beaconRelicsPerDay') || !game.workshop.get('chronoforge').researched) {continue;}
+								if (Production > 2 && !game.getEffect('beaconRelicsPerDay') && Production < 4 || !game.workshop.get('chronoforge').researched) {continue;}
 								break;
 							case 'terraformation':
 								if (Production > 2 && (!aqueductMeta.stage || resMap['sorrow'].maxValue < 17) && game.getEffect('scienceMaxCompendia')) {continue;}
@@ -2864,11 +2867,11 @@ window.run = function() {
 					// AI核心
 					if (game.bld.getBuildingExt('aiCore').meta.val < 5) {
 						noop = noop.concat(['machineLearning', 'aiBases']);
-						let ship = resMap['ship'].value < 5e4;
 						if (Production > 4) {
 							noop = noop.concat(['storageBunkers', 'tachyonAccelerators', 'darkEnergy','eludiumReflectors','amBases']);
 						}
-						if (ship) {noop.push('thoriumEngine');}
+						// 船太少过滤钍驱动
+						if (resMap['ship'].value < 5e4) {noop.push('thoriumEngine');}
 					}
 					// 反应堆槽
 					if (game.bld.getBuildingExt('reactor').meta.val < 2 || resMap['ship'].value < 169) {
@@ -4020,7 +4023,7 @@ window.run = function() {
 						}
 						if (game.religion.getZU("blackPyramid").on) {
 							if (!game.space.getBuilding("entangler").effects["hashRateLevel"]) {
-								builds['spaceBeacon'].max = 20;
+								builds['spaceBeacon'].max = 23;
 							}
 						}
 						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
@@ -4503,8 +4506,9 @@ window.run = function() {
 				let sharks = game.diplomacy.get('sharks');
 				if (sharks.unlocked) {
 					let sharksAmt = tradeManager.getLowestTradeAmount('sharks');
+					// console.log(sharksAmt, resMap['manpower'].value /14)
 					let catnip = tradeManager.getAverageTrade(sharks).catnip;
-					tradeManager.trade('sharks', Math.max(Math.ceil(catnipNow / -catnip), sharksAmt, 1) + 2);
+					tradeManager.trade('sharks', Math.max(Math.ceil(catnipNow / -catnip), sharksAmt, 1));
 					iactivity('trade.catnip');
 				}
 			}
@@ -5760,7 +5764,7 @@ window.run = function() {
 				case 'biolab':
 					if (spaceManufacturing) {
 						if (resMap['starchart'].value < 1e6 * (2 - !priceRatio)) {
-							count *= 0.5;
+							count *= 0.4 - 0.2 * (revolution < 6);
 							halfCount = true;
 						}
 					} else {
@@ -6708,7 +6712,7 @@ window.run = function() {
 				aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
 				let aliChanceTick = Math.min(aliChance, 1) * 0.2;
 				prod = (aliChanceTick + alicornTick) * tcRefineRatio;
-				if (game.getEffect('antimatterProduction') > 25 && resPercent('unobtainium') < 0.6) {prod *= 20;}
+				if (game.getEffect('antimatterProduction') > 22 && resPercent('unobtainium') < 0.6) {prod *= 30;}
 			}
 			if (res.craftable) {
 				let minProd = Number.MAX_VALUE;
@@ -7072,7 +7076,7 @@ window.run = function() {
 					let Catnip = resMap['catnip'];
 					let better = 0.09 + res.perTickCached < Catnip.perTickCached / game.workshop.getCraft("wood").prices[0].val;
 					let iw = !game.getEffect('scienceRatio') && Catnip.value > 1e3 && game.ironWill;
-					limRat = (better || iw) ? 1 : 0.5 - 0.1 * (Catnip.perTickCached < 10);
+					limRat = (better || iw) ? 1 : 0.5 - 0.1 * (Catnip.perTickCached < 10) - 0.49 * (reactorVal > 10 && solar > 2);
 					let field = Bld.getBuildingExt('field').meta;
 					let fieldFactor = Math.pow(field.priceRatio + priceRatio, field.val);
 					limRat = (Catnip.maxValue > 10 * fieldFactor && solar > 1 && !game.ironWill && res.value || (!this.getValueAvailable(name, true) && res.value)) ? 0 : limRat;
@@ -7617,7 +7621,12 @@ window.run = function() {
 					}
 				}
 				if (tick <= 0) {
-					if (name === 'leviathans' && mat === 'gold') {continue;}
+					if (name === 'leviathans') {
+						// console.log(tick,mat)
+						if (mat === 'gold') {
+							continue;
+						}
+					}
 					return false;
 				}
 				cost += materials[mat] / tick;
@@ -10130,6 +10139,7 @@ window.run = function() {
 	};
 
 	let displayActivitySummary = function () {
+		showActivity[0].style.fontWeight = '500';
 		// 最多总结会有300条日志
 		if (game.console.messages.length > game.console.maxMessages - 250) {game.clearLog();}
 		// 提示库存
@@ -10254,7 +10264,7 @@ window.run = function() {
 				}
 				return number;
 			};
-			summary(i18n('time.ks', [totalTicks, displaySecond(ksTime), Math.round(ksTime * numberFix / totalTicks) / numberFix]));
+			summary(i18n('time.ks', [totalTicks, game.toDisplaySeconds(totalTicks * options.interval / 1000), displaySecond(ksTime), Math.round(ksTime * numberFix / totalTicks) / numberFix]));
 			// if (gameTime) {summary(i18n('time.game', [displaySecond(gameTime)]));}
 			summary(equal);
 		}
@@ -10284,7 +10294,8 @@ window.run = function() {
 		text: i18n('summary.show'),
 		href: '#',
 		css: {
-			verticalAlign: 'top'
+			verticalAlign: 'top',
+			fontWeight: 600
 		}
 	});
 
