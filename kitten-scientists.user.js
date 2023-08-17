@@ -16,7 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	const version = 'V15.226';
+	const version = 'V15.227';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -305,7 +305,7 @@ window.run = function() {
 			'summary.auto.ironwood': '喵喵喵把铁收起来，希望住上向往的铁木小屋<br>内有恶猫-请勿靠近ヾ(=`ω´=)ノ',
 			'summary.auto.keepGold': '猫猫只是想当个守财奴，神殿、铸币厂，现在还不可以哦',
 			'summary.auto.kittens': '计划生育! 猫粮产量不够了 ovo',
-			'summary.auto.ksHelp': '为了游戏可玩性，没有给萌新开放过多智能项目，<br>你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
+			'summary.auto.ksHelp': '你点珂学家这些按钮没用捏，因为我只是一只猫，自己多点点游戏捏<br>随着猫猫的发展珂学家初始设置好默认配置下会越来越智能快速效率喵',
 			'summary.auto.ksHelp2': '如有你特意想点的项目可以在 工艺 => 资源 => 库存,比如重置前要点猫口建筑设置木材 100K,就会永远留100K的木材让你手点',
 			'summary.auto.ksHelp3': '不更改任何设置下，默认配置纯自动大概275年左右 130猫口 + 新约外传 ❤',
 			'summary.auto.ksHelp4': '小猫杂项里 => 恢复初始配置，只需外面大项目就可以用到毕业，想发展慢一点的话就自己改下设置',
@@ -320,7 +320,7 @@ window.run = function() {
 			'summary.auto.lumberMill': '喵喵觉得木头已经发展好了，减少木材厂的建造',
 			'summary.auto.marker': '没有黑金字塔小猫拒绝了神印的建造',
 			'summary.auto.mansion': '小猫为了节省钛和钢用来发展，宅邸优先度降低（2倍多资源）<br>湿软的纸箱才是猫猫的最爱喵~ ＞▽＜',
-			'summary.auto.miao': '猫国 启动!<br>珂学家 启动!<br>选珂学家就对惹!',
+			'summary.auto.miao': '猫国，启动!<br>珂学家，启动!<br>选珂学家就对惹!',
 			'summary.auto.miner': '抓一直忙碌的猫猫去挖矿',
 			'summary.auto.miningDrill': '来点钢，地质学家会出手',
 			'summary.auto.moonBase': '难得素~男德素存到80%，小猫才会有力气造月球基地(男德班优秀毕业生)',
@@ -398,7 +398,7 @@ window.run = function() {
 			'summary.factory': '小猫为了空间的发展，把工厂全部启用呐',
 			'summary.magneto': '也许没有石油了导致磁电机自动关机，小猫还是选择打开了它',
 			'summary.mint': '秋梨膏别开铸币厂了（其转化效率与喵力上限有关，打猎会获得更多的毛皮，具体右下角参考百科 游戏标签-其它建筑-铸币厂）',
-			'summary.moonBase': '小猫我先急，趁你不注意关闭了月球基地',
+			'summary.moonBase': '小猫我先急，趁你不注意关闭了月球基地，没电啦',
 			'summary.pumpjack': '小猫担心冬季电不够并关闭了 {0} 次油井自动化',
 			'summary.reactor': '小猫向反应堆投入了铀开始发光呐，资源产量变多了',
 			'summary.steamworks': '小猫向蒸汽工房加了煤开始排蒸汽呐，资源产量变多了',
@@ -547,7 +547,7 @@ window.run = function() {
 					blackCore:          {require: false,         enabled: true,  max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					singularity:        {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blackLibrary:       {require: false,         enabled: false, max: 0, variant: 'c', checkForReset: true, triggerForReset: -1},
-					blackRadiance:      {require: false,         enabled: false, max: 8, variant: 'c', checkForReset: true, triggerForReset: -1},
+					blackRadiance:      {require: false,         enabled: false, max: 24, variant: 'c', checkForReset: true, triggerForReset: -1},
 					blazar:             {require: false,         enabled: false, max:40, variant: 'c', checkForReset: true, triggerForReset: -1},
 					darkNova:           {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
 					holyGenocide:       {require: false,         enabled: false, max:-1, variant: 'c', checkForReset: true, triggerForReset: -1},
@@ -663,7 +663,7 @@ window.run = function() {
 					cryostation:    {require: 'eludium',     enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
 					// Kairo
-					spaceBeacon:    {require: 'antimatter',  enabled: true, max:51, checkForReset: true, triggerForReset: -1},
+					spaceBeacon:    {require: 'antimatter',  enabled: true, max:-1, checkForReset: true, triggerForReset: -1},
 
 					// Yarn
 					terraformingStation: {require: 'antimatter',  enabled: false, max:0, checkForReset: true, triggerForReset: -1},
@@ -2133,8 +2133,8 @@ window.run = function() {
 							doTransform = 1;
 						}
 					}
-					if (game.getEffect('solarRevolutionLimit') < 3.5 && game.getEffect('shatterTCGain') > 0.15 && game.getEffect('heatPerTick') > 0.64 && relicVal < 1.8e6 && game.getEffect('blsLimit') > 24 && timeCrystalVal > 5e4) {
-						doTransform = 10;
+					if (game.getEffect('solarRevolutionLimit') < 70 && game.getEffect('shatterTCGain') > 0.15 && game.getEffect('heatPerTick') > 0.64 && relicVal < 1.8e6 && game.getEffect('blsLimit') > 24 && timeCrystalVal > 5e4) {
+						doTransform = 20;
 					}
 					if (doTransform) {
 						let refineTCBtn = game['religionTab'].refineTCBtn;
@@ -2146,7 +2146,7 @@ window.run = function() {
 						let relicGain = resMap['relic'].value - relicVal;
 						storeForSummary('relic', relicGain, 'resGain');
 						storeForSummary('timeCrystal', 25 * doTransform, 'resConsume');
-						activity(i18n('act.timeCrystalSacrifice', [doTransform, game.getDisplayValueExt(relicGain)]), 'unicornSacrificeFilter');
+						activity(i18n('act.timeCrystalSacrifice', [doTransform * 25, game.getDisplayValueExt(relicGain)]), 'unicornSacrificeFilter');
 					}
 				}
 			}
@@ -2476,8 +2476,11 @@ window.run = function() {
 				}
 				let rrr = game.getEffect('relicRefineRatio');
 				if (rrr < 61 && game.getEffect('beaconRelicsPerDay')) {
-					if (resMap['burnedParagon'].value < 1e5) {
+					if (resMap['burnedParagon'].value < 1e5 && game.karmaKittens > 3e4) {
 						copyBuilds['blackNexus'].max = 36;
+						copyBuilds['blazar'].max = 13;
+						copyBuilds['blackRadiance'].max = 8;
+						copyBuilds['singularity'].max = 20;
 					}
 					let Num = game['nummon'];
 					if (Num && Num.getBestRelicBuilding().indexOf('核心') === -1) {
@@ -2576,17 +2579,19 @@ window.run = function() {
 				let number = 4;
 				let shatterTCGain = game.getEffect('shatterTCGain');
 				if (shatterTCGain > 0.04) {
-					number = 8;
-					if (shatterTCGain > 0.05) {
+					number = 9;
+					if (shatterTCGain > 0.07) {
 						number = Math.round(127.35 * shatterTCGain + 11.393);
 					}
 				}
 				builds['blastFurnace'].max = number;
-				let paragon = resMap['paragon'].value + resMap['burnedParagon'].value;
-				if (paragon < 1e7 && game.calendar.trueYear() < 2e3) {
-					rrMax = 32;
-					if (paragon < 2e4) {
-						rrMax = 16;
+				if (game.calendar.trueYear() < 4e3) {
+					let paragon = resMap['paragon'].value + resMap['burnedParagon'].value;
+					if (paragon < 1e7) {
+						rrMax = 32;
+						if (paragon < 2e4) {
+							rrMax = 17;
+						}
 					}
 				}
 			}
@@ -2865,13 +2870,16 @@ window.run = function() {
 					if (game.bld.getBuildingExt('accelerator').meta.val < 5) {
 						noop.push('darkEnergy', 'stasisChambers', 'voidEnergy', 'tachyonAccelerators', 'lhc','assistance');
 						if (Production > 4) {
-							noop = noop.concat(['stoneBarns', 'reinforcedBarns', 'titaniumBarns', 'alloyBarns', 'concreteBarns', 'alloyWarehouses', 'concreteWarehouses', 'storageBunkers', 'stasisChambers', 'voidEnergy', 'darkEnergy']);
+							noop.push('storageBunkers');
+							if (Production > 4.4) {
+								noop.push('stoneBarns', 'reinforcedBarns', 'titaniumBarns', 'alloyBarns', 'concreteBarns', 'alloyWarehouses', 'concreteWarehouses');
+							}
 						}
 					}
 					// AI核心
 					if (game.bld.getBuildingExt('aiCore').meta.val < 5) {
 						noop = noop.concat(['machineLearning', 'aiBases']);
-						if (Production > 4) {
+						if (Production > 4.4) {
 							noop = noop.concat(['storageBunkers', 'tachyonAccelerators', 'darkEnergy','eludiumReflectors','amBases']);
 						}
 						// 船太少过滤钍驱动
@@ -3064,13 +3072,13 @@ window.run = function() {
 							subTrigger = 2;
 						}
 					}
-					if (resMap['antimatter'].value > 60 || chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
+					if (resMap['antimatter'].value > 30 || chat > Math.min(2e5 * (1 + Production) * (1 + revolutionRatio), 1e9)
 					|| resMap['alicorn'].value > 2) {
 						subTrigger = 7;
 						if (resMap['relic'].value > 26) {subTrigger = 12;}
 					}
 					// 月球基地超过钛上限 9500 > 8000
-					if (resMap['titanium'].maxValue < 8e3 * Math.pow(1.12, game.space.getBuilding('moonBase').on) && subTrigger < 6) {
+					if (resMap['titanium'].maxValue < 5e3 * Math.pow(1.12, game.space.getBuilding('moonBase').on) && subTrigger < 6) {
 						subTrigger = 6;
 						preferTerminus = true;
 					}
@@ -3745,13 +3753,15 @@ window.run = function() {
 				if (game.challenges.isActive("anarchy")) {
 					items['aiCore'].enabled = true;
 				} else {
-					if (!game.getEffect('aiCoreProductivness') && resMap['burnedParagon'].value < 2e4 && vitruvianFeline) {
+					if (!game.getEffect('aiCoreProductivness') && vitruvianFeline) {
 						if (game.getEffect('beaconRelicsPerDay')) {
-							items['aiCore'].max = (game.getEffect('gflopsConsumption')) ? 4 + 21 * (game.calendar.year > 3e3) : 3;
+							if (resMap['burnedParagon'].value < 2e4) {
+								items['aiCore'].max = (game.getEffect('gflopsConsumption')) ? 4 + 21 * (game.calendar.year > 3e3) : 3;
+							}
 						} else {
 							items['aiCore'].max = 0;
 						}
-						items['chronosphere'].max = 10 + 10 * (resMap['paragon'].value > 2e3 || game.calendar.year > 200) + 20 * !revolutionRatio;
+						items['chronosphere'].max = 10 + 10 * (resMap['paragon'].value > 2e3 || game.calendar.year > 200) + 20 * !revolutionRatio + 7 * (Production > 4);
 					}
 					if (game.science.get("paradoxalKnowledge").researched && resMap['unobtainium'].maxValue < 7e9 && game.calendar.trueYear() < 2e3) {
 						if (vitruvianFeline) {
@@ -3911,6 +3921,7 @@ window.run = function() {
 						if (energyChallenge) {
 							// 构造体
 							builds['tectonic'].enabled = true;
+							builds['tectonic'].max = 1;
 							// HR收割机
 							builds['hrHarvester'].enabled = true;
 						}
@@ -3999,9 +4010,10 @@ window.run = function() {
 					let ChamberCons = Math.max(50 * (1 + heatsink * 0.01), 5 * containmentChamber);
 
 					let Year = game.calendar.year;
-					let energyExtra = Prod < Cons + ChamberCons + Math.min(300, Math.sqrt(Year));
+					let energyExtra = Prod < Cons + ChamberCons + Math.min(500, Math.sqrt(Year) + 400 * (Year > 1e5));
 					let sunCycle = game.prestige.getPerk("numerology").researched && (game.calendar.cycle === 3 || game.calendar.cycle === 1);
-					if (vitruvianFeline && game.getEffect('gflopsConsumption') && containmentChamber + 20 > heatsink && containmentChamber > 14) {
+					if (vitruvianFeline && game.getEffect('gflopsConsumption')) {
+						if (containmentChamber + 10 + 10 * (containmentChamber > 15) > heatsink && containmentChamber > 15)
 						itemChamber.enabled = false;
 					}
 					if (antimatter.value + (50 - 40 * !Production) * game.getEffect('antimatterProduction') < antimatter.maxValue
@@ -4031,18 +4043,23 @@ window.run = function() {
 							}
 						}
 						entangler.max = (entanglerMax === -1) ? game.getEffect('gflopsPerTickBase') / 0.1 * (1 + factor) : entanglerMax;
-						if (game.getEffect('relicRefineRatio') > 20) {
-							if (Prod < Cons + 100) {
+						let rrRatio = game.getEffect('relicRefineRatio');
+						if (rrRatio > 14) {
+							builds['sunforge'].enabled = true;
+							let antimatterPercent = resPercent('antimatter');
+							if (antimatterPercent > 0.5 && rrRatio > 18) {
 								// 构造体
 								builds['tectonic'].enabled = true;
 								// 熔火之心
 								builds['moltenCore'].enabled = true;
-								if (Year > 1e5) {
+								if (Year > 5e4 && antimatterPercent > 0.8) {
 									// HR收割机
 									builds['hrHarvester'].enabled = true;
 								}
 							}
-							builds['sunforge'].enabled = true;
+							if (storage > 100) {
+								builds['spaceBeacon'].max = 50;
+							}
 						}
 					} else {
 						// 长挂 自动勾选
@@ -4069,6 +4086,9 @@ window.run = function() {
 								}
 								if (!Auto.build.items.aiCore.enabled) {
 									$('#toggle-aiCore').click();
+								}
+								if (!Auto.faith.addition.tcRefine.enabled) {
+									$('#toggle-tcRefine').click();
 								}
 								if (!Auto.options.items.useWorkers.enabled) {
 									engine.stop();
@@ -4510,7 +4530,6 @@ window.run = function() {
 				let sharks = game.diplomacy.get('sharks');
 				if (sharks.unlocked) {
 					let sharksAmt = tradeManager.getLowestTradeAmount('sharks');
-					// console.log(sharksAmt, resMap['manpower'].value /14)
 					let catnip = tradeManager.getAverageTrade(sharks).catnip;
 					tradeManager.trade('sharks', Math.max(Math.ceil(catnipNow / -catnip), sharksAmt, 1));
 					iactivity('trade.catnip');
@@ -4886,7 +4905,8 @@ window.run = function() {
 					if (Calendar.season === 3) {
 						let day = Calendar.day;
 						if (day >= 97 && day < 99) {
-							if (fa.on) {
+							let shatterTCGain = game.getEffect("shatterTCGain");
+							if (fa.on && !shatterTCGain) {
 								fa.on = 0;
 								optItem.lastDayEnergy = true;
 							}
@@ -4898,7 +4918,7 @@ window.run = function() {
 							// 关闭煅烧炉
 							let calciner = game.bld.getBuildingExt('calciner').meta;
 							if (calciner.on) {
-								calciner.on -= 1;
+								calciner.on -= (shatterTCGain > 0.3) ? calciner.on : 1;
 								msgSummary('offCalciner');
 							}
 						}
@@ -6668,7 +6688,7 @@ window.run = function() {
 				if (resPercent('unobtainium') > 0.99 && amount < 1 && value) {
 					amount = 1;
 				}
-				if (game.time.getCFU("ressourceRetrieval").on > 11 - renaissance && !game.calendar.season) {
+				if (game.time.getCFU("ressourceRetrieval").on > 12 && !game.calendar.season) {
 					amount = Math.max(Math.min(20, amount), 1);
 				}
 			}
@@ -6710,13 +6730,15 @@ window.run = function() {
 			let name = res.name;
 			let prod = game.getResourcePerTick(name, true);
 			if (name === 'timeCrystal') {
-				let aliChance = game.getEffect("alicornChance");
-				let alicornTick = game.getResourcePerTick("alicorn");
-				let tcRefineRatio = 0.04 * (1 + game.getEffect("tcRefineRatio"));
-				aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
-				let aliChanceTick = Math.min(aliChance, 1) * 0.2;
-				prod = (aliChanceTick + alicornTick) * tcRefineRatio;
-				if (game.getEffect('antimatterProduction') > 22 && resPercent('unobtainium') < 0.6) {prod *= 30;}
+				if (resMap['burnedParagon'].value < 2e6) {
+					let aliChance = game.getEffect("alicornChance");
+					let alicornTick = game.getResourcePerTick("alicorn");
+					let tcRefineRatio = 0.04 * (1 + game.getEffect("tcRefineRatio"));
+					aliChance *= 1 + game.getLimitedDR(game.getEffect("alicornPerTickRatio"), 1.2);
+					let aliChanceTick = Math.min(aliChance, 1) * 0.2;
+					prod = (aliChanceTick + alicornTick) * tcRefineRatio;
+					if (game.getEffect('antimatterProduction') > 22 && resPercent('unobtainium') < 0.6) {prod *= 30;}
+				}
 			}
 			if (res.craftable) {
 				let minProd = Number.MAX_VALUE;
@@ -7126,7 +7148,7 @@ window.run = function() {
 					limRat = (shipValue > shipLimit * 0.75 && solar > 3 + 2 * geodesy && starchart < 1e5 && satnav) ? 0.3 : limRat;
 					limRat = (manufacture || resPercent('titanium') > 0.7 || shipValue > 2e4) ? 0.05 : limRat;
 					limRat = (satnav && (!game.workshop.get('satnav').researched || titaniumMax > 123e3) && starchart < 1e4) ? 0 : limRat;
-					limRat = (shipValue > Math.max(5e4, 1e-3 * titaniumMax)) ? 0 : limRat;
+					limRat = (shipValue > Math.max(5e4, 1e-2 * titaniumMax)) ? 0 : limRat;
 					break;
 				}
 				case 'plate': {
@@ -7158,7 +7180,14 @@ window.run = function() {
 					break;
 				}
 				case 'eludium': {
-					limRat = (game.getEffect('shatterTCGain') > 0.05) ? 0.1 : 0.6;
+					let shatterTCGain = game.getEffect('shatterTCGain');
+					limRat = 0.6;
+					if (shatterTCGain) {
+						limRat =  0.1 ;
+						if (shatterTCGain > 0.12) {
+							limRat = 0.01;
+						}
+					}
 					limRat = (res.value < 125 && game.getEffect('hutPriceRatio') > -1.06) ? 1 : limRat;
 					break;
 				}
@@ -7583,7 +7612,13 @@ window.run = function() {
 			if (name === 'leviathans') {
 				// if (game.time.getCFU("ressourceRetrieval").val && resPercent('unobtainium') > 0.6) {return true;}
 				let a = resMap['relic'].value < (solar > 0) * 5 || resMap['timeCrystal'].value < 200 * (1 + 50 * game.getEffect('shatterTCGain'));
-				if (a) {return true;}
+				if (a) {
+					return true;
+				} else {
+					if (solar > 60 && game.calendar.futureSeasonTemporalParadox === -1) {
+						return false;
+					}
+				}
 			}
 			let materials = this.getMaterials(name);
 			let cost = 0;
@@ -7626,8 +7661,12 @@ window.run = function() {
 				}
 				if (tick <= 0) {
 					if (name === 'leviathans') {
-						// console.log(tick,mat)
+						// || mat === 'unobtainium'
 						if (mat === 'gold') {
+							//console.log(mat,1)
+							continue;
+						}
+						if (mat === 'unobtainium') {
 							continue;
 						}
 					}
@@ -7729,8 +7768,9 @@ window.run = function() {
 					prof = titaniumTri > 0.4;
 				} else {
 					prof = titaniumTri > 0.5 && resPercent('coal') < 0.5;
+					if (!season) {prof = titaniumTri > 0.9 && game.getEffect("shatterTCGain") && resPercent('gold') > 0.9;}
+					if (season === 3) {prof = titaniumTri > 0.9 && resPercent('coal') < 0.5 && resPercent('gold') > 0.95;}
 				}
-				if (season === 3) {prof = titaniumTri > 0.9 && resPercent('coal') < 0.5 && resPercent('gold') > 0.95;}
 				if (!doTrade) {
 					let production = game.prestige.getParagonProductionRatio() + 1;
 					let coal = resPercent('coal') < 1 && resMap['steel'].value < 0.8 * production * resMap['plate'].value;
@@ -10349,7 +10389,7 @@ window.run = function() {
 				setTimeout(()=>{
 					if (Engine.enabled) {
 						message('如需查看小喵做过什么，可以点击小猫总结(清空日志旁边)');
-						if (Math.random() * (tt + 1) < 4) {
+						if (Math.random() * (tt + 1) < 3) {
 							msgSummary('cheney');
 						}
 					}
@@ -10357,7 +10397,7 @@ window.run = function() {
 				// 提示节日开启
 				if (options.auto.options.enabled) {
 					activity('小喵杂项已开启~智慧喵喵<br>1. 喵喵自动节日已开启<br>2. 喵喵冬季最后一天的能源管理<br>3. 喵喵自动打开因资源耗尽关闭的工业建筑');
-					if (game.stats.statGroups[0].group[2].val < 1e3) {
+					if (game.stats.statGroups[0].group[2].val < 2e3) {
 						options.auto.filter.items.miscFilter.enabled = false;
 					}
 				}
