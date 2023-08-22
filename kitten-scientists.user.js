@@ -16,8 +16,7 @@
 // Begin Kitten Scientist's Automation Engine
 // ==========================================
 window.run = function() {
-	// V15.229
-	const version = '💕';
+	const version = 'V15.228';
 	const kg_version = "小猫珂学家版本" + version;
 	// Initialize and set toggles for Engine
 	// =====================================
@@ -10419,18 +10418,18 @@ window.run = function() {
 						if (Math.random() * (tt + 1) < 3) {
 							msgSummary('cheney');
 						}
-						let a;
-						if (Math.random() < 0.33) {
-							a = '一季有一百天,猜猜猫猫最喜欢哪天? 有你的每一天'
-						} else {
-							if (Math.random() < 0.5) {
-								a = '依然建设猫国未曾休息，你愿意和我一起嘛？'
-							} else {
-								a = '猫猫不入爱河，建设美丽猫国'
-							}
-						}
-						let msg = game.msg(a);
-						$(msg.span).css('color', "#ff589c");
+						// let a;
+						// if (Math.random() < 0.33) {
+						// 	a = '一季有一百天,猜猜猫猫最喜欢哪天? 有你的每一天'
+						// } else {
+						// 	if (Math.random() < 0.5) {
+						// 		a = '依然建设猫国未曾休息，你愿意和我一起嘛？'
+						// 	} else {
+						// 		a = '猫猫不入爱河，建设美丽猫国'
+						// 	}
+						// }
+						// let msg = game.msg(a);
+						// $(msg.span).css('color', "#ff589c");
 					}
 				}, 4000);
 				// 提示节日开启
