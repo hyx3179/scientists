@@ -11037,7 +11037,7 @@ window.run = function() {
 
 window.loadTest = function () {
 	let host = window.location.host;
-	let whiteList = ['gitee','127','localhost','lolita','kittensgame'];
+	let whiteList = ['gitee','127','localhost','lolita','kittensgame','hyx3179'];
 	let down;
 	whiteList.forEach(function(url){
 		if (host.indexOf(url) > -1) {
